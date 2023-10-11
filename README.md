@@ -18,9 +18,9 @@ Key Objectives:
 
 To help you understand how to work with remote components, we provide two implementation examples:
 
-1. **Simple HTML Example:** In the `simple-html-example` directory, you'll find a basic HTML page demonstrating how to import and use remote components directly in a simple web application.
+1. **React + Vite + TypeScript Example:** In the `react-vite-typescript-example` directory, you'll discover a more complex implementation using React, Vite, and TypeScript. This example illustrates how you can build a robust web application with modern tools while incorporating remote components.
+2. **Simple HTML Example:** In the `simple-html-example` directory, you'll find a basic HTML page demonstrating how to import and use remote components directly in a simple web application.
 
-2. **React + Vite + TypeScript Example:** In the `react-vite-typescript-example` directory, you'll discover a more complex implementation using React, Vite, and TypeScript. This example illustrates how you can build a robust web application with modern tools while incorporating remote components.
 
 Each implementation example comes with its own README, guiding you through setup and usage.
 

@@ -1,17 +1,10 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-# GitHub recommends pinning actions to a commit SHA.
-# To get a newer version, you will need to update the SHA.
-# You can also reference a tag or branch, but the action may change without warning.
-
-name: Publish Docker image
+name: Publish Ethereal Nexus Docker image
 
 on:
   release:
     types: [published]
+    paths:
+      - ethereal-nexus-dashboard
 
 jobs:
   push_to_registry:
@@ -43,8 +36,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-          context: ./dashboard/
-          file: ./dashboard/Dockerfile
+          context: ./ethereal-nexus-dashboard/
+          file: ./ethereal-nexus-dashboard/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

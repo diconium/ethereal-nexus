@@ -7,7 +7,6 @@ import {validateConfig} from "../lib/ConfigFile.js";
 import {CONFIG_FILENAME} from "../utils/Const.js";
 
 const __dirname = process.cwd();
-console.log(__dirname)
 const folderPath = path.join(__dirname, './src/components');
 
 function convertCamelCaseToSpaceCase(str) {

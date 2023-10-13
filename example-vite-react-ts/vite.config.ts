@@ -1,23 +1,54 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { existsSync, readdirSync } from 'fs';
+import { join, resolve } from 'path';
+import federation from '@originjs/vite-plugin-federation';
 
-// https://vitejs.dev/config/
+const componentsDir = resolve(__dirname, 'src/lib');
+
+const getDirectories = (source) =>
+  readdirSync(source, { withFileTypes: true })
+    .filter((dirent) => dirent.isDirectory())
+    .map((dirent) => dirent.name);
+
+const componentLibs = getDirectories(componentsDir).reduce((libs, fileName) => {
+  const libPackageJsonPath = resolve(
+    componentsDir,
+    join(fileName, 'package.json'),
+  );
+  if (!existsSync(libPackageJsonPath)) {
+    const filePath = resolve(componentsDir, join(fileName, 'index.ts'));
+    return [
+      ...libs,
+      {
+        entry: filePath,
+        fileName: fileName,
+      },
+    ];
+  }
+}, []);
+
 export default defineConfig({
-  server: {
-    port: 3030,
-  },
-  preview: {
-    port: 8080,
-  },
+  plugins: [
+    react(),
+    federation({
+      name: 'remote-components',
+      filename: 'remote-component.js',
+      exposes: {
+        ...componentLibs.reduce((exposes, lib) => {
+          return {
+            ...exposes,
+            [`./${lib.fileName}`]: lib.entry,
+          };
+        }, {}),
+      },
+      // FIXME: Add @r2wc/react-to-web-component to the shared dependencies
+      shared: ['react', 'react-dom'],
+    }),
+  ],
   build: {
-    minify: false,
-    rollupOptions: {
-      output: {
-        entryFileNames: `assets/[name].js`,
-        chunkFileNames: `assets/[name].js`,
-        assetFileNames: `assets/[name].[ext]`
-      }
-    }
+    modulePreload: false,
+    target: 'esnext',
+    emptyOutDir: false,
   },
-  plugins: [react()],
-})
+});

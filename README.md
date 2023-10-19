@@ -44,16 +44,25 @@ Before you begin, ensure you have the following prerequisites:
     4. Assign your configuration to a sites project.
 ### OR
 * On your AEM Project (Preferred)
-  1. Add the Maven dependency to you AEM project
+  1. Add the Maven dependency to you AEM project on module: all file: pom.xml
     ```xml 
     <dependency>
         <groupId>com.diconium</groupId>
-        <artifactId>ethereal-nexus-remote-components.all</artifactId>
-        <version>1.2.1</version>
+        <artifactId>ethereal-nexus.all</artifactId>
+        <version>1.2.16</version>
     </dependency>
   ```
-  2. Configure the endpoint to you Ethereal Nexus Dashboard.
-  3. Assign your configuration to a sites project.
+  2. Add the Embeded vault package definition on module: all file: pom.xml
+     ```xml 
+    <embedded>
+        <groupId>com.diconium</groupId>
+        <artifactId>ethereal-nexus.all</artifactId>
+        <type>zip</type>
+        <target>/apps/REPLACE_WITH_YOUR_CUSTOM_NAME-vendor-packages/remote-components/install</target>
+    </embedded>
+  ```
+  3. Configure the endpoint to you Ethereal Nexus Dashboard.
+  4. Assign your configuration to a sites project.
 
     
 ## Modular and Scalable Applications

@@ -53,14 +53,14 @@ Before you begin, ensure you have the following prerequisites:
     </dependency>
   ```
   2. Add the Embeded vault package definition on module: all file: pom.xml
-     ```xml 
+    ```xml 
     <embedded>
         <groupId>com.diconium</groupId>
         <artifactId>ethereal-nexus.all</artifactId>
         <type>zip</type>
         <target>/apps/REPLACE_WITH_YOUR_CUSTOM_NAME-vendor-packages/remote-components/install</target>
     </embedded>
-  ```
+  ``` 
   3. Configure the endpoint to you Ethereal Nexus Dashboard.
   4. Assign your configuration to a sites project.
 

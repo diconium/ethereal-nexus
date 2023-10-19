@@ -1,0 +1,35 @@
+{
+  "dialog": [
+    {
+      "type": "tabs",
+      "id": "tabs",
+      "children": [
+        {
+          "type": "tab",
+          "label": "Tab1",
+          "id": "tab1",
+          "children": [
+            {
+              "type": "multifield",
+              "id": "multifield-items"
+            }
+          ]
+        },
+        {
+          "type": "tab",
+          "label": "Tab2",
+          "id": "tab2",
+          "children": [
+            {
+              "type": "textfield",
+              "name": "title",
+              "id": "title",
+              "label": "Title 1",
+              "placeholder:": "Your title"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

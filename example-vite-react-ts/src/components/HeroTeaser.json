@@ -1,0 +1,66 @@
+{
+  "dialog": [
+    {
+      "type": "tabs",
+      "id": "tabs",
+      "children": [
+        {
+          "type": "tab",
+          "label": "Content",
+          "id": "tab1",
+          "children": [
+            {
+              "type": "textfield",
+              "name": "title",
+              "id": "title",
+              "label": "Teaser title",
+              "placeholder:": "Your title"
+            },
+            {
+              "type": "textfield",
+              "name": "description",
+              "id": "description",
+              "label": "Description",
+              "placeholder:": "Your description"
+            },
+            {
+              "type": "image",
+              "name": "image",
+              "id": "image",
+              "label": "Image",
+              "placeholder:": "Image"
+            }
+          ]
+        },
+        {
+          "type": "tab",
+          "label": "Styles",
+          "id": "tab2",
+          "children": [
+            {
+              "type": "select",
+              "name": "layout",
+              "id": "layout",
+              "label": "Choose Layout",
+              "placeholder:": "Choose the layout of the teaser",
+              "values": [
+                {
+                  "label": "Layout 1",
+                  "value": "layout-1"
+                },
+                {
+                  "label": "Layout 2",
+                  "value": "layout-2"
+                },
+                {
+                  "label": "Layout 3",
+                  "value": "layout-3"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

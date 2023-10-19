@@ -56,6 +56,7 @@ export default AccordionComponent;
 
 if (!window.customElements.get('accordion-component')) {
     customElements.define("accordion-component", r2wc(AccordionComponent, {
+    // @ts-ignore
         props: {
             datapath: "string",
             dataconfig: "string",

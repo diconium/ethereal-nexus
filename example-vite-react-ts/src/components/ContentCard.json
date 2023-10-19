@@ -1,0 +1,108 @@
+{
+  "dialog": [
+    {
+      "type": "tabs",
+      "id": "tabs",
+      "children": [
+        {
+          "type": "tab",
+          "label": "Content",
+          "id": "tab1",
+          "children": [
+            {
+              "type": "textfield",
+              "name": "title",
+              "id": "title",
+              "label": "Teaser title",
+              "placeholder:": "Your title"
+            },
+            {
+              "type": "textfield",
+              "name": "subtitle",
+              "id": "subtitle",
+              "label": "Subtitle",
+              "placeholder:": "Subtitle"
+            },
+            {
+              "type": "textfield",
+              "name": "price",
+              "id": "price",
+              "label": "price",
+              "placeholder:": "Subtitle"
+            }
+          ]
+        },
+        {
+          "type": "tab",
+          "label": "Image",
+          "id": "tab2",
+          "children": [
+            {
+              "type": "image",
+              "name": "image",
+              "id": "image",
+              "label": "image",
+              "placeholder:": "image"
+            },
+            {
+              "type": "textfield",
+              "name": "alt",
+              "id": "alt",
+              "label": "Alt text",
+              "placeholder:": "alt"
+            }
+          ]
+        },
+        {
+          "type": "tab",
+          "label": "CTA",
+          "id": "cta",
+          "children": [
+            {
+              "type": "pathbrowser",
+              "name": "cta",
+              "id": "cra",
+              "label": "Link",
+              "placeholder:": "Link"
+            },
+            {
+              "type": "textfield",
+              "name": "ctalabel",
+              "id": "ctalabel",
+              "label": "Label",
+              "placeholder:": "ctalabel"
+            }
+          ]
+        },
+        {
+          "type": "tab",
+          "label": "Styles",
+          "id": "tab3",
+          "children": [
+            {
+              "type": "select",
+              "name": "layout",
+              "id": "layout",
+              "label": "Choose Layout",
+              "placeholder:": "Choose the layout of the teaser",
+              "values": [
+                {
+                  "label": "Layout 1",
+                  "value": "layout-1"
+                },
+                {
+                  "label": "Layout 2",
+                  "value": "layout-2"
+                },
+                {
+                  "label": "Layout 3",
+                  "value": "layout-3"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

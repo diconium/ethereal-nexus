@@ -55,7 +55,7 @@ export const processComponents = async ({ config, components }) => {
               if (success) {
                 await uploadAssets({
                   config,
-                  url: `${config.url}/api/v1/components/${element.name}/versions/${element.version}/assets`,
+                  url: `${config.url}/api/v1/components/${element.name}/versions/${element.version}/assets/${element.name}`,
                   folderPath: `./dist/ethereal-nexus/${element.name}`,
                 });
               } else {

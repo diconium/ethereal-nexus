@@ -1,70 +1,78 @@
 import fetch from "node-fetch";
-import {uploadAssets} from "./UploadAssets.js";
+import { uploadAssets } from "./UploadAssets.js";
 import ora from "ora";
 import chalk from "chalk";
 import logSymbols from "log-symbols";
 
-const putComponentInRemoteComponentsAPI = async ({config, element}) => {
+const putComponentInRemoteComponentsAPI = async ({ config, element }) => {
+  const requestOptions = {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(element),
+  };
 
-    const requestOptions = {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(element),
-    };
+  if (config.authorization) {
+    requestOptions.headers.Authorization = config.authorization;
+  }
 
-    if (config.authorization) {
-        requestOptions.headers.Authorization = config.authorization;
-    }
-
-    return await fetch(`${config.url}/api/v1/components`, requestOptions)
-        .then((response) => {
-            if (response.ok) {
-                // console.log(`Updated component: ${JSON.stringify(element.name)} version: ${JSON.stringify(element.version)}`);
-                return true;
-            } else {
-                console.error(`Updated component failed for: ${JSON.stringify(element.name)}`);
-                return false;
-            }
-        })
-        .catch(error => {
-            console.error(`Error occurred while calling API for element: ${JSON.stringify(element)}`);
-            return false;
-        });
+  return await fetch(`${config.url}/api/v1/components`, requestOptions)
+    .then((response) => {
+      if (response.ok) {
+        // console.log(`Updated component: ${JSON.stringify(element.name)} version: ${JSON.stringify(element.version)}`);
+        return true;
+      } else {
+        console.error(
+          `Updated component failed for: ${JSON.stringify(element.name)}`,
+        );
+        return false;
+      }
+    })
+    .catch((error) => {
+      console.error(
+        `Error occurred while calling API for element: ${JSON.stringify(
+          element,
+        )}`,
+      );
+      return false;
+    });
 };
 
-export const processComponents = async ({config, components}) => {
-    try {
-        const spinner = ora('Uploading components...').start();
+export const processComponents = async ({ config, components }) => {
+  try {
+    const spinner = ora("Uploading components...").start();
 
-        await Promise.all(components.map(async (element, index) => {
+    await Promise.all(
+      components.map(async (element, index) => {
+        if (element.name && element.version) {
+          await putComponentInRemoteComponentsAPI({ config, element }).then(
+            async (success) => {
+              spinner.text = `Uploading component ${element.name} [${
+                index + 1
+              }/${components.length}]`;
 
-            if (element.name && element.version) {
-                await putComponentInRemoteComponentsAPI({config, element}).then(async (success) => {
-
-                    spinner.text = `Uploading component ${element.name} [${index + 1}/${components.length}]`;
-
-                    if (success) {
-                        await uploadAssets({
-                            config,
-                            url: `${config.url}/api/v1/components/${element.name}/versions/${element.version}/assets`,
-                            folderPath: "./dist/assets"
-                        });
-                    } else {
-                        console.log('Skipping file upload due to previous failure.');
-                    }
+              if (success) {
+                await uploadAssets({
+                  config,
+                  url: `${config.url}/api/v1/components/${element.name}/versions/${element.version}/assets`,
+                  folderPath: `./dist/ethereal-nexus/${element.name}`,
                 });
-
-            }
-        }))
-        spinner.stopAndPersist({
-            symbols: logSymbols.success,
-            text: chalk.green(`Components uploaded [${components.length}/${components.length}]`)
-        });
-
-
-    } catch (error) {
-        console.error(error)
-    }
+              } else {
+                console.log("Skipping file upload due to previous failure.");
+              }
+            },
+          );
+        }
+      }),
+    );
+    spinner.stopAndPersist({
+      symbols: logSymbols.success,
+      text: chalk.green(
+        `Components uploaded [${components.length}/${components.length}]`,
+      ),
+    });
+  } catch (error) {
+    console.error(error);
+  }
 };

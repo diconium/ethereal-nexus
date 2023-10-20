@@ -1,5 +1,6 @@
 import './button.css';
 import r2wc from '@r2wc/react-to-web-component';
+import { useEffect } from 'react';
 
 export interface ButtonProps {
   name: string;
@@ -16,6 +17,10 @@ export default function Button({
   type = 'button',
   style = 'default',
 }: ButtonProps) {
+  useEffect(() => {
+    console.log('ButtonProps', { name, label, url, type, style });
+  });
+
   const onClick = () => {
     url && window.open(url, '_blank');
   };

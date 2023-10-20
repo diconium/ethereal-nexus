@@ -16,6 +16,7 @@ export default function ButtonGroup({
       name: 'button 2',
       label: 'button 2',
       url: 'button 2',
+      style: 'primary',
     },
     {
       name: 'button 3',

@@ -1,14 +1,14 @@
-import fetch from "node-fetch";
-import { uploadAssets } from "./UploadAssets.js";
-import ora from "ora";
-import chalk from "chalk";
-import logSymbols from "log-symbols";
+import fetch from 'node-fetch';
+import { uploadAssets } from './UploadAssets.js';
+import ora from 'ora';
+import chalk from 'chalk';
+import logSymbols from 'log-symbols';
 
 const putComponentInRemoteComponentsAPI = async ({ config, element }) => {
   const requestOptions = {
-    method: "PUT",
+    method: 'PUT',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(element),
   };
@@ -41,7 +41,7 @@ const putComponentInRemoteComponentsAPI = async ({ config, element }) => {
 
 export const processComponents = async ({ config, components }) => {
   try {
-    const spinner = ora("Uploading components...").start();
+    const spinner = ora('Uploading components...').start();
 
     await Promise.all(
       components.map(async (element, index) => {
@@ -59,7 +59,7 @@ export const processComponents = async ({ config, components }) => {
                   folderPath: `./dist/ethereal-nexus/${element.name}`,
                 });
               } else {
-                console.log("Skipping file upload due to previous failure.");
+                console.log('Skipping file upload due to previous failure.');
               }
             },
           );

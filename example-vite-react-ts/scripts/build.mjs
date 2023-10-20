@@ -4,7 +4,6 @@ import { existsSync, readdirSync } from 'fs';
 import { join, resolve } from 'path';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
-import federation from '@originjs/vite-plugin-federation';
 
 const rootDir = resolve(process.cwd());
 

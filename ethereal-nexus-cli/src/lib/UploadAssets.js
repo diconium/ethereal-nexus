@@ -1,32 +1,30 @@
-import fs from "fs";
-import fetch from "node-fetch";
-import path from "path";
-import ora from "ora";
+import fs from 'fs';
+import fetch from 'node-fetch';
+import path from 'path';
+import ora from 'ora';
 
 export async function uploadAssets({ config, url, folderPath }) {
   const getContentTypeByExtension = (fileName) => {
     const extension = path.extname(fileName).toLowerCase();
 
     switch (extension) {
-      case ".js":
-        return "text/javascript";
-      case ".css":
-        return "text/css";
+      case '.js':
+        return 'text/javascript';
+      case '.css':
+        return 'text/css';
       default:
-        return "text/javascript"; // Default content type
+        return 'text/javascript'; // Default content type
     }
   };
   try {
     const fileNames = fs.readdirSync(folderPath);
     const spinner = ora({
       discardStdin: false,
-      text: "Uploading assets...",
+      text: 'Uploading assets...',
     }).start();
 
     await Promise.all(
       fileNames.map(async (fileName, index) => {
-        console.log("fileName", fileName);
-
         const filePath = path.join(folderPath, fileName);
         const data = fs.readFileSync(filePath);
         const contentType = getContentTypeByExtension(fileName);
@@ -34,14 +32,14 @@ export async function uploadAssets({ config, url, folderPath }) {
           fileNames.length
         }]`;
         const requestOptions = {
-          method: "POST",
+          method: 'POST',
           body: data,
           headers: {
-            "Content-Type": contentType,
+            'Content-Type': contentType,
           },
         };
         if (config.authorization) {
-          requestOptions.headers["Authorization"] = config.authorization;
+          requestOptions.headers['Authorization'] = config.authorization;
         }
         await fetch(url, requestOptions)
           .then((response) => {
@@ -65,7 +63,7 @@ export async function uploadAssets({ config, url, folderPath }) {
     spinner.stop();
     return true;
   } catch (error) {
-    console.error("Error uploading files:", error.message);
+    console.error('Error uploading files:', error.message);
     return false;
   }
 }

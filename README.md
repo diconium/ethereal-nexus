@@ -18,9 +18,9 @@ Key Objectives:
 
 To help you understand how to work with remote components, we provide two implementation examples:
 
-1. **Simple HTML Example:** In the `simple-html-example` directory, you'll find a basic HTML page demonstrating how to import and use remote components directly in a simple web application.
+1. **React + Vite + TypeScript Example:** In the `react-vite-typescript-example` directory, you'll discover a more complex implementation using React, Vite, and TypeScript. This example illustrates how you can build a robust web application with modern tools while incorporating remote components.
+2. **Simple HTML Example:** In the `simple-html-example` directory, you'll find a basic HTML page demonstrating how to import and use remote components directly in a simple web application.
 
-2. **React + Vite + TypeScript Example:** In the `react-vite-typescript-example` directory, you'll discover a more complex implementation using React, Vite, and TypeScript. This example illustrates how you can build a robust web application with modern tools while incorporating remote components.
 
 Each implementation example comes with its own README, guiding you through setup and usage.
 
@@ -44,16 +44,25 @@ Before you begin, ensure you have the following prerequisites:
     4. Assign your configuration to a sites project.
 ### OR
 * On your AEM Project (Preferred)
-  1. Add the Maven dependency to you AEM project
+  1. Add the Maven dependency to you AEM project on module: all file: pom.xml
     ```xml 
     <dependency>
         <groupId>com.diconium</groupId>
-        <artifactId>ethereal-nexus-remote-components.all</artifactId>
-        <version>1.2.1</version>
+        <artifactId>ethereal-nexus.all</artifactId>
+        <version>1.2.16</version>
     </dependency>
   ```
-  2. Configure the endpoint to you Ethereal Nexus Dashboard.
-  3. Assign your configuration to a sites project.
+  2. Add the Embeded vault package definition on module: all file: pom.xml
+    ```xml 
+    <embedded>
+        <groupId>com.diconium</groupId>
+        <artifactId>ethereal-nexus.all</artifactId>
+        <type>zip</type>
+        <target>/apps/REPLACE_WITH_YOUR_CUSTOM_NAME-vendor-packages/remote-components/install</target>
+    </embedded>
+  ``` 
+  3. Configure the endpoint to you Ethereal Nexus Dashboard.
+  4. Assign your configuration to a sites project.
 
     
 ## Modular and Scalable Applications

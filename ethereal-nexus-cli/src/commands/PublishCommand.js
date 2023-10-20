@@ -32,7 +32,11 @@ export async function publishCommand() {
 
     const components = componentDirectories.reduce(
       (componentsSpec, componentName) => {
-        const entryFilePath = join(folderPath, componentName, `index.ts`);
+        const entryFilePath = join(
+          folderPath,
+          componentName,
+          `${componentName}.tsx`,
+        );
         if (!fs.existsSync(entryFilePath)) {
           console.error(
             chalk.red(
@@ -49,8 +53,13 @@ export async function publishCommand() {
         );
         let dialog;
         try {
-          const authorJsonContent = fs.readFileSync(jsonFilePath, 'utf8');
-          dialog = JSON.parse(authorJsonContent).dialog;
+          if (fs.existsSync(jsonFilePath)) {
+            const authorJsonContent = fs.readFileSync(jsonFilePath, 'utf8');
+            dialog = JSON.parse(authorJsonContent).dialog;
+            // TODO: validate dialog schema
+          } else {
+            dialog = [];
+          }
         } catch (error) {
           console.error(error);
           console.error(

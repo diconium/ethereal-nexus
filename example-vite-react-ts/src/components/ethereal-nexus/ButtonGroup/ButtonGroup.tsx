@@ -1,5 +1,5 @@
 import r2wc from '@r2wc/react-to-web-component';
-import Button, { ButtonProps } from '../button/button';
+import Button, { ButtonProps } from '../Button/Button';
 
 export interface ButtonGroupProps {
   buttons: ButtonProps[];

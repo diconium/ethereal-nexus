@@ -9,6 +9,10 @@ const rootDir = resolve(process.cwd());
 
 const componentsDir = resolve(rootDir, 'src/components/ethereal-nexus');
 
+function convertCamelCaseToDashCase(str) {
+  return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+}
+
 const getDirectories = (source) =>
   readdirSync(source, { withFileTypes: true })
     .filter((dirent) => dirent.isDirectory())
@@ -21,7 +25,7 @@ const componentLibs = getDirectories(componentsDir).reduce(
       join(componentName, 'package.json'),
     );
     if (!existsSync(libPackageJsonPath)) {
-      const entry = resolve(componentsDir, join(componentName, 'index.ts'));
+      const entry = resolve(componentsDir, join(componentName, `${componentName}.tsx`));
       return [
         ...libs,
         {
@@ -35,6 +39,7 @@ const componentLibs = getDirectories(componentsDir).reduce(
 );
 
 for (const lib of componentLibs) {
+  const assetName = convertCamelCaseToDashCase(lib.componentName);
   console.log(`building ${lib.componentName} ${lib.entry}...`);
   await build({
     plugins: [
@@ -43,15 +48,15 @@ for (const lib of componentLibs) {
     build: {
       rollupOptions: {
         input: {
-          [lib.componentName]: lib.entry,
+          [assetName]: lib.entry,
         },
         output: {
-          entryFileNames: `${lib.componentName}.js`,
-          assetFileNames: `${lib.componentName}.[ext]`,
+          entryFileNames: `${assetName}.js`,
+          assetFileNames: `${assetName}.[ext]`,
         }
       },
       target: 'esnext',
-      outDir: `./dist/ethereal-nexus/${lib.componentName}`,
+      outDir: `./dist/ethereal-nexus/${assetName}`,
       emptyOutDir: false,
       minify:false
     },

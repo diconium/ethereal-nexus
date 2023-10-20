@@ -22,7 +22,7 @@ const accountKey = process.env.AZURE_BLOB_STORAGE_SECRET || "";
 
 /**
  * @swagger
- * /api/v1/components/{name}/versions/{version}/assets:
+ * /api/v1/components/{name}/versions/{version}/assets/{fileName}:
  *   post:
  *     summary: add component asset
  *     description: Add component asset
@@ -30,6 +30,16 @@ const accountKey = process.env.AZURE_BLOB_STORAGE_SECRET || "";
  *      - Components
  *     produces:
  *      - application/json
+ *     requestBody:
+ *      content:
+ *          text/javascript:
+ *            schema:
+ *              type: string
+ *              format: binary
+ *          text/css:
+ *            schema:
+ *              type: string
+ *              format: binary
  *     parameters:
  *      - in: path
  *        name: name
@@ -40,6 +50,11 @@ const accountKey = process.env.AZURE_BLOB_STORAGE_SECRET || "";
  *        name: version
  *        description: The component's version
  *        required: true
+ *        type: string
+ *      - in: path
+ *        name: fileName
+ *        description: The asset file name
+ *        required: false
  *        type: string
  *     responses:
  *      '200':
@@ -77,9 +92,11 @@ const blobServiceClient = new BlobServiceClient(
   sharedKeyCredential,
 );
 
+type AssetUploadParams = Pick<Component, "name" | "version"> & { fileName: string };
+
 export async function POST(
   request: Request,
-  { params }: { params: Pick<Component, "name" | "version"> },
+  { params }: { params: AssetUploadParams },
 ) {
   try {
     const headersList = headers();
@@ -110,7 +127,7 @@ export async function POST(
 
 const uploadToStorage = async (
   request: any,
-  fileName: string = "index",
+  filePath: string = "index",
   contentType: string,
 ) => {
   const containerClient = blobServiceClient.getContainerClient(
@@ -133,7 +150,7 @@ const uploadToStorage = async (
     console.log(e);
   }
 
-  const blockBlobClient = containerClient.getBlockBlobClient(fileName);
+  const blockBlobClient = containerClient.getBlockBlobClient(filePath);
   if (buffers.length) {
     const completeBuffer = Buffer.concat(buffers);
     return await blockBlobClient.upload(
@@ -150,10 +167,10 @@ const uploadToStorage = async (
 };
 
 function getFilePath(
-  { name, version }: Pick<Component, "name" | "version">,
+  { name, version, fileName = "index" }: AssetUploadParams,
   contentType: string,
 ): string {
-  return `${name}/${version}/index.${fileTypes[contentType]}`;
+  return `${name}/${version}/${fileName}.${fileTypes[contentType]}`;
 }
 
 async function updateDBComponentAssets({
@@ -161,7 +178,7 @@ async function updateDBComponentAssets({
   contentType,
   url,
 }: {
-  params: { name: string; version: string };
+  params: AssetUploadParams;
   contentType: string;
   url: string;
 }) {
@@ -184,7 +201,7 @@ async function updateDBComponentAssets({
   const { assets = []} = response;
 
   const otherAssets = assets.filter(
-    (asset: any) => asset.type !== fileTypes[contentType],
+    (asset: any) => asset.filePath !== url,
   );
 
   const updated: any = { type: fileTypes[contentType] , filePath: url };

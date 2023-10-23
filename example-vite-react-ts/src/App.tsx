@@ -1,11 +1,11 @@
 import './App.css'
-import MyComponent from "./components/MyComponent.tsx";
+import MyComponent from "./components/ethereal-nexus/MyComponent/MyComponent";
 
 
-import HelloWorld from "./components/HelloWorld.tsx";
-import TableComponent from "./components/TableComponent.tsx";
-import WKNDArticle from "./components/WKNDArticle.tsx";
-import AccordionComponent from "./components/AccordionComponent.tsx";
+import HelloWorld from "./components/ethereal-nexus/HelloWorld/HelloWorld";
+import TableComponent from "./components/ethereal-nexus/Table/Table";
+import WKNDArticle from "./components/ethereal-nexus/WKNDArticle/WKNDArticle";
+import AccordionComponent from "./components/ethereal-nexus/Accordion/Accordion";
 
 function App() {
 
@@ -20,4 +20,4 @@ function App() {
     )
 }
 
-export default App
+export default App;

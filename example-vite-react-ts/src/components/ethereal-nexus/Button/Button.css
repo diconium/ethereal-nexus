@@ -1,0 +1,17 @@
+.button {
+    border: none;
+    font-size: 1rem;
+    padding: 1rem;
+    border-radius: 0.25rem;
+}
+.button:hover {
+    cursor: pointer;
+}
+.button-default {
+    background-color: #ff4700;
+    color: #fff;
+}
+.button-primary {
+    background-color: #cb2889;
+    color: #fff;
+}

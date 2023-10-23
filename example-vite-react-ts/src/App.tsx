@@ -1,21 +1,26 @@
 import './App.css'
-import MyComponent from "./components/ethereal-nexus/MyComponent/MyComponent";
 
-
-import HelloWorld from "./components/ethereal-nexus/HelloWorld/HelloWorld";
-import TableComponent from "./components/ethereal-nexus/Table/Table";
-import WKNDArticle from "./components/ethereal-nexus/WKNDArticle/WKNDArticle";
-import AccordionComponent from "./components/ethereal-nexus/Accordion/Accordion";
+import NavigationBar from "./components/ethereal-nexus/NavigationBar/NavigationBar.tsx";
+import HeroTeaser from "./components/ethereal-nexus/HeroTeaser/HeroTeaser.tsx";
+import Title from "./components/ethereal-nexus/Title/Title.tsx";
+import TextImage from "./components/ethereal-nexus/TextImage/TextImage.tsx";
+import ContentTeaser from "./components/ethereal-nexus/ContentTeaser/ContentTeaser.tsx";
+import CTA from "./components/ethereal-nexus/CTA/CTA.tsx";
+import Footer from "./components/ethereal-nexus/Footer/Footer.tsx";
+import Pricing from "./components/ethereal-nexus/Pricing/Pricing.tsx";
 
 function App() {
 
     return (
         <>
-            <MyComponent name={"Rui"} image={"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqchnDJ6zreYOFN7Sag4iGQPEhjseY59SfQ-mf9bN2GpE8fcPXGGO3QC0YLVId0xw2zFU&usqp=CAU"} url={"/profile1"}></MyComponent>
-            <TableComponent title={"Table"} description={"Lorem ipsum dolor"}/>
-            <HelloWorld title={"Ricardo"}></HelloWorld>
-            <WKNDArticle title={"title"} description={"description"} imageAlt={"altImage"} imageurl={"https://slp-statics.astockcdn.net/static_assets/staging/23summer/home/EMEA/curated-collections/card-6.jpg?width=580&format=webp"} url={"#"}></WKNDArticle>
-            <AccordionComponent title={"My Accordion"} dataconfig={""} datapath={""} tabs={[]}></AccordionComponent>
+            <NavigationBar/>
+            <HeroTeaser></HeroTeaser>
+            <Title></Title>
+            <TextImage></TextImage>
+            <ContentTeaser></ContentTeaser>
+            <Pricing></Pricing>
+            <CTA></CTA>
+            <Footer></Footer>
         </>
     )
 }

@@ -1,14 +1,17 @@
 import r2wc from '@r2wc/react-to-web-component';
 import './CTA.css'
-export interface CTA {
-  name: string;
-  label: string;
-  url: string;
-  type?: 'submit' | 'button' | 'reset' | undefined;
-  style?: string;
+export interface CTAProps {
+  headline: string;
+  subheadline: string;
+  cta: string;
+  ctaredirect: string
 }
 
-export default function CTA() {
+export default function CTA({headline, subheadline, cta, ctaredirect}: CTAProps) {
+  const onClick = (url: string) => {
+    url && window.open(url, '_blank');
+  };
+
   return (
       <>
         <svg className="wave-top gradient" viewBox="0 0 1439 147" version="1.1" xmlns="http://www.w3.org/2000/svg">
@@ -34,31 +37,30 @@ export default function CTA() {
         </svg>
         <section className="container mx-auto text-center py-6 mb-12 gradient text-white">
           <h2 className="w-full my-2 text-5xl font-bold leading-tight text-center text-white">
-            Call to Action
+            {headline}
           </h2>
           <div className="w-full mb-4">
             <div className="h-1 mx-auto bg-white w-1/6 opacity-25 my-0 py-0 rounded-t"></div>
           </div>
           <h3 className="my-4 text-3xl leading-tight">
-            Main Hero Message to sell yourself!
+            {subheadline}
           </h3>
-          <button className="mx-auto lg:mx-0 hover:underline bg-white text-gray-800 font-bold rounded-full my-6 py-4 px-8 shadow-lg focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 ease-in-out">
-            Action!
+          <button onClick={() => onClick(ctaredirect)} className="mx-auto lg:mx-0 hover:underline bg-white text-gray-800 font-bold rounded-full my-6 py-4 px-8 shadow-lg focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 ease-in-out">
+            {cta}
           </button>
         </section>
       </>
   );
 }
-if (!window.customElements.get('cta-vite')) {
+if (!window.customElements.get('cta-component')) {
   customElements.define(
-    'cta-vite',
-    r2wc<CTA>(CTA, {
+    'cta-component',
+    r2wc<CTAProps>(CTA, {
       props: {
-        name: 'string',
-        label: 'string',
-        url: 'string',
-        type: 'string',
-        style: 'string',
+        headline: 'string',
+        subheadline: 'string',
+        cta: 'string',
+        ctaredirect: 'string',
       },
     }),
   );

@@ -1,32 +1,39 @@
 import r2wc from '@r2wc/react-to-web-component';
 import './HeroTeaser.css'
-export interface HeroTeaser {
-  name: string;
-  label: string;
-  url: string;
-  type?: 'submit' | 'button' | 'reset' | undefined;
-  style?: string;
+export interface HeroTeaserProps {
+  headline: string;
+  caption: string;
+  image: string;
+  subheadline: string;
+  cta: string;
+  ctaredirect: string
+  isimageright?: boolean
 }
 
-export default function HeroTeaser() {
+export default function HeroTeaser({headline, subheadline, caption, cta, ctaredirect, image, isimageright = true}: HeroTeaserProps) {
+  const onClick = (url: string) => {
+    url && window.open(url, '_blank');
+  };
   return (
     <>
       <div className="mt-24 gradient text-white">
-        <div className=" px-3 mx-auto flex flex-wrap flex-col md:flex-row items-center">
+        <div className={`px-3 mx-auto flex flex-wrap flex-col ${isimageright ? 'md:flex-row' : 'md:flex-row-reverse' } items-center`}>
           <div className="flex flex-col w-full md:w-2/5 justify-center items-start text-center md:text-left">
-            <p className="uppercase tracking-loose w-full">What business are you?</p>
+            <p className="uppercase tracking-loose w-full">{caption}</p>
             <h1 className="my-4 text-5xl font-bold leading-tight">
-              Main Hero Message to sell yourself!
+              {headline}
             </h1>
             <p className="leading-normal text-2xl mb-8">
-              Sub-hero message, not too long and not too short. Make it just right!
+              {subheadline}
             </p>
-            <button className="mx-auto lg:mx-0 hover:underline bg-white text-gray-800 font-bold rounded-full my-6 py-4 px-8 shadow-lg focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 ease-in-out">
-              Subscribe
-            </button>
+            {cta ? (
+                <button onClick={() => onClick(ctaredirect)} className="mx-auto lg:mx-0 hover:underline bg-white text-gray-800 font-bold rounded-full my-6 py-4 px-8 shadow-lg focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 ease-in-out">
+                  {cta}
+                </button>
+            ) : null}
           </div>
           <div className="w-full md:w-3/5 py-6 text-center">
-            <img className="w-full md:w-4/5 z-50" src={'https://picsum.photos/200'} />
+            <img className="w-full md:w-4/5 z-50" src={image} />
           </div>
         </div>
       </div>
@@ -55,13 +62,15 @@ export default function HeroTeaser() {
 if (!window.customElements.get('hero-teaser')) {
   customElements.define(
     'hero-teaser',
-    r2wc<HeroTeaser>(HeroTeaser, {
+    r2wc<HeroTeaserProps>(HeroTeaser, {
       props: {
-        name: 'string',
-        label: 'string',
-        url: 'string',
-        type: 'string',
-        style: 'string',
+        headline: 'string',
+        caption: 'string',
+        image: 'string',
+        subheadline: 'string',
+        cta: 'string',
+        ctaredirect: 'string',
+        isimageright: 'boolean',
       },
     }),
   );

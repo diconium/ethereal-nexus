@@ -17,7 +17,7 @@
     {
       "type": "textfield",
       "name": "headline",
-      "id": "headling",
+      "id": "headline",
       "label": "Headling",
       "placeholder:": "Heading"
     },

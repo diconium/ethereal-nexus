@@ -4,11 +4,12 @@ export interface TextImage {
   title: string;
   subtitle: string;
   image: string;
+  isimageright: boolean,
 }
 
-export default function TextImage({title, subtitle, image}: TextImage) {
+export default function TextImage({title, subtitle, image, isimageright}: TextImage) {
   return (
-      <div className="flex flex-wrap">
+      <div className={`flex ${isimageright ? 'flex-row' : 'flex-row-reverse'} flex-wrap`}>
         <div className="w-5/6 sm:w-1/2 p-6">
           <h3 className="text-3xl text-gray-800 font-bold leading-none mb-3">
               {title}
@@ -33,6 +34,7 @@ if (!window.customElements.get('text-image')) {
         title: 'string',
         subtitle: 'string',
         image: 'string',
+        isimageright: 'boolean',
       },
     }),
   );

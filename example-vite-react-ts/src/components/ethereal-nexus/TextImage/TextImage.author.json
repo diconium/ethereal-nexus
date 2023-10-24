@@ -20,7 +20,12 @@
       "id": "image",
       "label": "Image",
       "placeholder:": "Image"
+    },
+    {
+      "type": "checkbox",
+      "name": "isimageright",
+      "id": "isimageright",
+      "label": "Is Image Right"
     }
-
   ]
 }

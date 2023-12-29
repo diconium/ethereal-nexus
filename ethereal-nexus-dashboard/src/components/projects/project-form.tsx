@@ -18,13 +18,19 @@ import { toast } from "@/components/ui/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import MultiSelect from "@/components/ui/multi-select";
+import {ComponentsDataTable} from "@/components/components/components-data-table/data-table";
+import {columns} from "@/components/components/components-data-table/projectColumns";
+import React from "react";
 
 const projectsFormSchema = z.object({
   name: z.string().min(3, {
     message: "Name must be at least 3 characters.",
   }),
   description: z.string(),
-  components: z.array(z.string()),
+  components: z.array(z.object({
+      name: z.string(),
+      version: z.string(),
+  })),
 });
 
 type ProjectsFormValues = z.infer<typeof projectsFormSchema>;
@@ -37,6 +43,8 @@ export default function ProjectsForm({ id, project, availableComponents }) {
   });
   const onSubmit = async (data: ProjectsFormValues) => {
     try {
+        console.log('submitting');
+        console.log(data);
       await fetch(`/api/v1/projects${id !== "0" ? `/${id}` : ""}`, {
         method: "put",
         body: JSON.stringify(data),
@@ -87,20 +95,8 @@ export default function ProjectsForm({ id, project, availableComponents }) {
             </FormItem>
           )}
         />
-        <MultiSelect
-          allOptions={availableComponents}
-          label="Select components that can be used in this project"
-          placeholder="Select components"
-          notFoundLabel="No components found"
-          addLabel="Add component"
-          valueProp={"name"}
-          viewValueProp={"name"}
-          initialSelectedOptions={project?.components ?? []}
-          onChange={(value) => {
-            form.setValue("components", value);
-          }}
-        />
-        <Button type="submit">Update project</Button>
+          <ComponentsDataTable columns={columns} dataUrl="/api/v1/componentsWithVersions" onChangeSelected={(value)=>form.setValue("components", value)} initialProjectComponents={project?.components}/>
+          <Button type="submit">Update project</Button>
       </form>
     </Form>
   );

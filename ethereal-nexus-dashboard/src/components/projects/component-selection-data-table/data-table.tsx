@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import {useEffect, useState} from "react";
-import { columns } from "./columns";
+import {columns} from "./columns";
 
 import {
     ColumnFiltersState,
@@ -124,6 +124,7 @@ export function ComponentSelectionDataTable({
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && "selected"}
+                                    highlightSelected={false}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>

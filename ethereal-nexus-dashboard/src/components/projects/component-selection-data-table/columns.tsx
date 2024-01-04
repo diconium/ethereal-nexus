@@ -24,7 +24,7 @@ function VersionDialog({versions: versionsWithoutLatest = [], onChangeVersion, s
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                     <Button
-                        variant="outline"
+                        variant="secondary"
                         role="combobox"
                         aria-expanded={open}
                         aria-label="Select a team"
@@ -90,14 +90,16 @@ export const columns = [
             <DataTableColumnHeader column={column} title="Version"/>
         ),
         cell: ({table, row}) => (
-            row.getIsSelected() &&
-            <VersionDialog
-                versions={row.original.versions} // TODO check the proper way to do this
-                selectedVersion={table.getState().projectComponents.find(component => component.name === row.getValue('name'))?.version}
-                onChangeVersion={(newVersion) => table.getState().setProjectComponents([...table.getState().projectComponents.filter(component => component.name != row.getValue('name')), {
-                    name: row.getValue('name'),
-                    version: newVersion
-                }])}/>
+            <div className="h-9 w-[80px]">
+                {row.getIsSelected() &&
+                    <VersionDialog
+                        versions={row.original.versions} // TODO check the proper way to do this
+                        selectedVersion={table.getState().projectComponents.find(component => component.name === row.getValue('name'))?.version}
+                        onChangeVersion={(newVersion) => table.getState().setProjectComponents([...table.getState().projectComponents.filter(component => component.name != row.getValue('name')), {
+                            name: row.getValue('name'),
+                            version: newVersion
+                        }])}/>}
+            </div>
         ),
         enableSorting: false,
         enableHiding: true,

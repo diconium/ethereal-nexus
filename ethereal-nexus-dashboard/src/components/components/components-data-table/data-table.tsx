@@ -27,7 +27,7 @@ import {
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { useEffect, useState } from "react";
-import { columns } from "@/components/components/components-data-table/columns";
+import { columns } from "./columns";
 
 export function ComponentsDataTable({}) {
   const [rowSelection, setRowSelection] = useState({});

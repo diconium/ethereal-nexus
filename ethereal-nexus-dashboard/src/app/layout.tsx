@@ -1,14 +1,13 @@
-"use client";
-
 import "./globals.css";
 import React from "react";
 import { Inter } from "next/font/google";
 import DashboardLayout from "@/components/layout";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider } from '@/components/theme-provider';
+import { auth } from '@auth';
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;

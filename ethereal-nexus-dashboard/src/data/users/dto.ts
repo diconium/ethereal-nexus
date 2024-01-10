@@ -10,7 +10,8 @@ export const userPublicSchema = createSelectSchema(users)
 
 export const newUserSchema = createInsertSchema(users, {
   password: (schema) => schema.password
-    .min(8, 'Password must be longer than 8 characters')
+    .min(8, 'Password must be longer than 8 characters'),
+  email: (schema) => schema.email.email()
 })
   .required({
     password: true
@@ -19,5 +20,9 @@ export const newUserSchema = createInsertSchema(users, {
 
 export const userLoginSchema = newUserSchema.pick({
   password: true,
+  email: true,
+})
+
+export const userEmailSchema = newUserSchema.pick({
   email: true,
 })

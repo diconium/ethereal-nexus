@@ -1,6 +1,6 @@
 export type Result<T> = {
     success: true
-    data?: T
+    data: T
   }
   | {
   success: false,

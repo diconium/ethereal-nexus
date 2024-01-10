@@ -4,7 +4,7 @@ import * as bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 import { db } from '@/db';
 import { users } from '@/data/users/schema';
-import { newUserSchema, userPublicSchema, userSchema } from '@/data/users/dto';
+import { newUserSchema, userEmailSchema, userPublicSchema, userSchema } from '@/data/users/dto';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { Result } from '@/data/action';
@@ -41,5 +41,30 @@ export async function insertUser(user: z.infer<typeof newUserSchema>): Promise<R
     return actionSuccess(result.data);
   } catch (error) {
     return actionError( 'Failed to insert user onto database.')
+  }
+}
+
+export async function getUserByEmail<TDataType>(unsafeEmail: string): Promise<Result<z.infer<typeof userSchema>>> {
+  const safeEmail = userEmailSchema.safeParse({email: unsafeEmail})
+  if(!safeEmail.success){
+    return actionZodError('The email input is not valid.', safeEmail.error);
+  }
+
+  const email = safeEmail.data.email;
+
+  try {
+    const userSelect = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email));
+
+    const safeUser = userSchema.safeParse(userSelect[0]);
+    if (!safeUser.success) {
+      return actionZodError( 'There\'s an issue with the user record.', safeUser.error);
+    }
+
+    return actionSuccess(safeUser.data)
+  } catch  {
+      return actionError( 'Failed to fetch user from database.')
   }
 }

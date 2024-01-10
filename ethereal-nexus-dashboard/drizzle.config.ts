@@ -9,8 +9,8 @@ export default {
   out: "./drizzle",
   driver: 'pg',
   dbCredentials: {
-    host: process.env.PGHOST,
-    port: process.env.PGPORT,
+    host: process.env.PGHOST!,
+    port: Number(process.env.PGPOR),
     user: process.env.PGUSER,
     password: process.env.PGPASSWORD,
     database: 'postgres',

@@ -1,16 +1,10 @@
-import NextAuth from "next-auth"
-import Credential from "next-auth/providers/credentials"
 import * as bcrypt from 'bcryptjs';
+import Credential from 'next-auth/providers/credentials';
+import type { NextAuthConfig } from 'next-auth';
+import { userLoginSchema } from '@/data/users/dto';
+import { getUserByEmail } from '@/data/users/actions';
 
-import { db } from '@/db';
-import { users } from '@/data/users/schema';
-import { eq } from 'drizzle-orm';
-import { userLoginSchema, userSchema } from '@/data/users/dto';
-
-export const {
-  handlers: { GET, POST },
-  auth,
-} = NextAuth({
+export const authConfig = {
   session: { strategy: 'jwt' },
   secret: process.env.NEXT_AUTH_SECRET,
   providers: [
@@ -24,13 +18,7 @@ export const {
         const safeCredentials = userLoginSchema.safeParse(credentials)
         if(safeCredentials.success) {
           const { password, email } = safeCredentials.data;
-
-          const userSelect = await db
-            .select()
-            .from(users)
-            .where(eq(users.email, email));
-
-          const user = userSchema.safeParse(userSelect[0])
+          const user = await getUserByEmail(email);
 
           if(user.success && user.data.password && password) {
             const passwordMatches = await bcrypt.compare(
@@ -47,4 +35,4 @@ export const {
       }
     })
   ],
-})
+} satisfies NextAuthConfig

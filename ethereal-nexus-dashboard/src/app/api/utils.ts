@@ -1,6 +1,7 @@
 export const DEFAULT_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Content-Type": "application/json",
+  "Access-Control-Allow-Headers":"Authorization, Origin, X-Requested-With, Content-Type, Accept",
 };
 
 export enum HttpStatus {

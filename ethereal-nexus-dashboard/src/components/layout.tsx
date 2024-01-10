@@ -1,9 +1,9 @@
 import { Search } from '@/components/search';
-import { UserNav } from '@/components/user-nav';
 import { MainNav } from '@/components/main-nav';
 import TeamSwitcher from '@/components/team-switcher';
 import { Toaster } from '@/components/ui/toaster';
 import ThemePicker from '@/components/theme-picker';
+import { UserNav } from '@/components/user/user-nav';
 
 export default function DashboardLayout({
   children,

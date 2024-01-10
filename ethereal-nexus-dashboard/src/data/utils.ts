@@ -6,7 +6,7 @@ export function actionError(message: string) {
     error: {
       message
     }
-  };
+  } as const;
 }
 
 export function actionZodError(message: string, zodError: ZodError) {
@@ -20,7 +20,7 @@ export function actionZodError(message: string, zodError: ZodError) {
         path: issue.path
       }))
     }
-  };
+  } as const;
 }
 
 export function actionSuccess<T>(data: T) {

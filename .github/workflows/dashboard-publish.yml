@@ -3,8 +3,6 @@ name: Publish Ethereal Nexus Docker image
 on:
   release:
     types: [published]
-    paths:
-      - ethereal-nexus-dashboard
 
 jobs:
   push_to_registry:
@@ -29,9 +27,9 @@ jobs:
 
       - name: 'Create env file'
         run: |
-          echo "${{ secrets.MONGODB_URI }}" >> .env
-          echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> .env
-          echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> .env
+          echo "${{ secrets.MONGODB_URI }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./ethereal-nexus-dashboard/.env
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2

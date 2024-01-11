@@ -13,7 +13,7 @@ export default async function Components() {
                     <p className="text-muted-foreground">Manage your components here!</p>
                 </div>
             </div>
-            <ComponentsDataTable columns={columns} dataUrl="/api/v1/components"/>
+            <ComponentsDataTable/>
         </div>
     );
 }

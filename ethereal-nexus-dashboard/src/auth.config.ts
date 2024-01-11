@@ -5,6 +5,7 @@ import { userLoginSchema } from '@/data/users/dto';
 import { getUserByEmail } from '@/data/users/actions';
 
 export const authConfig = {
+  trustHost: true,
   session: { strategy: 'jwt' },
   secret: process.env.NEXT_AUTH_SECRET,
   providers: [

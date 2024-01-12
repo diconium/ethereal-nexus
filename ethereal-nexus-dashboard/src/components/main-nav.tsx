@@ -30,6 +30,12 @@ export function MainNav({
         Teams
       </Link>
       <Link
+        href="/users"
+        className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+      >
+        Users
+      </Link>
+      <Link
         href="/api-doc"
         className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
       >

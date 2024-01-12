@@ -27,7 +27,7 @@ export async function insertUser(user: z.infer<typeof newUserSchema>): Promise<R
     const hashedPassword = await bcrypt.hash(password!, 10)
     const insert = await db.insert(users)
       .values({
-        ...user,
+        ...safeUser.data,
         id: randomUUID(),
         password: hashedPassword
       })
@@ -44,7 +44,7 @@ export async function insertUser(user: z.infer<typeof newUserSchema>): Promise<R
   }
 }
 
-export async function getUserByEmail<TDataType>(unsafeEmail: string): Promise<Result<z.infer<typeof userSchema>>> {
+export async function getUserByEmail(unsafeEmail: string): Promise<Result<z.infer<typeof userSchema>>> {
   const safeEmail = userEmailSchema.safeParse({email: unsafeEmail})
   if(!safeEmail.success){
     return actionZodError('The email input is not valid.', safeEmail.error);
@@ -66,5 +66,22 @@ export async function getUserByEmail<TDataType>(unsafeEmail: string): Promise<Re
     return actionSuccess(safeUser.data)
   } catch  {
       return actionError( 'Failed to fetch user from database.')
+  }
+}
+
+export async function getUsers(): Promise<Result<z.infer<typeof userPublicSchema>[]>> {
+  try {
+    const userSelect = await db
+      .select()
+      .from(users)
+
+    const safeUsers = z.array(userPublicSchema).safeParse(userSelect);
+    if (!safeUsers.success) {
+      return actionZodError( 'There\'s an issue with the user records.', safeUsers.error);
+    }
+
+    return actionSuccess(safeUsers.data)
+  } catch  {
+    return actionError( 'Failed to fetch users from database.')
   }
 }

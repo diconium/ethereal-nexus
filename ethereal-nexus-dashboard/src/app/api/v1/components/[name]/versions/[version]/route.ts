@@ -1,7 +1,5 @@
-import { NextResponse } from "next/server";
-import { DEFAULT_HEADERS, HttpStatus } from "@/app/api/utils";
-import mongooseDb, { Collection } from "@/lib/mongodb";
-import { Component } from "@/app/api/v1/components/model";
+import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
+import { Component } from '@/data/components/model';
 
 /**
  * @swagger
@@ -55,17 +53,19 @@ import { Component } from "@/app/api/v1/components/model";
  */
 export async function GET(
   request: Request,
-  { params }: { params: Pick<Component, "name" | "version"> },
+  { params }: { params: Pick<Component, 'name' | 'version'> },
 ) {
   const { name, version } = params;
 
   try {
-    const db = await mongooseDb();
-
-    const components = await db
-      .collection(Collection.COMPONENTS)
-      .find({ name, version })
-      .toArray();
+    // FIXME call action
+    // const db = await mongooseDb();
+    //
+    // const components = await db
+    //   .collection(Collection.COMPONENTS)
+    //   .find({ name, version })
+    //   .toArray();
+    const components = [];
 
     return new Response(JSON.stringify(components), {
       status: HttpStatus.OK,

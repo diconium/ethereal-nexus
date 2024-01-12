@@ -1,8 +1,7 @@
-import { DEFAULT_HEADERS, HttpStatus } from "@/app/api/utils";
-import mongooseDb, { Collection } from "@/lib/mongodb";
-import { getProjectById } from "@/lib/projects/projects.service";
-import { ObjectId } from "mongodb";
-import { getComponentsByNames } from "@/lib/components/components.service";
+import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
+import { getProjectById } from '@/lib/projects/projects.service';
+import { ObjectId } from 'mongodb';
+import { getComponentsByNames } from '@/lib/components/components.service';
 
 /**
  * @swagger
@@ -144,19 +143,21 @@ export async function HEAD(
   const { id } = params;
 
   try {
-    const db = await mongooseDb();
-
-    const exists = await db
-      .collection(Collection.COMPONENTS)
-      .countDocuments({ _id: new ObjectId(id) });
+    // FIXME call action
+    // const db = await mongooseDb();
+    //
+    // const exists = await db
+    //   .collection(Collection.COMPONENTS)
+    //   .countDocuments({ _id: new ObjectId(id) });
+    const exists = false;
 
     if (exists) {
-      return new Response(JSON.stringify({ message: "Project Found" }), {
+      return new Response(JSON.stringify({ message: 'Project Found' }), {
         status: HttpStatus.OK,
         headers: DEFAULT_HEADERS,
       });
     } else {
-      return new Response(JSON.stringify({ message: "Project not found" }), {
+      return new Response(JSON.stringify({ message: 'Project not found' }), {
         status: HttpStatus.NOT_FOUND,
         headers: DEFAULT_HEADERS,
       });
@@ -235,18 +236,20 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const db = await mongooseDb();
-  const { id } = params;
-
-  const project = await request.json();
-
-  const result = await db
-    .collection(Collection.PROJECTS)
-    .findOneAndUpdate({ _id: new ObjectId(id) }, { $set: project });
+  // FIXME call action
+  // const db = await mongooseDb();
+  // const { id } = params;
+  //
+  // const project = await request.json();
+  //
+  // const result = await db
+  //   .collection(Collection.PROJECTS)
+  //   .findOneAndUpdate({ _id: new ObjectId(id) }, { $set: project });
+  const result = { ok: false };
 
   if (result.ok) {
     return new Response(
-      JSON.stringify({ message: "Project updated successfully" }),
+      JSON.stringify({ message: 'Project updated successfully' }),
       {
         status: HttpStatus.OK,
         headers: DEFAULT_HEADERS,
@@ -254,7 +257,7 @@ export async function PUT(
     );
   } else {
     return new Response(
-      JSON.stringify({ message: "Failed to update project." }),
+      JSON.stringify({ message: 'Failed to update project.' }),
       {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         headers: DEFAULT_HEADERS,
@@ -311,11 +314,13 @@ export async function DELETE(
   const { id } = params;
 
   try {
-    const db = await mongooseDb();
-
-    let result = await db
-      .collection(Collection.PROJECTS)
-      .findOneAndDelete({ _id: new ObjectId(id) });
+    // FIXME call action
+    // const db = await mongooseDb();
+    //
+    // let result = await db
+    //   .collection(Collection.PROJECTS)
+    //   .findOneAndDelete({ _id: new ObjectId(id) });
+    const result = { ok: false };
 
     return new Response(null, {
       status: result.ok

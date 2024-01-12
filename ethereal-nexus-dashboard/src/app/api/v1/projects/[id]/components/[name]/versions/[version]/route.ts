@@ -1,9 +1,7 @@
-import { NextResponse } from "next/server";
-import { DEFAULT_HEADERS, HttpStatus } from "@/app/api/utils";
-import mongooseDb, { Collection } from "@/lib/mongodb";
-import { Component } from "@/app/api/v1/components/model";
-import { Project } from "@/app/api/v1/projects/model";
-import { ObjectId } from "mongodb";
+import { NextResponse } from 'next/server';
+import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
+import { ObjectId } from 'mongodb';
+import { Component } from '@/data/components/model';
 
 /**
  * @swagger
@@ -65,38 +63,40 @@ export async function GET(
   {
     params,
   }: {
-    params: Pick<Component, "name" | "version"> & { id: string };
+    params: Pick<Component, 'name' | 'version'> & { id: string };
   },
 ) {
   const { id, name, version } = params;
 
   try {
-    const db = await mongooseDb();
-
-    const components = await db
-      .collection(Collection.COMPONENTS)
-      .aggregate([
-        { $match: { name, version } },
-        {
-          $lookup: {
-            from: Collection.PROJECTS,
-            localField: "name",
-            foreignField: "components",
-            as: "projects",
-          },
-        },
-        { $match: { "projects._id": new ObjectId(id) } },
-        {
-          $project: {
-            _id: { $toString: "$_id" },
-            name: 1,
-            version: 1,
-            assets: 1,
-            dialog: 1,
-          },
-        },
-      ])
-      .toArray();
+    // FIXME call action
+    // const db = await mongooseDb();
+    //
+    // const components = await db
+    //   .collection(Collection.COMPONENTS)
+    //   .aggregate([
+    //     { $match: { name, version } },
+    //     {
+    //       $lookup: {
+    //         from: Collection.PROJECTS,
+    //         localField: "name",
+    //         foreignField: "components",
+    //         as: "projects",
+    //       },
+    //     },
+    //     { $match: { "projects._id": new ObjectId(id) } },
+    //     {
+    //       $project: {
+    //         _id: { $toString: "$_id" },
+    //         name: 1,
+    //         version: 1,
+    //         assets: 1,
+    //         dialog: 1,
+    //       },
+    //     },
+    //   ])
+    //   .toArray();
+    const components = [];
 
     return new Response(JSON.stringify(components), {
       status: HttpStatus.OK,

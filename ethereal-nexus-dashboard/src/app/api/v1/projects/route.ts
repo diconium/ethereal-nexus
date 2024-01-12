@@ -1,7 +1,6 @@
-import { NextResponse } from "next/server";
-import { DEFAULT_HEADERS, HttpStatus } from "@/app/api/utils";
-import mongooseDb, { Collection } from "@/lib/mongodb";
-import { getAllProjects } from "@/lib/projects/projects.service";
+import { NextResponse } from 'next/server';
+import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
+import { getAllProjects } from '@/lib/projects/projects.service';
 
 /**
  * @swagger
@@ -109,22 +108,23 @@ export async function PUT(request: Request) {
 
   if (!name) {
     return new Response(
-      JSON.stringify({ message: "Bad Request - Invalid input data" }),
+      JSON.stringify({ message: 'Bad Request - Invalid input data' }),
       {
         status: HttpStatus.BAD_REQUEST,
         headers: DEFAULT_HEADERS,
       },
     );
   }
-  const db = await mongooseDb();
-  // Fixme
-  const result: any = await db
-    .collection(Collection.PROJECTS)
-    .insertOne({ name, components: components });
-
+  // FIXME call action
+  // const db = await mongooseDb();
+  // // Fixme
+  // const result: any = await db
+  //   .collection(Collection.PROJECTS)
+  //   .insertOne({ name, components: components });
+  const result = { ok: true };
   if (result.ok) {
     return new Response(
-      JSON.stringify({ message: "Project created successfully" }),
+      JSON.stringify({ message: 'Project created successfully' }),
       {
         status: HttpStatus.OK,
         headers: DEFAULT_HEADERS,
@@ -132,7 +132,7 @@ export async function PUT(request: Request) {
     );
   } else {
     return new Response(
-      JSON.stringify({ message: "Failed to create project." }),
+      JSON.stringify({ message: 'Failed to create project.' }),
       {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         headers: DEFAULT_HEADERS,

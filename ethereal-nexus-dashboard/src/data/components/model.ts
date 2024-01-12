@@ -23,7 +23,7 @@
  *             $ref: '#/components/schemas/ComponentDialogProperty'
  */
 export interface Component {
-  _id?: string;
+  id?: string;
   name: string;
   version: string;
   assets: ComponentAsset[];

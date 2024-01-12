@@ -6,11 +6,11 @@ import {Button} from "@/components/ui/button";
 
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
-import {toast} from "@/components/ui/use-toast";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {useRouter} from "next/navigation";
 import {ComponentSelectionDataTable} from "@/components/projects/component-selection-data-table/data-table";
 import React from "react";
+import { useToast } from '@/components/ui/use-toast';
 
 const projectsFormSchema = z.object({
     name: z.string().min(3, {
@@ -27,6 +27,7 @@ type ProjectsFormValues = z.infer<typeof projectsFormSchema>;
 
 export default function ProjectsForm({id, project, availableComponents}) {
     const router = useRouter();
+    const { toast } = useToast()
     const form: any = useForm<ProjectsFormValues>({
         resolver: zodResolver(projectsFormSchema),
         defaultValues: project,

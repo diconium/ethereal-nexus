@@ -1,7 +1,6 @@
 "use client";
 
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,9 +10,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Project } from "@/app/api/v1/projects/model";
-import { useRouter } from "next/navigation";
 import { ClipboardCopy, Pencil, Trash } from "lucide-react";
-import { useState } from "react";
+import { MouseEventHandler, useState } from 'react';
 import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
 import {
   DialogContent,
@@ -23,47 +21,46 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/use-toast";
+import Link from "next/link";
+import { deleteProject } from '@/data/projects/actions';
 
 export function ProjectsDataTableRowActions({ table, row }) {
-  const router = useRouter();
+  const project = row.original;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const edit = async (project: Project) => {
-    router.push(`/projects/${project._id.toString()}`);
-    router.refresh();
-  };
 
-  const handleDeleteOk = (project: Project) => {
+  const handleDeleteOk = async () => {
+    setDeleteDialogOpen(false)
+    
     const { data, setData } = table.getState();
     if (project) {
-      fetch(`api/v1/projects/${project._id.toString()}`, { method: "delete" })
-        .then(() => {
-          setData(
-            data.filter(
-              (eachProject: Project) => project.name !== eachProject.name,
-            ),
-          );
-          toast({
-            title: `Project ${project.name} was deleted successfully`,
-          });
-          setDeleteDialogOpen(false);
-        })
-        .catch((error) => {
-          toast({
-            title: `Project ${project.name} could not be deleted`,
-          });
-          setDeleteDialogOpen(false);
+      const deleted = await deleteProject(project.id, 'b325fe37-3ea4-41b6-9bc1-ea93fba0097a')
+
+      if(deleted.success) {
+        setData(
+          data.filter(
+            (eachProject: Project) => project.name !== eachProject.name,
+          ),
+        );
+        toast({
+          title: `Project ${project.name} was deleted successfully`,
         });
+      }
+
+      toast({
+        title: `Project ${project.name} could not be deleted`,
+      });
     }
   };
 
-  const copyProjectUrl = (project: Project) => {
+  const copyProjectUrl: MouseEventHandler = () => {
     navigator.clipboard.writeText(
       window.location.origin +
-        `/api/v1/projects/${project._id.toString()}/components`,
-    );
-    toast({
-      title: "Project URL copied to clipboard",
-    });
+      `/api/v1/projects/${project.id}/components`,
+    ).then(() => {
+      toast({
+        title: "Project URL copied to clipboard",
+      });
+    })
   };
 
   return (
@@ -79,12 +76,14 @@ export function ProjectsDataTableRowActions({ table, row }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
-          <DropdownMenuItem onClick={() => copyProjectUrl(row.original)}>
+          <DropdownMenuItem onClick={copyProjectUrl}>
             <ClipboardCopy className="mr-2 h-4 w-4" /> Copy URL
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => edit(row.original)}>
-            <Pencil className="mr-2 h-4 w-4" /> Edit
-          </DropdownMenuItem>
+          <Link href={`/projects/${project.id}`}>
+            <DropdownMenuItem>
+              <Pencil className="mr-2 h-4 w-4" /> Edit
+            </DropdownMenuItem>
+          </Link>
           <DropdownMenuSeparator />
           {/* TODO: ideally we'd have only one dialog */}
           <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -114,7 +113,7 @@ export function ProjectsDataTableRowActions({ table, row }) {
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() => handleDeleteOk(row.original)}
+                  onClick={() => handleDeleteOk()}
                 >
                   Delete
                 </Button>

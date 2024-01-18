@@ -1,37 +1,14 @@
-"use client";
-import {Tabs} from "@radix-ui/react-tabs";
-import {TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
-import Link from "next/link";
-import RecentComponents from "@/components/dashboard/recent-components";
-import {useEffect, useState} from "react";
-import {project} from "types-ramda";
-import {Project} from "@/app/api/v1/projects/model";
-import {useRouter} from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import RecentComponents from '@/components/dashboard/recent-components';
+import { getProjects } from '@/data/projects/actions';
+import { auth } from '@/auth';
 
-export default function Home() {
-    const [data, setData] = useState([]);
-    const router = useRouter();
-
-    useEffect(() => {
-        fetch("/api/v1/projects")
-            .then((response) => response.json())
-            .then((data) => {
-                setData(data);
-            });
-    }, []);
-
-    const edit = async (project: Project) => {
-        router.push(`/projects/${project._id.toString()}`);
-        router.refresh();
-    };
+export default async function Home() {
+    const session = await auth()
+    const projects = await getProjects(session?.user?.id);
 
     return <div className="container flex-col md:flex">
         <div className="flex-1 space-y-4 p-8 pt-6">
@@ -52,32 +29,37 @@ export default function Home() {
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="overview" className="space-y-4 p-6">
-                    <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+                    {projects.success && projects.data.length > 0 ? <>  <h3
+                      className="scroll-m-20 text-2xl font-semibold tracking-tight">
                         Projects
                     </h3>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        {data.slice(0, 5).map((project: Project )=> {
-                            return <Card key={project._id} className="cursor-pointer"
-                                      onClick={() => edit(project)}>
-                                    <CardHeader
-                                        className="flex flex-row items-center justify-between space-y-0 pb-2"></CardHeader>
-                                    <CardContent>
-                                        <CardTitle className="text-sm font-medium">
-                                            {project.components && project.components.length > 1 ? `${project.components.length} components` : '1 component'}
-                                        </CardTitle>
-                                        <div className="text-2xl font-bold">{project.name}</div>
-                                        <p className="text-xs text-muted-foreground">
-                                            {project.description}
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                        })}
-                    </div>
-                    <div className="flex flex-row w-full flex justify-end items-end ">
-                        <Button asChild>
-                            <Link href="/projects">See all projects</Link>
-                        </Button>
-                    </div>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                            {projects.data.slice(0, 5).map((project) => {
+                                return <Link key={project.id} href={`/projects/${project.id}`}>
+                                    <Card className="cursor-pointer">
+                                        <CardHeader
+                                          className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                            <CardTitle className="text-sm font-medium">
+                                                {project.components.length === 1 ? '1 component' : `${project.components.length} components`}
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="text-2xl font-bold">{project.name}</div>
+                                            <p className="text-xs text-muted-foreground">
+                                                {project.description}
+                                            </p>
+                                        </CardContent>
+                                    </Card>
+                                </Link>;
+                            })}
+                        </div>
+                        <div className="flex flex-row w-full justify-end items-end ">
+                            <Button asChild>
+                                <Link href="/projects">See all projects</Link>
+                            </Button>
+                        </div>
+                    </> : null}
+
                     <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight pt-8">
                         Components
                     </h3>
@@ -91,7 +73,7 @@ export default function Home() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <RecentComponents/>
+                                <RecentComponents />
                             </CardContent>
                         </Card>
                         <div className="flex-1">
@@ -114,8 +96,8 @@ export default function Home() {
                 <TabsContent value="analytics" className="space-y-4"></TabsContent>
                 <TabsContent value="reports" className="space-y-4"></TabsContent>
                 <TabsContent
-                    value="notifications"
-                    className="space-y-4"
+                  value="notifications"
+                  className="space-y-4"
                 ></TabsContent>
             </Tabs>
         </div>

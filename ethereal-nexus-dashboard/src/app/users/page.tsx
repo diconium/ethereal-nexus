@@ -1,7 +1,7 @@
 import React from "react";
-import { DataTable } from '@/components/user/table/data-table';
 import { columns } from '@/components/user/table/columns';
 import { getUsers } from '@/data/users/actions';
+import { DataTable } from '@/components/ui/data-table/data-table';
 
 export default async function Teams() {
   const users = await getUsers()
@@ -17,6 +17,7 @@ export default async function Teams() {
       {
         users.success ?
           <DataTable
+            entity={'users'}
             handlerPath={'/users/new'}
             columns={columns}
             data={users.data}

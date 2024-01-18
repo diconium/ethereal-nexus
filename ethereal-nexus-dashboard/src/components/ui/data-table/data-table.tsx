@@ -16,16 +16,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import * as React from 'react';
 import { DataTablePagination } from '@/components/teams/teams-data-table/data-table-pagination';
 import { DataTableToolbar } from '@/components/ui/data-table/data-table-toolbar';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { ComponentProps, useState } from 'react';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   handlerPath?: string
+  entity: ComponentProps<typeof DataTableToolbar>['entityName']
 }
 
-export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, entity }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -59,7 +59,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
     <div className="space-y-4">
       <DataTableToolbar
         table={table}
-        entityName={'user'}
+        entityName={entity}
         createActionLink={'/users/new'}
       />
       <div className="rounded-md border">

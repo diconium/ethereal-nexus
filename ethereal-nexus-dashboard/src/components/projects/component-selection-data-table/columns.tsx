@@ -1,6 +1,5 @@
 "use client";
 
-import {DataTableColumnHeader} from "./data-table-column-header";
 import {Switch} from "@/components/ui/switch";
 import * as React from "react";
 import {Dialog} from "@/components/ui/dialog";
@@ -9,6 +8,7 @@ import {Button} from "@/components/ui/button";
 import {cn} from "@/lib/utils";
 import {CaretSortIcon, CheckIcon} from "@radix-ui/react-icons";
 import {Command, CommandItem, CommandList} from "@/components/ui/command";
+import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
 
 function VersionDialog({versions: versionsWithoutLatest = [], onChangeVersion, selectedVersion = 'latest'}: {
     versions: string[],

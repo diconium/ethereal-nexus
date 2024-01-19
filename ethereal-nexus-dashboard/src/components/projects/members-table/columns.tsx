@@ -3,8 +3,8 @@
 import { ColumnDef } from "@tanstack/react-table"
 import * as z from 'zod';
 import { userPublicSchema } from '@/data/users/dto';
-import { DataTableColumnHeader } from '@/components/teams/teams-data-table/data-table-column-header';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
 
 export const columns: ColumnDef<z.infer<typeof userPublicSchema>>[] = [
   {

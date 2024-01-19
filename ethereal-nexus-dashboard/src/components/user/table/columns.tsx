@@ -30,7 +30,7 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
     ),
-    cell: ({ row }) => <div>{row.getValue("name")}</div>,
+    cell: ({ row }) => row.getValue("name"),
     enableSorting: true,
   },
   {
@@ -38,7 +38,7 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Email" />
     ),
-    cell: ({ row }) => <div>{row.getValue("email")}</div>,
+    cell: ({ row }) => row.getValue("email"),
     enableSorting: true,
   },
 ];

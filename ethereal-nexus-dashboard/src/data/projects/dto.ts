@@ -2,6 +2,8 @@ import { projectComponentConfig, projects, projectsRelations } from './schema';
 import { members } from '@/data/member/schema';
 import { memberSchema } from '@/data/member/dto';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+import { componentsSchema } from '@/data/components/dto';
+import { z } from 'zod';
 
 export const projectSchema = createSelectSchema(projects);
 
@@ -13,13 +15,15 @@ export const projectWithComponentSchema = projectSchema.extend({
 });
 
 export const projectComponentsSchema = projectSchema
-  .pick({ id: true })
+  .pick({ name: true })
   .extend({
-    components: projectComponentConfigSchema.pick({ component_id: true }).array()
+    components: z.object({
+      component: componentsSchema
+    }).array()
   });
-  
+
 export const newProjectSchema = createInsertSchema(projects, {
   name: (schema) =>
-    schema.name.min(4, 'Name must be longer than 4 characters.'),
-  })
+    schema.name.min(4, 'Name must be longer than 4 characters.')
+})
   .required({ name: true });

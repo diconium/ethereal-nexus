@@ -6,7 +6,7 @@ import { relations } from 'drizzle-orm';
 export const members = pgTable('member', {
     id: uuid('id').notNull().defaultRandom(),
     user_id: text('user_id').notNull().references(() => users.id),
-    resource: text('resource').notNull().references(() => projects.id, { onDelete: 'cascade' })
+    resource: uuid('resource').notNull()
   },
   (table) => {
     return {

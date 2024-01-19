@@ -31,7 +31,7 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
     ),
-    cell: ({ row }) => <div className="w-[80px]">{row.getValue("name")}</div>,
+    cell: ({ row }) => row.getValue("name"),
     enableSorting: true,
     enableHiding: true,
   },
@@ -40,7 +40,7 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Title" />
     ),
-    cell: ({ row }) => <div className="w-[80px]">{row.getValue("title")}</div>,
+    cell: ({ row }) => row.getValue("title"),
     enableSorting: true,
     enableHiding: true,
   },
@@ -51,7 +51,7 @@ export const columns = [
       <DataTableColumnHeader column={column} title="Version" />
     ),
     cell: ({ row }) => (
-      <div className="w-[80px]">{row.getValue("version")}</div>
+      row.getValue("version")
     ),
     enableSorting: false,
     enableHiding: true,

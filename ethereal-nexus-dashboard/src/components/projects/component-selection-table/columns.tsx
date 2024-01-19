@@ -1,13 +1,7 @@
-'use client';
-
-import { Switch } from '@/components/ui/switch';
 import * as React from 'react';
 import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
-import * as z from 'zod';
-import { ColumnDef } from '@tanstack/react-table';
-import { projectComponentConfigSchema } from '@/data/projects/dto';
 
-export const columns: ColumnDef<z.infer<typeof projectComponentConfigSchema>>[] = [
+export const columns = [
   {
     accessorKey: 'component_id',
     header: ({ column }) => (

@@ -4,7 +4,7 @@ import { Result } from '@/data/action';
 import { z } from 'zod';
 import { db } from '@/db';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
-import { projectComponentsSchema, projectSchema, projectWithComponentSchema } from './dto';
+import { newProjectSchema, projectComponentsSchema, projectSchema, projectWithComponentSchema } from './dto';
 import * as console from 'console';
 import { and, eq, inArray } from 'drizzle-orm';
 import { members } from '@/data/member/schema';
@@ -63,14 +63,14 @@ export async function getProjectComponents(id: string | undefined | null, userId
     const select = await db.query.projects
       .findFirst({
         columns: {
-          id: true,
+          id: true
         },
         where: and(
           eq(projects.id, id),
-          userIsMember(userId),
+          userIsMember(userId)
         ),
         with: {
-          components: true,
+          components: true
         }
       });
 
@@ -127,8 +127,8 @@ export async function getProjectById(id: string, userId: string | undefined | nu
       .findFirst({
         where: and(
           eq(projects.id, id),
-          userIsMember(userId),
-        ),
+          userIsMember(userId)
+        )
       });
 
     const safe = projectSchema.safeParse(select);
@@ -140,5 +140,28 @@ export async function getProjectById(id: string, userId: string | undefined | nu
   } catch (error) {
     console.error(error);
     return actionError('Failed to fetch project from database.');
+  }
+}
+
+export async function insertProject(project: z.infer<typeof newProjectSchema>): Promise<Result<z.infer<typeof projectSchema>>> {
+  const safeProject = newProjectSchema.safeParse(project);
+  if (!safeProject.success) {
+    return actionZodError('Failed to parse project´s input', safeProject.error);
+  }
+  try {
+    const insert = await db
+      .insert(projects)
+      .values(safeProject.data)
+      .returning()
+
+    const result = projectSchema.safeParse(insert[0]);
+    if (!result.success) {
+      return actionZodError('Failed to parse inserted project.', result.error);
+    }
+
+    return actionSuccess(result.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to insert project from database.');
   }
 }

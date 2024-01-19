@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
-import { getAllComponents } from '@/lib/components/components.service';
 import { ComponentWithVersions } from '@/app/api/v1/componentsWithVersions/model';
+import { Component } from '@/data/components/model';
 
 /**
  * @swagger
@@ -35,7 +35,7 @@ import { ComponentWithVersions } from '@/app/api/v1/componentsWithVersions/model
  */
 export async function GET() {
   try {
-    const components = await getAllComponents();
+    const components: Component[] = []
     const componentsWithVersions = components.reduce(
       (currentArray, componentVersion) => {
         const existingComponentWithVersions = currentArray.find(

@@ -4,7 +4,7 @@ import { members } from '@/data/member/schema';
 
 export const projects = pgTable("project", {
   id: text("id").notNull().primaryKey(),
-  name: text("name").notNull(),
+  name: text("name").notNull().unique(),
   description: text("description"),
 })
 export const projectsRelations = relations(projects, ({ many }) => ({

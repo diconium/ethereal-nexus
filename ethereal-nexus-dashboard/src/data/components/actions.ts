@@ -2,7 +2,6 @@ import { Result } from '@/data/action';
 import { z } from 'zod';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import { db } from '@/db';
-import console from 'console';
 import { componentsWithVersions } from './dto';
 
 export async function getComponents(): Promise<Result<z.infer<typeof componentsWithVersions>[]>> {

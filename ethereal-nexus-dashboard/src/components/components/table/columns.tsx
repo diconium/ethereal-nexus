@@ -45,7 +45,8 @@ export const columns = [
     enableHiding: true,
   },
   {
-    accessorKey: "version",
+    id: 'version',
+    accessorFn: row => row.versions[0].version,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Version" />
     ),

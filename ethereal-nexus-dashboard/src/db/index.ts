@@ -5,6 +5,7 @@ import * as users from '@/data/users/schema';
 import * as projects from '@/data/projects/schema';
 import * as member from '@/data/member/schema';
 import * as components from '@/data/components/schema';
+import { remember } from '@epic-web/remember';
 
 const queryClient = postgres(
   `postgres://${process.env.PGUSER}:${process.env.PGPASSWORD}@${
@@ -15,7 +16,7 @@ const queryClient = postgres(
   }
 );
 
-export const db = drizzle(
+export const db = remember('db', () => drizzle(
   queryClient,
   {
     schema: {
@@ -25,4 +26,4 @@ export const db = drizzle(
       ...components,
     }
   }
-);
+))

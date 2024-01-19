@@ -1,7 +1,7 @@
 import { pgTable, serial, text } from 'drizzle-orm/pg-core';
 
 export const components = pgTable('component', {
-  id: serial('id').notNull().primaryKey(),
+  id: text('id').notNull().primaryKey(),
   name: text('name').notNull(),
   version: text('version').notNull(),
   assets: serial('assets')

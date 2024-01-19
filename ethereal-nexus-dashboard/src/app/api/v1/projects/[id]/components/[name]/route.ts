@@ -1,7 +1,6 @@
-import { DEFAULT_HEADERS, HttpStatus } from "@/app/api/utils";
-import mongooseDb, { Collection } from "@/lib/mongodb";
-import { Component } from "@/app/api/v1/components/model";
-import { ObjectId } from "mongodb";
+import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
+import { ObjectId } from 'mongodb';
+import { Component } from '@/data/components/model';
 
 /**
  * @swagger
@@ -55,39 +54,41 @@ import { ObjectId } from "mongodb";
  */
 export async function GET(
   request: Request,
-  { params }: { params: Pick<Component, "name"> & { id: string } },
+  { params }: { params: Pick<Component, 'name'> & { id: string } },
 ) {
   const { name, id } = params;
 
   try {
-    const db = await mongooseDb();
-
-    const latestComponent = await db
-      .collection(Collection.COMPONENTS)
-      .aggregate([
-        { $match: { name } },
-        {
-          $lookup: {
-            from: Collection.PROJECTS,
-            localField: "name",
-            foreignField: "components.name",
-            as: "projects",
-          },
-        },
-        { $match: { "projects._id": new ObjectId(id) } },
-        {
-          $project: {
-            _id: { $toString: "$_id" },
-            name: 1,
-            version: 1,
-            assets: 1,
-            dialog: 1,
-          },
-        },
-      ])
-      .sort({ version: -1 })
-      .limit(1)
-      .next();
+    // FIXME call action
+    // const db = await mongooseDb();
+    //
+    // const latestComponent = await db
+    //   .collection(Collection.COMPONENTS)
+    //   .aggregate([
+    //     { $match: { name } },
+    //     {
+    //       $lookup: {
+    //         from: Collection.PROJECTS,
+    //         localField: "name",
+    //         foreignField: "components",
+    //         as: "projects",
+    //       },
+    //     },
+    //     { $match: { "projects._id": new ObjectId(id) } },
+    //     {
+    //       $project: {
+    //         _id: { $toString: "$_id" },
+    //         name: 1,
+    //         version: 1,
+    //         assets: 1,
+    //         dialog: 1,
+    //       },
+    //     },
+    //   ])
+    //   .sort({ version: -1 })
+    //   .limit(1)
+    //   .next();
+    const latestComponent = {};
 
     return new Response(JSON.stringify(latestComponent), {
       status: HttpStatus.OK,

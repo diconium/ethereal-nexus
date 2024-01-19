@@ -1,24 +1,23 @@
-import { DEFAULT_HEADERS, HttpStatus } from "@/app/api/utils";
-import { Component } from "@/app/api/v1/components/model";
+import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
 import {
   BlobServiceClient,
   StorageSharedKeyCredential,
-} from "@azure/storage-blob";
-import { headers } from "next/headers";
-import mongooseDb, { Collection } from "@/lib/mongodb";
+} from '@azure/storage-blob';
+import { headers } from 'next/headers';
+import { Component } from '@/data/components/model';
 
 const fileTypes: FileTypes = {
-  "text/css": "css",
-  "text/javascript": "js",
-  "application/javascript": "js",
+  'text/css': 'css',
+  'text/javascript': 'js',
+  'application/javascript': 'js',
 };
 
 interface FileTypes {
   [key: string]: string;
 }
 
-const account = process.env.AZURE_BLOB_STORAGE_ACCOUNT || "";
-const accountKey = process.env.AZURE_BLOB_STORAGE_SECRET || "";
+const account = process.env.AZURE_BLOB_STORAGE_ACCOUNT || '';
+const accountKey = process.env.AZURE_BLOB_STORAGE_SECRET || '';
 
 /**
  * @swagger
@@ -92,7 +91,9 @@ const blobServiceClient = new BlobServiceClient(
   sharedKeyCredential,
 );
 
-type AssetUploadParams = Pick<Component, "name" | "version"> & { fileName: string };
+type AssetUploadParams = Pick<Component, 'name' | 'version'> & {
+  fileName: string;
+};
 
 export async function POST(
   request: Request,
@@ -100,13 +101,9 @@ export async function POST(
 ) {
   try {
     const headersList = headers();
-    const contentType = headersList.get("Content-Type") || "";
+    const contentType = headersList.get('Content-Type') || '';
     const filePath: string = getFilePath(params, contentType);
-    const { _response } = await uploadToStorage(
-      request,
-      filePath,
-      contentType,
-    );
+    const { _response } = await uploadToStorage(request, filePath, contentType);
     const { request: responseFromBlob = {} as any } = _response;
     const { url } = responseFromBlob;
 
@@ -127,11 +124,11 @@ export async function POST(
 
 const uploadToStorage = async (
   request: any,
-  filePath: string = "index",
+  filePath: string = 'index',
   contentType: string,
 ) => {
   const containerClient = blobServiceClient.getContainerClient(
-    "remote-components-aem-demo",
+    'remote-components-aem-demo',
   );
 
   const jsonData = request.body;
@@ -156,18 +153,26 @@ const uploadToStorage = async (
     return await blockBlobClient.upload(
       completeBuffer.toString(),
       completeBuffer.toString().length,
-      { blobHTTPHeaders: { blobContentType: `${contentType === 'application/javascript' ? 'text/javascript' : contentType}` } },
+      {
+        blobHTTPHeaders: {
+          blobContentType: `${
+            contentType === 'application/javascript'
+              ? 'text/javascript'
+              : contentType
+          }`,
+        },
+      },
     );
   } else {
     return Promise.reject({
-      error: "There was an issue uploading to storage",
+      error: 'There was an issue uploading to storage',
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
     });
   }
 };
 
 function getFilePath(
-  { name, version, fileName = "index" }: AssetUploadParams,
+  { name, version, fileName = 'index' }: AssetUploadParams,
   contentType: string,
 ): string {
   return `${name}/${version}/${fileName}.${fileTypes[contentType]}`;
@@ -186,33 +191,33 @@ async function updateDBComponentAssets({
 
   if (!name || !version) {
     return Promise.reject({
-      error: "missing name or version in params",
+      error: 'missing name or version in params',
       statusCode: HttpStatus.BAD_REQUEST,
     });
   }
 
-  const db = await mongooseDb();
+  // FIXME call action
+  // const db = await mongooseDb();
+  //
+  // const response =
+  //   (await db
+  //     .collection<Component>(Collection.COMPONENTS)
+  //     .findOne({ name: params.name, version: params.version })) || ({} as any);
+  const response = { assets: [] };
 
-  const response =
-    (await db
-      .collection<Component>(Collection.COMPONENTS)
-      .findOne({ name: params.name, version: params.version })) || ({} as any);
+  const { assets = [] } = response;
 
-  const { assets = []} = response;
+  const otherAssets = assets.filter((asset: any) => asset.filePath !== url);
 
-  const otherAssets = assets.filter(
-    (asset: any) => asset.filePath !== url,
-  );
-
-  const updated: any = { type: fileTypes[contentType] , filePath: url };
-
+  const updated: any = { type: fileTypes[contentType], filePath: url };
 
   const newObject = {
     ...response,
     assets: [...otherAssets, updated],
   };
 
-  return await db
-    .collection(Collection.COMPONENTS)
-    .replaceOne({ name: params.name, version: params.version }, newObject);
+  return;
+  // return await db
+  //   .collection(Collection.COMPONENTS)
+  //   .replaceOne({ name: params.name, version: params.version }, newObject);
 }

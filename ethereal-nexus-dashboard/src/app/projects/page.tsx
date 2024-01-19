@@ -20,7 +20,6 @@ export default async function Projects() {
         projects.success ?
           <DataTable
             entity={'projects'}
-            handlerPath={'/users/new'}
             columns={columns}
             data={projects.data}
           /> :

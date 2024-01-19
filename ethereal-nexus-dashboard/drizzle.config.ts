@@ -17,6 +17,6 @@ export default {
     user: process.env.PGUSER,
     password: process.env.PGPASSWORD,
     database: process.env.PGDATABASE || 'postgres',
-    ssl: false,
+    ssl: process.env.PGSSL === 'true',
   },
 } satisfies Config;

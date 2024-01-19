@@ -10,3 +10,7 @@ export const componentsSchema = createSelectSchema(components);
 export const componentAssetsSchema = createSelectSchema(componentAssets);
 
 export const componentVersionsSchema = createSelectSchema(componentVersions);
+
+export const componentsWithVersions = componentsSchema.extend({
+  versions: componentVersionsSchema
+})

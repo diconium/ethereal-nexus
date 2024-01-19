@@ -4,14 +4,25 @@ import postgres from 'postgres';
 import * as users from '@/data/users/schema';
 import * as projects from '@/data/projects/schema';
 import * as member from '@/data/member/schema';
+import * as components from '@/data/components/schema';
 
 const queryClient = postgres(
   `postgres://${process.env.PGUSER}:${process.env.PGPASSWORD}@${
     process.env.PGHOST
   }:${process.env.PGPORT}/${process.env.PGDATABASE || 'postgres'}`,
   {
-    ssl: true,
+    ssl: true
   }
 );
 
-export const db = drizzle(queryClient, { schema: { ...users, ...projects, ...member } });
+export const db = drizzle(
+  queryClient,
+  {
+    schema: {
+      ...users,
+      ...projects,
+      ...member,
+      ...components,
+    }
+  }
+);

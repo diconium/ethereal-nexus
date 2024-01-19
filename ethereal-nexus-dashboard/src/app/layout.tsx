@@ -13,7 +13,6 @@ export default async function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head />
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <DashboardLayout>{children}</DashboardLayout>

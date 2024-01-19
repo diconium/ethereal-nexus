@@ -1,8 +1,8 @@
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
-import { DataTableColumnHeader } from "./data-table-column-header";
 import { ComponentsDataTableRowActions } from "./data-table-row-actions";
+import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
 
 export const columns = [
   {

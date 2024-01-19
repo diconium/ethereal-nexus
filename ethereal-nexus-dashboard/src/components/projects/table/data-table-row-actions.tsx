@@ -30,7 +30,7 @@ export function ProjectsDataTableRowActions({ table, row }) {
 
   const handleDeleteOk = async () => {
     setDeleteDialogOpen(false)
-    
+
     const { data, setData } = table.getState();
     if (project) {
       const deleted = await deleteProject(project.id, 'b325fe37-3ea4-41b6-9bc1-ea93fba0097a')

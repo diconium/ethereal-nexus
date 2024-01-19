@@ -3,6 +3,7 @@ import { columns } from './columns';
 import React from 'react';
 import { getProjectComponents } from '@/data/projects/actions';
 import { auth } from '@/auth';
+import * as console from 'console';
 
 export async function ProjectComponentsList({id}: {id: string}) {
   const session = await auth()
@@ -10,7 +11,7 @@ export async function ProjectComponentsList({id}: {id: string}) {
   if(!project.success) {
     throw new Error(project.error.message)
   }
-
+  console.log(project.data.components)
   return <DataTable
     columns={columns}
     data={project.data.components}

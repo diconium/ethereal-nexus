@@ -63,18 +63,25 @@ export async function getProjectComponents(id: string | undefined | null, userId
     const select = await db.query.projects
       .findFirst({
         columns: {
-          id: true
+          name: true
         },
         where: and(
           eq(projects.id, id),
           userIsMember(userId)
         ),
         with: {
-          components: true
+          components: {
+            columns: {},
+            with: {
+              component: true
+            }
+          }
         }
       });
 
     const safe = projectComponentsSchema.safeParse(select);
+    console.log(JSON.stringify(safe))
+
     if (!safe.success) {
       return actionZodError('There\'s an issue with the project records.', safe.error);
     }

@@ -1,6 +1,7 @@
 import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
-import { getProjectById } from '@/lib/projects/projects.service';
-import { ObjectId } from 'mongodb';
+import { getProjectById } from '@/data/projects/actions';
+import { NextResponse } from 'next/server';
+import { auth } from '@/auth';
 
 /**
  * @swagger
@@ -23,14 +24,17 @@ import { ObjectId } from 'mongodb';
  *        content:
  *         application/json:
  *          schema:
- *           type: object
- *           properties:
+ *          type: object
+ *          properties:
+ *            id:
+ *              type: string
+ *              example: 7021f6ad-04db-48f6-b412-210591f88189
  *            name:
- *             type: string
- *             example: Project A
- *            components:
- *             type: array
- *             example: ['componentA', 'componentB', 'componentC']
+ *              type: string
+ *              example: Project A
+ *            description:
+ *              type: string
+ *              example: This is the project A
  *      '404':
  *        description: Not Found
  *        content:
@@ -52,38 +56,17 @@ import { ObjectId } from 'mongodb';
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } },
-) {
+export async function GET(_, { params }: { params: { id: string } }) {
+  const session = await auth()
   const { id } = params;
 
-  try {
-    const project = await getProjectById(id);
+  const project = await getProjectById(id, session?.user?.id);
 
-    if (!project) {
-      return new Response(
-        JSON.stringify({ message: `Project does not exist` }),
-        {
-          status: HttpStatus.NOT_FOUND,
-          headers: DEFAULT_HEADERS,
-        },
-      );
-    }
-
-    return new Response(JSON.stringify(project), {
-      status: HttpStatus.OK,
-      headers: DEFAULT_HEADERS,
-    });
-  } catch (error) {
-    return new Response(
-      JSON.stringify({ message: `Failed to get project with the given id` }),
-      {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        headers: DEFAULT_HEADERS,
-      },
-    );
+  if (!project.success) {
+    return NextResponse.json(project.error, { status: HttpStatus.BAD_REQUEST });
   }
+
+  return NextResponse.json(project.data, { status: HttpStatus.OK });
 }
 
 /**
@@ -133,38 +116,17 @@ export async function GET(
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
-export async function HEAD(
-  request: Request,
-  { params }: { params: { id: string } },
-) {
+export async function HEAD(_, { params }: { params: { id: string } }) {
+  const session = await auth()
   const { id } = params;
 
-  try {
-    // FIXME call action
-    // const db = await mongooseDb();
-    //
-    // const exists = await db
-    //   .collection(Collection.COMPONENTS)
-    //   .countDocuments({ _id: new ObjectId(id) });
-    const exists = false;
+  const project = await getProjectById(id, session?.user?.id);
 
-    if (exists) {
-      return new Response(JSON.stringify({ message: 'Project Found' }), {
-        status: HttpStatus.OK,
-        headers: DEFAULT_HEADERS,
-      });
-    } else {
-      return new Response(JSON.stringify({ message: 'Project not found' }), {
-        status: HttpStatus.NOT_FOUND,
-        headers: DEFAULT_HEADERS,
-      });
-    }
-  } catch (error) {
-    return new Response(JSON.stringify(null), {
-      status: HttpStatus.INTERNAL_SERVER_ERROR,
-      headers: DEFAULT_HEADERS,
-    });
+  if (!project.success) {
+    return NextResponse.json(project.error, { status: HttpStatus.BAD_REQUEST });
   }
+
+  return NextResponse.json(null, { status: HttpStatus.OK });
 }
 
 /**

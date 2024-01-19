@@ -1,4 +1,4 @@
-import type { Config } from "drizzle-kit";
+import type { Config } from 'drizzle-kit';
 import * as dotenv from 'dotenv';
 
 dotenv.config({
@@ -6,7 +6,6 @@ dotenv.config({
 });
 
 export default {
-  verbose: true,
   schema: [
     "src/data/**/schema.ts",
   ],
@@ -17,7 +16,7 @@ export default {
     port: Number(process.env.PGPORT),
     user: process.env.PGUSER,
     password: process.env.PGPASSWORD,
-    database: 'postgres',
-    ssl: true
-  }
+    database: process.env.PGDATABASE || 'postgres',
+    ssl: false,
+  },
 } satisfies Config;

@@ -1,5 +1,4 @@
 import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
-import { ObjectId } from 'mongodb';
 import { Component } from '@/data/components/model';
 
 /**

@@ -1,5 +1,7 @@
-import { DataTableColumnHeader } from '@/components/teams/teams-data-table/data-table-column-header';
+'use client'
+
 import { Checkbox } from '@/components/ui/checkbox';
+import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
 
 export const columns = [
   {

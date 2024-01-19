@@ -1,4 +1,4 @@
-import { Component } from "@/app/api/v1/components/model";
+import { Component } from '@/data/components/model';
 
 /**
  * @swagger

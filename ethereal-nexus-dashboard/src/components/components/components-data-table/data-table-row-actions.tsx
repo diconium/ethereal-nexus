@@ -20,19 +20,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { Component } from "@/app/api/v1/components/model";
 import { toast } from "@/components/ui/use-toast";
 
 export function ComponentsDataTableRowActions({ table, row }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const handleDeleteOk = (component: Component) => {
+
+  // FIXME type
+  const handleDeleteOk = (component: any) => {
     const { data, setData } = table.getState();
     if (component) {
       fetch(`api/v1/components/${component.name}`, { method: "delete" })
         .then(() => {
           setData(
             data.filter(
-              (eachComponent: Component) =>
+              // FIXME type
+              (eachComponent: any) =>
                 component.name !== eachComponent.name,
             ),
           );

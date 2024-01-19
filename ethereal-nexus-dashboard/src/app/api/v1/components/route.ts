@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
-import { getAllComponents } from '@/lib/components/components.service';
 
 /**
  * @swagger
@@ -34,7 +33,7 @@ import { getAllComponents } from '@/lib/components/components.service';
  */
 export async function GET() {
   try {
-    const components = await getAllComponents();
+    const components = [];
     return new Response(JSON.stringify(components), {
       status: HttpStatus.OK,
       headers: DEFAULT_HEADERS,

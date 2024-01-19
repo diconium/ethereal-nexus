@@ -1,7 +1,6 @@
 import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
-import { getProjectById } from '@/lib/projects/projects.service';
-import { ObjectId } from 'mongodb';
-import { getComponentsByNames } from '@/lib/components/components.service';
+import { getProjectById } from '@/data/projects/actions';
+import { auth } from '@/auth';
 
 /**
  * @swagger
@@ -53,10 +52,11 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } },
 ) {
+  const session = await auth()
   const { id } = params;
 
   try {
-    const project = await getProjectById(id);
+    const project = await getProjectById(id, session?.user?.id);
 
     if (!project) {
       return new Response(
@@ -69,8 +69,9 @@ export async function GET(
     }
 
     return new Response(
+      // FIXME response mocked
       JSON.stringify(
-        await getComponentsByNames(project.components?.map((component) => component.name)),
+        undefined,
       ),
       {
         status: HttpStatus.OK,

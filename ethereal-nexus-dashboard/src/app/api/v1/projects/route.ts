@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
-import { getAllProjects } from '@/lib/projects/projects.service';
+import { HttpStatus } from '@/app/api/utils';
+import { getProjects, insertProject } from '@/data/projects/actions';
+import { auth } from '@/auth';
 
 /**
  * @swagger
@@ -33,23 +34,23 @@ import { getAllProjects } from '@/lib/projects/projects.service';
  *             example: Internal Server Error - Something went wrong on the server side
  */
 export async function GET() {
-  try {
-    const projects = await getAllProjects();
-    return new Response(JSON.stringify(projects), {
-      status: HttpStatus.OK,
-      headers: DEFAULT_HEADERS,
+  const session = await auth()
+  const projects = await getProjects(session?.user?.id);
+  if (!projects.success) {
+    return NextResponse.json(projects.error, {
+      status: HttpStatus.BAD_REQUEST,
     });
-  } catch (e) {
-    console.error(e);
   }
 
-  return NextResponse.json({ components: [] });
+  return NextResponse.json(projects.data, {
+    status: HttpStatus.OK,
+  });
 }
 
 /**
  * @swagger
  * /api/v1/projects:
- *   put:
+ *   post:
  *     summary: Creates a new project
  *     description: Creates a new project
  *     tags:
@@ -66,11 +67,9 @@ export async function GET() {
  *           name:
  *            type: string
  *            description: Name of the project
- *           components:
- *            type: array
- *            items:
- *             type: string
- *             description: List of components that can be used inside the given project
+ *           description:
+ *            type: string
+ *            description: Projects brief description
  *     responses:
  *      '200':
  *        description: Success message
@@ -103,40 +102,13 @@ export async function GET() {
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
-export async function PUT(request: Request) {
-  const { name, components = [] } = await request.json();
+export async function POST(request: Request) {
+  const req = await request.json();
+  const project = await insertProject(req);
 
-  if (!name) {
-    return new Response(
-      JSON.stringify({ message: 'Bad Request - Invalid input data' }),
-      {
-        status: HttpStatus.BAD_REQUEST,
-        headers: DEFAULT_HEADERS,
-      },
-    );
+  if (!project.success) {
+    return NextResponse.json(project.error, { status: HttpStatus.BAD_REQUEST });
   }
-  // FIXME call action
-  // const db = await mongooseDb();
-  // // Fixme
-  // const result: any = await db
-  //   .collection(Collection.PROJECTS)
-  //   .insertOne({ name, components: components });
-  const result = { ok: true };
-  if (result.ok) {
-    return new Response(
-      JSON.stringify({ message: 'Project created successfully' }),
-      {
-        status: HttpStatus.OK,
-        headers: DEFAULT_HEADERS,
-      },
-    );
-  } else {
-    return new Response(
-      JSON.stringify({ message: 'Failed to create project.' }),
-      {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        headers: DEFAULT_HEADERS,
-      },
-    );
-  }
+
+  return NextResponse.json(project.data);
 }

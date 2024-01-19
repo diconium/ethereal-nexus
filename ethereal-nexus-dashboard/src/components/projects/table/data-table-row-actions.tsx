@@ -9,7 +9,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Project } from "@/app/api/v1/projects/model";
 import { ClipboardCopy, Pencil, Trash } from "lucide-react";
 import { MouseEventHandler, useState } from 'react';
 import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
@@ -23,6 +22,8 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import { deleteProject } from '@/data/projects/actions';
+import { projectSchema } from '@/data/projects/dto';
+import { z } from 'zod';
 
 export function ProjectsDataTableRowActions({ table, row }) {
   const project = row.original;
@@ -38,7 +39,7 @@ export function ProjectsDataTableRowActions({ table, row }) {
       if(deleted.success) {
         setData(
           data.filter(
-            (eachProject: Project) => project.name !== eachProject.name,
+            (eachProject: z.infer<typeof projectSchema>) => project.name !== eachProject.name,
           ),
         );
         toast({

@@ -4,7 +4,7 @@ import { Result } from '@/data/action';
 import { z } from 'zod';
 import { db } from '@/db';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
-import { projectSchema, projectWithComponentSchema } from './dto';
+import { projectComponentsSchema, projectSchema, projectWithComponentSchema } from './dto';
 import * as console from 'console';
 import { and, eq, inArray } from 'drizzle-orm';
 import { members } from '@/data/member/schema';
@@ -38,10 +38,43 @@ export async function getProjects(userId: string | undefined | null): Promise<Re
         }
       });
 
-
-    console.log(select);
-
     const safe = z.array(projectWithComponentSchema).safeParse(select);
+    if (!safe.success) {
+      return actionZodError('There\'s an issue with the project records.', safe.error);
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to fetch project from database.');
+  }
+}
+
+export async function getProjectComponents(id: string | undefined | null, userId: string | undefined | null): Promise<Result<z.infer<typeof projectComponentsSchema>>> {
+  if (!id) {
+    return actionError('No identifier provided.');
+  }
+
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  try {
+    const select = await db.query.projects
+      .findFirst({
+        columns: {
+          id: true,
+        },
+        where: and(
+          eq(projects.id, id),
+          userIsMember(userId),
+        ),
+        with: {
+          components: true,
+        }
+      });
+
+    const safe = projectComponentsSchema.safeParse(select);
     if (!safe.success) {
       return actionZodError('There\'s an issue with the project records.', safe.error);
     }
@@ -77,5 +110,35 @@ export async function deleteProject(id: string, userId: string | undefined | nul
   } catch (error) {
     console.error(error);
     return actionError('Failed to delete project from database.');
+  }
+}
+
+export async function getProjectById(id: string, userId: string | undefined | null): Promise<Result<z.infer<typeof projectSchema>>> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  if (!id) {
+    return actionError('No identifier provided.');
+  }
+
+  try {
+    const select = await db.query.projects
+      .findFirst({
+        where: and(
+          eq(projects.id, id),
+          userIsMember(userId),
+        ),
+      });
+
+    const safe = projectSchema.safeParse(select);
+    if (!safe.success) {
+      return actionZodError('There\'s an issue with the project records.', safe.error);
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to fetch project from database.');
   }
 }

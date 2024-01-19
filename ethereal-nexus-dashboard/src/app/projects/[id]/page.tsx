@@ -1,40 +1,56 @@
-import { getProjectById } from "@/lib/projects/projects.service";
-import { Separator } from "@/components/ui/separator";
-import ProjectsForm from "@/components/projects/project-form";
-import { getAllDistinctComponents } from "@/lib/components/components.service";
-import { Project } from "@/app/api/v1/projects/model";
+import { Separator } from '@/components/ui/separator';
+import ProjectsForm from '@/components/projects/project-form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getProjectById } from '@/data/projects/actions';
+import { auth } from '@/auth';
+import { notFound } from 'next/navigation';
+import { ProjectMemberList } from '@/components/projects/members-table/member-list';
+import { ProjectComponentsList } from '@/components/projects/component-selection-table/components-list';
 
-const getData = async (id: string) => {
-  let project: Project | null = null;
-  if (id !== "0") {
-    project = await getProjectById(id);
+export default async function EditProject({ params: { id } }: any) {
+  const session = await auth();
+  const project = await getProjectById(id, session?.user?.id);
+
+  if (!project.success) {
+    notFound();
   }
-  const allComponents = await getAllDistinctComponents();
-  return {
-    project,
-    allComponents,
-  };
-};
 
-export default async function EditProject({ params }: any) {
-  const { id } = params;
-  const { project, allComponents } = await getData(id);
   return (
     <div className="container space-y-6">
       <div>
         <h3 className="text-lg font-medium">Projects</h3>
         <p className="text-sm text-muted-foreground">
-          {project?.name
-            ? `Update project ${project?.name}`
+          {project.data.name
+            ? `Update project ${project.data.name}`
             : `Create a new project`}
         </p>
       </div>
       <Separator />
-      <ProjectsForm
-        id={id}
-        project={project}
-        availableComponents={allComponents}
-      />
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="components">
+            Components
+          </TabsTrigger>
+          <TabsTrigger value="users">
+            Users
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview" className="space-y-4 p-6">
+          <ProjectsForm
+            id={id}
+            project={project}
+          />
+        </TabsContent>
+        <TabsContent value="components" className="space-y-4 p-6">
+          <ProjectComponentsList id={id} />
+        </TabsContent>
+        <TabsContent value="users" className="space-y-4 p-6">
+          <ProjectMemberList id={id} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

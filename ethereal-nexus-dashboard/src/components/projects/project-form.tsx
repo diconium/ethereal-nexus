@@ -8,7 +8,6 @@ import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, Form
 import {Input} from "@/components/ui/input";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {useRouter} from "next/navigation";
-import {ComponentSelectionDataTable} from "@/components/projects/component-selection-data-table/data-table";
 import React from "react";
 import { useToast } from '@/components/ui/use-toast';
 
@@ -17,15 +16,11 @@ const projectsFormSchema = z.object({
         message: "Name must be at least 3 characters.",
     }),
     description: z.string(),
-    components: z.array(z.object({
-        name: z.string(),
-        version: z.string(),
-    })),
 });
 
 type ProjectsFormValues = z.infer<typeof projectsFormSchema>;
 
-export default function ProjectsForm({id, project, availableComponents}) {
+export default function ProjectsForm({id, project}) {
     const router = useRouter();
     const { toast } = useToast()
     const form: any = useForm<ProjectsFormValues>({
@@ -86,8 +81,6 @@ export default function ProjectsForm({id, project, availableComponents}) {
                         </FormItem>
                     )}
                 />
-                <ComponentSelectionDataTable onChangeSelected={(value) => form.setValue("components", value)}
-                                             initialProjectComponents={project?.components}/>
                 <Button type="submit">Update project</Button>
             </form>
         </Form>

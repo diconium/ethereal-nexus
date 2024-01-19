@@ -23,9 +23,10 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   handlerPath?: string
   entity: ComponentProps<typeof DataTableToolbar>['entityName']
+  createSlot?: ComponentProps<typeof DataTableToolbar>['createSlot']
 }
 
-export function DataTable<TData, TValue>({ columns, data, entity }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, entity, createSlot }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -56,11 +57,11 @@ export function DataTable<TData, TValue>({ columns, data, entity }: DataTablePro
   });
 
   return (
-    <div className="space-y-4">
+    <>
       <DataTableToolbar
         table={table}
         entityName={entity}
-        createActionLink={'/users/new'}
+        createSlot={createSlot}
       />
       <div className="rounded-md border">
         <Table>
@@ -107,6 +108,6 @@ export function DataTable<TData, TValue>({ columns, data, entity }: DataTablePro
         </Table>
       </div>
       <DataTablePagination table={table} />
-    </div>
+    </>
   );
 }

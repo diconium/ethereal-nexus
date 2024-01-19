@@ -28,8 +28,8 @@ export const componentVersionsRelations = relations(componentVersions, ({ one })
 export const componentAssets = pgTable("component_assets", {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   component_id:  uuid('component_id').references(() => components.id, { onDelete: 'cascade' }),
-  version_id: uuid('version').references(() => componentVersions.id, { onDelete: 'cascade' }),
-  url: text('version').notNull(),
+  version_id: uuid('version_id').references(() => componentVersions.id, { onDelete: 'cascade' }),
+  url: text('url').notNull(),
   type: assetTypeEnum('type'),
 })
 export const componentAssetsRelations = relations(componentAssets, ({ one }) => ({

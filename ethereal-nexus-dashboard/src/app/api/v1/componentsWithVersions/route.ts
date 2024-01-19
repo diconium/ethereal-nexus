@@ -1,8 +1,7 @@
-import {NextResponse} from "next/server";
-import {DEFAULT_HEADERS, HttpStatus} from "@/app/api/utils";
-import mongooseDb, {Collection} from "@/lib/mongodb";
-import {getAllComponents} from "@/lib/components/components.service";
-import {ComponentWithVersions} from "@/app/api/v1/componentsWithVersions/model";
+import { NextResponse } from 'next/server';
+import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
+import { getAllComponents } from '@/lib/components/components.service';
+import { ComponentWithVersions } from '@/app/api/v1/componentsWithVersions/model';
 
 /**
  * @swagger
@@ -35,27 +34,44 @@ import {ComponentWithVersions} from "@/app/api/v1/componentsWithVersions/model";
  *             example: Internal Server Error - Something went wrong on the server side
  */
 export async function GET() {
-    try {
-        const components = await getAllComponents();
-        const componentsWithVersions = components.reduce((currentArray, componentVersion) => {
-            const existingComponentWithVersions = currentArray.find(currentComponentVersion => currentComponentVersion.name === componentVersion.name);
-            const newComponentWithVersions = {
-                ...componentVersion,
-                version: undefined,
-                versions: existingComponentWithVersions ? [...existingComponentWithVersions.versions, componentVersion.version] : [componentVersion.version]
-            };
+  try {
+    const components = await getAllComponents();
+    const componentsWithVersions = components.reduce(
+      (currentArray, componentVersion) => {
+        const existingComponentWithVersions = currentArray.find(
+          (currentComponentVersion) =>
+            currentComponentVersion.name === componentVersion.name,
+        );
+        const newComponentWithVersions = {
+          ...componentVersion,
+          version: undefined,
+          versions: existingComponentWithVersions
+            ? [
+                ...existingComponentWithVersions.versions,
+                componentVersion.version,
+              ]
+            : [componentVersion.version],
+        };
 
-            return [...currentArray.filter((componentsWithVersions) => componentsWithVersions.name !== componentVersion.name), newComponentWithVersions];
-        }, [] as ComponentWithVersions[]);
-        return new Response(JSON.stringify(componentsWithVersions), {
-            status: HttpStatus.OK,
-            headers: DEFAULT_HEADERS,
-        });
-    } catch (e) {
-        console.error(e);
-    }
+        return [
+          ...currentArray.filter(
+            (componentsWithVersions) =>
+              componentsWithVersions.name !== componentVersion.name,
+          ),
+          newComponentWithVersions,
+        ];
+      },
+      [] as ComponentWithVersions[],
+    );
+    return new Response(JSON.stringify(componentsWithVersions), {
+      status: HttpStatus.OK,
+      headers: DEFAULT_HEADERS,
+    });
+  } catch (e) {
+    console.error(e);
+  }
 
-    return NextResponse.json({components: []});
+  return NextResponse.json({ components: [] });
 }
 
 /**
@@ -108,34 +124,36 @@ export async function GET() {
  *             example: Internal Server Error - Something went wrong on the server side
  */
 export async function PUT(request: Request) {
-    const {name, version, dialog, title} = await request.json();
-    const query = {
-        name,
-        version,
-    };
+  const { name, version, dialog, title } = await request.json();
+  const query = {
+    name,
+    version,
+  };
 
-    const db = await mongooseDb();
-    const result = await db.collection(Collection.COMPONENTS).findOneAndUpdate(
-        query,
-        {$set: {name, version, dialog, title}}, // The document to insert or update
-        {upsert: true},
+  // FIXME call action
+  // const db = await mongooseDb();
+  // const result = await db.collection(Collection.COMPONENTS).findOneAndUpdate(
+  //     query,
+  //     {$set: {name, version, dialog, title}}, // The document to insert or update
+  //     {upsert: true},
+  // );
+  const result = { ok: true };
+
+  if (result.ok) {
+    return new Response(
+      JSON.stringify({ message: 'Document updated successfully' }),
+      {
+        status: HttpStatus.OK,
+        headers: DEFAULT_HEADERS,
+      },
     );
-
-    if (result.ok) {
-        return new Response(
-            JSON.stringify({message: "Document updated successfully"}),
-            {
-                status: HttpStatus.OK,
-                headers: DEFAULT_HEADERS,
-            },
-        );
-    } else {
-        return new Response(
-            JSON.stringify({message: "Failed to insert record."}),
-            {
-                status: HttpStatus.INTERNAL_SERVER_ERROR,
-                headers: DEFAULT_HEADERS,
-            },
-        );
-    }
+  } else {
+    return new Response(
+      JSON.stringify({ message: 'Failed to insert record.' }),
+      {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        headers: DEFAULT_HEADERS,
+      },
+    );
+  }
 }

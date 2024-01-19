@@ -1,7 +1,6 @@
-import { NextResponse } from "next/server";
-import { DEFAULT_HEADERS, HttpStatus } from "@/app/api/utils";
-import mongooseDb, { Collection } from "@/lib/mongodb";
-import { getAllComponents } from "@/lib/components/components.service";
+import { NextResponse } from 'next/server';
+import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
+import { getAllComponents } from '@/lib/components/components.service';
 
 /**
  * @swagger
@@ -97,22 +96,24 @@ export async function GET() {
  *             example: Internal Server Error - Something went wrong on the server side
  */
 export async function PUT(request: Request) {
-  const {name, version, dialog, title} = await request.json();
+  const { name, version, dialog, title } = await request.json();
   const query = {
     name,
     version,
   };
 
-  const db = await mongooseDb();
-  const result = await db.collection(Collection.COMPONENTS).findOneAndUpdate(
-    query,
-    { $set: {name , version, dialog, title}}, // The document to insert or update
-    { upsert: true },
-  );
+  // FIXME: Call create and update action
+  // const db = await mongooseDb();
+  // const result = await db.collection(Collection.COMPONENTS).findOneAndUpdate(
+  //   query,
+  //   { $set: {name , version, dialog, title}}, // The document to insert or update
+  //   { upsert: true },
+  // );
+  const result = { ok: true };
 
   if (result.ok) {
     return new Response(
-      JSON.stringify({ message: "Document updated successfully" }),
+      JSON.stringify({ message: 'Document updated successfully' }),
       {
         status: HttpStatus.OK,
         headers: DEFAULT_HEADERS,
@@ -120,7 +121,7 @@ export async function PUT(request: Request) {
     );
   } else {
     return new Response(
-      JSON.stringify({ message: "Failed to insert record." }),
+      JSON.stringify({ message: 'Failed to insert record.' }),
       {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         headers: DEFAULT_HEADERS,

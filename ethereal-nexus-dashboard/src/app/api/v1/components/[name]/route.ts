@@ -1,6 +1,5 @@
-import { DEFAULT_HEADERS, HttpStatus } from "@/app/api/utils";
-import mongooseDb, { Collection } from "@/lib/mongodb";
-import { Component } from "@/app/api/v1/components/model";
+import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
+import { Component } from '@/data/components/model';
 
 /**
  * @swagger
@@ -48,19 +47,20 @@ import { Component } from "@/app/api/v1/components/model";
  */
 export async function GET(
   request: Request,
-  { params }: { params: Pick<Component, "name"> },
+  { params }: { params: Pick<Component, 'name'> },
 ) {
   const { name } = params;
 
   try {
-    const db = await mongooseDb();
-
-    const latestComponent = await db
-      .collection(Collection.COMPONENTS)
-      .find({ name })
-      .sort({ version: -1 })
-      .limit(1)
-      .next();
+    // FIXME: Call action
+    // const db = await mongooseDb();
+    // const latestComponent = await db
+    //   .collection(Collection.COMPONENTS)
+    //   .find({ name })
+    //   .sort({ version: -1 })
+    //   .limit(1)
+    //   .next();
+    const latestComponent = {};
 
     return new Response(JSON.stringify(latestComponent), {
       status: HttpStatus.OK,
@@ -120,16 +120,18 @@ export async function GET(
  */
 export async function HEAD(
   request: Request,
-  { params }: { params: Pick<Component, "name"> },
+  { params }: { params: Pick<Component, 'name'> },
 ) {
   const { name } = params;
 
   try {
-    const db = await mongooseDb();
-
-    const exists = await db
-      .collection(Collection.COMPONENTS)
-      .countDocuments({ name });
+    // FIXME call action
+    // const db = await mongooseDb();
+    //
+    // const exists = await db
+    //   .collection(Collection.COMPONENTS)
+    //   .countDocuments({ name });
+    const exists = true;
 
     if (exists) {
       return new Response(JSON.stringify({}), {
@@ -194,14 +196,15 @@ export async function HEAD(
  */
 export async function DELETE(
   request: Request,
-  { params }: { params: Pick<Component, "name"> },
+  { params }: { params: Pick<Component, 'name'> },
 ) {
   const { name } = params;
 
   try {
-    const db = await mongooseDb();
-
-    await db.collection(Collection.COMPONENTS).findOneAndDelete({ name });
+    // FIXME call action
+    // const db = await mongooseDb();
+    //
+    // await db.collection(Collection.COMPONENTS).findOneAndDelete({ name });
 
     return new Response(null, {
       status: HttpStatus.NO_CONTENT,

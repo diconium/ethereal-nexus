@@ -14,9 +14,9 @@ import {
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import * as React from 'react';
-import { DataTablePagination } from '@/components/teams/teams-data-table/data-table-pagination';
-import { DataTableToolbar } from '@/components/ui/data-table/data-table-toolbar';
 import { ComponentProps, useState } from 'react';
+import { DataTablePagination } from './data-table-pagination';
+import { DataTableToolbar } from './data-table-toolbar';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

@@ -24,12 +24,6 @@ export function MainNav({
         Components
       </Link>
       <Link
-        href="/teams"
-        className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-      >
-        Teams
-      </Link>
-      <Link
         href="/users"
         className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
       >

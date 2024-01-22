@@ -1,6 +1,5 @@
 import { boolean, pgTable, primaryKey, text, uuid } from 'drizzle-orm/pg-core';
 import { relations, } from 'drizzle-orm';
-import { members } from '@/data/member/schema';
 import { components, componentVersions } from '@/data/components/schema';
 
 export const projects = pgTable("project", {
@@ -31,5 +30,9 @@ export const projectComponentConfigRelations = relations(projectComponentConfig,
   component: one(components, {
     fields: [projectComponentConfig.component_id],
     references: [components.id],
+  }),
+  version: one(componentVersions, {
+    fields: [projectComponentConfig.component_version],
+    references: [componentVersions.id],
   })
 }));

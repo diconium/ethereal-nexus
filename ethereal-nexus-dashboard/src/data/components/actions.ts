@@ -1,10 +1,10 @@
-import { Result } from '@/data/action';
+import { ActionResponse, Result } from '@/data/action';
 import { z } from 'zod';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import { db } from '@/db';
 import { componentsWithVersions } from './dto';
 
-export async function getComponents(): Promise<Result<z.infer<typeof componentsWithVersions>[]>> {
+export async function getComponents(): ActionResponse<z.infer<typeof componentsWithVersions>[]> {
 try {
     const select = await db.query.components
       .findMany({

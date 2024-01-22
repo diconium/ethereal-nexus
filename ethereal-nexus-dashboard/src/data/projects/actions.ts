@@ -9,8 +9,10 @@ import {
   projectComponentsSchema,
   projectSchema,
   projectWithComponentIdSchema,
+  projectWithComponentSchema,
   type Project,
-  type ProjectWithComponentId
+  type ProjectWithComponentId,
+  type ProjectWithComponent,
 } from './dto';
 import * as console from 'console';
 import { and, eq } from 'drizzle-orm';
@@ -36,6 +38,41 @@ export async function getProjects(userId: string | undefined | null): ActionResp
       });
 
     const safe = z.array(projectWithComponentIdSchema).safeParse(select);
+    if (!safe.success) {
+      return actionZodError('There\'s an issue with the project records.', safe.error);
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to fetch project from database.');
+  }
+}
+
+export async function getProjectsWithComponents(userId: string | undefined | null): ActionResponse<ProjectWithComponent[]> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  try {
+    const select = await db.query.projects
+      .findMany({
+        where: userIsMember(userId),
+        with: {
+          components: {
+            columns: {
+              is_active: true,
+              component_version: true
+            },
+            with: {
+              component: true,
+              version: true,
+            }
+          },
+        }
+      });
+
+    const safe = z.array(projectWithComponentSchema).safeParse(select);
     if (!safe.success) {
       return actionZodError('There\'s an issue with the project records.', safe.error);
     }

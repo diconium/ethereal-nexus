@@ -18,6 +18,12 @@ export function MainNav({
         Home
       </Link>
       <Link
+        href="/projects"
+        className="text-sm font-medium transition-colors hover:text-primary"
+      >
+        Projects
+      </Link>
+      <Link
         href="/components"
         className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
       >

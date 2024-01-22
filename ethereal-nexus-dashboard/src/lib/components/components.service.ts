@@ -55,6 +55,7 @@ export const getComponentsByNames = async (names: string[]): Promise<Component[]
                     name: 1,
                     title: 1,
                     version: 1,
+                    dialog: 1
                 }
             },
         ])

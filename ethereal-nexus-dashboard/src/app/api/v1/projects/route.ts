@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { HttpStatus } from '@/app/api/utils';
 import { getProjects, insertProject } from '@/data/projects/actions';
-import { auth } from '@/auth';
+import { authenticatedWithKey } from '@/lib/route-wrappers';
 
 /**
  * @swagger
@@ -33,9 +33,9 @@ import { auth } from '@/auth';
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
-export async function GET() {
-  const session = await auth()
-  const projects = await getProjects(session?.user?.id);
+export const GET = authenticatedWithKey(async ({user}) => {
+  const {id} = user
+  const projects = await getProjects(id);
   if (!projects.success) {
     return NextResponse.json(projects.error, {
       status: HttpStatus.BAD_REQUEST,
@@ -45,7 +45,7 @@ export async function GET() {
   return NextResponse.json(projects.data, {
     status: HttpStatus.OK,
   });
-}
+})
 
 /**
  * @swagger

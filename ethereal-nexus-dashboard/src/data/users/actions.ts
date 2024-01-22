@@ -3,17 +3,18 @@
 import * as bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 import { db } from '@/db';
-import { users } from '@/data/users/schema';
+import { apiKeys, users } from '@/data/users/schema';
 import {
-  newUserSchema,
-  userEmailSchema,
+  newUserSchema, userApiKeySchema,
+  userEmailSchema, userIdSchema,
   userPublicSchema,
-  userSchema,
+  userSchema
 } from '@/data/users/dto';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { ActionResponse, Result } from '@/data/action';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
+import { ap } from 'types-ramda';
 
 export async function insertUser(
   user: z.infer<typeof newUserSchema>,
@@ -78,6 +79,35 @@ export async function getUserByEmail(unsafeEmail: string): ActionResponse<z.infe
     if (!safeUser.success) {
       return actionZodError(
         "There's an issue with the user record.",
+        safeUser.error,
+      );
+    }
+
+    return actionSuccess(safeUser.data);
+  } catch {
+    return actionError('Failed to fetch user from database.');
+  }
+}
+
+export async function getUserByApiKey(apiKey: string): ActionResponse<z.infer<typeof userIdSchema>> {
+  const input = userApiKeySchema.safeParse(apiKey)
+  if(!input.success){
+    return actionZodError('The api key is not valid.', input.error);
+  }
+
+  const key = input.data;
+  try {
+    const result = await db.query.apiKeys.findFirst({
+      where: eq(apiKeys.id, key),
+      columns: {
+        user_id: true
+      }
+    })
+
+    const safeUser = userIdSchema.safeParse({ id: result?.user_id });
+    if (!safeUser.success) {
+      return actionZodError(
+        "There's an issue with the api key record.",
         safeUser.error,
       );
     }

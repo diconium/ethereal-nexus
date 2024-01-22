@@ -1,25 +1,16 @@
 'use server';
 
-import { Result } from '@/data/action';
+import { ActionResponse, Result } from '@/data/action';
 import { z } from 'zod';
 import { db } from '@/db';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import { newProjectSchema, projectComponentsSchema, projectSchema, projectWithComponentSchema } from './dto';
 import * as console from 'console';
-import { and, eq, inArray } from 'drizzle-orm';
-import { members } from '@/data/member/schema';
+import { and, eq } from 'drizzle-orm';
 import { projects } from '@/data/projects/schema';
+import { userIsMember } from '@/data/member/actions';
 
-const userIsMember = (userId: string) => inArray(
-  projects.id,
-  db.select({ id: members.resource })
-    .from(members)
-    .where(
-      eq(members.user_id, userId)
-    )
-);
-
-export async function getProjects(userId: string | undefined | null): Promise<Result<z.infer<typeof projectWithComponentSchema>[]>> {
+export async function getProjects(userId: string | undefined | null): ActionResponse<z.infer<typeof projectWithComponentSchema>[]> {
   if (!userId) {
     return actionError('No user provided.');
   }
@@ -34,7 +25,6 @@ export async function getProjects(userId: string | undefined | null): Promise<Re
               component_id: true
             }
           },
-          members: true
         }
       });
 
@@ -50,7 +40,7 @@ export async function getProjects(userId: string | undefined | null): Promise<Re
   }
 }
 
-export async function getProjectComponents(id: string | undefined | null, userId: string | undefined | null): Promise<Result<z.infer<typeof projectComponentsSchema>>> {
+export async function getProjectComponents(id: string | undefined | null, userId: string | undefined | null): ActionResponse<z.infer<typeof projectComponentsSchema>> {
   if (!id) {
     return actionError('No identifier provided.');
   }
@@ -93,7 +83,7 @@ export async function getProjectComponents(id: string | undefined | null, userId
   }
 }
 
-export async function deleteProject(id: string, userId: string | undefined | null): Promise<Result<z.infer<typeof projectSchema>[]>> {
+export async function deleteProject(id: string, userId: string | undefined | null): ActionResponse<z.infer<typeof projectSchema>[]> {
   if (!userId) {
     return actionError('No user provided.');
   }
@@ -120,7 +110,7 @@ export async function deleteProject(id: string, userId: string | undefined | nul
   }
 }
 
-export async function getProjectById(id: string, userId: string | undefined | null): Promise<Result<z.infer<typeof projectSchema>>> {
+export async function getProjectById(id: string, userId: string | undefined | null): ActionResponse<z.infer<typeof projectSchema>> {
   if (!userId) {
     return actionError('No user provided.');
   }
@@ -150,7 +140,7 @@ export async function getProjectById(id: string, userId: string | undefined | nu
   }
 }
 
-export async function insertProject(project: z.infer<typeof newProjectSchema>): Promise<Result<z.infer<typeof projectSchema>>> {
+export async function insertProject(project: z.infer<typeof newProjectSchema>): ActionResponse<z.infer<typeof projectSchema>> {
   const safeProject = newProjectSchema.safeParse(project);
   if (!safeProject.success) {
     return actionZodError('Failed to parse project´s input', safeProject.error);

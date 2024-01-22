@@ -1,12 +1,18 @@
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { users } from '@/data/users/schema';
+import { z } from 'zod';
 
 export const userSchema = createSelectSchema(users)
+export type User = z.infer<typeof userSchema>
 
-export const userPublicSchema = createSelectSchema(users)
+export const userPublicSchema = userSchema
   .omit({
     password: true
   });
+
+export const userIdSchema = userSchema
+  .pick({id: true})
+export type UserId = z.infer<typeof userIdSchema>
 
 export const newUserSchema = createInsertSchema(users, {
   password: (schema) => schema.password
@@ -26,3 +32,5 @@ export const userLoginSchema = newUserSchema.pick({
 export const userEmailSchema = newUserSchema.pick({
   email: true,
 })
+
+export const userApiKeySchema = z.string()

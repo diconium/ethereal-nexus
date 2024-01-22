@@ -17,7 +17,7 @@ export const componentVersions = pgTable("component_version", {
   component_id:  uuid('component_id').references(() => components.id, { onDelete: 'cascade' }),
   version: text('version').notNull(),
   dialog: json('dialog'),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
 })
 export const componentVersionsRelations = relations(componentVersions, ({ one }) => ({
   component: one(components, {

@@ -11,7 +11,6 @@ export const projectComponentConfigSchema = createSelectSchema(projectComponentC
 
 export const projectWithComponentSchema = projectSchema.extend({
   components: projectComponentConfigSchema.pick({ component_id: true }).array(),
-  members: memberSchema.pick({ user_id: true }).array()
 });
 
 export const projectComponentsSchema = projectSchema

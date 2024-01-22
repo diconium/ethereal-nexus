@@ -14,3 +14,5 @@ type ActionError = {
     path: (string | number)[]
   }[]
 }
+
+type ActionResponse<T> = Promise<Result<T>>

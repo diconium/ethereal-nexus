@@ -70,8 +70,6 @@ export async function getProjectComponents(id: string | undefined | null, userId
       });
 
     const safe = projectComponentsSchema.safeParse(select);
-    console.log(JSON.stringify(safe))
-
     if (!safe.success) {
       return actionZodError('There\'s an issue with the project records.', safe.error);
     }

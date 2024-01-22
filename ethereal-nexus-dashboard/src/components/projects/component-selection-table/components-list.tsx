@@ -11,7 +11,7 @@ export async function ProjectComponentsList({id}: {id: string}) {
   if(!project.success) {
     throw new Error(project.error.message)
   }
-  console.log(project.data.components)
+
   return <DataTable
     columns={columns}
     data={project.data.components}

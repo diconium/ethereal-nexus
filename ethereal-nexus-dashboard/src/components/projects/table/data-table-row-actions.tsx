@@ -22,8 +22,7 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import { deleteProject } from '@/data/projects/actions';
-import { projectSchema } from '@/data/projects/dto';
-import { z } from 'zod';
+import type { Project } from '@/data/projects/dto';
 
 export function ProjectsDataTableRowActions({ table, row }) {
   const project = row.original;
@@ -39,7 +38,7 @@ export function ProjectsDataTableRowActions({ table, row }) {
       if(deleted.success) {
         setData(
           data.filter(
-            (eachProject: z.infer<typeof projectSchema>) => project.name !== eachProject.name,
+            (eachProject: Project) => project.name !== eachProject.name,
           ),
         );
         toast({

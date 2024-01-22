@@ -71,7 +71,7 @@ export async function GET(
 
     return new Response(
       JSON.stringify(
-        await getComponentsByNames(project.components as string[]),
+        await getComponentsByNames(project.components?.map((component) => component.name)),
       ),
       {
         status: HttpStatus.OK,

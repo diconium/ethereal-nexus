@@ -1,14 +1,15 @@
 'use server';
 
-import { Result } from '@/data/action';
+import { ActionResponse, Result } from '@/data/action';
 import { z } from 'zod';
 import { db } from '@/db';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
-import { eq } from 'drizzle-orm';
-import { members as memberTable } from '@/data/member/schema';
+import { eq, inArray } from 'drizzle-orm';
+import { members, members as memberTable } from '@/data/member/schema';
 import { memberSchema, memberWithPublicUserSchema, newMemberSchema } from '@/data/member/dto';
+import { projects } from '@/data/projects/schema';
 
-export async function getMembersByResourceId(id: string, userId: string | undefined | null): Promise<Result<z.infer<typeof memberWithPublicUserSchema>[]>> {
+export async function getMembersByResourceId(id: string, userId: string | undefined | null): ActionResponse<z.infer<typeof memberWithPublicUserSchema>[]> {
   if (!userId) {
     return actionError('No user provided.');
   }
@@ -38,7 +39,7 @@ export async function getMembersByResourceId(id: string, userId: string | undefi
   }
 }
 
-export async function insertMembers(members: z.infer<typeof newMemberSchema>[]): Promise<Result<z.infer<typeof memberSchema>[]>> {
+export async function insertMembers(members: z.infer<typeof newMemberSchema>[]): ActionResponse<z.infer<typeof memberSchema>[]> {
   const input = z.array(newMemberSchema).safeParse(members)
   if(!input.success){
     return actionZodError('Failed to parse member input.', input.error);
@@ -59,3 +60,12 @@ export async function insertMembers(members: z.infer<typeof newMemberSchema>[]):
     return actionError( 'Failed to insert user onto database.')
   }
 }
+
+export const userIsMember = (userId: string) => inArray(
+  projects.id,
+  db.select({ id: members.resource })
+    .from(members)
+    .where(
+      eq(members.user_id, userId)
+    )
+);

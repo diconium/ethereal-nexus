@@ -1,4 +1,4 @@
-export type Result<T> = {
+type Result<T> = {
     success: true
     data: T
   }
@@ -15,4 +15,4 @@ type ActionError = {
   }[]
 }
 
-type ActionResponse<T> = Promise<Result<T>>
+export type ActionResponse<T> = Promise<Result<T>>

@@ -1,6 +1,6 @@
 import { projectComponentConfig, projects } from './schema';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { componentsSchema } from '@/data/components/dto';
+import { componentsSchema, componentVersionsSchema } from '@/data/components/dto';
 import { z } from 'zod';
 
 /**
@@ -50,6 +50,29 @@ export const projectWithComponentIdSchema = projectSchema
       .array(),
   });
 export type ProjectWithComponentId = z.infer<typeof projectWithComponentIdSchema>
+
+export const projectWithComponentSchema = projectSchema
+  .extend({
+    components: projectComponentConfigSchema
+      .pick({
+        is_active: true,
+        component_version: true,
+      })
+      .extend({
+        component: componentsSchema,
+        version: componentVersionsSchema,
+      })
+      .transform(val => ({
+        ...val.component,
+        isActive: val.is_active,
+        version: {
+          ...val.version,
+          component_id: undefined,
+        },
+      }))
+      .array(),
+  });
+export type ProjectWithComponent = z.infer<typeof projectWithComponentSchema>
 
 export const projectComponentsSchema = projectSchema
   .pick({ name: true })

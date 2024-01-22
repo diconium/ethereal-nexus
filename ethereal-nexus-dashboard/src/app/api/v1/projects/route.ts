@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { HttpStatus } from '@/app/api/utils';
-import { getProjects, insertProject } from '@/data/projects/actions';
+import { getProjects, getProjectsWithComponents, insertProject } from '@/data/projects/actions';
 import { authenticatedWithKey } from '@/lib/route-wrappers';
 
 /**
@@ -35,7 +35,7 @@ import { authenticatedWithKey } from '@/lib/route-wrappers';
  */
 export const GET = authenticatedWithKey(async ({user}) => {
   const {id} = user
-  const projects = await getProjects(id);
+  const projects = await getProjectsWithComponents(id);
   if (!projects.success) {
     return NextResponse.json(projects.error, {
       status: HttpStatus.BAD_REQUEST,

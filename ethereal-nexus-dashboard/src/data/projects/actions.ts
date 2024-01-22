@@ -1,16 +1,23 @@
 'use server';
 
-import { ActionResponse, Result } from '@/data/action';
+import { ActionResponse } from '@/data/action';
 import { z } from 'zod';
 import { db } from '@/db';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
-import { newProjectSchema, projectComponentsSchema, projectSchema, projectWithComponentSchema } from './dto';
+import {
+  projectInputSchema,
+  projectComponentsSchema,
+  projectSchema,
+  projectWithComponentIdSchema,
+  type Project,
+  type ProjectWithComponentId
+} from './dto';
 import * as console from 'console';
 import { and, eq } from 'drizzle-orm';
 import { projects } from '@/data/projects/schema';
 import { userIsMember } from '@/data/member/actions';
 
-export async function getProjects(userId: string | undefined | null): ActionResponse<z.infer<typeof projectWithComponentSchema>[]> {
+export async function getProjects(userId: string | undefined | null): ActionResponse<ProjectWithComponentId[]> {
   if (!userId) {
     return actionError('No user provided.');
   }
@@ -28,7 +35,7 @@ export async function getProjects(userId: string | undefined | null): ActionResp
         }
       });
 
-    const safe = z.array(projectWithComponentSchema).safeParse(select);
+    const safe = z.array(projectWithComponentIdSchema).safeParse(select);
     if (!safe.success) {
       return actionZodError('There\'s an issue with the project records.', safe.error);
     }
@@ -81,7 +88,7 @@ export async function getProjectComponents(id: string | undefined | null, userId
   }
 }
 
-export async function deleteProject(id: string, userId: string | undefined | null): ActionResponse<z.infer<typeof projectSchema>[]> {
+export async function deleteProject(id: string, userId: string | undefined | null): ActionResponse<Project[]> {
   if (!userId) {
     return actionError('No user provided.');
   }
@@ -138,8 +145,8 @@ export async function getProjectById(id: string, userId: string | undefined | nu
   }
 }
 
-export async function insertProject(project: z.infer<typeof newProjectSchema>): ActionResponse<z.infer<typeof projectSchema>> {
-  const safeProject = newProjectSchema.safeParse(project);
+export async function insertProject(project: z.infer<typeof projectInputSchema>): ActionResponse<z.infer<typeof projectSchema>> {
+  const safeProject = projectInputSchema.safeParse(project);
   if (!safeProject.success) {
     return actionZodError('Failed to parse project´s input', safeProject.error);
   }

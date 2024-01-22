@@ -19,7 +19,7 @@ import { auth } from '@/auth';
  *        content:
  *         application/json:
  *          schema:
- *           type: array<Project>
+ *           type: array
  *           items:
  *            $ref: '#/components/schemas/Project'
  *      '500':
@@ -62,25 +62,14 @@ export async function GET() {
  *      content:
  *       application/json:
  *         schema:
- *          type: object
- *          properties:
- *           name:
- *            type: string
- *            description: Name of the project
- *           description:
- *            type: string
- *            description: Projects brief description
+ *           $ref: '#/components/schemas/ProjectInput'
  *     responses:
  *      '200':
  *        description: Success message
  *        content:
  *         application/json:
  *          schema:
- *           type: object
- *           properties:
- *            message:
- *             type: string
- *             example: Resource created successfully
+ *            $ref: '#/components/schemas/Project'
  *      '400':
  *        description: Bad Request
  *        content:

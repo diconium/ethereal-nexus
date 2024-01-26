@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto';
 import { db } from '@/db';
 import { apiKeys, users } from '@/data/users/schema';
 import {
+  apiKeyPublicSchema,
   apiKeySchema,
   newUserSchema, userApiKeySchema,
   userEmailSchema, userIdSchema,
@@ -15,10 +16,9 @@ import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { ActionResponse, Result } from '@/data/action';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
-import { ap } from 'types-ramda';
 
 export async function insertUser(
-  user: z.infer<typeof newUserSchema>,
+  user: z.infer<typeof newUserSchema>
 ): ActionResponse<z.infer<typeof userPublicSchema>> {
   const safeUser = newUserSchema.safeParse(user);
   if (!safeUser.success) {
@@ -44,7 +44,7 @@ export async function insertUser(
       .values({
         ...safeUser.data,
         id: randomUUID(),
-        password: hashedPassword,
+        password: hashedPassword
       })
       .returning();
 
@@ -52,7 +52,7 @@ export async function insertUser(
     if (!result.success) {
       return actionZodError(
         'Failed to parse user inserted user.',
-        result.error,
+        result.error
       );
     }
 
@@ -62,9 +62,37 @@ export async function insertUser(
   }
 }
 
+export async function getUserById(userId?: string): ActionResponse<z.infer<typeof userPublicSchema>> {
+  const input = userIdSchema.safeParse({ id: userId });
+  if (!input.success) {
+    return actionZodError('The id input is not valid.', input.error);
+  }
+
+  const { id } = input.data;
+
+  try {
+    const userSelect = await db.query.users
+      .findFirst({
+        where: eq(users.id, id)
+      });
+
+    const safeUser = userPublicSchema.safeParse(userSelect);
+    if (!safeUser.success) {
+      return actionZodError(
+        'There\'s an issue with the user record.',
+        safeUser.error
+      );
+    }
+
+    return actionSuccess(safeUser.data);
+  } catch {
+    return actionError('Failed to fetch user from database.');
+  }
+}
+
 export async function getUserByEmail(unsafeEmail: string): ActionResponse<z.infer<typeof userSchema>> {
-  const safeEmail = userEmailSchema.safeParse({email: unsafeEmail})
-  if(!safeEmail.success){
+  const safeEmail = userEmailSchema.safeParse({ email: unsafeEmail });
+  if (!safeEmail.success) {
     return actionZodError('The email input is not valid.', safeEmail.error);
   }
 
@@ -79,8 +107,8 @@ export async function getUserByEmail(unsafeEmail: string): ActionResponse<z.infe
     const safeUser = userSchema.safeParse(userSelect[0]);
     if (!safeUser.success) {
       return actionZodError(
-        "There's an issue with the user record.",
-        safeUser.error,
+        'There\'s an issue with the user record.',
+        safeUser.error
       );
     }
 
@@ -91,8 +119,8 @@ export async function getUserByEmail(unsafeEmail: string): ActionResponse<z.infe
 }
 
 export async function getUserByApiKey(apiKey: string): ActionResponse<z.infer<typeof userIdSchema>> {
-  const input = apiKeySchema.safeParse({id: apiKey})
-  if(!input.success){
+  const input = apiKeySchema.safeParse({ id: apiKey });
+  if (!input.success) {
     return actionZodError('The api key is not valid.', input.error);
   }
 
@@ -103,13 +131,13 @@ export async function getUserByApiKey(apiKey: string): ActionResponse<z.infer<ty
       columns: {
         user_id: true
       }
-    })
+    });
 
     const safeUser = userIdSchema.safeParse({ id: result?.user_id });
     if (!safeUser.success) {
       return actionZodError(
-        "There's an issue with the api key record.",
-        safeUser.error,
+        'There\'s an issue with the api key record.',
+        safeUser.error
       );
     }
 
@@ -119,9 +147,9 @@ export async function getUserByApiKey(apiKey: string): ActionResponse<z.infer<ty
   }
 }
 
-export async function insertUserApiKey(userId: string): ActionResponse<z.infer<typeof userApiKeySchema>> {
-  const input = userIdSchema.safeParse({ id: userId })
-  if(!input.success){
+export async function insertUserApiKey(userId?: string): ActionResponse<z.infer<typeof userApiKeySchema>> {
+  const input = userIdSchema.safeParse({ id: userId });
+  if (!input.success) {
     return actionZodError('The user id is not valid.', input.error);
   }
 
@@ -130,15 +158,15 @@ export async function insertUserApiKey(userId: string): ActionResponse<z.infer<t
     const insert = await db
       .insert(apiKeys)
       .values({
-        user_id,
+        user_id
       })
       .returning();
 
     const safeKey = userApiKeySchema.safeParse(insert[0]);
     if (!safeKey.success) {
       return actionZodError(
-        "There's an issue with the api key record.",
-        safeKey.error,
+        'There\'s an issue with the api key record.',
+        safeKey.error
       );
     }
 
@@ -148,19 +176,42 @@ export async function insertUserApiKey(userId: string): ActionResponse<z.infer<t
   }
 }
 
+export async function getApiKeys(userId?: string): ActionResponse<z.infer<typeof apiKeyPublicSchema>[]> {
+  const input = userIdSchema.safeParse({ id: userId });
+  if (!input.success) {
+    return actionZodError('The user id is not valid.', input.error);
+  }
+
+  const { id } = input.data;
+  try {
+    const select = await db.query.apiKeys.findMany({
+      where: eq(apiKeys.user_id, id)
+    });
+
+    const safe = z.array(apiKeyPublicSchema).safeParse(select);
+    if (!safe.success) {
+      return actionZodError('There\'s an issue with the api keys records.', safe.error);
+    }
+
+    return actionSuccess(safe.data);
+  } catch {
+    return actionError('Failed to fetch users from database.');
+  }
+}
+
 export async function getUsers(): ActionResponse<z.infer<typeof userPublicSchema>[]> {
   try {
     const userSelect = await db
       .select()
-      .from(users)
+      .from(users);
 
     const safeUsers = z.array(userPublicSchema).safeParse(userSelect);
     if (!safeUsers.success) {
-      return actionZodError( 'There\'s an issue with the user records.', safeUsers.error);
+      return actionZodError('There\'s an issue with the user records.', safeUsers.error);
     }
 
-    return actionSuccess(safeUsers.data)
-  } catch  {
-    return actionError( 'Failed to fetch users from database.')
+    return actionSuccess(safeUsers.data);
+  } catch {
+    return actionError('Failed to fetch users from database.');
   }
 }

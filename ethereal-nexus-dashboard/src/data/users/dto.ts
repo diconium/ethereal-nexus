@@ -2,7 +2,7 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { apiKeys, users } from '@/data/users/schema';
 import { z } from 'zod';
 
-export const userSchema = createSelectSchema(users)
+export const userSchema = createSelectSchema(users);
 export type User = z.infer<typeof userSchema>
 
 export const userPublicSchema = userSchema
@@ -11,7 +11,7 @@ export const userPublicSchema = userSchema
   });
 
 export const userIdSchema = userSchema
-  .pick({id: true})
+  .pick({ id: true });
 export type UserId = z.infer<typeof userIdSchema>
 
 export const newUserSchema = createInsertSchema(users, {
@@ -26,14 +26,20 @@ export const newUserSchema = createInsertSchema(users, {
 
 export const userLoginSchema = newUserSchema.pick({
   password: true,
-  email: true,
-})
+  email: true
+});
 
 export const userEmailSchema = newUserSchema.pick({
-  email: true,
-})
+  email: true
+});
 
-export const userApiKeySchema = createSelectSchema(apiKeys)
-export const apiKeySchema = createSelectSchema(apiKeys).pick({id: true})
+export const userApiKeySchema = createSelectSchema(apiKeys);
+export const apiKeySchema = createSelectSchema(apiKeys);
 
-export const newUserApiKeySchema = createInsertSchema(apiKeys)
+export const apiKeyPublicSchema = apiKeySchema.omit({ user_id: true })
+  .transform(val => ({
+    ...val,
+    id: '************' + val.id.substr(val.id.length - 13)
+  }));
+
+export const newUserApiKeySchema = createInsertSchema(apiKeys);

@@ -1,23 +1,25 @@
 'use client';
 
 import {
-  ColumnDef, ColumnFiltersState,
+  ColumnDef,
+  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
   getFilteredRowModel,
   getPaginationRowModel,
-  getSortedRowModel, SortingState,
-  useReactTable, VisibilityState
+  getSortedRowModel,
+  SortingState,
+  useReactTable,
+  VisibilityState
 } from '@tanstack/react-table';
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
 import * as React from 'react';
-import { DataTablePagination } from '@/components/teams/teams-data-table/data-table-pagination';
-import { DataTableToolbar } from '@/components/ui/data-table/data-table-toolbar';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import {useState} from 'react';
+import {DataTablePagination} from '@/components/ui/data-table/data-table-pagination';
+import {DataTableToolbar} from '@/components/ui/data-table/data-table-toolbar';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

@@ -24,12 +24,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { useEffect, useState } from "react";
 import { columns } from "@/components/teams/teams-data-table/columns";
+import {DataTablePagination} from "@/components/ui/data-table/data-table-pagination";
 
-interface Team {
+export interface Team { // TODO implement this and move the interface to the proper place
   name: string;
   owner: string;
   businessUnit: string;

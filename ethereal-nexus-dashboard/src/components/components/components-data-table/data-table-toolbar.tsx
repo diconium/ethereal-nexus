@@ -5,7 +5,8 @@ import { Cross2Icon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { DataTableViewOptions } from "@/components/components/components-data-table/data-table-view-options";
+import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
+import {Component} from "@/app/api/v1/components/model";
 
 export function DataTableToolbar<TData>({ table }) {
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -32,7 +33,7 @@ export function DataTableToolbar<TData>({ table }) {
           </Button>
         )}
       </div>
-      <DataTableViewOptions table={table} />
+      <DataTableViewOptions<Component> table={table} />
     </div>
   );
 }

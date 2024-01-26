@@ -5,7 +5,8 @@ import { Cross2Icon, PlusCircledIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { DataTableViewOptions } from "@/components/teams/teams-data-table/data-table-view-options";
+import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
+import {Team} from "@/components/teams/teams-data-table/data-table";
 
 export function DataTableToolbar<TData>({ table }) {
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -40,7 +41,7 @@ export function DataTableToolbar<TData>({ table }) {
         <PlusCircledIcon className="mr-2 h-4 w-4" />
         Create team
       </Button>
-      <DataTableViewOptions table={table} />
+      <DataTableViewOptions<Team> table={table} />
     </div>
   );
 }

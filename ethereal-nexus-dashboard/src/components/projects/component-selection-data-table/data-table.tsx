@@ -21,7 +21,7 @@ import {Table as TanstackTable} from "@tanstack/table-core";
 
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
 
-import { DataTablePagination } from "@/components/table/data-table-pagination";
+import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import {DataTableToolbar} from "./data-table-toolbar";
 import {ComponentWithVersions} from "@/app/api/v1/componentsWithVersions/model";
 import {Component} from "@/app/api/v1/components/model";

@@ -28,14 +28,14 @@ export function ProjectsDataTableRowActions({ table, row }) {
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const edit = async (project: Project) => {
-    router.push(`/projects/${project._id.toString()}`);
+    router.push(`/projects/${project._id?.toString()}`);
     router.refresh();
   };
 
   const handleDeleteOk = (project: Project) => {
     const { data, setData } = table.getState();
     if (project) {
-      fetch(`api/v1/projects/${project._id.toString()}`, { method: "delete" })
+      fetch(`api/v1/projects/${project._id?.toString()}`, { method: "delete" })
         .then(() => {
           setData(
             data.filter(
@@ -59,7 +59,7 @@ export function ProjectsDataTableRowActions({ table, row }) {
   const copyProjectUrl = (project: Project) => {
     navigator.clipboard.writeText(
       window.location.origin +
-        `/api/v1/projects/${project._id.toString()}/components`,
+        `/api/v1/projects/${project._id?.toString()}/components`,
     );
     toast({
       title: "Project URL copied to clipboard",

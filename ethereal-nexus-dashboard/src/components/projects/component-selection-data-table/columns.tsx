@@ -1,6 +1,6 @@
 "use client";
 
-import {DataTableColumnHeader} from "./data-table-column-header";
+import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import {Switch} from "@/components/ui/switch";
 import * as React from "react";
 import {Dialog} from "@/components/ui/dialog";

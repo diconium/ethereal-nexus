@@ -14,7 +14,7 @@ import {
 import {Table} from "@tanstack/table-core";
 import {Component} from "@/app/api/v1/components/model";
 
-export function DataTableViewOptions({ table } : {table: Table<Component[]>}) {
+export function DataTableViewOptions<TData>({ table }: {table: Table<TData[]>}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

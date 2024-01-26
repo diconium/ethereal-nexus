@@ -107,7 +107,7 @@ export const columns = [
     {
         id: "select",
         header:
-            ({column}: any) => (
+            ({column}) => (
                 <DataTableColumnHeader column={column} title="Active"/>
             ),
         cell:

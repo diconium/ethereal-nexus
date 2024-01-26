@@ -17,12 +17,14 @@ import {
     useReactTable,
     VisibilityState,
 } from "@tanstack/react-table";
+import {Table as TanstackTable} from "@tanstack/table-core";
 
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
 
-import {DataTablePagination} from "./data-table-pagination";
+import { DataTablePagination } from "@/components/table/data-table-pagination";
 import {DataTableToolbar} from "./data-table-toolbar";
 import {ComponentWithVersions} from "@/app/api/v1/componentsWithVersions/model";
+import {Component} from "@/app/api/v1/components/model";
 
 const convertToRowSelection = (data, projectComponents): Record<number, boolean> =>
     data.reduce((newRowSelection: Record<number, boolean>, component) => projectComponents.find(projectComponent => projectComponent.name === component.name) ? {
@@ -58,7 +60,7 @@ export function ComponentSelectionDataTable({
             });
     }, []);
 
-    const table: any = useReactTable({
+    const table = useReactTable({
         data,
         columns,
         state: {

@@ -28,7 +28,7 @@ type ProjectsFormValues = z.infer<typeof projectsFormSchema>;
 export default function ProjectsForm({id, project, availableComponents}) {
     const router = useRouter();
     const { toast } = useToast()
-    const form: any = useForm<ProjectsFormValues>({
+    const form = useForm<ProjectsFormValues>({
         resolver: zodResolver(projectsFormSchema),
         defaultValues: project,
     });

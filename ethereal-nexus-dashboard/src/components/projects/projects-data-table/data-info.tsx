@@ -8,7 +8,7 @@ export const labels = [
     label: "Description",
   },
   {
-    value: "cmponents",
+    value: "components",
     label: "# Components",
   },
 ];

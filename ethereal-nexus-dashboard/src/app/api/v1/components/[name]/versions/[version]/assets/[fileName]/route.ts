@@ -1,5 +1,5 @@
 import { DEFAULT_HEADERS, HttpStatus } from "@/app/api/utils";
-import { Component } from "@/app/api/v1/components/model";
+import {Component, ComponentAsset} from "@/app/api/v1/components/model";
 import {
   BlobServiceClient,
   StorageSharedKeyCredential,
@@ -126,7 +126,7 @@ export async function POST(
 }
 
 const uploadToStorage = async (
-  request: any,
+  request: Request,
   filePath: string = "index",
   contentType: string,
 ) => {
@@ -135,9 +135,17 @@ const uploadToStorage = async (
   );
 
   const jsonData = request.body;
-  let reader = jsonData.getReader();
+  const reader = jsonData?.getReader();
+
+  if(!reader){
+    return Promise.reject({
+      error: "There was no valid content found to upload",
+      statusCode: HttpStatus.BAD_REQUEST,
+    });
+  }
+
   let readResult = await reader.read();
-  let buffers: Buffer[] = [];
+  const buffers: Buffer[] = [];
   try {
     while (!readResult.done) {
       if (readResult?.value) {
@@ -147,7 +155,7 @@ const uploadToStorage = async (
       readResult = await reader.read();
     }
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
 
   const blockBlobClient = containerClient.getBlockBlobClient(filePath);
@@ -193,22 +201,22 @@ async function updateDBComponentAssets({
 
   const db = await mongooseDb();
 
-  const response =
+  const component =
     (await db
       .collection<Component>(Collection.COMPONENTS)
-      .findOne({ name: params.name, version: params.version })) || ({} as any);
+      .findOne({ name: params.name, version: params.version })) || ({} as Partial<Component>);
 
-  const { assets = []} = response;
+  const { assets = []} = component;
 
   const otherAssets = assets.filter(
-    (asset: any) => asset.filePath !== url,
+    (asset: ComponentAsset) => asset.filePath !== url,
   );
 
-  const updated: any = { type: fileTypes[contentType] , filePath: url };
+  const updated: ComponentAsset = { type: fileTypes[contentType] , filePath: url };
 
 
   const newObject = {
-    ...response,
+    ...component,
     assets: [...otherAssets, updated],
   };
 

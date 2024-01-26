@@ -12,7 +12,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
+  useReactTable, Updater, TableState,
 } from "@tanstack/react-table";
 
 import {
@@ -24,10 +24,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DataTablePagination } from "./data-table-pagination";
+import { DataTablePagination } from "@/components/table/data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { useEffect, useState } from "react";
 import { columns } from "./columns";
+import {Component} from "@/app/api/v1/components/model";
+import {undefined} from "zod";
 
 export function ComponentsDataTable({}) {
   const [rowSelection, setRowSelection] = useState({});
@@ -36,17 +38,20 @@ export function ComponentsDataTable({}) {
     [],
   );
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<Component[]>([]);
 
   useEffect(() => {
     fetch("/api/v1/components")
       .then((response) => response.json())
       .then((data) => {
-        setData(data);
+        setData(data as Component[]);
       });
   }, []);
 
-  const table: any = useReactTable({
+  const table = useReactTable({
+    onStateChange(updater: Updater<TableState>): void {
+    },
+    renderFallbackValue: undefined,
     data,
     columns,
     state: {
@@ -56,7 +61,7 @@ export function ComponentsDataTable({}) {
       columnVisibility,
       rowSelection,
       columnFilters,
-    } as any,
+    } as any ,// FIXME data and setData should not be here
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
@@ -67,7 +72,7 @@ export function ComponentsDataTable({}) {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getFacetedUniqueValues: getFacetedUniqueValues()
   });
 
   return (

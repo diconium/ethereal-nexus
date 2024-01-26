@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import { DEFAULT_HEADERS, HttpStatus } from "@/app/api/utils";
-import mongooseDb, { Collection } from "@/lib/mongodb";
-import { getAllProjects } from "@/lib/projects/projects.service";
+import {NextResponse} from "next/server";
+import {DEFAULT_HEADERS, HttpStatus} from "@/app/api/utils";
+import mongooseDb, {Collection} from "@/lib/mongodb";
+import {getAllProjects} from "@/lib/projects/projects.service";
+import {InsertOneResult} from "mongodb";
 
 /**
  * @swagger
@@ -34,17 +35,17 @@ import { getAllProjects } from "@/lib/projects/projects.service";
  *             example: Internal Server Error - Something went wrong on the server side
  */
 export async function GET() {
-  try {
-    const projects = await getAllProjects();
-    return new Response(JSON.stringify(projects), {
-      status: HttpStatus.OK,
-      headers: DEFAULT_HEADERS,
-    });
-  } catch (e) {
-    console.error(e);
-  }
+    try {
+        const projects = await getAllProjects();
+        return new Response(JSON.stringify(projects), {
+            status: HttpStatus.OK,
+            headers: DEFAULT_HEADERS,
+        });
+    } catch (e) {
+        console.error(e);
+    }
 
-  return NextResponse.json({ components: [] });
+    return NextResponse.json({components: []});
 }
 
 /**
@@ -105,38 +106,38 @@ export async function GET() {
  *             example: Internal Server Error - Something went wrong on the server side
  */
 export async function PUT(request: Request) {
-  const { name, components = [] } = await request.json();
+    const {name, components = []} = await request.json();
 
-  if (!name) {
-    return new Response(
-      JSON.stringify({ message: "Bad Request - Invalid input data" }),
-      {
-        status: HttpStatus.BAD_REQUEST,
-        headers: DEFAULT_HEADERS,
-      },
-    );
-  }
-  const db = await mongooseDb();
-  // Fixme
-  const result: any = await db
-    .collection(Collection.PROJECTS)
-    .insertOne({ name, components: components });
+    if (!name) {
+        return new Response(
+            JSON.stringify({message: "Bad Request - Invalid input data"}),
+            {
+                status: HttpStatus.BAD_REQUEST,
+                headers: DEFAULT_HEADERS,
+            },
+        );
+    }
+    const db = await mongooseDb();
 
-  if (result.ok) {
-    return new Response(
-      JSON.stringify({ message: "Project created successfully" }),
-      {
-        status: HttpStatus.OK,
-        headers: DEFAULT_HEADERS,
-      },
-    );
-  } else {
-    return new Response(
-      JSON.stringify({ message: "Failed to create project." }),
-      {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        headers: DEFAULT_HEADERS,
-      },
-    );
-  }
+    try {
+        await db
+            .collection(Collection.PROJECTS)
+            .insertOne({name, components: components});
+        return new Response(
+            JSON.stringify({message: "Project created successfully"}),
+            {
+                status: HttpStatus.OK,
+                headers: DEFAULT_HEADERS,
+            },
+        );
+    } catch (e) {
+        console.error(`Failed to create project ${name} with error: ${e}`);
+        return new Response(
+            JSON.stringify({message: "Failed to create project."}),
+            {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                headers: DEFAULT_HEADERS,
+            },
+        );
+    }
 }

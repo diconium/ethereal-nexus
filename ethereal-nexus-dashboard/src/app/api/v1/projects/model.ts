@@ -1,4 +1,4 @@
-import { Component } from "@/app/api/v1/components/model";
+import {Component, ProjectComponent} from "@/app/api/v1/components/model";
 
 /**
  * @swagger
@@ -21,8 +21,8 @@ import { Component } from "@/app/api/v1/components/model";
  *            example: ["componentA", "componentB", "componentC"]
  */
 export interface Project {
-  _id?: any;
+  _id?: string;
   name: string;
   description?: string;
-  components: string[] | Component[];
+  components: ProjectComponent[];
 }

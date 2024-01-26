@@ -21,7 +21,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 
-import {DataTablePagination} from "./data-table-pagination";
+import {DataTablePagination} from "@/components/table/data-table-pagination";
 import {DataTableToolbar} from "./data-table-toolbar";
 import {useEffect, useState} from "react";
 import {columns} from "@/components/projects/projects-data-table/columns";
@@ -43,7 +43,7 @@ export function ProjectsDataTable() {
             });
     }, []);
 
-    const table: any = useReactTable({
+    const table = useReactTable({
         data,
         columns,
         state: {

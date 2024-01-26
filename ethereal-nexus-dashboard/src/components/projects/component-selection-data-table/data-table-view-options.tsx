@@ -11,8 +11,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {Table} from "@tanstack/table-core";
+import {Component} from "@/app/api/v1/components/model";
 
-export function DataTableViewOptions({ table }) {
+export function DataTableViewOptions({ table } : {table: Table<Component[]>}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -31,7 +33,7 @@ export function DataTableViewOptions({ table }) {
         {table
           .getAllColumns()
           .filter(
-            (column: any) =>
+            (column) =>
               typeof column.accessorFn !== "undefined" && column.getCanHide(),
           )
           .map((column) => {

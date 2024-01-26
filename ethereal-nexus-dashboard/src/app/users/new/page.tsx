@@ -2,7 +2,7 @@ import { Separator } from "@/components/ui/separator";
 import React from 'react';
 import UserForm from '@/components/user/user-form';
 
-export default async function NewUser({ params }: any) {
+export default async function NewUser() {
   return (
     <div className="container space-y-6">
       <div>

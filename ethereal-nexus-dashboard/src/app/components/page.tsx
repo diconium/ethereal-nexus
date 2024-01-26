@@ -1,9 +1,6 @@
 import React from "react";
 import {ComponentsDataTable} from "@/components/components/components-data-table/data-table";
 
-import {columns} from "@/components/components/components-data-table/columns";
-
-
 export default async function Components() {
     return (
         <div className="container h-full flex-1 flex-col space-y-8 p-8 md:flex">

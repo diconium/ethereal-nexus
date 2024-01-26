@@ -30,6 +30,8 @@ export interface Component {
   dialog: ComponentDialogProperty[];
 }
 
+export type ProjectComponent = Pick<Component, 'name' | 'version'>;
+
 /**
  * @swagger
  * components:
@@ -40,13 +42,13 @@ export interface Component {
  *         type:
  *           type: string
  *           description: Type of the asset (js, css, ...)
- *         path:
+ *         filePath:
  *           type: string
  *           description: Path to the asset
  */
 export interface ComponentAsset {
   type: string;
-  path: string;
+  filePath: string;
 }
 
 /**

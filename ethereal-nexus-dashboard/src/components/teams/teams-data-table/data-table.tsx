@@ -56,7 +56,7 @@ export function TeamsDataTable() {
     ]);
   }, []);
 
-  const table: any = useReactTable({
+  const table = useReactTable({
     data,
     columns,
     state: {

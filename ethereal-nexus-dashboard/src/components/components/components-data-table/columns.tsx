@@ -3,11 +3,13 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { ComponentsDataTableRowActions } from "./data-table-row-actions";
+import {HeaderContext} from "@tanstack/table-core/src/core/headers";
+import {Component} from "@/app/api/v1/components/model";
 
 export const columns = [
   {
     id: "select",
-    header: ({ table }: any) => (
+    header: ({ table }: HeaderContext<Component[],boolean>) => (
       <Checkbox
         checked={table.getIsAllPageRowsSelected()}
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}

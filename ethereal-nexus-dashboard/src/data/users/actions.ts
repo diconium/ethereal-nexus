@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto';
 import { db } from '@/db';
 import { apiKeys, users } from '@/data/users/schema';
 import {
+  apiKeySchema,
   newUserSchema, userApiKeySchema,
   userEmailSchema, userIdSchema,
   userPublicSchema,
@@ -90,15 +91,15 @@ export async function getUserByEmail(unsafeEmail: string): ActionResponse<z.infe
 }
 
 export async function getUserByApiKey(apiKey: string): ActionResponse<z.infer<typeof userIdSchema>> {
-  const input = userApiKeySchema.safeParse(apiKey)
+  const input = apiKeySchema.safeParse({id: apiKey})
   if(!input.success){
     return actionZodError('The api key is not valid.', input.error);
   }
 
-  const key = input.data;
+  const { id } = input.data;
   try {
     const result = await db.query.apiKeys.findFirst({
-      where: eq(apiKeys.id, key),
+      where: eq(apiKeys.id, id),
       columns: {
         user_id: true
       }
@@ -115,6 +116,35 @@ export async function getUserByApiKey(apiKey: string): ActionResponse<z.infer<ty
     return actionSuccess(safeUser.data);
   } catch {
     return actionError('Failed to fetch user from database.');
+  }
+}
+
+export async function insertUserApiKey(userId: string): ActionResponse<z.infer<typeof userApiKeySchema>> {
+  const input = userIdSchema.safeParse({ id: userId })
+  if(!input.success){
+    return actionZodError('The user id is not valid.', input.error);
+  }
+
+  const { id: user_id } = input.data;
+  try {
+    const insert = await db
+      .insert(apiKeys)
+      .values({
+        user_id,
+      })
+      .returning();
+
+    const safeKey = userApiKeySchema.safeParse(insert[0]);
+    if (!safeKey.success) {
+      return actionZodError(
+        "There's an issue with the api key record.",
+        safeKey.error,
+      );
+    }
+
+    return actionSuccess(safeKey.data);
+  } catch {
+    return actionError('Failed to insert an API key into the database.');
   }
 }
 

@@ -1,5 +1,5 @@
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { users } from '@/data/users/schema';
+import { apiKeys, users } from '@/data/users/schema';
 import { z } from 'zod';
 
 export const userSchema = createSelectSchema(users)
@@ -33,4 +33,7 @@ export const userEmailSchema = newUserSchema.pick({
   email: true,
 })
 
-export const userApiKeySchema = z.string()
+export const userApiKeySchema = createSelectSchema(apiKeys)
+export const apiKeySchema = createSelectSchema(apiKeys).pick({id: true})
+
+export const newUserApiKeySchema = createInsertSchema(apiKeys)

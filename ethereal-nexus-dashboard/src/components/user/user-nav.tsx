@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { auth } from '@/auth';
 import { UserNavLogout } from '@/components/user/user-nav-logout';
 import { UserNavLogin } from '@/components/user/user-nav-login';
+import Link from 'next/link';
 
 
 
@@ -45,8 +46,9 @@ export async function UserNav() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <Link href={`/users/${session?.user?.id}`} >
+                <DropdownMenuItem>Settings</DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <UserNavLogout />

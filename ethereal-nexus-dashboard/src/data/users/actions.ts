@@ -7,7 +7,7 @@ import { apiKeys, users } from '@/data/users/schema';
 import {
   apiKeyPublicSchema,
   apiKeySchema,
-  newUserSchema, userApiKeySchema,
+  newUserSchema, PublicUser, userApiKeySchema,
   userEmailSchema, userIdSchema,
   userPublicSchema,
   userSchema

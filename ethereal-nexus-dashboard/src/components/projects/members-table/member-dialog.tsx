@@ -16,15 +16,15 @@ import { type MouseEventHandler, useState } from 'react';
 import { PublicUser } from '@/data/users/dto';
 import { insertMembers } from '@/data/member/actions';
 import { toast } from '@/components/ui/use-toast';
-import { MemberWithPublicUser } from '@/data/member/dto';
+import { useSession } from 'next-auth/react';
 
 type AddMemberProps = {
   users: PublicUser[];
-  members: MemberWithPublicUser[];
   resource: string;
 }
 
-export function MemberDialog({ users, members, resource }: AddMemberProps) {
+export function MemberDialog({ users, resource }: AddMemberProps) {
+  const { data } = useSession()
   const [open, setOpen] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<PublicUser[]>([]);
 
@@ -51,6 +51,7 @@ export function MemberDialog({ users, members, resource }: AddMemberProps) {
   return (
     <>
       <Button
+        disabled={data?.permissions[resource] !== 'write'}
         variant={'outline'}
         size={'sm'}
         onClick={() => setOpen(true)}

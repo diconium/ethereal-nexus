@@ -55,7 +55,7 @@ export const columns: ColumnDef<MemberWithPublicUser>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Permissions" />
     ),
-    cell: ({ row }) => <MemberPermissionsSelect value={row.original.permissions} memberId={row.original.id}/>,
+    cell: ({ row }) => <MemberPermissionsSelect value={row.original.permissions} memberId={row.original.id} resource={row.original.resource}/>,
     enableSorting: false
   }
 ];

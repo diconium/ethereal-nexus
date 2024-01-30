@@ -4,13 +4,16 @@ import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
 import { updateMemberPermissions } from '@/data/member/actions';
+import { useSession } from 'next-auth/react';
 
 type MemberPermissionsSelectProps = {
   value: string;
   memberId: string;
+  resource: string;
 }
 
-export function MemberPermissionsSelect({ value, memberId }: MemberPermissionsSelectProps) {
+export function MemberPermissionsSelect({ value, memberId, resource }: MemberPermissionsSelectProps) {
+  const { data } = useSession()
   const form = useForm({defaultValues: { permissions: value }});
 
   const onSubmit = async (data) => {
@@ -27,6 +30,7 @@ export function MemberPermissionsSelect({ value, memberId }: MemberPermissionsSe
             <FormControl>
               <Select
                 {...field}
+                disabled={data?.permissions[resource] === 'read'}
                 onValueChange={field.onChange}
               >
                 <SelectTrigger className="w-[180px]">

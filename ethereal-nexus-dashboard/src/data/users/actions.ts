@@ -17,9 +17,7 @@ import { eq } from 'drizzle-orm';
 import { ActionResponse, Result } from '@/data/action';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 
-export async function insertUser(
-  user: z.infer<typeof newUserSchema>
-): ActionResponse<z.infer<typeof userPublicSchema>> {
+export async function insertUser(user: z.infer<typeof newUserSchema>): ActionResponse<z.infer<typeof userPublicSchema>> {
   const safeUser = newUserSchema.safeParse(user);
   if (!safeUser.success) {
     return actionZodError('Failed to parse user input.', safeUser.error);

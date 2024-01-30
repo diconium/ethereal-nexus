@@ -5,8 +5,10 @@ export const assetTypeEnum = pgEnum('asset_type', ['css', 'js']);
 
 export const components = pgTable("component", {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
+  slug: text('slug').unique(),
   name: text("name").notNull(),
-  title: text("description"),
+  title: text("title"),
+  description: text("description"),
 })
 export const componentsRelations = relations(components, ({ many }) => ({
   versions:  many(componentVersions),

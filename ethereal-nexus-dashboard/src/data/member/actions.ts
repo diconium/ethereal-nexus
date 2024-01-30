@@ -88,7 +88,7 @@ export async function insertMembers(members: z.infer<typeof newMemberSchema>[]):
 
     return actionSuccess(result.data);
   } catch (error) {
-    return actionError('Failed to insert user onto database.');
+    return actionError('Failed to insert user into database.');
   }
 }
 
@@ -111,7 +111,7 @@ export async function updateMemberPermissions(member: UpdateMemberPermissions) {
       return actionZodError('Failed to parse updated user.', result.error);
     }
   } catch (error) {
-    return actionError('Failed to update user permissions onto database.');
+    return actionError('Failed to update user permissions into database.');
   }
 }
 

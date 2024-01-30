@@ -7,7 +7,8 @@ import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import { eq, inArray } from 'drizzle-orm';
 import { members as memberTable } from '@/data/member/schema';
 import {
-  memberSchema,
+  Member,
+  memberSchema, MemberWithPublicUser,
   memberWithPublicUserSchema,
   newMemberSchema,
   UpdateMemberPermissions,
@@ -15,7 +16,7 @@ import {
 } from '@/data/member/dto';
 import { projects } from '@/data/projects/schema';
 
-export async function getMembersByResourceId(id: string, userId: string | undefined | null): ActionResponse<z.infer<typeof memberWithPublicUserSchema>[]> {
+export async function getMembersByResourceId(id: string, userId: string | undefined | null): ActionResponse<MemberWithPublicUser[]> {
   if (!userId) {
     return actionError('No user provided.');
   }
@@ -44,6 +45,30 @@ export async function getMembersByResourceId(id: string, userId: string | undefi
     return actionError('Failed to fetch members from database.');
   }
 }
+
+export async function getMembersByUser(userId: string | undefined | null): ActionResponse<Member[]> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  try {
+    const select = await db.query.members
+      .findMany({
+        where: eq(memberTable.user_id, userId),
+      });
+
+    const safe = z.array(memberSchema).safeParse(select);
+    if (!safe.success) {
+      return actionZodError('There\'s an issue with the member records.', safe.error);
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to fetch members from database.');
+  }
+}
+
 
 export async function insertMembers(members: z.infer<typeof newMemberSchema>[]): ActionResponse<z.infer<typeof memberSchema>[]> {
   const input = z.array(newMemberSchema).safeParse(members);
@@ -80,8 +105,6 @@ export async function updateMemberPermissions(member: UpdateMemberPermissions) {
       .set({ permissions })
       .where(eq(memberTable.id, id))
       .returning();
-
-    console.log(update)
 
     const result = memberSchema.safeParse(update);
     if (!result.success) {

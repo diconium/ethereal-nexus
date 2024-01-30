@@ -6,7 +6,7 @@ import logSymbols from 'log-symbols';
 
 const putComponentInRemoteComponentsAPI = async ({ config, element }) => {
   const requestOptions = {
-    method: 'PUT',
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },

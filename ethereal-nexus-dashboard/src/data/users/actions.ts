@@ -56,7 +56,7 @@ export async function insertUser(user: z.infer<typeof newUserSchema>): ActionRes
 
     return actionSuccess(result.data);
   } catch (error) {
-    return actionError('Failed to insert user onto database.');
+    return actionError('Failed to insert user into database.');
   }
 }
 

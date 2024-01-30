@@ -9,6 +9,7 @@ export const userPublicSchema = userSchema
   .omit({
     password: true
   });
+export type PublicUser = z.infer<typeof userPublicSchema>
 
 export const userIdSchema = userSchema
   .pick({ id: true });

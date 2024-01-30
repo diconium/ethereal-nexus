@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
+import { insertComponent } from '@/data/components/actions';
 
 /**
  * @swagger
@@ -94,25 +95,14 @@ export async function GET() {
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
-export async function PUT(request: Request) {
-  const { name, version, dialog, title } = await request.json();
-  const query = {
-    name,
-    version,
-  };
+export async function POST(request: Request) {
+  const input = await request.json();
 
-  // FIXME: Call create and update action
-  // const db = await mongooseDb();
-  // const result = await db.collection(Collection.COMPONENTS).findOneAndUpdate(
-  //   query,
-  //   { $set: {name , version, dialog, title}}, // The document to insert or update
-  //   { upsert: true },
-  // );
-  const result = { ok: true };
+  const result = await insertComponent(input);
 
-  if (result.ok) {
+  if (result.success) {
     return new Response(
-      JSON.stringify({ message: 'Document updated successfully' }),
+      JSON.stringify(result.data),
       {
         status: HttpStatus.OK,
         headers: DEFAULT_HEADERS,
@@ -120,7 +110,7 @@ export async function PUT(request: Request) {
     );
   } else {
     return new Response(
-      JSON.stringify({ message: 'Failed to insert record.' }),
+      JSON.stringify(result.error),
       {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         headers: DEFAULT_HEADERS,

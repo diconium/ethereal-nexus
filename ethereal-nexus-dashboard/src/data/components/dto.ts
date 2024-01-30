@@ -1,4 +1,4 @@
-import { createSelectSchema } from 'drizzle-zod';
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import {
   componentAssets,
   components,
@@ -6,7 +6,14 @@ import {
 } from './schema';
 import { z } from 'zod';
 
+
 export const componentsSchema = createSelectSchema(components);
+export type Component = z.infer<typeof componentsSchema>;
+export const newComponentsSchema = createInsertSchema(components).transform(val => ({
+  ...val,
+  slug: val.slug ?? val.name.toLowerCase().replaceAll(' ', '_')
+}));
+export type NewComponent = z.infer<typeof newComponentsSchema>;
 
 export const componentAssetsSchema = createSelectSchema(componentAssets);
 

@@ -4,6 +4,7 @@ import { userPublicSchema } from '@/data/users/dto';
 import { z } from 'zod';
 
 export const memberSchema = createSelectSchema(members)
+export type Member =  z.infer<typeof memberSchema>
 
 export const newMemberSchema = createInsertSchema(members)
 

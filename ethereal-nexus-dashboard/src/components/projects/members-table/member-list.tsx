@@ -20,7 +20,7 @@ export async function ProjectMemberList({id}: {id: string}) {
     data={members.data}
     entity={'members'}
     createSlot={
-      <MemberDialog users={users.data} members={members.data} resource={id}/>
+      <MemberDialog users={users.data} resource={id} />
     }
   />
 }

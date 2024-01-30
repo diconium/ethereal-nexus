@@ -1,8 +1,9 @@
 import * as bcrypt from 'bcryptjs';
 import Credential from 'next-auth/providers/credentials';
-import type { NextAuthConfig } from 'next-auth';
 import { userLoginSchema } from '@/data/users/dto';
 import { getUserByEmail } from '@/data/users/actions';
+import { getMembersByUser } from '@/data/member/actions';
+import { NextAuthConfig } from 'next-auth';
 
 export const authConfig = {
   trustHost: true,
@@ -38,6 +39,14 @@ export const authConfig = {
   ],
   callbacks: {
     async session({ session, token }) {
+      const members = await getMembersByUser(token.sub)
+      if(members.success && members.data.length > 0) {
+        session.permissions = members.data.reduce((acc,member) => {
+          acc[member.resource] = member.permissions;
+          return acc;
+        }, {})
+      }
+
       if(token.sub && session.user) {
         session.user.id = token.sub
       }

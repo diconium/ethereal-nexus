@@ -14,14 +14,13 @@ export async function ProjectMemberList({id}: {id: string}) {
   if(!members.success || !users.success) {
     throw new Error('Users are not available.')
   }
-  const projectUsers = members.data.map(member => member.user);
 
   return <DataTable
     columns={columns}
-    data={projectUsers}
+    data={members.data}
     entity={'members'}
     createSlot={
-      <MemberDialog users={users.data} members={projectUsers} resource={id}/>
+      <MemberDialog users={users.data} members={members.data} resource={id}/>
     }
   />
 }

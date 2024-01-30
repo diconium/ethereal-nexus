@@ -199,7 +199,7 @@ export async function getApiKeys(userId?: string): ActionResponse<z.infer<typeof
   }
 }
 
-export async function getUsers(): ActionResponse<z.infer<typeof userPublicSchema>[]> {
+export async function getUsers(): ActionResponse<PublicUser[]> {
   try {
     const userSelect = await db
       .select()

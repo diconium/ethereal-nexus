@@ -5,7 +5,8 @@ import { relations } from 'drizzle-orm';
 export const members = pgTable('member', {
     id: uuid('id').notNull().defaultRandom(),
     user_id: text('user_id').notNull().references(() => users.id),
-    resource: uuid('resource').notNull()
+    resource: uuid('resource').notNull(),
+    permissions: text('permissions').notNull().default('read')
   },
   (table) => {
     return {

@@ -13,20 +13,20 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { type MouseEventHandler, useState } from 'react';
-import { z } from 'zod';
-import { userPublicSchema } from '@/data/users/dto';
+import { PublicUser } from '@/data/users/dto';
 import { insertMembers } from '@/data/member/actions';
 import { toast } from '@/components/ui/use-toast';
+import { MemberWithPublicUser } from '@/data/member/dto';
 
 type AddMemberProps = {
-  users: z.infer<typeof userPublicSchema>[];
-  members: z.infer<typeof userPublicSchema>[];
+  users: PublicUser[];
+  members: MemberWithPublicUser[];
   resource: string;
 }
 
 export function MemberDialog({ users, members, resource }: AddMemberProps) {
   const [open, setOpen] = useState(false);
-  const [selectedUsers, setSelectedUsers] = useState<z.infer<typeof userPublicSchema>[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<PublicUser[]>([]);
 
   const handleSubmit: MouseEventHandler = async () => {
     setOpen(false);

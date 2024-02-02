@@ -117,7 +117,7 @@ export async function getUserByEmail(unsafeEmail: string): ActionResponse<z.infe
 }
 
 export async function getUserByApiKey(apiKey: string): ActionResponse<z.infer<typeof userIdSchema>> {
-  const input = apiKeySchema.safeParse({ id: apiKey });
+  const input = apiKeySchema.pick({id: true}).safeParse({ id: apiKey });
   if (!input.success) {
     return actionZodError('The api key is not valid.', input.error);
   }

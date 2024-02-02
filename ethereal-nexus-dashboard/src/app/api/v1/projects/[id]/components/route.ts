@@ -1,6 +1,7 @@
 import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
-import { getProjectById } from '@/data/projects/actions';
+import { getProjectById, getProjectComponents } from '@/data/projects/actions';
 import { auth } from '@/auth';
+import { authenticatedWithKey } from '@/lib/route-wrappers';
 
 /**
  * @swagger
@@ -48,30 +49,25 @@ import { auth } from '@/auth';
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } },
-) {
-  const session = await auth()
-  const { id } = params;
+export const GET = authenticatedWithKey(async ({ user }, ext) => {
+  const { id } = ext?.params as {id: string};
 
   try {
-    const project = await getProjectById(id, session?.user?.id);
+    const project = await getProjectComponents(id, user.id);
 
-    if (!project) {
+    if (!project.success) {
       return new Response(
-        JSON.stringify({ message: `Project does not exist` }),
+        JSON.stringify({ message: project.error.message }),
         {
-          status: HttpStatus.NOT_FOUND,
+          status: HttpStatus.BAD_REQUEST,
           headers: DEFAULT_HEADERS,
         },
       );
     }
 
     return new Response(
-      // FIXME response mocked
       JSON.stringify(
-        undefined,
+        project.data,
       ),
       {
         status: HttpStatus.OK,
@@ -87,7 +83,7 @@ export async function GET(
       },
     );
   }
-}
+})
 
 /**
  * @swagger

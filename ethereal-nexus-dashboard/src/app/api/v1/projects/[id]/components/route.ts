@@ -49,7 +49,7 @@ import { UserId } from '@/data/users/dto';
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
-export const GET = authenticatedWithKey<DefaultExt & {user: UserId}>(async (_req, ext) => {
+export const GET = authenticatedWithKey(async (_req, ext) => {
   const { id } = ext?.params as {id: string};
 
   try {

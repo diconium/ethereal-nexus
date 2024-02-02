@@ -34,7 +34,7 @@ import { UserId } from '@/data/users/dto';
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
-export const GET = authenticatedWithKey<DefaultExt & {user: UserId}>(async (_req, ext) => {
+export const GET = authenticatedWithKey(async (_req, ext) => {
   const projects = await getProjectsWithComponents(ext?.user?.id);
   if (!projects.success) {
     return NextResponse.json(projects.error, {
@@ -91,7 +91,7 @@ export const GET = authenticatedWithKey<DefaultExt & {user: UserId}>(async (_req
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
-export const POST = authenticatedWithKey<DefaultExt & {user: UserId}>(async (request, ext)=> {
+export const POST = authenticatedWithKey(async (request, ext)=> {
   const json = await request.json();
   const project = await insertProject(json, ext?.user.id);
 

@@ -22,7 +22,7 @@ export function wrapper<Req extends NextRequest = NextRequest, Ext extends Defau
         (_req, _ext) =>
           handler(
             (_req || req) as unknown as HReq & Req,
-            (_ext || ext) as any
+            (_ext || ext) as unknown as HExt & Ext
           ) as unknown as Res,
         req as unknown as Req,
         ext as unknown as Ext
@@ -31,8 +31,8 @@ export function wrapper<Req extends NextRequest = NextRequest, Ext extends Defau
   };
 }
 
-export const authenticatedWithKey = wrapper<NextRequest, DefaultExt & {user: UserId}>(
-  async (next, request, ext) => {
+export const authenticatedWithKey = wrapper(
+  async (next, request, ext: DefaultExt & {user: UserId}) => {
     let apiKey = '';
     const headersList = request.headers;
     const authorization = headersList.get('authorization');
@@ -49,4 +49,4 @@ export const authenticatedWithKey = wrapper<NextRequest, DefaultExt & {user: Use
     ext.user = user.data;
     return next();
   }
-);
+) as <HExt = DefaultExt & {user: UserId}, HReq = Request, HRes = Response | Promise<Response>>(handler: (req: (HReq & NextRequest), ext?: HExt) => (Promise<HRes> | HRes)) => (req: (HReq & NextRequest), ext?: HExt) => (req: (HReq & NextRequest), ext?: HExt) => (Promise<HRes> | HRes) extends ((...args: any) => infer R) ? R : any

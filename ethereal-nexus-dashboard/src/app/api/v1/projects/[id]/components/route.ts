@@ -1,7 +1,7 @@
 import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
-import { getProjectById, getProjectComponents } from '@/data/projects/actions';
-import { auth } from '@/auth';
-import { authenticatedWithKey } from '@/lib/route-wrappers';
+import { getProjectComponents } from '@/data/projects/actions';
+import { authenticatedWithKey, DefaultExt } from '@/lib/route-wrappers';
+import { UserId } from '@/data/users/dto';
 
 /**
  * @swagger
@@ -49,11 +49,11 @@ import { authenticatedWithKey } from '@/lib/route-wrappers';
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
-export const GET = authenticatedWithKey(async ({ user }, ext) => {
+export const GET = authenticatedWithKey<DefaultExt & {user: UserId}>(async (_req, ext) => {
   const { id } = ext?.params as {id: string};
 
   try {
-    const project = await getProjectComponents(id, user.id);
+    const project = await getProjectComponents(id, ext?.user?.id);
 
     if (!project.success) {
       return new Response(

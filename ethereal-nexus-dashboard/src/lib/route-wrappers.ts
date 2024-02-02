@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { UserId } from '@/data/users/dto';
 import { getUserByApiKey } from '@/data/users/actions';
 import { HttpStatus } from '@/app/api/utils';
+import { UserId } from '@/data/users/dto';
 
 export type DefaultExt = { params?: unknown };
 export type WrapperCallback<
@@ -14,8 +14,8 @@ export type WrapperCallback<
   ext: Ext
 ) => Promise<Res> | Res;
 
-export function wrapper<Req extends Request = Request, Ext extends DefaultExt = DefaultExt, Res extends Response = Response >(cb: WrapperCallback<Req, Ext, Res>) {
-  return function <HExt extends DefaultExt = DefaultExt, HReq extends Request = Request, HRes extends Response | Promise<Response> = Response>(handler: (req: HReq & Req, ext?: HExt) => HRes) {
+export function wrapper<Req extends NextRequest = NextRequest, Ext extends DefaultExt = DefaultExt, Res extends Response = Response >(cb: WrapperCallback<Req, Ext, Res>) {
+  return function <HExt extends DefaultExt = DefaultExt, HReq extends Request = Request, HRes extends Response | Promise<Response> = Response>(handler: (req: HReq & Req, ext?: HExt) => HRes | Promise<HRes>) {
     // the new handler
     return (req: HReq & Req, ext?: HExt) => {
       return cb(
@@ -31,8 +31,8 @@ export function wrapper<Req extends Request = Request, Ext extends DefaultExt = 
   };
 }
 
-export const authenticatedWithKey = wrapper(
-  async (next, request: NextRequest & {user: UserId}) => {
+export const authenticatedWithKey = wrapper<NextRequest, DefaultExt & {user: UserId}>(
+  async (next, request, ext) => {
     let apiKey = '';
     const headersList = request.headers;
     const authorization = headersList.get('authorization');
@@ -46,7 +46,7 @@ export const authenticatedWithKey = wrapper(
         status: HttpStatus.FORBIDDEN
       });
     }
-    request.user = user.data;
+    ext.user = user.data;
     return next();
   }
 );

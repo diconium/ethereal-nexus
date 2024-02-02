@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { HttpStatus } from '@/app/api/utils';
 import { getProjects, getProjectsWithComponents, insertProject } from '@/data/projects/actions';
-import { authenticatedWithKey } from '@/lib/route-wrappers';
+import { authenticatedWithKey, DefaultExt } from '@/lib/route-wrappers';
+import { UserId } from '@/data/users/dto';
 
 /**
  * @swagger
@@ -33,9 +34,8 @@ import { authenticatedWithKey } from '@/lib/route-wrappers';
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
-export const GET = authenticatedWithKey(async ({user}) => {
-  const {id} = user
-  const projects = await getProjectsWithComponents(id);
+export const GET = authenticatedWithKey<DefaultExt & {user: UserId}>(async (_req, ext) => {
+  const projects = await getProjectsWithComponents(ext?.user?.id);
   if (!projects.success) {
     return NextResponse.json(projects.error, {
       status: HttpStatus.BAD_REQUEST,
@@ -91,13 +91,13 @@ export const GET = authenticatedWithKey(async ({user}) => {
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
-export async function POST(request: Request) {
-  const req = await request.json();
-  const project = await insertProject(req);
+export const POST = authenticatedWithKey<DefaultExt & {user: UserId}>(async (request, ext)=> {
+  const json = await request.json();
+  const project = await insertProject(json, ext?.user.id);
 
   if (!project.success) {
     return NextResponse.json(project.error, { status: HttpStatus.BAD_REQUEST });
   }
 
   return NextResponse.json(project.data);
-}
+})

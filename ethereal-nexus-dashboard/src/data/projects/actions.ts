@@ -17,7 +17,7 @@ import {
 import * as console from 'console';
 import { and, eq } from 'drizzle-orm';
 import { projects } from '@/data/projects/schema';
-import { userIsMember } from '@/data/member/actions';
+import { insertMembers, userIsMember } from '@/data/member/actions';
 
 export async function getProjects(userId: string | undefined | null): ActionResponse<ProjectWithComponentId[]> {
   if (!userId) {
@@ -182,7 +182,11 @@ export async function getProjectById(id: string, userId: string | undefined | nu
   }
 }
 
-export async function insertProject(project: z.infer<typeof projectInputSchema>): ActionResponse<z.infer<typeof projectSchema>> {
+export async function insertProject(project: z.infer<typeof projectInputSchema>, userId: string | undefined | null): ActionResponse<z.infer<typeof projectSchema>> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
   const safeProject = projectInputSchema.safeParse(project);
   if (!safeProject.success) {
     return actionZodError('Failed to parse project´s input', safeProject.error);
@@ -196,6 +200,11 @@ export async function insertProject(project: z.infer<typeof projectInputSchema>)
     const result = projectSchema.safeParse(insert[0]);
     if (!result.success) {
       return actionZodError('Failed to parse inserted project.', result.error);
+    }
+
+    const insertMember = await insertMembers([{user_id: userId, resource: result.data.id, role: 'owner', permissions: 'write'}])
+    if(!insertMember.success){
+      return actionError('Failed to create owner.');
     }
 
     return actionSuccess(result.data);

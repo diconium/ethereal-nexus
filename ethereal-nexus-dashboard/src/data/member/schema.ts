@@ -6,7 +6,8 @@ export const members = pgTable('member', {
     id: uuid('id').notNull().defaultRandom(),
     user_id: text('user_id').notNull().references(() => users.id),
     resource: uuid('resource').notNull(),
-    permissions: text('permissions').notNull().default('read')
+    permissions: text('permissions').notNull().default('read'),
+    role: text('role').notNull().default('user')
   },
   (table) => {
     return {

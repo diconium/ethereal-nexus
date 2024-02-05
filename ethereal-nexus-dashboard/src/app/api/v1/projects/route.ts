@@ -42,7 +42,12 @@ export const GET = authenticatedWithKey(async (_req, ext) => {
     });
   }
 
-  return NextResponse.json(projects.data, {
+  const response = projects.data
+    .filter(
+      project => ext?.user.resources.includes(project.id)
+    )
+
+  return NextResponse.json(response, {
     status: HttpStatus.OK,
   });
 })

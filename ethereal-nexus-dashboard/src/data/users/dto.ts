@@ -34,8 +34,8 @@ export const userEmailSchema = newUserSchema.pick({
   email: true
 });
 
-export const userApiKeySchema = createSelectSchema(apiKeys);
 export const apiKeySchema = createSelectSchema(apiKeys);
+export type ApiKey = z.infer<typeof apiKeySchema>
 
 export const apiKeyPublicSchema = apiKeySchema.omit({ user_id: true })
   .transform(val => ({

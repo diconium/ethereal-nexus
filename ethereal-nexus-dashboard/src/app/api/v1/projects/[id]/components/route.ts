@@ -52,6 +52,16 @@ import { UserId } from '@/data/users/dto';
 export const GET = authenticatedWithKey(async (_req, ext) => {
   const { id } = ext?.params as {id: string};
 
+  if(!ext?.user.resources.includes(id)) {
+    return new Response(
+      JSON.stringify({ message: 'Resource not authorized.' }),
+      {
+        status: HttpStatus.FORBIDDEN,
+        headers: DEFAULT_HEADERS,
+      },
+    );
+  }
+
   try {
     const project = await getProjectComponents(id, ext?.user?.id);
 

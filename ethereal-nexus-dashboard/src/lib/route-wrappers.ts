@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserByApiKey } from '@/data/users/actions';
+import { getApiKey } from '@/data/users/actions';
 import { HttpStatus } from '@/app/api/utils';
-import { UserId } from '@/data/users/dto';
+import { ApiKey, UserId } from '@/data/users/dto';
 
 export type DefaultExt = { params?: unknown };
 export type WrapperCallback<
@@ -31,22 +31,31 @@ export function wrapper<Req extends NextRequest = NextRequest, Ext extends Defau
   };
 }
 
+export type AuthenticatedWithApiKeyUser = {
+  user: {
+    resources: string[]
+  } & UserId
+}
+
 export const authenticatedWithKey = wrapper(
-  async (next, request, ext: DefaultExt & {user: UserId}) => {
-    let apiKey = '';
+  async (next, request, ext: DefaultExt & AuthenticatedWithApiKeyUser) => {
+    let key = '';
     const headersList = request.headers;
     const authorization = headersList.get('authorization');
     if (authorization && authorization.split(' ')[0] === 'apikey') {
-      apiKey = authorization.split(' ')[1];
+      key = authorization.split(' ')[1];
     }
 
-    const user = await getUserByApiKey(apiKey);
-    if (!user.success) {
-      return NextResponse.json(user.error, {
+    const apiKey = await getApiKey(key);
+    if (!apiKey.success) {
+      return NextResponse.json(apiKey.error, {
         status: HttpStatus.FORBIDDEN
       });
     }
-    ext.user = user.data;
+    ext.user = {
+      id: apiKey.data.user_id,
+      resources: apiKey.data.resources as unknown as string[] //This is a workaround caused by an error from zod-drizzle with pg array declarations. https://github.com/drizzle-team/drizzle-orm/issues/1110
+    };
     return next();
   }
-) as <HExt = DefaultExt & {user: UserId}, HReq = Request, HRes = Response | Promise<Response>>(handler: (req: (HReq & NextRequest), ext?: HExt) => (Promise<HRes> | HRes)) => (req: (HReq & NextRequest), ext?: HExt) => (req: (HReq & NextRequest), ext?: HExt) => (Promise<HRes> | HRes) extends ((...args: any) => infer R) ? R : any
+) as <HExt = DefaultExt & AuthenticatedWithApiKeyUser, HReq = Request, HRes = Response | Promise<Response>>(handler: (req: (HReq & NextRequest), ext?: HExt) => (Promise<HRes> | HRes)) => (req: (HReq & NextRequest), ext?: HExt) => (req: (HReq & NextRequest), ext?: HExt) => (Promise<HRes> | HRes) extends ((...args: any) => infer R) ? R : any

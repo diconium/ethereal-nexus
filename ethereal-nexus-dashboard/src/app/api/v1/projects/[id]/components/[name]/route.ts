@@ -70,7 +70,7 @@ export async function GET(
           $lookup: {
             from: Collection.PROJECTS,
             localField: "name",
-            foreignField: "components",
+            foreignField: "components.name",
             as: "projects",
           },
         },

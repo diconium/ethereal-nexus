@@ -1,0 +1,54 @@
+# The name of the deployment
+name: Trigger auto deployment for containerapps
+
+# When this action will be executed
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  PR_NUMBER: ${{ github.event.number }}
+
+jobs:
+  push_to_registry:
+    environment: playground
+    name: Push Docker image to Container App
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Create env file
+        run: |
+          echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.PGHOST }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.PGUSER }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.PGPORT }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.PGPASSWORD }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./ethereal-nexus-dashboard/.env
+
+      - name: Deploy Container App
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          containerAppName: ethereal-nexus-app-${{ github.event.number }}
+          appSourcePath: ${{ github.workspace }}/ethereal-nexus-dashboard
+          acrName: etherealnexus
+          acrUsername: ${{ secrets.REGISTRY_USERNAME }}
+          acrPassword: ${{ secrets.REGISTRY_PASSWORD }}
+          resourceGroup: RG-ethereal_realms_accelerator
+          containerAppEnvironment: ethereal-nexus-env
+          location: westeurope
+          targetPort: 3000
+
+      - name: Update Environment Variables
+        run: |
+          az containerapp ingress show -g RG-ethereal_realms_accelerator -n gh-action-app-$PR_NUMBER | jq -r '.fqdn'

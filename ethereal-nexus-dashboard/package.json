@@ -41,7 +41,7 @@
     "next-auth": "^5.0.0-beta.4",
     "next-swagger-doc": "^0.4.0",
     "next-themes": "^0.2.1",
-    "postgres": "^3.4.3",
+    "postgres": "3.3.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.46.1",

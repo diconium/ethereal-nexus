@@ -8,7 +8,7 @@ import {
   getFacetedUniqueValues,
   getFilteredRowModel,
   getPaginationRowModel,
-  getSortedRowModel, SortingState,
+  getSortedRowModel, SortingState, TableMeta,
   useReactTable, VisibilityState
 } from '@tanstack/react-table';
 
@@ -21,12 +21,13 @@ import { DataTableToolbar } from './data-table-toolbar';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  meta?: TableMeta<TData>;
   handlerPath?: string
   entity: ComponentProps<typeof DataTableToolbar>['entityName']
   createSlot?: ComponentProps<typeof DataTableToolbar>['createSlot']
 }
 
-export function DataTable<TData, TValue>({ columns, data, entity, createSlot }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, meta, entity, createSlot }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -37,6 +38,7 @@ export function DataTable<TData, TValue>({ columns, data, entity, createSlot }: 
   const table = useReactTable({
     data,
     columns,
+    meta,
     state: {
       sorting,
       columnVisibility,

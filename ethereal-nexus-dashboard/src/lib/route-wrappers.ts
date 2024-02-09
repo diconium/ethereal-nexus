@@ -58,4 +58,4 @@ export const authenticatedWithKey = wrapper(
     };
     return next();
   }
-) as <HExt = DefaultExt & AuthenticatedWithApiKeyUser, HReq = Request, HRes = Response | Promise<Response>>(handler: (req: (HReq & NextRequest), ext?: HExt) => (Promise<HRes> | HRes)) => (req: (HReq & NextRequest), ext?: HExt) => (req: (HReq & NextRequest), ext?: HExt) => (Promise<HRes> | HRes) extends ((...args: any) => infer R) ? R : any
+) as <HExt = DefaultExt & AuthenticatedWithApiKeyUser, HReq = Request, HRes = Response | Promise<Response>>(handler: (req: (HReq & NextRequest), ext?: HExt) => (Promise<HRes> | HRes)) => (req: (HReq & NextRequest), ext?: HExt) => (Promise<HRes> | HRes)

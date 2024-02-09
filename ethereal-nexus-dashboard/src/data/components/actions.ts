@@ -45,7 +45,7 @@ try {
         }
       });
 
-    const safe = z.array(componentsWithVersions).safeParse(select);
+    const safe = componentsWithVersions.array().safeParse(select);
     if (!safe.success) {
       return actionZodError('There\'s an issue with the components records.', safe.error);
     }

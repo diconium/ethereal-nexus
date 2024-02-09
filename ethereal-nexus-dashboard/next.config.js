@@ -15,10 +15,6 @@ module.exports = {
       config.plugins.push(new webpack.IgnorePlugin({
         resourceRegExp: /^cloudflare:sockets$/,
       }))
-
-      config.plugins.push(new webpack.NormalModuleReplacementPlugin(/^node:stream$/, (resource) => {
-        resource.request = resource.request.replace(/^node:stream$/, 'readable-stream');
-      }))
     }
 
     return config

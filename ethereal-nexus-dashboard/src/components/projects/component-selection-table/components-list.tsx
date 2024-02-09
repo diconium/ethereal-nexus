@@ -3,8 +3,6 @@ import { columns } from './columns';
 import React from 'react';
 import { getProjectComponents } from '@/data/projects/actions';
 import { auth } from '@/auth';
-import * as console from 'console';
-
 export async function ProjectComponentsList({id}: {id: string}) {
   const session = await auth()
   const project = await getProjectComponents(id, session?.user?.id);
@@ -14,7 +12,10 @@ export async function ProjectComponentsList({id}: {id: string}) {
 
   return <DataTable
     columns={columns}
-    data={project.data.components}
+    data={project.data}
+    meta={{
+      projectId: id,
+    }}
     entity={'components'}
   />
 }

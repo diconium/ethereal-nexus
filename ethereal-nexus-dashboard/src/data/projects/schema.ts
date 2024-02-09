@@ -14,7 +14,7 @@ export const projectsRelations = relations(projects, ({ many }) => ({
 export const projectComponentConfig = pgTable("project_component_config", {
   id: uuid('id').notNull().defaultRandom(),
   project_id: uuid("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
-  component_id: uuid("component_id").notNull().references(() => components.id ),
+  component_id: uuid("component_id").notNull().references(() => components.id, { onDelete: 'cascade' }),
   component_version: uuid('component_version').references(() => componentVersions.id),
   is_active: boolean('is_active').notNull().default(true)
 },(table) => {

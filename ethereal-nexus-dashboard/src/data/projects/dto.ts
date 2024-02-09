@@ -74,13 +74,11 @@ export const projectWithComponentSchema = projectSchema
   });
 export type ProjectWithComponent = z.infer<typeof projectWithComponentSchema>
 
-export const projectComponentsSchema = projectSchema
-  .pick({ name: true })
+export const projectComponentsSchema = componentsSchema
   .extend({
-    components: z.object({
-      component: componentsSchema
-    }).array()
-  });
+    is_active: projectComponentConfigSchema.shape.is_active.nullable(),
+    version: componentVersionsSchema.shape.version.nullable()
+  })
 export type ProjectComponent = z.infer<typeof projectComponentsSchema>
 
 /**
@@ -105,3 +103,6 @@ export const projectInputSchema = createInsertSchema(projects, {
   .omit({id: true})
   .required({ name: true });
 export type ProjectInput = z.infer<typeof projectInputSchema>
+
+export const projectComponentConfigInputSchema = createInsertSchema(projectComponentConfig)
+export type ProjectComponentConfigInput = z.infer<typeof projectComponentConfigInputSchema>

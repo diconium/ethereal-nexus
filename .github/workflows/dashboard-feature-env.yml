@@ -51,4 +51,5 @@ jobs:
 
       - name: Update Environment Variables
         run: |
-          az containerapp ingress show -g RG-ethereal_realms_accelerator -n gh-action-app-$PR_NUMBER | jq -r '.fqdn'
+          fqdn=$(az containerapp ingress show -g RG-ethereal_realms_accelerator -n ethereal-nexus-app-$PR_NUMBER | jq -r '.fqdn')
+          az containerapp update -g RG-ethereal_realms_accelerator -n ethereal-nexus-app-$PR_NUMBER --set-env-vars NEXTAUTH_URL=https://${fqdn}

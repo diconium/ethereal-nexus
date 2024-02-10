@@ -12,6 +12,8 @@ const queryClient = postgres(
     process.env.PGHOST
   }:${process.env.PGPORT}/${process.env.PGDATABASE || 'postgres'}`,
   {
+    max: 30,
+    idle_timeout: 20,
     ssl: true
   }
 );

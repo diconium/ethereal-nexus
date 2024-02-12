@@ -3,11 +3,14 @@ name: Trigger auto deployment for containerapps
 
 # When this action will be executed
 on:
-  push:
+  pull_request:
+    types: [opened, synchronize]
     branches:
-      - 'feature/**'
-
+      - main
   workflow_dispatch:
+
+env:
+  PR_NUMBER: ${{ github.event.number }}
 
 jobs:
   push_to_registry:
@@ -36,6 +39,7 @@ jobs:
       - name: Deploy Container App
         uses: azure/container-apps-deploy-action@v1
         with:
+          containerAppName: ethereal-nexus-app-${{ github.event.number }}
           appSourcePath: ${{ github.workspace }}/ethereal-nexus-dashboard
           acrName: etherealnexus
           acrUsername: ${{ secrets.REGISTRY_USERNAME }}
@@ -44,3 +48,8 @@ jobs:
           containerAppEnvironment: ethereal-nexus-env
           location: westeurope
           targetPort: 3000
+
+      - name: Update Environment Variables
+        run: |
+          fqdn=$(az containerapp ingress show -g RG-ethereal_realms_accelerator -n ethereal-nexus-app-$PR_NUMBER | jq -r '.fqdn')
+          az containerapp update -g RG-ethereal_realms_accelerator -n ethereal-nexus-app-$PR_NUMBER --set-env-vars NEXTAUTH_URL=https://${fqdn}

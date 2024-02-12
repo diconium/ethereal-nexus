@@ -3,7 +3,7 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import {
   componentAssetsSchema,
   componentsSchema,
-  componentVersionsSchema,
+  componentVersionsSchema
 } from '@/data/components/dto';
 import { z } from 'zod';
 

@@ -18,9 +18,9 @@ import {
   ProjectComponentConfigInput,
   projectComponentConfigInputSchema,
   projectComponentConfigSchema,
-  projectWithComponentAssetsSchema,
   ProjectComponentsWithDialog,
   projectComponentsWithDialogSchema,
+  projectWithComponentAssetsSchema,
 } from './dto';
 import * as console from 'console';
 import { and, desc, eq, getTableColumns } from 'drizzle-orm';

@@ -22,7 +22,7 @@ export type ComponentVersion = z.infer<typeof componentVersionsSchema>;
 
 export const componentsWithVersions = componentsSchema.extend({
   versions: z.array(componentVersionsSchema.pick({version: true}))
-})
+});
 
 export const componentVersionsCreateSchema = createInsertSchema(
   componentVersions,

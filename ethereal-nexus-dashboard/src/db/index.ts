@@ -12,18 +12,19 @@ const queryClient = postgres(
     process.env.PGHOST
   }:${process.env.PGPORT}/${process.env.PGDATABASE || 'postgres'}`,
   {
-    ssl: true
-  }
+    max: 30,
+    idle_timeout: 20,
+    ssl: false,
+  },
 );
 
-export const db = remember('db', () => drizzle(
-  queryClient,
-  {
+export const db = remember('db', () =>
+  drizzle(queryClient, {
     schema: {
       ...users,
       ...projects,
       ...member,
       ...components,
-    }
-  }
-))
+    },
+  }),
+);

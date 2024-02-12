@@ -2,6 +2,7 @@ import { ActionResponse, Result } from '@/data/action';
 import { z } from 'zod';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import { db } from '@/db';
+
 import {
   Component,
   componentAssetsCreateSchema,
@@ -15,12 +16,8 @@ import {
   componentVersionsSchema,
   ComponentWithVersion,
 } from './dto';
-import {
-  componentAssets,
-  components,
-  componentVersions,
-} from '@/data/components/schema';
 import { and, eq } from 'drizzle-orm';
+import { componentAssets, components, componentVersions } from '@/data/components/schema';
 
 export async function upsertComponent(
   component: ComponentToUpsert,
@@ -251,7 +248,7 @@ export async function getComponents(): ActionResponse<
       },
     });
 
-    const safe = z.array(componentsWithVersions).safeParse(select);
+    const safe = componentsWithVersions.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
         "There's an issue with the components records.",

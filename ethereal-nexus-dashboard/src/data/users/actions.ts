@@ -8,21 +8,17 @@ import {
   ApiKey,
   apiKeyPublicSchema,
   apiKeySchema,
-  newUserSchema,
-  PublicUser,
-  userEmailSchema,
-  userIdSchema,
+  newUserSchema, PublicUser,
+  userEmailSchema, userIdSchema,
   userPublicSchema,
-  userSchema,
+  userSchema
 } from '@/data/users/dto';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
-import { ActionResponse } from '@/data/action';
+import { ActionResponse, Result } from '@/data/action';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 
-export async function insertUser(
-  user: z.infer<typeof newUserSchema>,
-): ActionResponse<z.infer<typeof userPublicSchema>> {
+export async function insertUser(user: z.infer<typeof newUserSchema>): ActionResponse<z.infer<typeof userPublicSchema>> {
   const safeUser = newUserSchema.safeParse(user);
   if (!safeUser.success) {
     return actionZodError('Failed to parse user input.', safeUser.error);
@@ -45,7 +41,7 @@ export async function insertUser(
       .values({
         ...safeUser.data,
         id: randomUUID(),
-        password: hashedPassword,
+        password: hashedPassword
       })
       .returning();
 
@@ -53,7 +49,7 @@ export async function insertUser(
     if (!result.success) {
       return actionZodError(
         'Failed to parse user inserted user.',
-        result.error,
+        result.error
       );
     }
 
@@ -63,9 +59,7 @@ export async function insertUser(
   }
 }
 
-export async function getUserById(
-  userId?: string,
-): ActionResponse<z.infer<typeof userPublicSchema>> {
+export async function getUserById(userId?: string): ActionResponse<z.infer<typeof userPublicSchema>> {
   const input = userIdSchema.safeParse({ id: userId });
   if (!input.success) {
     return actionZodError('The id input is not valid.', input.error);
@@ -74,15 +68,16 @@ export async function getUserById(
   const { id } = input.data;
 
   try {
-    const userSelect = await db.query.users.findFirst({
-      where: eq(users.id, id),
-    });
+    const userSelect = await db.query.users
+      .findFirst({
+        where: eq(users.id, id)
+      });
 
     const safeUser = userPublicSchema.safeParse(userSelect);
     if (!safeUser.success) {
       return actionZodError(
-        "There's an issue with the user record.",
-        safeUser.error,
+        'There\'s an issue with the user record.',
+        safeUser.error
       );
     }
 
@@ -92,9 +87,7 @@ export async function getUserById(
   }
 }
 
-export async function getUserByEmail(
-  unsafeEmail: string,
-): ActionResponse<z.infer<typeof userSchema>> {
+export async function getUserByEmail(unsafeEmail: string): ActionResponse<z.infer<typeof userSchema>> {
   const safeEmail = userEmailSchema.safeParse({ email: unsafeEmail });
   if (!safeEmail.success) {
     return actionZodError('The email input is not valid.', safeEmail.error);
@@ -111,8 +104,8 @@ export async function getUserByEmail(
     const safeUser = userSchema.safeParse(userSelect[0]);
     if (!safeUser.success) {
       return actionZodError(
-        "There's an issue with the user record.",
-        safeUser.error,
+        'There\'s an issue with the user record.',
+        safeUser.error
       );
     }
 
@@ -123,7 +116,7 @@ export async function getUserByEmail(
 }
 
 export async function getApiKey(apiKey: string): ActionResponse<ApiKey> {
-  const input = apiKeySchema.pick({ id: true }).safeParse({ id: apiKey });
+  const input = apiKeySchema.pick({id: true}).safeParse({ id: apiKey });
   if (!input.success) {
     return actionZodError('The api key is not valid.', input.error);
   }
@@ -137,8 +130,8 @@ export async function getApiKey(apiKey: string): ActionResponse<ApiKey> {
     const safe = apiKeySchema.safeParse(result);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the api key record.",
-        safe.error,
+        'There\'s an issue with the api key record.',
+        safe.error
       );
     }
 
@@ -148,10 +141,7 @@ export async function getApiKey(apiKey: string): ActionResponse<ApiKey> {
   }
 }
 
-export async function insertUserApiKey(
-  resources: string[] = [],
-  userId?: string,
-): ActionResponse<ApiKey> {
+export async function insertUserApiKey(resources: string[] = [], userId?: string): ActionResponse<ApiKey> {
   const input = userIdSchema.safeParse({ id: userId });
   if (!input.success) {
     return actionZodError('The user id is not valid.', input.error);
@@ -163,15 +153,15 @@ export async function insertUserApiKey(
       .insert(apiKeys)
       .values({
         user_id,
-        resources,
+        resources
       })
       .returning();
 
     const safeKey = apiKeySchema.safeParse(insert[0]);
     if (!safeKey.success) {
       return actionZodError(
-        "There's an issue with the api key record.",
-        safeKey.error,
+        'There\'s an issue with the api key record.',
+        safeKey.error
       );
     }
 
@@ -181,9 +171,7 @@ export async function insertUserApiKey(
   }
 }
 
-export async function getApiKeys(
-  userId?: string,
-): ActionResponse<z.infer<typeof apiKeyPublicSchema>[]> {
+export async function getApiKeys(userId?: string): ActionResponse<z.infer<typeof apiKeyPublicSchema>[]> {
   const input = userIdSchema.safeParse({ id: userId });
   if (!input.success) {
     return actionZodError('The user id is not valid.', input.error);
@@ -192,15 +180,12 @@ export async function getApiKeys(
   const { id } = input.data;
   try {
     const select = await db.query.apiKeys.findMany({
-      where: eq(apiKeys.user_id, id),
+      where: eq(apiKeys.user_id, id)
     });
 
     const safe = z.array(apiKeyPublicSchema).safeParse(select);
     if (!safe.success) {
-      return actionZodError(
-        "There's an issue with the api keys records.",
-        safe.error,
-      );
+      return actionZodError('There\'s an issue with the api keys records.', safe.error);
     }
 
     return actionSuccess(safe.data);
@@ -211,14 +196,13 @@ export async function getApiKeys(
 
 export async function getUsers(): ActionResponse<PublicUser[]> {
   try {
-    const userSelect = await db.select().from(users);
+    const userSelect = await db
+      .select()
+      .from(users);
 
     const safeUsers = z.array(userPublicSchema).safeParse(userSelect);
     if (!safeUsers.success) {
-      return actionZodError(
-        "There's an issue with the user records.",
-        safeUsers.error,
-      );
+      return actionZodError('There\'s an issue with the user records.', safeUsers.error);
     }
 
     return actionSuccess(safeUsers.data);

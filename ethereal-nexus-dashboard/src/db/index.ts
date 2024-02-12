@@ -14,18 +14,17 @@ const queryClient = postgres(
   {
     max: 30,
     idle_timeout: 20,
-    ssl: true
-  }
+    ssl: process.env.PGSSL === 'true',
+  },
 );
 
-export const db = remember('db', () => drizzle(
-  queryClient,
-  {
+export const db = remember('db', () =>
+  drizzle(queryClient, {
     schema: {
       ...users,
       ...projects,
       ...member,
       ...components,
-    }
-  }
-))
+    },
+  }),
+);

@@ -7,8 +7,6 @@ export const components = pgTable("component", {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   slug: text('slug').unique(),
   name: text("name").notNull(),
-  title: text("title"),
-  description: text("description"),
 })
 export const componentsRelations = relations(components, ({ many }) => ({
   versions:  many(componentVersions),

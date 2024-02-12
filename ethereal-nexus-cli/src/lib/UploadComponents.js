@@ -14,7 +14,7 @@ const putComponentInRemoteComponentsAPI = async ({ config, element }) => {
   };
 
   if (config.authorization) {
-    requestOptions.headers.Authorization = config.authorization;
+    requestOptions.headers.authorization = config.authorization;
   }
 
   return await fetch(`${config.url}/api/v1/components`, requestOptions)
@@ -29,7 +29,7 @@ const putComponentInRemoteComponentsAPI = async ({ config, element }) => {
         return false;
       }
     })
-    .catch((error) => {
+    .catch(() => {
       console.error(
         `Error occurred while calling API for element: ${JSON.stringify(
           element,

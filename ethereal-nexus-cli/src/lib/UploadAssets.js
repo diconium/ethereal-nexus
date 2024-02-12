@@ -39,7 +39,7 @@ export async function uploadAssets({ config, url, folderPath }) {
           },
         };
         if (config.authorization) {
-          requestOptions.headers['Authorization'] = config.authorization;
+          requestOptions.headers['authorization'] = config.authorization;
         }
         await fetch(url, requestOptions)
           .then((response) => {

@@ -1,10 +1,12 @@
-import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
+import { HttpStatus } from '@/app/api/utils';
 import {
   BlobServiceClient,
   StorageSharedKeyCredential,
 } from '@azure/storage-blob';
 import { headers } from 'next/headers';
-import { Component } from '@/data/components/model';
+import { authenticatedWithKey } from '@/lib/route-wrappers';
+import { NextRequest, NextResponse } from 'next/server';
+import { updateAssets } from '@/data/components/actions';
 
 const fileTypes: FileTypes = {
   'text/css': 'css',
@@ -18,6 +20,12 @@ interface FileTypes {
 
 const account = process.env.AZURE_BLOB_STORAGE_ACCOUNT || '';
 const accountKey = process.env.AZURE_BLOB_STORAGE_SECRET || '';
+
+const sharedKeyCredential = new StorageSharedKeyCredential(account, accountKey);
+const blobServiceClient = new BlobServiceClient(
+  `https://${account}.blob.core.windows.net`,
+  sharedKeyCredential,
+);
 
 /**
  * @swagger
@@ -84,43 +92,59 @@ const accountKey = process.env.AZURE_BLOB_STORAGE_SECRET || '';
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
+export const POST = authenticatedWithKey(
+  async (
+    request: NextRequest,
+    ext:
+      | { params: { name: string; version: string; fileName: string } }
+      | undefined,
+  ) => {
+    try {
+      const params = ext?.params || {
+        name: undefined,
+        version: undefined,
+        fileName: undefined,
+      };
+      if (!params?.name || !params.version || !params.fileName) {
+        return NextResponse.json('Invalid request. Missing params', {
+          status: HttpStatus.BAD_REQUEST,
+        });
+      }
+      const headersList = headers();
+      const contentType = headersList.get('Content-Type') || '';
+      const filePath: string = getFilePath(params, contentType);
+      const { _response } = await uploadToStorage(
+        request,
+        filePath,
+        contentType,
+      );
+      const { request: responseFromBlob = {} as any } = _response;
+      const { url } = responseFromBlob;
 
-const sharedKeyCredential = new StorageSharedKeyCredential(account, accountKey);
-const blobServiceClient = new BlobServiceClient(
-  `https://${account}.blob.core.windows.net`,
-  sharedKeyCredential,
-);
-
-type AssetUploadParams = Pick<Component, 'name' | 'version'> & {
-  fileName: string;
-};
-
-export async function POST(
-  request: Request,
-  { params }: { params: AssetUploadParams },
-) {
-  try {
-    const headersList = headers();
-    const contentType = headersList.get('Content-Type') || '';
-    const filePath: string = getFilePath(params, contentType);
-    const { _response } = await uploadToStorage(request, filePath, contentType);
-    const { request: responseFromBlob = {} as any } = _response;
-    const { url } = responseFromBlob;
-
-    if (url) {
-      await updateDBComponentAssets({ params, contentType, url });
+      if (!url) {
+        return NextResponse.json('Failed to upload assets', {
+          status: HttpStatus.BAD_REQUEST,
+        });
+      }
+      const response = await updateAssets(
+        params.name,
+        params.version,
+        url,
+        fileTypes[contentType],
+      );
+      if (!response.success) {
+        return NextResponse.json('Failed to upload assets', {
+          status: HttpStatus.BAD_REQUEST,
+        });
+      }
+      return NextResponse.json(response.data);
+    } catch {
+      return NextResponse.json('Failed to upload assets', {
+        status: HttpStatus.BAD_REQUEST,
+      });
     }
-  } catch (e: any) {
-    return new Response(null, {
-      status: e.statusCode,
-      headers: DEFAULT_HEADERS,
-    });
-  }
-  return new Response(null, {
-    status: HttpStatus.OK,
-    headers: DEFAULT_HEADERS,
-  });
-}
+  },
+);
 
 const uploadToStorage = async (
   request: any,
@@ -172,52 +196,12 @@ const uploadToStorage = async (
 };
 
 function getFilePath(
-  { name, version, fileName = 'index' }: AssetUploadParams,
+  {
+    name,
+    version,
+    fileName = 'index',
+  }: { name: string; version: string; fileName: string },
   contentType: string,
 ): string {
   return `${name}/${version}/${fileName}.${fileTypes[contentType]}`;
-}
-
-async function updateDBComponentAssets({
-  params,
-  contentType,
-  url,
-}: {
-  params: AssetUploadParams;
-  contentType: string;
-  url: string;
-}) {
-  const { name, version } = params;
-
-  if (!name || !version) {
-    return Promise.reject({
-      error: 'missing name or version in params',
-      statusCode: HttpStatus.BAD_REQUEST,
-    });
-  }
-
-  // FIXME call action
-  // const db = await mongooseDb();
-  //
-  // const response =
-  //   (await db
-  //     .collection<Component>(Collection.COMPONENTS)
-  //     .findOne({ name: params.name, version: params.version })) || ({} as any);
-  const response = { assets: [] };
-
-  const { assets = [] } = response;
-
-  const otherAssets = assets.filter((asset: any) => asset.filePath !== url);
-
-  const updated: any = { type: fileTypes[contentType], filePath: url };
-
-  const newObject = {
-    ...response,
-    assets: [...otherAssets, updated],
-  };
-
-  return;
-  // return await db
-  //   .collection(Collection.COMPONENTS)
-  //   .replaceOne({ name: params.name, version: params.version }, newObject);
 }

@@ -1,5 +1,7 @@
-import { DEFAULT_HEADERS, HttpStatus } from '@/app/api/utils';
-import { Component } from '@/data/components/model';
+import { HttpStatus } from '@/app/api/utils';
+import { authenticatedWithKey } from '@/lib/route-wrappers';
+import { NextResponse } from 'next/server';
+import { getProjectComponentConfig } from '@/data/projects/actions';
 
 /**
  * @swagger
@@ -8,7 +10,7 @@ import { Component } from '@/data/components/model';
  *     summary: Get a component by name and project
  *     description: Get a component by name and assigned project, listing all its versions
  *     tags:
- *      - Components
+ *      - Projects
  *     produces:
  *      - application/json
  *     parameters:
@@ -51,52 +53,22 @@ import { Component } from '@/data/components/model';
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
-export async function GET(
-  request: Request,
-  { params }: { params: Pick<Component, 'name'> & { id: string } },
-) {
-  const { name, id } = params;
+export const GET = authenticatedWithKey(
+  async (
+    request,
+    ext: { params: { id: string; name: string } } | undefined,
+  ) => {
+    const { id, name } = ext?.params || { id: undefined, name: undefined };
+    const userId = request.user.id;
 
-  try {
-    // FIXME call action
-    // const db = await mongooseDb();
-    //
-    // const latestComponent = await db
-    //   .collection(Collection.COMPONENTS)
-    //   .aggregate([
-    //     { $match: { name } },
-    //     {
-    //       $lookup: {
-    //         from: Collection.PROJECTS,
-    //         localField: "name",
-    //         foreignField: "components",
-    //         as: "projects",
-    //       },
-    //     },
-    //     { $match: { "projects._id": new ObjectId(id) } },
-    //     {
-    //       $project: {
-    //         _id: { $toString: "$_id" },
-    //         name: 1,
-    //         version: 1,
-    //         assets: 1,
-    //         dialog: 1,
-    //       },
-    //     },
-    //   ])
-    //   .sort({ version: -1 })
-    //   .limit(1)
-    //   .next();
-    const latestComponent = {};
+    const response = await getProjectComponentConfig(id, name, userId);
 
-    return new Response(JSON.stringify(latestComponent), {
-      status: HttpStatus.OK,
-      headers: DEFAULT_HEADERS,
-    });
-  } catch (error) {
-    return new Response(JSON.stringify(null), {
-      status: HttpStatus.INTERNAL_SERVER_ERROR,
-      headers: DEFAULT_HEADERS,
-    });
-  }
-}
+    if (!response.success) {
+      return NextResponse.json(response.error, {
+        status: HttpStatus.BAD_REQUEST,
+      });
+    }
+
+    return NextResponse.json(response.data, { status: HttpStatus.OK });
+  },
+);

@@ -20,7 +20,7 @@ export const projectComponentConfig = pgTable(
       .references(() => projects.id, { onDelete: 'cascade' }),
     component_id: uuid('component_id')
       .notNull()
-      .references(() => components.id),
+      .references(() => components.id, { onDelete: 'cascade' }),
     component_version: uuid('component_version').references(
       () => componentVersions.id,
     ),

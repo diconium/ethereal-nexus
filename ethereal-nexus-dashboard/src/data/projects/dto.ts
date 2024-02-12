@@ -92,23 +92,20 @@ export const projectWithComponentAssetsSchema = projectSchema
     ...val.version,
   }));
 
-export const projectComponentsSchema = projectSchema
-  .pick({ name: true })
-  .extend({
-    components: z
-      .object({
-        component: componentsSchema,
-        version: componentVersionsSchema.pick({ version: true, dialog: true }),
-      })
-      .array(),
-  })
-  .transform((val) => ({
-    ...val,
-    components: val.components.map((component) => ({
-      ...component.component,
-      ...component.version,
-    })),
-  }));
+export const projectComponentsSchema = componentsSchema.extend({
+  is_active: projectComponentConfigSchema.shape.is_active.nullable(),
+  version: componentVersionsSchema.shape.version.nullable(),
+});
+export type ProjectComponent = z.infer<typeof projectComponentsSchema>;
+
+export const projectComponentsWithDialogSchema = projectComponentsSchema.extend(
+  {
+    dialog: componentVersionsSchema.shape.dialog.nullable(),
+  },
+);
+export type ProjectComponentsWithDialog = z.infer<
+  typeof projectComponentsWithDialogSchema
+>;
 
 /**
  * @swagger
@@ -131,3 +128,10 @@ export const projectInputSchema = createInsertSchema(projects, {
   .omit({ id: true })
   .required({ name: true });
 export type ProjectInput = z.infer<typeof projectInputSchema>;
+
+export const projectComponentConfigInputSchema = createInsertSchema(
+  projectComponentConfig,
+);
+export type ProjectComponentConfigInput = z.infer<
+  typeof projectComponentConfigInputSchema
+>;

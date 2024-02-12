@@ -15,7 +15,7 @@ const fileTypes: FileTypes = {
 };
 
 interface FileTypes {
-  [key: string]: string;
+  [key: string]: 'css' | 'js';
 }
 
 const account = process.env.AZURE_BLOB_STORAGE_ACCOUNT || '';

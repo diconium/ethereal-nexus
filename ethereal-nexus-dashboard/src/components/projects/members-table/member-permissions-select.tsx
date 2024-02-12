@@ -10,9 +10,10 @@ type MemberPermissionsSelectProps = {
   value: string;
   memberId: string;
   resource: string;
+  role: string;
 }
 
-export function MemberPermissionsSelect({ value, memberId, resource }: MemberPermissionsSelectProps) {
+export function MemberPermissionsSelect({ value, memberId, resource, role }: MemberPermissionsSelectProps) {
   const { data } = useSession()
   const form = useForm({defaultValues: { permissions: value }});
 
@@ -30,7 +31,10 @@ export function MemberPermissionsSelect({ value, memberId, resource }: MemberPer
             <FormControl>
               <Select
                 {...field}
-                disabled={data?.permissions[resource] === 'read'}
+                disabled={
+                  data?.permissions[resource] === 'read' ||
+                  role === 'owner'
+                }
                 onValueChange={field.onChange}
               >
                 <SelectTrigger className="w-[180px]">

@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
 import { MemberPermissionsSelect } from '@/components/projects/members-table/member-permissions-select';
 import { MemberWithPublicUser } from '@/data/member/dto';
+import { Badge } from '@/components/ui/badge';
 
 export const columns: ColumnDef<MemberWithPublicUser>[] = [
   {
@@ -51,11 +52,19 @@ export const columns: ColumnDef<MemberWithPublicUser>[] = [
     enableSorting: true
   },
   {
+    accessorKey: 'role',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="role" />
+    ),
+    cell: ({ row }) => <Badge variant="outline">{row.original.role}</Badge>,
+    enableSorting: true
+  },
+  {
     accessorKey: 'permissions',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Permissions" />
     ),
-    cell: ({ row }) => <MemberPermissionsSelect value={row.original.permissions} memberId={row.original.id} resource={row.original.resource}/>,
+    cell: ({ row }) => <MemberPermissionsSelect value={row.original.permissions} memberId={row.original.id} role={row.original.role} resource={row.original.resource}/>,
     enableSorting: false
   }
 ];

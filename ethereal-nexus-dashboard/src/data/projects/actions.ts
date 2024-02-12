@@ -13,12 +13,19 @@ import {
   type Project,
   type ProjectWithComponentId,
   type ProjectWithComponent,
+  ProjectComponent,
+  ProjectComponentConfig,
+  ProjectComponentConfigInput,
+  projectComponentConfigInputSchema,
+  projectComponentConfigSchema,
   projectWithComponentAssetsSchema,
+  ProjectComponentsWithDialog,
+  projectComponentsWithDialogSchema,
 } from './dto';
 import * as console from 'console';
-import { and, desc, eq } from 'drizzle-orm';
-import { projectComponentConfig, projects } from '@/data/projects/schema';
-import { userIsMember } from '@/data/member/actions';
+import { and, desc, eq, getTableColumns } from 'drizzle-orm';
+import { projects, projectComponentConfig } from './schema';
+import { insertMembers, userIsMember } from '@/data/member/actions';
 import {
   componentAssets,
   components,
@@ -45,7 +52,6 @@ export async function getProjects(
     });
 
     const safe = z.array(projectWithComponentIdSchema).safeParse(select);
-
     if (!safe.success) {
       return actionZodError(
         "There's an issue with the project records.",
@@ -102,7 +108,7 @@ export async function getProjectsWithComponents(
 export async function getProjectComponents(
   id: string | undefined | null,
   userId: string | undefined | null,
-): ActionResponse<z.infer<typeof projectComponentsSchema>> {
+): ActionResponse<ProjectComponent[]> {
   if (!id) {
     return actionError('No identifier provided.');
   }
@@ -112,31 +118,23 @@ export async function getProjectComponents(
   }
 
   try {
-    const select = await db.query.projects.findFirst({
-      columns: {
-        name: true,
-      },
-      where: and(eq(projects.id, id), userIsMember(userId)),
-      with: {
-        components: {
-          columns: {
-            is_active: true,
-            component_version: true,
-          },
-          with: {
-            component: true,
-            version: {
-              columns: {
-                version: true,
-                dialog: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const select = await db
+      .select({
+        ...getTableColumns(components),
+        is_active: projectComponentConfig.is_active,
+        version: componentVersions.version,
+      })
+      .from(components)
+      .leftJoin(
+        projectComponentConfig,
+        eq(components.id, projectComponentConfig.component_id),
+      )
+      .leftJoin(
+        componentVersions,
+        eq(componentVersions.id, projectComponentConfig.component_version),
+      );
 
-    const safe = projectComponentsSchema.safeParse(select);
+    const safe = projectComponentsSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
         "There's an issue with the project records.",
@@ -151,10 +149,10 @@ export async function getProjectComponents(
   }
 }
 
-export async function getProjectComponent(
+export async function getActiveProjectComponents(
   id: string | undefined | null,
   userId: string | undefined | null,
-): ActionResponse<z.infer<typeof projectComponentsSchema>> {
+): ActionResponse<ProjectComponentsWithDialog[]> {
   if (!id) {
     return actionError('No identifier provided.');
   }
@@ -164,22 +162,25 @@ export async function getProjectComponent(
   }
 
   try {
-    const select = await db.query.projects.findFirst({
-      columns: {
-        name: true,
-      },
-      where: and(eq(projects.id, id), userIsMember(userId)),
-      with: {
-        components: {
-          columns: {},
-          with: {
-            component: true,
-          },
-        },
-      },
-    });
+    const select = await db
+      .select({
+        ...getTableColumns(components),
+        is_active: projectComponentConfig.is_active,
+        version: componentVersions.version,
+        dialog: componentVersions.dialog,
+      })
+      .from(components)
+      .leftJoin(
+        projectComponentConfig,
+        eq(components.id, projectComponentConfig.component_id),
+      )
+      .leftJoin(
+        componentVersions,
+        eq(componentVersions.id, projectComponentConfig.component_version),
+      )
+      .where(eq(projectComponentConfig.is_active, true));
 
-    const safe = projectComponentsSchema.safeParse(select);
+    const safe = projectComponentsWithDialogSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
         "There's an issue with the project records.",
@@ -359,7 +360,12 @@ export async function getProjectById(
 
 export async function insertProject(
   project: z.infer<typeof projectInputSchema>,
+  userId: string | undefined | null,
 ): ActionResponse<z.infer<typeof projectSchema>> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
   const safeProject = projectInputSchema.safeParse(project);
   if (!safeProject.success) {
     return actionZodError('Failed to parse project´s input', safeProject.error);
@@ -375,9 +381,68 @@ export async function insertProject(
       return actionZodError('Failed to parse inserted project.', result.error);
     }
 
+    const insertMember = await insertMembers([
+      {
+        user_id: userId,
+        resource: result.data.id,
+        role: 'owner',
+        permissions: 'write',
+      },
+    ]);
+    if (!insertMember.success) {
+      return actionError('Failed to create owner.');
+    }
+
     return actionSuccess(result.data);
   } catch (error) {
     console.error(error);
-    return actionError('Failed to insert project from database.');
+    return actionError('Failed to insert project into database.');
+  }
+}
+
+export async function addComponentToProject(
+  componentConfig: ProjectComponentConfigInput,
+  userId: string | undefined | null,
+): ActionResponse<ProjectComponentConfig> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  const safeInput =
+    projectComponentConfigInputSchema.safeParse(componentConfig);
+  if (!safeInput.success) {
+    return actionZodError(
+      'Failed to parse project´s component input',
+      safeInput.error,
+    );
+  }
+
+  try {
+    const insert = await db
+      .insert(projectComponentConfig)
+      .values(safeInput.data)
+      .onConflictDoUpdate({
+        target: [
+          projectComponentConfig.component_id,
+          projectComponentConfig.project_id,
+        ],
+        set: { is_active: safeInput.data.is_active },
+      })
+      .returning();
+
+    const safe = projectComponentConfigSchema.safeParse(insert);
+    if (!safe.success) {
+      return actionZodError(
+        "There's an issue with the component config records.",
+        safe.error,
+      );
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      'Failed to insert project component config into database.',
+    );
   }
 }

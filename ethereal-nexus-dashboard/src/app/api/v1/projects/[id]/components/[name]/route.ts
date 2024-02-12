@@ -55,11 +55,17 @@ import { getProjectComponentConfig } from '@/data/projects/actions';
  */
 export const GET = authenticatedWithKey(
   async (
-    request,
-    ext: { params: { id: string; name: string } } | undefined,
+    _,
+    ext: { params: { id: string; name: string }; user } | undefined,
   ) => {
     const { id, name } = ext?.params || { id: undefined, name: undefined };
-    const userId = request.user.id;
+    const userId = ext?.user.id;
+
+    if (!userId) {
+      return NextResponse.json('Api key not provided or invalid.', {
+        status: HttpStatus.BAD_REQUEST,
+      });
+    }
 
     const response = await getProjectComponentConfig(id, name, userId);
 

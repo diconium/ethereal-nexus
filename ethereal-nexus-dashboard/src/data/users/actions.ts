@@ -5,11 +5,11 @@ import { randomUUID } from 'crypto';
 import { db } from '@/db';
 import { apiKeys, users } from '@/data/users/schema';
 import {
+  ApiKey,
   apiKeyPublicSchema,
+  apiKeySchema,
   newUserSchema,
   PublicUser,
-  selectApiKeySchema,
-  userApiKeySchema,
   userEmailSchema,
   userIdSchema,
   userPublicSchema,
@@ -122,10 +122,8 @@ export async function getUserByEmail(
   }
 }
 
-export async function getUserByApiKey(
-  apiKey: string,
-): ActionResponse<z.infer<typeof userIdSchema>> {
-  const input = selectApiKeySchema.safeParse({ id: apiKey });
+export async function getApiKey(apiKey: string): ActionResponse<ApiKey> {
+  const input = apiKeySchema.pick({ id: true }).safeParse({ id: apiKey });
   if (!input.success) {
     return actionZodError('The api key is not valid.', input.error);
   }
@@ -134,28 +132,26 @@ export async function getUserByApiKey(
   try {
     const result = await db.query.apiKeys.findFirst({
       where: eq(apiKeys.id, id),
-      columns: {
-        user_id: true,
-      },
     });
 
-    const safeUser = userIdSchema.safeParse({ id: result?.user_id });
-    if (!safeUser.success) {
+    const safe = apiKeySchema.safeParse(result);
+    if (!safe.success) {
       return actionZodError(
         "There's an issue with the api key record.",
-        safeUser.error,
+        safe.error,
       );
     }
 
-    return actionSuccess(safeUser.data);
+    return actionSuccess(safe.data);
   } catch {
     return actionError('Failed to fetch user from database.');
   }
 }
 
 export async function insertUserApiKey(
+  resources: string[] = [],
   userId?: string,
-): ActionResponse<z.infer<typeof userApiKeySchema>> {
+): ActionResponse<ApiKey> {
   const input = userIdSchema.safeParse({ id: userId });
   if (!input.success) {
     return actionZodError('The user id is not valid.', input.error);
@@ -167,10 +163,11 @@ export async function insertUserApiKey(
       .insert(apiKeys)
       .values({
         user_id,
+        resources,
       })
       .returning();
 
-    const safeKey = userApiKeySchema.safeParse(insert[0]);
+    const safeKey = apiKeySchema.safeParse(insert[0]);
     if (!safeKey.success) {
       return actionZodError(
         "There's an issue with the api key record.",

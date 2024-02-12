@@ -1,5 +1,5 @@
 import { HttpStatus } from '@/app/api/utils';
-import { getProjectComponents } from '@/data/projects/actions';
+import { getActiveProjectComponents } from '@/data/projects/actions';
 import { authenticatedWithKey } from '@/lib/route-wrappers';
 import { NextResponse } from 'next/server';
 
@@ -50,11 +50,17 @@ import { NextResponse } from 'next/server';
  *             example: Internal Server Error - Something went wrong on the server side
  */
 export const GET = authenticatedWithKey(
-  async (request, ext: { params: { id: string } } | undefined) => {
+  async (_, ext: { params: { id: string }; user } | undefined) => {
     const { id } = ext?.params || { id: undefined };
-    const userId = request.user.id;
+    const userId = ext?.user.id;
 
-    const response = await getProjectComponents(id, userId);
+    if (!userId) {
+      return NextResponse.json('Api key not provided or invalid.', {
+        status: HttpStatus.BAD_REQUEST,
+      });
+    }
+
+    const response = await getActiveProjectComponents(id, userId);
 
     if (!response.success) {
       return NextResponse.json(response.error, {

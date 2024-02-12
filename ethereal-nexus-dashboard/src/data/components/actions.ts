@@ -165,7 +165,7 @@ export async function updateAssets(
     const assetToUpsert: z.infer<typeof componentAssetsCreateSchema> = {
       component_id: selectComponentVersion.id,
       version_id: selectComponentVersion.versions[0].id!,
-      path: url,
+      url,
       type: contentType,
     };
 
@@ -208,7 +208,7 @@ export async function updateAssets(
       const updateAssetResult = await db
         .update(componentAssets)
         .set({
-          path: safeAssetToUpsert.data.path,
+          url: safeAssetToUpsert.data.url,
         })
         .where(
           and(

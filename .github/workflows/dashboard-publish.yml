@@ -36,6 +36,7 @@ jobs:
           echo "${{ secrets.PGUSER }}" >> ./ethereal-nexus-dashboard/.env
           echo "${{ secrets.PGPORT }}" >> ./ethereal-nexus-dashboard/.env
           echo "${{ secrets.PGPASSWORD }}" >> ./ethereal-nexus-dashboard/.env
+          echo "PGSSL=true" >> ./ethereal-nexus-dashboard/.env
           echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./ethereal-nexus-dashboard/.env
 
       - name: debug env file

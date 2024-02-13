@@ -1,5 +1,5 @@
 # The name of the deployment
-name: Trigger auto deployment for containerapps
+name: Deploy preview environments on PR
 
 # When this action will be executed
 on:
@@ -13,9 +13,9 @@ env:
   PR_NUMBER: ${{ github.event.number }}
 
 jobs:
-  push_to_registry:
+  deploy_preview:
     environment: playground
-    name: Push Docker image to Container App
+    name: Deploy preview environment to Container App
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -26,15 +26,26 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Create env file
+      - name: Create Neon Branch
+        id: create-branch
+        uses: neondatabase/create-branch-action@v4
+        with:
+          project_id: ${{ env.NEON_PROJECT_ID }}
+          branch_name: preview/pr-${{ github.event.number }}
+          username: ${{ env.NEON_DATABASE_USERNAME }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+
+      - name: Setup environment
         run: |
           echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./ethereal-nexus-dashboard/.env
           echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.PGHOST }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.PGUSER }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.PGPORT }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.PGPASSWORD }}" >> ./ethereal-nexus-dashboard/.env
+          echo "DRIZZLE_DATABASE_TYPE=neon" >> ./ethereal-nexus-dashboard/.env
+          echo "DRIZZLE_DATABASE_URL=${{ steps.create-branch.outputs.db_url }}?sslmode=require" >> ./ethereal-nexus-dashboard/.env
           echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./ethereal-nexus-dashboard/.env
+          
+          cd ./ethereal-nexus-dashboard
+          npm ci
+          npm run generate
 
       - name: Deploy Container App
         uses: azure/container-apps-deploy-action@v1
@@ -51,4 +62,5 @@ jobs:
 
       - name: Update Environment Variables
         run: |
-          az containerapp ingress show -g RG-ethereal_realms_accelerator -n gh-action-app-$PR_NUMBER | jq -r '.fqdn'
+          fqdn=$(az containerapp ingress show -g RG-ethereal_realms_accelerator -n ethereal-nexus-app-$PR_NUMBER | jq -r '.fqdn')
+          az containerapp update -g RG-ethereal_realms_accelerator -n ethereal-nexus-app-$PR_NUMBER --set-env-vars NEXTAUTH_URL=https://${fqdn}

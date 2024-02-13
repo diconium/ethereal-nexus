@@ -1,0 +1,28 @@
+# The name of the deployment
+name: Delete preview environments on PR close
+
+# When this action will be executed
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+
+env:
+  PR_NUMBER: ${{ github.event.number }}
+
+jobs:
+  delete-preview:
+    name: Delete Neon and Container App
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete Neon Branch
+        uses: neondatabase/delete-branch-action@v3.1.3
+        with:
+          project_id: ${{ env.NEON_PROJECT_ID }}
+          branch_name: preview/pr-${{ github.event.number }}
+          username: ${{ env.NEON_DATABASE_USERNAME }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+
+      - name: Delete Container App
+        run: |
+          az containerapp ingress show -g RG-ethereal_realms_accelerator -n ethereal-nexus-app-$PR_NUMBER

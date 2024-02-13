@@ -39,21 +39,8 @@ jobs:
         run: |
           echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./ethereal-nexus-dashboard/.env
           echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./ethereal-nexus-dashboard/.env
-<<<<<<< refs/remotes/origin/main:.github/workflows/dashboard-preview.yml
-<<<<<<< refs/remotes/origin/main:.github/workflows/dashboard-preview.yml
           echo "DRIZZLE_DATABASE_TYPE=neon" >> ./ethereal-nexus-dashboard/.env
           echo "DRIZZLE_DATABASE_URL=${{ steps.create-branch.outputs.db_url }}?sslmode=require" >> ./ethereal-nexus-dashboard/.env
-=======
-          echo "${{ secrets.PGHOST }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.PGUSER }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.PGPORT }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.PGPASSWORD }}" >> ./ethereal-nexus-dashboard/.env
-          echo "PGSSL=true" >> ./ethereal-nexus-dashboard/.env
->>>>>>> refactor: api migration and cleanup (#13):.github/workflows/dashboard-feature-env.yml
-=======
-          echo "DRIZZLE_DATABASE_TYPE=neon" >> ./ethereal-nexus-dashboard/.env
-          echo "DRIZZLE_DATABASE_URL=${{ steps.create-branch.outputs.db_url }}?sslmode=require" >> ./ethereal-nexus-dashboard/.env
->>>>>>> feat: add support for neon DB:.github/workflows/dashboard-feature-env.yml
           echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./ethereal-nexus-dashboard/.env
           
           cd ./ethereal-nexus-dashboard

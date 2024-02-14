@@ -11,6 +11,7 @@ export function askUserToCreateExampleConfigFile() {
         function createConfigFile() {
             const defaultConfig = {
                 url: 'https://example.com/',
+                authorization: 'apikey <YOUR_NEXUS_API_KEY_HERE>'
             };
             fs.writeFileSync('./remote-components.config.json', JSON.stringify(defaultConfig, null, 4), 'utf-8');
             console.log(chalk.green('Config file created. Please edit with the correct parameters'));

@@ -1,56 +1,12 @@
-import { NextResponse } from "next/server";
-import { DEFAULT_HEADERS, HttpStatus } from "@/app/api/utils";
-import mongooseDb, { Collection } from "@/lib/mongodb";
-import { getAllComponents } from "@/lib/components/components.service";
+import { NextRequest, NextResponse } from 'next/server';
+import { HttpStatus } from '@/app/api/utils';
+import { authenticatedWithKey } from '@/lib/route-wrappers';
+import { upsertComponent } from '@/data/components/actions';
 
 /**
  * @swagger
  * /api/v1/components:
- *   get:
- *     summary: Get a list of components
- *     description: Return all components
- *     tags:
- *      - Components
- *     produces:
- *      - application/json
- *     responses:
- *      '200':
- *        description: The list of components
- *        content:
- *         application/json:
- *          schema:
- *           type: array
- *           items:
- *            $ref: '#/components/schemas/Component'
- *      '500':
- *        description: Internal Server Error
- *        content:
- *         application/json:
- *          schema:
- *           type: object
- *           properties:
- *            message:
- *             type: string
- *             example: Internal Server Error - Something went wrong on the server side
- */
-export async function GET() {
-  try {
-    const components = await getAllComponents();
-    return new Response(JSON.stringify(components), {
-      status: HttpStatus.OK,
-      headers: DEFAULT_HEADERS,
-    });
-  } catch (e) {
-    console.error(e);
-  }
-
-  return NextResponse.json({ components: [] });
-}
-
-/**
- * @swagger
- * /api/v1/components:
- *   put:
+ *   post:
  *     summary: Creates/Updates a project
  *     description: Creates/Updates a project
  *     tags:
@@ -96,35 +52,14 @@ export async function GET() {
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
-export async function PUT(request: Request) {
-  const {name, version, dialog, title} = await request.json();
-  const query = {
-    name,
-    version,
-  };
+export const POST = authenticatedWithKey(async (request: NextRequest) => {
+  const req = await request.json();
+  const componentWithVersion = await upsertComponent(req);
 
-  const db = await mongooseDb();
-  const result = await db.collection(Collection.COMPONENTS).findOneAndUpdate(
-    query,
-    { $set: {name , version, dialog, title}}, // The document to insert or update
-    { upsert: true },
-  );
-
-  if (result.ok) {
-    return new Response(
-      JSON.stringify({ message: "Document updated successfully" }),
-      {
-        status: HttpStatus.OK,
-        headers: DEFAULT_HEADERS,
-      },
-    );
-  } else {
-    return new Response(
-      JSON.stringify({ message: "Failed to insert record." }),
-      {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        headers: DEFAULT_HEADERS,
-      },
-    );
+  if (!componentWithVersion.success) {
+    return NextResponse.json(componentWithVersion.error, {
+      status: HttpStatus.BAD_REQUEST,
+    });
   }
-}
+  return NextResponse.json(componentWithVersion.data);
+});

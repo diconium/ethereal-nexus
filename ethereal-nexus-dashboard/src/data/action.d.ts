@@ -1,4 +1,4 @@
-export type Result<T> = {
+type Result<T> = {
     success: true
     data: T
   }
@@ -14,3 +14,5 @@ type ActionError = {
     path: (string | number)[]
   }[]
 }
+
+export type ActionResponse<T> = Promise<Result<T>>

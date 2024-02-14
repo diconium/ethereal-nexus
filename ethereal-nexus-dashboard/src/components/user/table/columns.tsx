@@ -1,12 +1,9 @@
-"use client"
+'use client'
 
-import { ColumnDef } from "@tanstack/react-table"
-import * as z from 'zod';
-import { userPublicSchema } from '@/data/users/dto';
-import { DataTableColumnHeader } from '@/components/teams/teams-data-table/data-table-column-header';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
 
-export const columns: ColumnDef<z.infer<typeof userPublicSchema>>[] = [
+export const columns = [
   {
     id: "select",
     header: ({ table }) => (
@@ -33,7 +30,7 @@ export const columns: ColumnDef<z.infer<typeof userPublicSchema>>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
     ),
-    cell: ({ row }) => <div>{row.getValue("name")}</div>,
+    cell: ({ row }) => row.getValue("name"),
     enableSorting: true,
   },
   {
@@ -41,7 +38,7 @@ export const columns: ColumnDef<z.infer<typeof userPublicSchema>>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Email" />
     ),
-    cell: ({ row }) => <div>{row.getValue("email")}</div>,
+    cell: ({ row }) => row.getValue("email"),
     enableSorting: true,
   },
 ];

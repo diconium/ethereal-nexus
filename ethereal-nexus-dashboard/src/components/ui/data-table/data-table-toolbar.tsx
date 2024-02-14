@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from './data-table-view-options';
 import Link from 'next/link';
 
-export function DataTableToolbar<TData>({ table, entityName, createActionLink }) {
+export function DataTableToolbar<TData>({ table, entityName, createSlot }) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
@@ -32,21 +32,7 @@ export function DataTableToolbar<TData>({ table, entityName, createActionLink })
           </Button>
         )}
       </div>
-      <Link
-        href={createActionLink}
-        passHref
-        className={
-        buttonVariants(
-          {
-            variant: "outline",
-            size: 'sm',
-            className: "ml-auto hidden h-8 lg:flex mr-4" }
-        )
-      }>
-        <PlusCircledIcon className="mr-2 h-4 w-4" />
-        Create {entityName}
-      </Link>
-
+      { createSlot }
       <DataTableViewOptions table={table} />
     </div>
   );

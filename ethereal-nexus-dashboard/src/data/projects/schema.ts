@@ -32,7 +32,6 @@ export const projectComponentConfig = pgTable(
         columns: [
           table.project_id,
           table.component_id,
-          table.component_version,
         ],
       }),
     };

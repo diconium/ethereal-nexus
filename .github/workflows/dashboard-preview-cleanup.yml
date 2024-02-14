@@ -29,4 +29,4 @@ jobs:
 
       - name: Delete Container App
         run: |
-          az containerapp delete -g RG-ethereal_realms_accelerator -n ethereal-nexus-app-$PR_NUMBER
+          az containerapp delete --yes -g RG-ethereal_realms_accelerator -n ethereal-nexus-app-$PR_NUMBER

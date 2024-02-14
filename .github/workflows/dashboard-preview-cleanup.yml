@@ -19,8 +19,7 @@ jobs:
         uses: neondatabase/delete-branch-action@v3.1.3
         with:
           project_id: ${{ env.NEON_PROJECT_ID }}
-          branch_name: preview/pr-${{ github.event.number }}
-          username: ${{ env.NEON_DATABASE_USERNAME }}
+          branch: preview/pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
 
       - name: Delete Container App

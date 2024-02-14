@@ -56,7 +56,6 @@ jobs:
           acrUsername: ${{ secrets.REGISTRY_USERNAME }}
           acrPassword: ${{ secrets.REGISTRY_PASSWORD }}
           resourceGroup: RG-ethereal_realms_accelerator
-          containerAppEnvironment: ethereal-nexus-env
           location: westeurope
           targetPort: 3000
 

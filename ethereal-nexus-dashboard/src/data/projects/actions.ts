@@ -23,7 +23,7 @@ import {
   projectWithComponentAssetsSchema,
 } from './dto';
 import * as console from 'console';
-import { and, desc, eq, getTableColumns } from 'drizzle-orm';
+import { and, asc, desc, eq, getTableColumns, or, sql } from 'drizzle-orm';
 import { projects, projectComponentConfig } from './schema';
 import { insertMembers, userIsMember } from '@/data/member/actions';
 import {
@@ -212,76 +212,58 @@ export async function getProjectComponentConfig(
     return actionError('No user provided.');
   }
 
-  try {
-    const selectProjectInfo = db
-      .select({
-        project_id: projectComponentConfig.project_id,
-        component_id: projectComponentConfig.component_id,
-        component_version: projectComponentConfig.component_version,
-        name: projects.name,
-      })
-      .from(projectComponentConfig)
-      .innerJoin(
-        projects,
-        and(
-          eq(projects.id, projectComponentConfig.project_id),
-          userIsMember(userId),
-        ),
+  const assets = sql`
+    ARRAY_AGG(
+      jsonb_build_object(
+        'id', ${componentAssets.id},
+        'component_id', ${componentAssets.component_id},
+        'version_id', ${componentAssets.version_id},
+        'url', ${componentAssets.url},
+        'type', ${componentAssets.type}
       )
-      .where(
-        and(
-          projectComponentConfig.is_active,
-          eq(projectComponentConfig.project_id, id),
-        ),
-      )
-      .as('sq');
+    )
+  `;
+  const latest_version = db.select()
+    .from(componentVersions)
+    .orderBy(desc(componentVersions.created_at))
+    .groupBy(
+      componentVersions.id,
+      componentVersions.version,
+      componentVersions.created_at,
+    )
+    .limit(1)
+    .as('latest_version');
 
-    const selectVersions = await db
-      .selectDistinct({
-        id: selectProjectInfo.project_id,
-        version: {
-          id: componentVersions.id,
-          version: componentVersions.version,
-        },
+  try{
+    const result = await db
+      .select({
+        id: projectComponentConfig.project_id,
         component: {
-          id: componentVersions.component_id,
+          id: components.id,
           name: components.name,
         },
+        version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
+        assets,
       })
-      .from(componentVersions)
-      .innerJoin(
-        selectProjectInfo,
-        eq(selectProjectInfo.component_version, componentVersions.id),
+      .from(projectComponentConfig)
+      .leftJoin(components, eq(components.id, projectComponentConfig.component_id))
+      .leftJoin(componentVersions, eq(componentVersions.id, projectComponentConfig.component_version))
+      .leftJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
+      .leftJoin(componentAssets, sql`coalesce(${componentVersions.id}, ${latest_version.id}) = ${componentAssets.version_id}`)
+      .where(and(
+        eq(projectComponentConfig.project_id, id),
+        eq(projectComponentConfig.is_active, true),
+        eq(components.slug, name),
+      ))
+      .groupBy(
+        projectComponentConfig.project_id,
+        components.id,
+        componentVersions.version,
+        latest_version.version
       )
-      .innerJoin(components, eq(componentVersions.component_id, components.id))
-      .where(eq(components.name, name))
-      .orderBy(desc(componentVersions.version));
-
-    if (!selectVersions.length) {
-      return actionError(
-        'No active versions selected for the given project and component name',
-      );
-    }
-
-    const selectAssets = await db
-      .selectDistinct({
-        assets: componentAssets,
-      })
-      .from(componentAssets)
-      .where(
-        and(
-          eq(componentAssets.component_id, selectVersions[0].component.id!),
-          eq(componentAssets.version_id, selectVersions[0].version.id),
-        ),
-      );
-
-    const componentWithAssets = {
-      ...selectVersions[0],
-      assets: selectAssets.map((entry) => entry.assets),
-    };
 
     const safe =
-      projectWithComponentAssetsSchema.safeParse(componentWithAssets);
+      projectWithComponentAssetsSchema.safeParse(result[0]);
 
     if (!safe.success) {
       return actionZodError(

@@ -140,7 +140,8 @@ export const POST = authenticatedWithKey(
         });
       }
       return NextResponse.json(response.data);
-    } catch {
+    } catch(err) {
+      console.error(err)
       return NextResponse.json('Failed to put assets', {
         status: HttpStatus.BAD_REQUEST,
       });

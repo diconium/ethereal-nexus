@@ -5,6 +5,7 @@ import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-col
 import { Switch } from '@/components/ui/switch';
 import { ActiveSwitch } from '@/components/projects/component-selection-table/active-switch';
 import { Checkbox } from '@/components/ui/checkbox';
+import { VersionPicker } from '@/components/projects/component-selection-table/version-picker';
 
 export const columns = [
   {
@@ -19,6 +20,7 @@ export const columns = [
     ),
     cell: ({ row }) => (
       <Checkbox
+        key={row.original.id}
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
@@ -54,7 +56,13 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Version" />
     ),
-    cell: ({ row }) => row.getValue("version"),
+    cell: ({ row, table }) => <VersionPicker
+      key={row.original.id}
+      projectId={table.options.meta.projectId}
+      componentId={row.original.id}
+      version={row.original.version}
+      versions={row.original.versions}
+    />,
     enableSorting: false,
     enableHiding: true,
   },
@@ -66,6 +74,7 @@ export const columns = [
     ),
     cell: ({ row, table }) => (
       <ActiveSwitch
+        key={row.original.id}
         projectId={table.options.meta.projectId}
         componentId={row.original.id}
         active={row.getValue("active")}

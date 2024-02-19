@@ -117,12 +117,14 @@ export async function getProjectComponents(
     return actionError('No user provided.');
   }
 
+  const versions = db.select().from(componentVersions).as('versions')
   try {
     const select = await db
       .select({
         ...getTableColumns(components),
         is_active: projectComponentConfig.is_active,
         version: componentVersions.version,
+        versions: sql`ARRAY_AGG(jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`
       })
       .from(components)
       .leftJoin(
@@ -132,6 +134,20 @@ export async function getProjectComponents(
       .leftJoin(
         componentVersions,
         eq(componentVersions.id, projectComponentConfig.component_version),
+      )
+      .leftJoin(
+        versions,
+        eq(versions.component_id, components.id),
+      )
+      .groupBy(
+        components.id,
+        componentVersions.version,
+        projectComponentConfig.is_active
+      )
+      .orderBy(
+        sql`${projectComponentConfig.is_active} DESC NULLS LAST`,
+        sql`${componentVersions.version} NULLS LAST`,
+        components.name
       );
 
     const safe = projectComponentsSchema.array().safeParse(select);
@@ -264,7 +280,6 @@ export async function getProjectComponentConfig(
 
     const safe =
       projectWithComponentAssetsSchema.safeParse(result[0]);
-
     if (!safe.success) {
       return actionZodError(
         "There's an issue with the project records.",
@@ -382,7 +397,7 @@ export async function insertProject(
   }
 }
 
-export async function addComponentToProject(
+export async function upsertComponentConfig(
   componentConfig: ProjectComponentConfigInput,
   userId: string | undefined | null,
 ): ActionResponse<ProjectComponentConfig> {
@@ -408,7 +423,10 @@ export async function addComponentToProject(
           projectComponentConfig.component_id,
           projectComponentConfig.project_id,
         ],
-        set: { is_active: safeInput.data.is_active },
+        set: {
+          is_active: safeInput.data.is_active,
+          component_version: safeInput.data.component_version
+        },
       })
       .returning();
 

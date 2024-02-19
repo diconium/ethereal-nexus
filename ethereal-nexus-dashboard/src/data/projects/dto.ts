@@ -91,6 +91,7 @@ export const projectWithComponentAssetsSchema = projectSchema
 export const projectComponentsSchema = componentsSchema.extend({
   is_active: projectComponentConfigSchema.shape.is_active.nullable(),
   version: componentVersionsSchema.shape.version.nullable(),
+  versions: componentVersionsSchema.pick({id: true, version: true}).array(),
 });
 export type ProjectComponent = z.infer<typeof projectComponentsSchema>;
 

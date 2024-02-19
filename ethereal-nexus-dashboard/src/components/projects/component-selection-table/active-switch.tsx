@@ -2,7 +2,7 @@ import React from 'react';
 import { Switch } from '@/components/ui/switch';
 import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
-import { addComponentToProject } from '@/data/projects/actions';
+import { upsertComponentConfig } from '@/data/projects/actions';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 
 type ActiveSwitchProps = {
@@ -15,7 +15,7 @@ export function ActiveSwitch({componentId, projectId, active}:ActiveSwitchProps)
   const form = useForm({defaultValues: {is_active: active}});
 
   const onSubmit = async (data) => {
-    await addComponentToProject({project_id: projectId, component_id: componentId, is_active: data.is_active}, session?.user?.id)
+    await upsertComponentConfig({project_id: projectId, component_id: componentId, is_active: data.is_active}, session?.user?.id)
   }
 
   return <Form {...form}>

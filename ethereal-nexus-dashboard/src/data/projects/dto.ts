@@ -84,17 +84,14 @@ export const projectWithComponentAssetsSchema = projectSchema
   .pick({ id: true })
   .extend({
     component: componentsSchema.pick({ id: true, name: true }),
-    version: componentVersionsSchema.pick({ version: true }),
+    version: componentVersionsSchema.shape.version,
     assets: z.array(componentAssetsSchema),
   })
-  .transform((val) => ({
-    ...val,
-    ...val.version,
-  }));
 
 export const projectComponentsSchema = componentsSchema.extend({
   is_active: projectComponentConfigSchema.shape.is_active.nullable(),
   version: componentVersionsSchema.shape.version.nullable(),
+  versions: componentVersionsSchema.pick({id: true, version: true}).array(),
 });
 export type ProjectComponent = z.infer<typeof projectComponentsSchema>;
 

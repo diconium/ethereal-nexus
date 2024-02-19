@@ -177,13 +177,24 @@ export async function getActiveProjectComponents(
     return actionError('No user provided.');
   }
 
+  const latest_version = db.select()
+    .from(componentVersions)
+    .orderBy(desc(componentVersions.created_at))
+    .groupBy(
+      componentVersions.id,
+      componentVersions.version,
+      componentVersions.created_at,
+    )
+    .limit(1)
+    .as('latest_version');
+
   try {
     const select = await db
       .select({
         ...getTableColumns(components),
         is_active: projectComponentConfig.is_active,
-        version: componentVersions.version,
-        dialog: componentVersions.dialog,
+        version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
+        dialog: sql`coalesce(${componentVersions.dialog}, ${latest_version.dialog})`,
       })
       .from(components)
       .leftJoin(
@@ -194,6 +205,7 @@ export async function getActiveProjectComponents(
         componentVersions,
         eq(componentVersions.id, projectComponentConfig.component_version),
       )
+      .leftJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
       .where(eq(projectComponentConfig.is_active, true));
 
     const safe = projectComponentsWithDialogSchema.array().safeParse(select);

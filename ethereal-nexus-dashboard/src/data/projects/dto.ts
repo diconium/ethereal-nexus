@@ -95,7 +95,9 @@ export const projectComponentsSchema = componentsSchema.extend({
 });
 export type ProjectComponent = z.infer<typeof projectComponentsSchema>;
 
-export const projectComponentsWithDialogSchema = projectComponentsSchema.extend(
+export const projectComponentsWithDialogSchema = projectComponentsSchema
+  .omit({versions: true})
+  .extend(
   {
     dialog: componentVersionsSchema.shape.dialog.nullable(),
   },

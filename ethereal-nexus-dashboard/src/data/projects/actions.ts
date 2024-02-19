@@ -244,9 +244,7 @@ export async function getProjectComponentConfig(
     ARRAY_AGG(
       jsonb_build_object(
         'id', ${componentAssets.id},
-        'component_id', ${componentAssets.component_id},
-        'version_id', ${componentAssets.version_id},
-        'url', ${componentAssets.url},
+        'filePath', ${componentAssets.url},
         'type', ${componentAssets.type}
       )
     )
@@ -265,12 +263,11 @@ export async function getProjectComponentConfig(
   try{
     const result = await db
       .select({
-        id: projectComponentConfig.project_id,
-        component: {
-          id: components.id,
-          name: components.name,
-        },
+        id: components.id,
+        name: components.name,
+        title: components.title,
         version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
+        dialog: sql`coalesce(${componentVersions.dialog}, ${latest_version.dialog})`,
         assets,
       })
       .from(projectComponentConfig)

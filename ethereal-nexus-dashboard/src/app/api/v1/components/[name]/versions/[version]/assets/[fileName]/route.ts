@@ -7,6 +7,7 @@ import { headers } from 'next/headers';
 import { authenticatedWithKey } from '@/lib/route-wrappers';
 import { NextRequest, NextResponse } from 'next/server';
 import { updateAssets } from '@/data/components/actions';
+import * as console from 'console';
 
 const fileTypes: FileTypes = {
   'text/css': 'css',
@@ -121,6 +122,7 @@ export const POST = authenticatedWithKey(
       const { request: responseFromBlob = {} as any } = _response;
       const { url } = responseFromBlob;
 
+      console.log('POST assets', JSON.stringify(_response, undefined, 2))
       if (!url) {
         return NextResponse.json('Failed to upload assets', {
           status: HttpStatus.BAD_REQUEST,
@@ -133,13 +135,13 @@ export const POST = authenticatedWithKey(
         fileTypes[contentType],
       );
       if (!response.success) {
-        return NextResponse.json('Failed to upload assets', {
+        return NextResponse.json('Failed to update assets', {
           status: HttpStatus.BAD_REQUEST,
         });
       }
       return NextResponse.json(response.data);
     } catch {
-      return NextResponse.json('Failed to upload assets', {
+      return NextResponse.json('Failed to put assets', {
         status: HttpStatus.BAD_REQUEST,
       });
     }

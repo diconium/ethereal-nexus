@@ -154,6 +154,7 @@ export async function updateAssets(
       !selectComponentVersion?.id ||
       !selectComponentVersion.versions?.length
     ) {
+      console.error('updateAssets: failed to fetch component version', selectComponentVersion)
       return actionError(
         `Failed to fetch component with name ${componentName}.`,
       );
@@ -170,6 +171,7 @@ export async function updateAssets(
       componentAssetsCreateSchema.safeParse(assetToUpsert);
 
     if (!safeAssetToUpsert.success) {
+      console.error('updateAssets: asset input is not valid', JSON.stringify(safeAssetToUpsert, undefined, 2))
       return actionZodError(
         "There's an issue with the components assets record.",
         safeAssetToUpsert.error,
@@ -196,6 +198,8 @@ export async function updateAssets(
       upsertedAsset = componentAssetsSchema.safeParse(insertAssetsResult[0]);
 
       if (!upsertedAsset.success) {
+        console.error('updateAssets: failed to upsert asset', JSON.stringify(upsertedAsset, undefined, 2))
+
         return actionZodError(
           "There's an issue with the inserted components assets record.",
           upsertedAsset.error,
@@ -223,6 +227,8 @@ export async function updateAssets(
         updateAssetResult[0],
       );
       if (!updatedAsset.success) {
+        console.error('updateAssets: failed to upsert asset', JSON.stringify(updatedAsset, undefined, 2))
+
         return actionZodError(
           'There was an issue updating the components version.',
           updatedAsset.error,

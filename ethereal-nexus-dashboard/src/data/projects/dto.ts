@@ -80,12 +80,20 @@ export const projectWithComponentSchema = projectSchema.extend({
 });
 export type ProjectWithComponent = z.infer<typeof projectWithComponentSchema>;
 
-export const projectWithComponentAssetsSchema = projectSchema
-  .pick({ id: true })
+export const projectWithComponentAssetsSchema = componentsSchema
+  .pick({ id: true, name: true, title: true })
   .extend({
-    component: componentsSchema.pick({ id: true, name: true }),
     version: componentVersionsSchema.shape.version,
-    assets: z.array(componentAssetsSchema),
+    dialog: componentVersionsSchema.shape.dialog,
+    assets: z.array(
+      componentAssetsSchema
+        .pick({url: true, id: true, type: true})
+        .transform(val => ({
+            ...val,
+            url: undefined,
+            filePath: val.url
+          })
+        )),
   })
 
 export const projectComponentsSchema = componentsSchema.extend({
@@ -98,10 +106,10 @@ export type ProjectComponent = z.infer<typeof projectComponentsSchema>;
 export const projectComponentsWithDialogSchema = projectComponentsSchema
   .omit({versions: true})
   .extend(
-  {
-    dialog: componentVersionsSchema.shape.dialog.nullable(),
-  },
-);
+    {
+      dialog: componentVersionsSchema.shape.dialog.nullable(),
+    },
+  );
 export type ProjectComponentsWithDialog = z.infer<
   typeof projectComponentsWithDialogSchema
 >;

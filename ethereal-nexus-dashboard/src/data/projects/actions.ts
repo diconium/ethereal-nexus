@@ -244,7 +244,7 @@ export async function getProjectComponentConfig(
     ARRAY_AGG(
       jsonb_build_object(
         'id', ${componentAssets.id},
-        'filePath', ${componentAssets.url},
+        'url', ${componentAssets.url},
         'type', ${componentAssets.type}
       )
     )
@@ -259,7 +259,7 @@ export async function getProjectComponentConfig(
     )
     .limit(1)
     .as('latest_version');
-
+  
   try{
     const result = await db
       .select({
@@ -267,7 +267,7 @@ export async function getProjectComponentConfig(
         name: components.name,
         title: components.title,
         version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
-        dialog: sql`coalesce(${componentVersions.dialog}, ${latest_version.dialog})`,
+        dialog: sql`coalesce(${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
         assets,
       })
       .from(projectComponentConfig)
@@ -283,8 +283,11 @@ export async function getProjectComponentConfig(
       .groupBy(
         projectComponentConfig.project_id,
         components.id,
+        components.name,
         componentVersions.version,
-        latest_version.version
+        sql`${componentVersions.dialog}::jsonb`,
+        sql`${latest_version.dialog}::jsonb`,
+        latest_version.version,
       )
 
     const safe =

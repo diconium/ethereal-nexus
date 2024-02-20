@@ -3,10 +3,12 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { getProjects } from '@/data/projects/actions';
 import { auth } from '@/auth';
 import { columns } from '@/components/projects/table/columns';
+import {logger} from "@/logger";
 
 export default async function Projects() {
   const session = await auth()
   const projects = await getProjects(session?.user?.id);
+  logger.info("Projects Page called "); // calling our logger
 
   return (
     <div className="container h-full flex-1 flex-col space-y-8 p-8 md:flex">

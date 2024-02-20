@@ -3,11 +3,13 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { getProjects } from '@/data/projects/actions';
 import { auth } from '@/auth';
+import { logger } from "@/logger"; // our logger import
 
 export default async function Home() {
     const session = await auth()
     const projects = await getProjects(session?.user?.id);
-
+    logger.info("Home Page called "); // calling our logger
+console.log("Home Page called "); // calling console.log
     return <div className="container flex-col md:flex">
         <div className="flex-1 space-y-4 p-8 pt-6">
             <div className="flex items-center justify-between space-y-2">

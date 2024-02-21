@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 export const users = pgTable("user", {
   id: text("id").notNull().primaryKey(),
@@ -13,5 +13,6 @@ export const apiKeys = pgTable("api_key", {
   id: uuid("id").notNull().primaryKey().defaultRandom(),
   user_id: text("user_id").notNull().references(() => users.id),
   resources: text("resources").array(),
+  permissions: jsonb("permissions").notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
 })

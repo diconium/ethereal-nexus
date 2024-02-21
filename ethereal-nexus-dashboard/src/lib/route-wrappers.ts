@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getApiKey } from '@/data/users/actions';
 import { HttpStatus } from '@/app/api/utils';
-import { ApiKey, UserId } from '@/data/users/dto';
+import { ApiKey, ApiKeyPermissions, UserId } from '@/data/users/dto';
 
 export type DefaultExt = { params?: unknown };
 export type WrapperCallback<
@@ -33,7 +33,8 @@ export function wrapper<Req extends NextRequest = NextRequest, Ext extends Defau
 
 export type AuthenticatedWithApiKeyUser = {
   user: {
-    resources: string[]
+    resources?: ApiKey['resources']
+    permissions?: ApiKey['permissions']
   } & UserId
 }
 
@@ -54,7 +55,8 @@ export const authenticatedWithKey = wrapper(
     }
     ext.user = {
       id: apiKey.data.user_id,
-      resources: apiKey.data.resources as unknown as string[] //This is a workaround caused by an error from zod-drizzle with pg array declarations. https://github.com/drizzle-team/drizzle-orm/issues/1110
+      resources: apiKey.data.resources,
+      permissions: apiKey.data.permissions,
     };
     return next();
   }

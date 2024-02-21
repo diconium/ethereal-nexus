@@ -59,11 +59,23 @@ export const GET = authenticatedWithKey(
     ext: { params: { id: string; name: string }; user } | undefined,
   ) => {
     const { id, name } = ext?.params || { id: undefined, name: undefined };
-    const userId = ext?.user.id;
+    if (!id) {
+      return NextResponse.json('No identifier provided.', {
+        status: HttpStatus.BAD_REQUEST,
+      });
+    }
 
+    const userId = ext?.user.id;
     if (!userId) {
       return NextResponse.json('Api key not provided or invalid.', {
         status: HttpStatus.BAD_REQUEST,
+      });
+    }
+
+    const permissions = ext?.user.permissions;
+    if (permissions[id] === 'none') {
+      return NextResponse.json('You do not have permissions for this resource.', {
+        status: HttpStatus.FORBIDDEN,
       });
     }
 

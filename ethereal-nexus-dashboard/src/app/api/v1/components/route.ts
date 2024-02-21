@@ -52,8 +52,16 @@ import { upsertComponent } from '@/data/components/actions';
  *             type: string
  *             example: Internal Server Error - Something went wrong on the server side
  */
-export const POST = authenticatedWithKey(async (request: NextRequest) => {
+export const POST = authenticatedWithKey(async (request: NextRequest, ext) => {
   const req = await request.json();
+
+  const permissions = ext?.user.permissions;
+  if (permissions?.['components'] !== 'write') {
+    return NextResponse.json('You do not have permissions to write this resource.', {
+      status: HttpStatus.FORBIDDEN,
+    });
+  }
+
   const componentWithVersion = await upsertComponent(req);
 
   if (!componentWithVersion.success) {

@@ -50,18 +50,29 @@ import { NextResponse } from 'next/server';
  *             example: Internal Server Error - Something went wrong on the server side
  */
 export const GET = authenticatedWithKey(
-  async (_, ext: { params: { id: string }; user } | undefined) => {
+  async (_, ext: { params: { id: string }, user } | undefined) => {
     const { id } = ext?.params || { id: undefined };
-    const userId = ext?.user.id;
+    if (!id) {
+      return NextResponse.json('No identifier provided.', {
+        status: HttpStatus.BAD_REQUEST,
+      });
+    }
 
+    const userId = ext?.user.id;
     if (!userId) {
       return NextResponse.json('Api key not provided or invalid.', {
         status: HttpStatus.BAD_REQUEST,
       });
     }
 
-    const response = await getActiveProjectComponents(id, userId);
+    const permissions = ext?.user.permissions;
+    if (permissions[id] === 'none') {
+      return NextResponse.json('You do not have permissions for this resource.', {
+        status: HttpStatus.FORBIDDEN,
+      });
+    }
 
+    const response = await getActiveProjectComponents(id, userId);
     if (!response.success) {
       return NextResponse.json(response.error, {
         status: HttpStatus.BAD_REQUEST,

@@ -55,7 +55,12 @@ export const authConfig = {
       }
     })
   ],
-  callbacks: {
+  callbacks: {async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role
+      }
+      return token
+    },
     async session({ session, token }) {
       const members = await getMembersByUser(token.sub)
       if(members.success && members.data.length > 0) {

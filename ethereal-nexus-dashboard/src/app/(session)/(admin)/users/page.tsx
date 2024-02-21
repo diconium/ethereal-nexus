@@ -8,12 +8,7 @@ import { PlusCircledIcon } from '@radix-ui/react-icons';
 import { auth } from '@/auth';
 
 export default async function Teams() {
-  const session = await auth()
   const users = await getUsers()
-  console.log(session?.user)
-  if(session?.user?.role !== 'admin') {
-    throw new Error('NotAuthorized');
-  }
 
   return (
     <div className="container h-full flex-1 flex-col space-y-8 p-8 md:flex">

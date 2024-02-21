@@ -49,16 +49,19 @@ export async function publishCommand() {
         const jsonFilePath = join(
           folderPath,
           componentName,
-          `${componentName}.author.json`,
+          `${componentName}.config.json`,
         );
-        let dialog;
+        let dialog = [];
+        let description = '';
+        let version = '0.0.1';
         try {
           if (fs.existsSync(jsonFilePath)) {
-            const authorJsonContent = fs.readFileSync(jsonFilePath, 'utf8');
-            dialog = JSON.parse(authorJsonContent).dialog;
+            const componentJsonConfig = fs.readFileSync(jsonFilePath, 'utf8');
+            const componentConfig = JSON.parse(componentJsonConfig);
             // TODO: validate dialog schema
-          } else {
-            dialog = [];
+            dialog = componentConfig.dialog;
+            description = componentConfig.description ?? description;
+            version = componentConfig.version ?? version;
           }
         } catch (error) {
           console.error(error);
@@ -69,16 +72,11 @@ export async function publishCommand() {
         }
 
         const dashCaseName = convertCamelCaseToDashCase(componentName);
-        const content = fs.readFileSync(entryFilePath, 'utf8');
-
-        const versionRegex = /\/\/version:\s*(\d+(?:\.\d+){2})/;
-        const match = versionRegex.exec(content);
-        const componentVersion = match ? match[1] : '0.0.1';
-
         componentsSpec.push({
           title: convertCamelCaseToSpaceCase(componentName),
-          version: componentVersion,
           name: dashCaseName,
+          version,
+          description,
           dialog,
         });
 

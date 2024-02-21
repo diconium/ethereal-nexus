@@ -1,4 +1,6 @@
 {
+  "version": "1.0.0",
+  "description": "Generic button component",
   "dialog": [
     {
       "type": "textfield",

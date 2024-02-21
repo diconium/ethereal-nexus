@@ -1,4 +1,6 @@
-import { jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { jsonb, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+
+export const userRolesEnum = pgEnum('roles', ['admin', 'user', 'viewer']);
 
 export const users = pgTable("user", {
   id: text("id").notNull().primaryKey(),
@@ -7,6 +9,7 @@ export const users = pgTable("user", {
   email_verified: timestamp("emailVerified", { mode: "date" }),
   name: text("name"),
   image: text("image"),
+  role: userRolesEnum("role").notNull().default("user")
 })
 
 export const apiKeys = pgTable("api_key", {
@@ -16,3 +19,4 @@ export const apiKeys = pgTable("api_key", {
   permissions: jsonb("permissions"),
   created_at: timestamp("created_at").defaultNow().notNull(),
 })
+

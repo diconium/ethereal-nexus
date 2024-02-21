@@ -1,0 +1,40 @@
+{
+  "version": "0.0.2",
+  "dialog": [
+    {
+      "type": "textfield",
+      "name": "title",
+      "id": "wkndarticle-title",
+      "label": "Title",
+      "placeholder": "Choose a title"
+    },
+    {
+      "type": "textfield",
+      "name": "title",
+      "id": "wkndarticle-title",
+      "label": "Description",
+      "placeholder": "Type your description"
+    },
+    {
+      "type": "image",
+      "name": "imageurl",
+      "id": "wkndarticle-image",
+      "label": "Choose an Image",
+      "placeholder": "Please select an Image"
+    },
+    {
+      "type": "textfield",
+      "name": "alttext",
+      "id": "wkndarticle-alt-text",
+      "label": "Alt text",
+      "placeholder": "Choose an Image Alt text"
+    },
+    {
+      "type": "pathbrowser",
+      "name": "url",
+      "id": "wkndarticle-url",
+      "label": "Choose page",
+      "placeholder": "Please choose an url."
+    }
+  ]
+}

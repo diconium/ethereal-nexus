@@ -40,7 +40,7 @@ const componentLibs = getDirectories(componentsDir).reduce(
 
 for (const lib of componentLibs) {
   const assetName = convertCamelCaseToDashCase(lib.componentName);
-  console.log(`building ${lib.componentName} ${lib.entry}...`);
+
   await build({
     plugins: [
       react(),

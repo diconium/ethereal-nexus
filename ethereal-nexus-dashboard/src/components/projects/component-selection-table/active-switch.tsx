@@ -7,10 +7,11 @@ import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 
 type ActiveSwitchProps = {
   componentId: string,
+  disabled: boolean,
   projectId: string,
   active: boolean,
 }
-export function ActiveSwitch({componentId, projectId, active}:ActiveSwitchProps) {
+export function ActiveSwitch({componentId, disabled, projectId, active}:ActiveSwitchProps) {
   const { data: session } = useSession()
   const form = useForm({defaultValues: {is_active: active}});
 
@@ -27,6 +28,7 @@ export function ActiveSwitch({componentId, projectId, active}:ActiveSwitchProps)
           <FormItem>
             <FormControl>
               <Switch
+                disabled={disabled}
                 checked={field.value}
                 onCheckedChange={field.onChange}
               />

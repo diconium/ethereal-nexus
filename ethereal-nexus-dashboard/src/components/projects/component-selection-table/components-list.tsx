@@ -15,6 +15,7 @@ export async function ProjectComponentsList({id}: {id: string}) {
     data={project.data}
     meta={{
       projectId: id,
+      permissions: session?.permissions[id]
     }}
     entity={'components'}
   />

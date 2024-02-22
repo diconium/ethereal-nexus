@@ -4,7 +4,7 @@ import {
   StorageSharedKeyCredential,
 } from '@azure/storage-blob';
 import { headers } from 'next/headers';
-import { authenticatedWithKey } from '@/lib/route-wrappers';
+import { AuthenticatedWithApiKeyUser, authenticatedWithKey, DefaultExt } from '@/lib/route-wrappers';
 import { NextRequest, NextResponse } from 'next/server';
 import { updateAssets } from '@/data/components/actions';
 import * as console from 'console';
@@ -97,9 +97,15 @@ export const POST = authenticatedWithKey(
   async (
     request: NextRequest,
     ext:
-      | { params: { name: string; version: string; fileName: string } }
+      | { params: { name: string; version: string; fileName: string } } & DefaultExt & AuthenticatedWithApiKeyUser
       | undefined,
   ) => {
+    const permissions = ext?.user.permissions;
+    if (permissions?.['components'] !== 'write') {
+      return NextResponse.json('You do not have permissions to write this resource.', {
+        status: HttpStatus.FORBIDDEN,
+      });
+    }
     try {
       const params = ext?.params || {
         name: undefined,

@@ -5,7 +5,7 @@ import { randomUUID } from 'crypto';
 import { db } from '@/db';
 import { apiKeys, users } from '@/data/users/schema';
 import {
-  ApiKey,
+  ApiKey, ApiKeyPermissions, apiKeyPermissionsSchema,
   apiKeyPublicSchema,
   apiKeySchema,
   newUserSchema, PublicUser,
@@ -141,22 +141,24 @@ export async function getApiKey(apiKey: string): ActionResponse<ApiKey> {
   }
 }
 
-export async function insertUserApiKey(resources: string[] = [], userId?: string): ActionResponse<ApiKey> {
-  const input = userIdSchema.safeParse({ id: userId });
+export async function insertUserApiKey(permissions: ApiKeyPermissions, userId?: string): ActionResponse<ApiKey> {
+  const input = apiKeyPermissionsSchema.safeParse(permissions);
+  console.log(JSON.stringify(input, undefined, 2))
+
   if (!input.success) {
-    return actionZodError('The user id is not valid.', input.error);
+    return actionZodError('The resources are not valid.', input.error);
   }
 
-  const { id: user_id } = input.data;
   try {
     const insert = await db
       .insert(apiKeys)
       .values({
-        user_id,
-        resources
+        user_id: userId,
+        permissions
       })
       .returning();
 
+    console.log(insert)
     const safeKey = apiKeySchema.safeParse(insert[0]);
     if (!safeKey.success) {
       return actionZodError(

@@ -10,7 +10,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { type MouseEventHandler, useState } from 'react';
+import { useState } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { insertUserApiKey } from '@/data/users/actions';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,9 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ApiKeyPermissions, apiKeyPermissionsSchema } from '@/data/users/dto';
+import { useSession } from 'next-auth/react';
 
 type ProjectLabels = {
   id: string,
@@ -33,16 +35,12 @@ type ApiKeyDialogProps = {
 }
 
 const displayFormSchema = z.object({
-  resources: z.array(z.string()).refine((value) => value.some((item) => item), {
-    message: "You have to select at least one item.",
-  }),
+  permissions: apiKeyPermissionsSchema.optional()
 })
 
-const defaultValues = {
-  resources: []
-}
-
 export function ApiKeyDialog({ userId, availableProjects }: ApiKeyDialogProps) {
+  const { data: session } = useSession()
+  console.log(session)
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
@@ -50,11 +48,16 @@ export function ApiKeyDialog({ userId, availableProjects }: ApiKeyDialogProps) {
 
   const form = useForm<z.infer<typeof displayFormSchema>>({
     resolver: zodResolver(displayFormSchema),
-    defaultValues,
+    defaultValues: {
+      permissions: {
+        ...session?.permissions as ApiKeyPermissions,
+        components: 'read'
+      }
+    },
   })
 
   const handleSubmit = async (data) => {
-    const key = await insertUserApiKey(data.resources, userId);
+    const key = await insertUserApiKey(data.permissions, userId);
     if (key.success) {
       setKey(key.data.id);
       toast({
@@ -91,57 +94,103 @@ export function ApiKeyDialog({ userId, availableProjects }: ApiKeyDialogProps) {
               obfuscated from now on.
             </DialogDescription>
           </DialogHeader>
-          <Separator className="my-2" />
+          <Separator className="mb-4" />
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+              <div className="mb-4">
+                <FormLabel className="text-base">Entities</FormLabel>
+                <FormDescription>
+                  Select the the entities permissions for the API key.
+                </FormDescription>
+              </div>
               <FormField
                 control={form.control}
-                name="resources"
-                render={() => (
-                  <FormItem>
-                    <div className="mb-4">
-                      <FormLabel className="text-base">Project</FormLabel>
-                      <FormDescription>
-                        Select the projects you want to give permissions in the api key.
-                      </FormDescription>
-                    </div>
-                    {availableProjects.map((item) => (
-                      <FormField
-                        key={item.id}
-                        control={form.control}
-                        name="resources"
-                        render={({ field }) => {
-                          return (
-                            <FormItem
-                              key={item.id}
-                              className="flex flex-row items-start space-x-3 space-y-0"
-                            >
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes(item.id)}
-                                  onCheckedChange={(checked) => {
-                                    return checked
-                                      ? field.onChange([...field.value, item.id])
-                                      : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== item.id
-                                        )
-                                      )
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                {item.name}
-                              </FormLabel>
-                            </FormItem>
-                          )
-                        }}
-                      />
-                    ))}
-                    <FormMessage />
-                  </FormItem>
-                )}
+                name={'permissions'}
+                render={({ field }) => {
+                  return (
+                    <FormItem
+                      key={'components-permissions'}
+                      className="flex flex-row items-center justify-between space-x-3 space-y-0 "
+                    >
+                      <FormLabel className="font-normal">
+                        Components
+                      </FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value?.['components']}
+                          onValueChange={value => {
+                            field.onChange({
+                              ...field.value,
+                              components: value,
+                            })
+                          }}
+                        >
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem value="none">No access</SelectItem>
+                              <SelectItem value="read">Can read</SelectItem>
+                              <SelectItem value="write">Can edit</SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
+                  )
+                }}
               />
+              <Separator className="my-4" />
+              <div className="mb-4">
+                <FormLabel className="text-base">Projects</FormLabel>
+                <FormDescription>
+                  Select the projects you want to give permissions in the API key.
+                </FormDescription>
+              </div>
+              {availableProjects.map((item, index) => (
+                <FormField
+                  key={item.id}
+                  control={form.control}
+                  name={'permissions'}
+                  render={({ field }) => {
+                    return (
+                      <FormItem
+                        key={item.id}
+                        className="flex flex-row items-center justify-between space-x-3 space-y-0 "
+                      >
+                        <FormLabel className="font-normal">
+                          {item.name}
+                        </FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value?.[item.id]}
+                            defaultValue={session?.permissions[item.id] ?? 'read'}
+                            onValueChange={value => {
+                              field.onChange({
+                                ...field.value,
+                                [item.id]: value
+                              })
+                            }}
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectItem value="none">No access</SelectItem>
+                                <SelectItem value="read">Can read</SelectItem>
+                                <SelectItem value="write">Can edit</SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                      </FormItem>
+                    )
+                  }}
+                />
+              ))}
+              <FormMessage />
               {
                 apiKey ?
                   <>

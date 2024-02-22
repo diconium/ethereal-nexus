@@ -14,10 +14,11 @@ const versions = componentVersionsSchema.pick({id: true, version: true})
 type VersionPickerProps = {
   projectId: string,
   componentId: string,
+  disabled: boolean,
   version?: string,
   versions: z.infer<typeof versions>[]
 }
-export function VersionPicker({version: selected, versions, projectId, componentId}: VersionPickerProps) {
+export function VersionPicker({version: selected, disabled, versions, projectId, componentId}: VersionPickerProps) {
   const router = useRouter();
 
   const [open, setOpen] = useState(false)
@@ -38,7 +39,7 @@ export function VersionPicker({version: selected, versions, projectId, component
 
   return <Popover open={open} onOpenChange={setOpen}>
     <PopoverTrigger asChild>
-      <Button variant="outline" className="flex justify-between min-w-[125px]">
+      <Button disabled={disabled} variant="outline" className="flex justify-between min-w-[125px]">
         {selected ?? 'latest'}
         <ChevronDownIcon className="ml-2 h-4 w-4 text-muted-foreground" />
       </Button>

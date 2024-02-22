@@ -1,10 +1,13 @@
 import { cn } from "@/lib/utils";
 import { NavLink } from './nav-link';
+import { auth } from '@/auth';
 
-export function MainNav({
-  className = "",
-  ...props
-}: React.HTMLAttributes<HTMLElement>) {
+export async function MainNav({
+                                className = "",
+                                ...props
+                              }: React.HTMLAttributes<HTMLElement>) {
+  const session = await auth()
+
   return (
     <nav
       className={cn("flex items-center space-x-4 lg:space-x-6", className)}
@@ -26,15 +29,17 @@ export function MainNav({
         Components
       </NavLink>
       <NavLink
-        href="/users"
-      >
-        Users
-      </NavLink>
-      <NavLink
         href="/api-doc"
       >
         API Documentation
       </NavLink>
+      {session?.user?.role === 'admin' ? (
+        <NavLink
+          href="/users"
+        >
+          Users
+        </NavLink>
+      ) : null}
     </nav>
   );
 }

@@ -56,13 +56,19 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Version" />
     ),
-    cell: ({ row, table }) => <VersionPicker
-      key={row.original.id}
-      projectId={table.options.meta.projectId}
-      componentId={row.original.id}
-      version={row.original.version}
-      versions={row.original.versions}
-    />,
+    cell: ({ row, table }) => {
+      const {id, version, versions} = row.original;
+      const {projectId, permissions} = table.options.meta;
+
+      return <VersionPicker
+        disabled={permissions !== 'write'}
+        key={id}
+        projectId={projectId}
+        componentId={id}
+        version={version}
+        versions={versions}
+      />
+    },
     enableSorting: false,
     enableHiding: true,
   },
@@ -72,14 +78,18 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Active" />
     ),
-    cell: ({ row, table }) => (
-      <ActiveSwitch
-        key={row.original.id}
-        projectId={table.options.meta.projectId}
-        componentId={row.original.id}
+    cell: ({ row, table }) => {
+      const {id} = row.original;
+      const {projectId, permissions} = table.options.meta;
+
+      return <ActiveSwitch
+        disabled={permissions !== 'write'}
+        key={id}
+        projectId={projectId}
+        componentId={id}
         active={row.getValue("active")}
       />
-    ),
+    },
     enableSorting: false,
     enableHiding: true,
   },

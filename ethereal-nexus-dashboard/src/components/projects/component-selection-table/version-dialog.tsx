@@ -15,7 +15,7 @@ interface VersionDialogProps {
 export function VersionDialog({
                                 versions: versionsWithoutLatest = [],
                                 onChangeVersion,
-                                selectedVersion = 'latest'
+                                selectedVersion = 'latest',
                               }: VersionDialogProps) {
   const versions = ['latest', ...versionsWithoutLatest];
   const [open, setOpen] = React.useState(false);

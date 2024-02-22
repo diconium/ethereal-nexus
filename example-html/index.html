@@ -13,11 +13,46 @@
 
     <link rel="stylesheet" type="text/css"
           href="https://etherealnexussadev.blob.core.windows.net/remote-components-aem-demo/accordion-component/0.0.1/index.css">
-    <script defer=""
+    <script type="module" defer=""
             src="https://etherealnexussadev.blob.core.windows.net/remote-components-aem-demo/accordion-component/0.0.1/index.js"></script>
     <accordion-component title="Hello">
         <div>this will be rendered by the ssr</div>
     </accordion-component>
+
+    <div>
+        <script type="module" defer="" src="https://etherealnexussadev.blob.core.windows.net/remote-components-aem-demo/dsv-jobs/0.0.1/index.js"></script>
+        <dsv-jobs title="Hello From DSV">
+            <div class="w-screen">
+                <div class="container mx-auto flex flex-row-reverse flex-wrap"><h1
+                        class="w-screen my-2 text-5xl font-bold leading-tight text-center text-gray-800">Hello From
+                    DSV</h1>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+                </div>
+            </div>
+        </dsv-jobs>
+    </div>
+
+    <div>
+        <script type="module" defer="" src="https://etherealnexussadev.blob.core.windows.net/remote-components-aem-demo/pricing-component/0.0.1/index.js"></script>
+        <pricing-component name="Hello">
+            <div>pricing-component</div>
+        </pricing-component>
+    </div>
+
+    <div>
+        <script type="module" defer="" src="https://etherealnexussadev.blob.core.windows.net/remote-components-aem-demo/react-hello-world/0.0.1/react-hello-world.js"></script>
+        <react-hello-world title="Component 1" description="World">
+            <div>hello-world</div>
+        </react-hello-world>
+    </div>
+
+    <div>
+        <link rel="stylesheet" type="text/css" href="https://etherealnexussadev.blob.core.windows.net/remote-components-aem-demo/navigation-bar/0.0.1/index.css" />
+        <script defer="" src="https://etherealnexussadev.blob.core.windows.net/remote-components-aem-demo/navigation-bar/0.0.1/index.js"></script>
+        <navigation-bar title="Hello" description="World">
+            <div>react-hello-world</div>
+        </navigation-bar>
+    </div>
 </div>
 
 

@@ -5,6 +5,7 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import Link from "next/link";
 import { buttonVariants } from '@/components/ui/button';
 import { PlusCircledIcon } from '@radix-ui/react-icons';
+import { auth } from '@/auth';
 
 export default async function Teams() {
   const users = await getUsers()

@@ -24,12 +24,12 @@ export function VersionPicker({version: selected, disabled, versions, projectId,
   const [open, setOpen] = useState(false)
   const { data: session } = useSession()
 
-  function handler(version) {
+  function handler(versionId: string | null) {
     return async () => {
       await upsertComponentConfig({
         project_id: projectId,
         component_id: componentId,
-        component_version: version.id,
+        component_version: versionId,
         is_active: true
       }, session?.user?.id);
       setOpen(false);
@@ -50,12 +50,25 @@ export function VersionPicker({version: selected, disabled, versions, projectId,
         <CommandList>
           <CommandEmpty>No versions found.</CommandEmpty>
           <CommandGroup>
+            <CommandItem
+              key={'latest'}
+              value={'latest'}
+              onSelect={handler(null)
+              }
+              className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
+            >
+              <span
+                className="flex items-center">
+                {selected === null ? <Check className="mr-2 h-4 w-4 text-muted-foreground" /> : null}
+                <p>latest</p>
+              </span>
+            </CommandItem>
             {
               versions.map(version => (
                 <CommandItem
                   key={version.id}
                   value={version.version}
-                  onSelect={handler(version)
+                  onSelect={handler(version.id)
                 }
                   className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
                 >

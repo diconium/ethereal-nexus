@@ -251,15 +251,8 @@ export async function getProjectComponentConfig(
   `;
   const latest_version = db.select()
     .from(componentVersions)
-    .orderBy(desc(componentVersions.created_at))
-    .groupBy(
-      componentVersions.id,
-      componentVersions.version,
-      componentVersions.created_at,
-    )
-    .limit(1)
     .as('latest_version');
-  
+
   try{
     const result = await db
       .select({
@@ -273,13 +266,15 @@ export async function getProjectComponentConfig(
       .from(projectComponentConfig)
       .leftJoin(components, eq(components.id, projectComponentConfig.component_id))
       .leftJoin(componentVersions, eq(componentVersions.id, projectComponentConfig.component_version))
-      .leftJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
+      .fullJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
       .leftJoin(componentAssets, sql`coalesce(${componentVersions.id}, ${latest_version.id}) = ${componentAssets.version_id}`)
       .where(and(
         eq(projectComponentConfig.project_id, id),
         eq(projectComponentConfig.is_active, true),
         eq(components.slug, name),
       ))
+      .orderBy(sql`string_to_array(${latest_version.version}, '.')::int[] DESC`)
+      .limit(1)
       .groupBy(
         projectComponentConfig.project_id,
         components.id,
@@ -288,6 +283,7 @@ export async function getProjectComponentConfig(
         sql`${componentVersions.dialog}::jsonb`,
         sql`${latest_version.dialog}::jsonb`,
         latest_version.version,
+        latest_version.id,
       )
 
     const safe =

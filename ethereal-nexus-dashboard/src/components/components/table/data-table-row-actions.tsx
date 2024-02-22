@@ -1,56 +1,45 @@
-"use client";
+'use client'
 
-import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { EyeIcon, Trash } from "lucide-react";
-import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
-import {
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useState } from "react";
-import { toast } from "@/components/ui/use-toast";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { EyeIcon, Trash } from 'lucide-react';
+import { Dialog, DialogTrigger } from '@radix-ui/react-dialog';
+import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useState } from 'react';
+import { toast } from '@/components/ui/use-toast';
+import { deleteComponent } from '@/data/components/actions';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
-export function ComponentsDataTableRowActions({ table, row }) {
+export function ComponentsDataTableRowActions({ row }) {
+  const router = useRouter()
+  const {data: session } = useSession()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  // FIXME type
-  const handleDeleteOk = (component: any) => {
-    const { data, setData } = table.getState();
-    if (component) {
-      fetch(`api/v1/components/${component.name}`, { method: "delete" })
-        .then(() => {
-          setData(
-            data.filter(
-              // FIXME type
-              (eachComponent: any) =>
-                component.name !== eachComponent.name,
-            ),
-          );
-          toast({
-            title: `Component ${component.name} was deleted successfully`,
-          });
-          setDeleteDialogOpen(false);
-        })
-        .catch((error) => {
-          toast({
-            title: `Component ${component.name} could not be deleted`,
-          });
-          setDeleteDialogOpen(false);
-        });
+  const handleDelete = async () => {
+    const result = await deleteComponent(row.original.id)
+
+    if(!result.success) {
+      toast({
+        title: `Component ${row.original.name} could not be deleted`,
+      });
     }
+
+    toast({
+      title: `Component ${row.original.name} was deleted successfully`,
+    });
+    setDeleteDialogOpen(false);
+    router.refresh()
   };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -95,8 +84,9 @@ export function ComponentsDataTableRowActions({ table, row }) {
                 Cancel
               </Button>
               <Button
+                disabled={session?.user?.role === 'viewer'}
                 variant="destructive"
-                onClick={() => handleDeleteOk(row.original)}
+                onClick={handleDelete}
               >
                 Delete
               </Button>

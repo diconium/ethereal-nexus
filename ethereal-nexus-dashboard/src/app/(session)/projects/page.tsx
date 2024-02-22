@@ -4,6 +4,10 @@ import { getProjects } from '@/data/projects/actions';
 import { auth } from '@/auth';
 import { columns } from '@/components/projects/table/columns';
 import {logger} from "@/logger";
+import { buttonVariants } from '@/components/ui/button';
+import { PlusCircledIcon } from '@radix-ui/react-icons';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export default async function Projects() {
   const session = await auth()
@@ -24,6 +28,25 @@ export default async function Projects() {
             entity={'projects'}
             columns={columns}
             data={projects.data}
+            createSlot={
+              <Link
+                href={'/projects/new'}
+                passHref
+                className={
+                cn(
+                  buttonVariants(
+                    {
+                      variant: "outline",
+                      size: 'sm',
+                      className: "ml-auto hidden h-8 lg:flex mr-4" }
+                  ),
+                  session?.user?.role === 'viewer' && 'pointer-events-none opacity-50',
+                )
+                }>
+                <PlusCircledIcon className="mr-2 h-4 w-4" />
+                  Create project
+              </Link>
+            }
           /> :
           projects.error.message
       }

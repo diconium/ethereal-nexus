@@ -5,32 +5,28 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import {
-  projectInputSchema,
-  projectComponentsSchema,
-  projectSchema,
-  projectWithComponentIdSchema,
-  projectWithComponentSchema,
   type Project,
-  type ProjectWithComponentId,
-  type ProjectWithComponent,
   ProjectComponent,
   ProjectComponentConfig,
   ProjectComponentConfigInput,
   projectComponentConfigInputSchema,
   projectComponentConfigSchema,
+  projectComponentsSchema,
   ProjectComponentsWithDialog,
   projectComponentsWithDialogSchema,
+  projectInputSchema,
+  projectSchema,
+  type ProjectWithComponent,
   projectWithComponentAssetsSchema,
+  type ProjectWithComponentId,
+  projectWithComponentIdSchema,
+  projectWithComponentSchema
 } from './dto';
 import * as console from 'console';
-import { and, asc, desc, eq, getTableColumns, or, sql } from 'drizzle-orm';
-import { projects, projectComponentConfig } from './schema';
+import { and, desc, eq, getTableColumns, sql } from 'drizzle-orm';
+import { projectComponentConfig, projects } from './schema';
 import { insertMembers, userIsMember } from '@/data/member/actions';
-import {
-  componentAssets,
-  components,
-  componentVersions,
-} from '@/data/components/schema';
+import { componentAssets, components, componentVersions } from '@/data/components/schema';
 
 export async function getProjects(
   userId: string | undefined | null,
@@ -363,7 +359,7 @@ export async function getProjectById(
   }
 }
 
-export async function insertProject(
+export async function upsertProject(
   project: z.infer<typeof projectInputSchema>,
   userId: string | undefined | null,
 ): ActionResponse<z.infer<typeof projectSchema>> {
@@ -379,6 +375,15 @@ export async function insertProject(
     const insert = await db
       .insert(projects)
       .values(safeProject.data)
+      .onConflictDoUpdate({
+        target: [
+          projects.id,
+        ],
+        set: {
+          name: safeProject.data.name,
+          description: safeProject.data.description
+        },
+      })
       .returning();
 
     const result = projectSchema.safeParse(insert[0]);
@@ -386,16 +391,18 @@ export async function insertProject(
       return actionZodError('Failed to parse inserted project.', result.error);
     }
 
-    const insertMember = await insertMembers([
-      {
-        user_id: userId,
-        resource: result.data.id,
-        role: 'owner',
-        permissions: 'write',
-      },
-    ]);
-    if (!insertMember.success) {
-      return actionError('Failed to create owner.');
+    if(!safeProject.data.id) {
+      const insertMember = await insertMembers([
+        {
+          user_id: userId,
+          resource: result.data.id,
+          role: 'owner',
+          permissions: 'write',
+        },
+      ]);
+      if (!insertMember.success) {
+        return actionError('Failed to create owner.');
+      }
     }
 
     return actionSuccess(result.data);

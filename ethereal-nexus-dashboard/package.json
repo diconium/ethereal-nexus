@@ -53,8 +53,7 @@
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
     "winston": "^3.11.0",
-    "zod": "^3.22.2",
-    "newrelic": "^11.10.4"
+    "zod": "^3.22.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

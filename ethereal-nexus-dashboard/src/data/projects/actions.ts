@@ -13,7 +13,7 @@ import {
   projectComponentConfigSchema,
   projectComponentsSchema,
   ProjectComponentsWithDialog,
-  projectComponentsWithDialogSchema,
+  projectComponentsWithDialogSchema, ProjectInput,
   projectInputSchema,
   projectSchema,
   type ProjectWithComponent,
@@ -43,6 +43,7 @@ export async function getProjects(
           columns: {
             component_id: true,
           },
+          where: (component, { eq }) => eq(component?.is_active, true),
         },
       },
     });
@@ -125,7 +126,10 @@ export async function getProjectComponents(
       .from(components)
       .leftJoin(
         projectComponentConfig,
-        eq(components.id, projectComponentConfig.component_id),
+        and(
+          eq(components.id, projectComponentConfig.component_id),
+          eq(projectComponentConfig.project_id, id)
+        )
       )
       .leftJoin(
         componentVersions,
@@ -360,13 +364,12 @@ export async function getProjectById(
 }
 
 export async function upsertProject(
-  project: z.infer<typeof projectInputSchema>,
+  project: ProjectInput,
   userId: string | undefined | null,
 ): ActionResponse<z.infer<typeof projectSchema>> {
   if (!userId) {
     return actionError('No user provided.');
   }
-
   const safeProject = projectInputSchema.safeParse(project);
   if (!safeProject.success) {
     return actionZodError('Failed to parse project´s input', safeProject.error);
@@ -376,9 +379,7 @@ export async function upsertProject(
       .insert(projects)
       .values(safeProject.data)
       .onConflictDoUpdate({
-        target: [
-          projects.id,
-        ],
+        target: projects.id,
         set: {
           name: safeProject.data.name,
           description: safeProject.data.description

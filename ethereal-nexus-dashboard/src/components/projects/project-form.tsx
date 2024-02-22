@@ -34,16 +34,18 @@ export default function ProjectsForm({project, onComplete}: ProjectsFormProps) {
     defaultValues: project ?? {},
   });
   const onSubmit = async (data: ProjectInput) => {
-    const project = await upsertProject(data, session?.user?.id);
-
-    if(!project.success) {
+    const projects = await upsertProject({
+      id: project?.id,
+      ...data
+    }, session?.user?.id);
+    if(!projects.success) {
       toast({
         title: `Failed to ${data.id ? "update" : "create"} project "${data.name}"!`,
       });
     }
 
     toast({
-      title: "Project created/updated sucessfully!",
+      title: `Project ${data.id ? "update" : "create"}d sucessfully!`,
     });
 
     if(onComplete) {

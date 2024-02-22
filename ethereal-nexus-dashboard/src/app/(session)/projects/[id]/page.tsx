@@ -40,8 +40,7 @@ export default async function EditProject({ params: { id } }: any) {
         </TabsList>
         <TabsContent value="overview" className="space-y-4 p-6">
           <ProjectsForm
-            id={id}
-            project={project}
+            project={project.data}
           />
         </TabsContent>
         <TabsContent value="components" className="space-y-4 p-6">

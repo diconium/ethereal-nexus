@@ -1,15 +1,8 @@
 import { FC } from 'react';
 import r2wc from '@r2wc/react-to-web-component';
 
-//version: 1.0.2
 interface Props {
-  // AEMType: textfield
-  // AEMPlaceholder: Type your name
-  // AEMDescription: Name
   title: string;
-  // AEMType: textfield
-  // AEMPlaceholder: Type your description
-  // AEMDescription: Description
   description: string;
 }
 

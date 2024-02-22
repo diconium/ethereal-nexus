@@ -10,7 +10,6 @@ interface AEMDialogItem {
   html: string;
 }
 
-//version: 0.0.1
 interface Props {
   title: string;
   tabs: Array<AEMDialogItem>;

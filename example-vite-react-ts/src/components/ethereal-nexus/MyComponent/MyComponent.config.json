@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "dialog": [
+    {
+      "type": "textfield",
+      "name": "name",
+      "id": "mycomponent-name",
+      "label": "Name",
+      "placeholder": "The name of the my-component"
+    },
+    {
+      "type": "image",
+      "name": "image",
+      "id": "mycomponent-image",
+      "label": "Choose an Image",
+      "placeholder": "Please select an Image"
+    },
+    {
+      "type": "pathbrowser",
+      "name": "url",
+      "id": "mycomponent-url",
+      "label": "Choose page",
+      "placeholder": "Please choose an url."
+    }
+  ]
+}

@@ -132,7 +132,6 @@ export const projectInputSchema = createInsertSchema(projects, {
   name: (schema) =>
     schema.name.min(4, 'Name must be longer than 4 characters.'),
 })
-  .omit({ id: true })
   .required({ name: true });
 export type ProjectInput = z.infer<typeof projectInputSchema>;
 

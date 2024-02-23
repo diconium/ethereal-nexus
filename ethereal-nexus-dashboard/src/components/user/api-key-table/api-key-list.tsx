@@ -2,13 +2,14 @@ import { auth } from '@/auth';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import React from 'react';
 import { columns } from './columns';
-import { getApiKeys } from '@/data/users/actions';
+import {getApiKeys, getApiKeysWithProjectNamesAndPermissions} from '@/data/users/actions';
 import { ApiKeyDialog } from '@/components/user/api-key-table/api-key-dialog';
 import { getProjects } from '@/data/projects/actions';
 
 export async function ApiKeyList() {
   const session = await auth()
-  const keys = await getApiKeys(session?.user?.id)
+  const keys = await getApiKeysWithProjectNamesAndPermissions(session?.user?.id)
+
   const projects = await getProjects(session?.user?.id)
 
   if(!keys.success) {

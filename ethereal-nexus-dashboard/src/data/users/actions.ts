@@ -7,16 +7,19 @@ import { apiKeys, users } from '@/data/users/schema';
 import {
   ApiKey, ApiKeyPermissions, apiKeyPermissionsSchema,
   apiKeyPublicSchema,
-  apiKeySchema,
+  apiKeySchema, apiKeyWithProjectNamesAndPermissionsPublicSchema,
   newUserSchema, PublicUser,
   userEmailSchema, userIdSchema,
   userPublicSchema,
   userSchema
 } from '@/data/users/dto';
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
+import {eq, getTableColumns, ne, sql} from 'drizzle-orm';
 import { ActionResponse, Result } from '@/data/action';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
+import * as process from "process";
+import {projects} from "@/data/projects/schema";
+import {text} from "drizzle-orm/pg-core";
 
 export async function insertUser(user: z.infer<typeof newUserSchema>): ActionResponse<z.infer<typeof userPublicSchema>> {
   const safeUser = newUserSchema.safeParse(user);
@@ -181,17 +184,108 @@ export async function getApiKeys(userId?: string): ActionResponse<z.infer<typeof
 
   const { id } = input.data;
   try {
-    const select = await db.query.apiKeys.findMany({
-      where: eq(apiKeys.user_id, id)
-    });
+    // const select = await db.query.apiKeys.findMany({
+    //   where: eq(apiKeys.user_id, id)
+    // });
 
+    const subquery = db.select({id: apiKeys.id, project_json: sql`json_object_keys(${apiKeys.permissions}::json)`.as('project_json')}).from(apiKeys).as('perm');
+    // const subquery = await db.select('id', sql`json_object_keys(permissions::json) as project_json`).from('api_key');
+    const select = await db.select({... getTableColumns(apiKeys), project_name: sql`ARRAY_AGG(${projects.name})`, project_permissions: sql`ARRAY_AGG(${apiKeys.permissions}::json->>perm.project_json)`}
+    )
+        .from(apiKeys)
+        .leftJoin(
+            subquery,
+            eq(subquery.id,apiKeys.id)
+        )
+        .leftJoin(
+            projects,
+            eq(sql`${projects.id}::text` ,subquery.project_json)
+        )
+        .groupBy(apiKeys.id)
+        .where(ne(subquery.project_json, 'components'))
+        .where(eq(apiKeys.user_id, id))
+
+    // SELECT api_key.id,
+    //     api_key.created_at,
+    //     array_agg(name) AS project_name,
+    //     array_agg(api_key.permissions::json->>perm.project_json) AS permission
+    // FROM api_key
+    // LEFT JOIN (SELECT id, json_object_keys(permissions::json) as project_json FROM api_key) as perm
+    // ON perm.id=api_key.id
+    // LEFT JOIN project
+    // ON project.id::text=perm.project_json
+    // WHERE perm.project_json != 'components'
+    // GROUP BY api_key.id
+
+
+
+
+console.log("select",select)
     const safe = z.array(apiKeyPublicSchema).safeParse(select);
     if (!safe.success) {
       return actionZodError('There\'s an issue with the api keys records.', safe.error);
     }
 
     return actionSuccess(safe.data);
-  } catch {
+  } catch (error){
+    console.log("error",error)
+    return actionError('Failed to fetch users from database.');
+  }
+}
+
+export async function getApiKeysWithProjectNamesAndPermissions(userId?: string): ActionResponse<z.infer<typeof apiKeyPublicSchema>[]> {
+  const input = userIdSchema.safeParse({ id: userId });
+  if (!input.success) {
+    return actionZodError('The user id is not valid.', input.error);
+  }
+
+  const { id } = input.data;
+  try {
+    // const select = await db.query.apiKeys.findMany({
+    //   where: eq(apiKeys.user_id, id)
+    // });
+
+    const subquery = db.select({id: apiKeys.id, project_json: sql`json_object_keys(${apiKeys.permissions}::json)`.as('project_json')}).from(apiKeys).as('perm');
+    // const subquery = await db.select('id', sql`json_object_keys(permissions::json) as project_json`).from('api_key');
+    const select = await db.select({... getTableColumns(apiKeys), project_name: sql`ARRAY_AGG(${projects.name})`, project_permissions: sql`ARRAY_AGG(${apiKeys.permissions}::json->>perm.project_json)`}
+    )
+        .from(apiKeys)
+        .leftJoin(
+            subquery,
+            eq(subquery.id,apiKeys.id)
+        )
+        .leftJoin(
+            projects,
+            eq(sql`${projects.id}::text` ,subquery.project_json)
+        )
+        .groupBy(apiKeys.id)
+        .where(eq(apiKeys.user_id, id))
+        .where(ne(subquery.project_json, 'components'))
+
+    // SELECT api_key.id,
+    //     api_key.created_at,
+    //     array_agg(name) AS project_name,
+    //     array_agg(api_key.permissions::json->>perm.project_json) AS permission
+    // FROM api_key
+    // LEFT JOIN (SELECT id, json_object_keys(permissions::json) as project_json FROM api_key) as perm
+    // ON perm.id=api_key.id
+    // LEFT JOIN project
+    // ON project.id::text=perm.project_json
+    // WHERE perm.project_json != 'components'
+    // GROUP BY api_key.id
+
+
+
+
+console.log("select",select)
+    const safe = z.array(apiKeyWithProjectNamesAndPermissionsPublicSchema).safeParse(select);
+    if (!safe.success) {
+      return actionZodError('There\'s an issue with the api keys records.', safe.error);
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error){
+    console.log("error",error)
     return actionError('Failed to fetch users from database.');
   }
 }

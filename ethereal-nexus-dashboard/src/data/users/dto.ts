@@ -40,13 +40,20 @@ export type ApiKey = z.infer<typeof apiKeySchema>
 export const apiKeyPermissionsSchema = z.record(z.enum(['read', 'write', 'none']).optional())
 export type ApiKeyPermissions = z.infer<typeof apiKeyPermissionsSchema>
 
-export const apiKeyPublicSchema = apiKeySchema.omit({ user_id: true })
-  .transform(val => ({
+const transformId = val => ({
     ...val,
     id: '************' + val.id.substr(val.id.length - 13)
-  }));
+});
+export const apiKeyPublicSchema = apiKeySchema.omit({ user_id: true })
+  .transform(transformId);
 
 export const newUserApiKeySchema = createInsertSchema(apiKeys)
   .extend({
   resources: apiKeyPermissionsSchema,
 })
+
+export const apiKeyWithProjectNamesAndPermissionsPublicSchema = z.object({
+    ...apiKeySchema.shape,
+    project_name: z.array(z.string().nullable()),
+    project_permissions: z.array(z.string()),
+}) .transform(transformId);

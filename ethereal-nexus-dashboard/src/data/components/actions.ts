@@ -1,3 +1,5 @@
+'use server'
+
 import { ActionResponse, Result } from '@/data/action';
 import { z } from 'zod';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
@@ -22,6 +24,7 @@ import {
   components,
   componentVersions,
 } from '@/data/components/schema';
+import { revalidatePath } from 'next/cache';
 
 export async function upsertComponent(
   component: ComponentToUpsert,
@@ -302,5 +305,27 @@ export async function getComponents(): ActionResponse<
   } catch (error) {
     console.error(error);
     return actionError('Failed to fetch components from database.');
+  }
+}
+
+export async function deleteComponent(id: string): ActionResponse<Component> {
+  try {
+    const del = await db.delete(components)
+      .where(eq(components.id, id))
+      .returning();
+
+    const safe = componentsSchema.safeParse(del);
+    if (!safe.success) {
+      return actionZodError(
+        "There's an issue with the components records.",
+        safe.error,
+      );
+    }
+
+    revalidatePath('/components')
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to delete component from database.');
   }
 }

@@ -21,9 +21,8 @@ export const projectComponentConfig = pgTable(
     component_id: uuid('component_id')
       .notNull()
       .references(() => components.id, { onDelete: 'cascade' }),
-    component_version: uuid('component_version').references(
-      () => componentVersions.id,
-    ),
+    component_version: uuid('component_version')
+      .references(() => componentVersions.id, { onDelete: 'set null'}),
     is_active: boolean('is_active').notNull().default(true),
   },
   (table) => {

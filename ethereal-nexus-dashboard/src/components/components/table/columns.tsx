@@ -58,8 +58,8 @@ export const columns = [
   },
   {
     id: "actions",
-    cell: ({ table, row }) => (
-      <ComponentsDataTableRowActions table={table} row={row} />
+    cell: ({ row }) => (
+      <ComponentsDataTableRowActions row={row} />
     ),
   },
 ];

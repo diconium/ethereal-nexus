@@ -37,14 +37,16 @@ export const userEmailSchema = newUserSchema.pick({
   email: true
 });
 
-export const apiKeySchema = createSelectSchema(apiKeys)  .extend({
-  permissions: apiKeyPermissionsSchema,
-});
+export const apiKeySchema = createSelectSchema(apiKeys)
+  .extend({
+    permissions: apiKeyPermissionsSchema,
+    member_permissions: apiKeyPermissionsSchema,
+  })
 export type ApiKey = z.infer<typeof apiKeySchema>
 
 const transformId = val => ({
-    ...val,
-    key: '************' + val.key.substr(val.id.length - 13)
+  ...val,
+  key: '************' + val.key.substr(val.id.length - 13)
 });
 export const apiKeyPublicSchema = apiKeySchema
   .transform(transformId);

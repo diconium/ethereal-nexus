@@ -18,9 +18,11 @@ import {
   userSchema
 } from '@/data/users/dto';
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
+import { and, eq, getTableColumns, isNotNull, ne, sql } from 'drizzle-orm';
 import { ActionResponse } from '@/data/action';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
+import { members } from '@/data/member/schema';
+import { ap } from 'types-ramda';
 
 export async function insertUser(user: z.infer<typeof newUserSchema>): ActionResponse<z.infer<typeof userPublicSchema>> {
   const safeUser = newUserSchema.safeParse(user);
@@ -145,19 +147,73 @@ export async function getApiKeyById(apiKey: string): ActionResponse<ApiKey> {
   }
 }
 
-export async function getApiKeyByKey(apiKey: string): ActionResponse<ApiKey> {
+const permissions = ["write", "read", "none"] as const
+type Permissions = typeof permissions[number]
+function comparePermissions(left: Permissions, right: Permissions) {
+  const leftIndex = permissions.indexOf(left);
+  const rightIndex = permissions.indexOf(right);
+
+  return permissions[Math.max(leftIndex, rightIndex)];
+}
+
+const apiKeyValidPermissions = apiKeySchema.transform(val => {
+  let permissions = val.permissions;
+  if(val.permissions && val.member_permissions) {
+    permissions = Object.keys(val.permissions).reduce((acc, resource) => {
+      acc[resource] = comparePermissions(val.permissions?.[resource]!, val.member_permissions?.[resource]!)
+      return acc
+    }, {})
+  }
+
+  return {
+    ...val,
+    permissions,
+    member_permissions: undefined
+  }
+})
+
+export async function getApiKeyByKey(apiKey: string): ActionResponse<z.infer<typeof apiKeyValidPermissions>> {
   const input = apiKeySchema.pick({id: true}).safeParse({ id: apiKey });
   if (!input.success) {
     return actionZodError('The api key is not valid.', input.error);
   }
 
   const { id } = input.data;
-  try {
-    const result = await db.query.apiKeys.findFirst({
-      where: eq(apiKeys.key, id),
-    });
 
-    const safe = apiKeySchema.safeParse(result);
+  try {
+    const permissions = db.select({
+      id: apiKeys.id,
+      user_id: apiKeys.user_id,
+      api_resource: sql`jsonb_object_keys(${apiKeys.permissions})`.as('api_resource'),
+    })
+      .from(apiKeys)
+      .as('api_resource')
+
+    const result = await db.select({
+      ...getTableColumns(apiKeys),
+      member_permissions: sql`jsonb_object_agg(${members.resource}, ${members.permissions})`
+    })
+      .from(apiKeys)
+      .leftJoin(permissions, eq(permissions.id, apiKeys.id) )
+      .leftJoin(members,
+        and(
+          eq(sql`${members.resource}::text`, permissions.api_resource),
+          eq(members.user_id, apiKeys.user_id),
+        )
+      )
+      .where(
+        and(
+          eq(apiKeys.key, id),
+          isNotNull(members.id)
+        )
+      )
+      .groupBy(
+        apiKeys.id,
+      );
+
+    console.log(result)
+
+    const safe = apiKeyValidPermissions.array().safeParse(result);
     if (!safe.success) {
       return actionZodError(
         'There\'s an issue with the api key record.',
@@ -165,8 +221,9 @@ export async function getApiKeyByKey(apiKey: string): ActionResponse<ApiKey> {
       );
     }
 
-    return actionSuccess(safe.data);
-  } catch {
+    return actionSuccess(safe.data[0]);
+  } catch (error) {
+    console.log(error)
     return actionError('Failed to fetch user from database.');
   }
 }
@@ -213,8 +270,8 @@ export async function getApiKeys(userId?: string): ActionResponse<z.infer<typeof
   const { id } = input.data;
   try {
     const select = await db.select()
-        .from(apiKeys)
-       .where(eq(apiKeys.user_id, id))
+      .from(apiKeys)
+      .where(eq(apiKeys.user_id, id))
 
     const safe = z.array(apiKeyPublicSchema).safeParse(select);
     if (!safe.success) {

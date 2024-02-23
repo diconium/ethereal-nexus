@@ -5,17 +5,21 @@ import { randomUUID } from 'crypto';
 import { db } from '@/db';
 import { apiKeys, users } from '@/data/users/schema';
 import {
-  ApiKey, ApiKeyPermissions, apiKeyPermissionsSchema,
+  ApiKey,
   apiKeyPublicSchema,
   apiKeySchema,
-  newUserSchema, PublicUser,
-  userEmailSchema, userIdSchema,
+  NewApiKey,
+  newApiKeySchema,
+  newUserSchema,
+  PublicUser,
+  userEmailSchema,
+  userIdSchema,
   userPublicSchema,
   userSchema
 } from '@/data/users/dto';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
-import { ActionResponse, Result } from '@/data/action';
+import { ActionResponse } from '@/data/action';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 
 export async function insertUser(user: z.infer<typeof newUserSchema>): ActionResponse<z.infer<typeof userPublicSchema>> {
@@ -115,7 +119,7 @@ export async function getUserByEmail(unsafeEmail: string): ActionResponse<z.infe
   }
 }
 
-export async function getApiKey(apiKey: string): ActionResponse<ApiKey> {
+export async function getApiKeyById(apiKey: string): ActionResponse<ApiKey> {
   const input = apiKeySchema.pick({id: true}).safeParse({ id: apiKey });
   if (!input.success) {
     return actionZodError('The api key is not valid.', input.error);
@@ -141,10 +145,34 @@ export async function getApiKey(apiKey: string): ActionResponse<ApiKey> {
   }
 }
 
-export async function insertUserApiKey(permissions: ApiKeyPermissions, userId?: string): ActionResponse<ApiKey> {
-  const input = apiKeyPermissionsSchema.safeParse(permissions);
-  console.log(JSON.stringify(input, undefined, 2))
+export async function getApiKeyByKey(apiKey: string): ActionResponse<ApiKey> {
+  const input = apiKeySchema.pick({id: true}).safeParse({ id: apiKey });
+  if (!input.success) {
+    return actionZodError('The api key is not valid.', input.error);
+  }
 
+  const { id } = input.data;
+  try {
+    const result = await db.query.apiKeys.findFirst({
+      where: eq(apiKeys.key, id),
+    });
+
+    const safe = apiKeySchema.safeParse(result);
+    if (!safe.success) {
+      return actionZodError(
+        'There\'s an issue with the api key record.',
+        safe.error
+      );
+    }
+
+    return actionSuccess(safe.data);
+  } catch {
+    return actionError('Failed to fetch user from database.');
+  }
+}
+
+export async function upsertApiKey(key: NewApiKey): ActionResponse<ApiKey> {
+  const input = newApiKeySchema.safeParse(key);
   if (!input.success) {
     return actionZodError('The resources are not valid.', input.error);
   }
@@ -152,13 +180,15 @@ export async function insertUserApiKey(permissions: ApiKeyPermissions, userId?: 
   try {
     const insert = await db
       .insert(apiKeys)
-      .values({
-        user_id: userId,
-        permissions
+      .values(input.data)
+      .onConflictDoUpdate({
+        target: apiKeys.id,
+        set: {
+          permissions: input.data.permissions,
+        },
       })
       .returning();
 
-    console.log(insert)
     const safeKey = apiKeySchema.safeParse(insert[0]);
     if (!safeKey.success) {
       return actionZodError(
@@ -168,7 +198,8 @@ export async function insertUserApiKey(permissions: ApiKeyPermissions, userId?: 
     }
 
     return actionSuccess(safeKey.data);
-  } catch {
+  } catch (error) {
+    console.error(error)
     return actionError('Failed to insert an API key into the database.');
   }
 }
@@ -181,9 +212,9 @@ export async function getApiKeys(userId?: string): ActionResponse<z.infer<typeof
 
   const { id } = input.data;
   try {
-    const select = await db.query.apiKeys.findMany({
-      where: eq(apiKeys.user_id, id)
-    });
+    const select = await db.select()
+        .from(apiKeys)
+       .where(eq(apiKeys.user_id, id))
 
     const safe = z.array(apiKeyPublicSchema).safeParse(select);
     if (!safe.success) {
@@ -191,7 +222,8 @@ export async function getApiKeys(userId?: string): ActionResponse<z.infer<typeof
     }
 
     return actionSuccess(safe.data);
-  } catch {
+  } catch (error){
+    console.log("error",error)
     return actionError('Failed to fetch users from database.');
   }
 }

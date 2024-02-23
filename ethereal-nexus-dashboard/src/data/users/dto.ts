@@ -2,6 +2,9 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { apiKeys, users } from '@/data/users/schema';
 import { z } from 'zod';
 
+export const apiKeyPermissionsSchema = z.record(z.enum(['read', 'write', 'none']).optional()).nullable()
+export type ApiKeyPermissions = z.infer<typeof apiKeyPermissionsSchema>
+
 export const userSchema = createSelectSchema(users);
 export type User = z.infer<typeof userSchema>
 
@@ -34,19 +37,21 @@ export const userEmailSchema = newUserSchema.pick({
   email: true
 });
 
-export const apiKeySchema = createSelectSchema(apiKeys);
+export const apiKeySchema = createSelectSchema(apiKeys)  .extend({
+  permissions: apiKeyPermissionsSchema,
+});
 export type ApiKey = z.infer<typeof apiKeySchema>
 
-export const apiKeyPermissionsSchema = z.record(z.enum(['read', 'write', 'none']).optional())
-export type ApiKeyPermissions = z.infer<typeof apiKeyPermissionsSchema>
-
-export const apiKeyPublicSchema = apiKeySchema.omit({ user_id: true })
-  .transform(val => ({
+const transformId = val => ({
     ...val,
-    id: '************' + val.id.substr(val.id.length - 13)
-  }));
+    key: '************' + val.key.substr(val.id.length - 13)
+});
+export const apiKeyPublicSchema = apiKeySchema
+  .transform(transformId);
+export type PublicApiKey = z.infer<typeof apiKeyPublicSchema>
 
-export const newUserApiKeySchema = createInsertSchema(apiKeys)
+export const newApiKeySchema = createInsertSchema(apiKeys)
   .extend({
-  resources: apiKeyPermissionsSchema,
-})
+    permissions: apiKeyPermissionsSchema,
+  })
+export type NewApiKey = z.infer<typeof newApiKeySchema>

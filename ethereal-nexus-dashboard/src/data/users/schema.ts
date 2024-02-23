@@ -14,8 +14,8 @@ export const users = pgTable("user", {
 
 export const apiKeys = pgTable("api_key", {
   id: uuid("id").notNull().primaryKey().defaultRandom(),
+  key: uuid("key").notNull().unique().defaultRandom(),
   user_id: text("user_id").notNull().references(() => users.id),
-  resources: text("resources").array(),
   permissions: jsonb("permissions"),
   created_at: timestamp("created_at").defaultNow().notNull(),
 })

@@ -2,6 +2,8 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
+import { Badge } from "@/components/ui/badge"
+import Link from 'next/link';
 
 export const columns = [
   {
@@ -26,11 +28,11 @@ export const columns = [
     enableHiding: false,
   },
   {
-    accessorKey: "id",
+    accessorKey: "key",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Key" />
     ),
-    cell: ({ row }) => row.getValue("id"),
+    cell: ({ row }) => <Link href={`/users/${row.original.user_id}/keys/${row.original.id}`}> {row.original.key}</Link>,
     enableSorting: true,
   },
   {
@@ -38,7 +40,10 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Created Date" />
     ),
-    cell: ({ row }) => row.getValue("created_at").toISOString(),
+    cell: ({ row }) => {
+        const date = new Date(row.getValue("created_at"));
+        return date.toLocaleString('en-US', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    },
     enableSorting: true,
   },
 ];

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getApiKey } from '@/data/users/actions';
+import { getApiKeyByKey } from '@/data/users/actions';
 import { HttpStatus } from '@/app/api/utils';
-import { ApiKey, ApiKeyPermissions, UserId } from '@/data/users/dto';
+import { ApiKey, UserId } from '@/data/users/dto';
 
 export type DefaultExt = { params?: unknown };
 export type WrapperCallback<
@@ -33,7 +33,6 @@ export function wrapper<Req extends NextRequest = NextRequest, Ext extends Defau
 
 export type AuthenticatedWithApiKeyUser = {
   user: {
-    resources?: ApiKey['resources']
     permissions?: ApiKey['permissions']
   } & UserId
 }
@@ -47,7 +46,7 @@ export const authenticatedWithKey = wrapper(
       key = authorization.split(' ')[1];
     }
 
-    const apiKey = await getApiKey(key);
+    const apiKey = await getApiKeyByKey(key);
     if (!apiKey.success) {
       return NextResponse.json(apiKey.error, {
         status: HttpStatus.FORBIDDEN
@@ -55,7 +54,6 @@ export const authenticatedWithKey = wrapper(
     }
     ext.user = {
       id: apiKey.data.user_id,
-      resources: apiKey.data.resources,
       permissions: apiKey.data.permissions,
     };
     return next();

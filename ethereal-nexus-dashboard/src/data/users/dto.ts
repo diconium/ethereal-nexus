@@ -49,6 +49,7 @@ const transformId = val => ({
   key: '************' + val.key.substr(val.id.length - 13)
 });
 export const apiKeyPublicSchema = apiKeySchema
+  .omit({member_permissions: true})
   .transform(transformId);
 export type PublicApiKey = z.infer<typeof apiKeyPublicSchema>
 

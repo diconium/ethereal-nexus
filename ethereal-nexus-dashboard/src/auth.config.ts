@@ -4,6 +4,7 @@ import { userLoginSchema } from '@/data/users/dto';
 import { getUserByEmail } from '@/data/users/actions';
 import { getMembersByUser } from '@/data/member/actions';
 import { NextAuthConfig } from 'next-auth';
+import { Permissions } from '@/data/users/permission-utils';
 
 type Role = "viewer" | "user" | "admin"
 
@@ -14,6 +15,9 @@ declare module "next-auth" {
 
   interface Session {
     user?: User;
+    permissions: {
+      [key: string]: Permissions | undefined
+    }
   }
 }
 

@@ -18,11 +18,11 @@ import {
   userSchema
 } from '@/data/users/dto';
 import { z } from 'zod';
-import { and, eq, getTableColumns, isNotNull, ne, sql } from 'drizzle-orm';
+import { and, eq, getTableColumns, isNotNull, sql } from 'drizzle-orm';
 import { ActionResponse } from '@/data/action';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import { members } from '@/data/member/schema';
-import { ap } from 'types-ramda';
+import { lowestPermission } from '@/data/users/permission-utils';
 
 export async function insertUser(user: z.infer<typeof newUserSchema>): ActionResponse<z.infer<typeof userPublicSchema>> {
   const safeUser = newUserSchema.safeParse(user);
@@ -121,7 +121,7 @@ export async function getUserByEmail(unsafeEmail: string): ActionResponse<z.infe
   }
 }
 
-export async function getApiKeyById(apiKey: string): ActionResponse<ApiKey> {
+export async function getApiKeyById(apiKey: string): ActionResponse<Omit<ApiKey, 'member_permissions'>> {
   const input = apiKeySchema.pick({id: true}).safeParse({ id: apiKey });
   if (!input.success) {
     return actionZodError('The api key is not valid.', input.error);
@@ -133,7 +133,7 @@ export async function getApiKeyById(apiKey: string): ActionResponse<ApiKey> {
       where: eq(apiKeys.id, id),
     });
 
-    const safe = apiKeySchema.safeParse(result);
+    const safe = apiKeySchema.omit({member_permissions: true}).safeParse(result);
     if (!safe.success) {
       return actionZodError(
         'There\'s an issue with the api key record.',
@@ -147,20 +147,11 @@ export async function getApiKeyById(apiKey: string): ActionResponse<ApiKey> {
   }
 }
 
-const permissions = ["write", "read", "none"] as const
-type Permissions = typeof permissions[number]
-function comparePermissions(left: Permissions, right: Permissions) {
-  const leftIndex = permissions.indexOf(left);
-  const rightIndex = permissions.indexOf(right);
-
-  return permissions[Math.max(leftIndex, rightIndex)];
-}
-
 const apiKeyValidPermissions = apiKeySchema.transform(val => {
   let permissions = val.permissions;
   if(val.permissions && val.member_permissions) {
     permissions = Object.keys(val.permissions).reduce((acc, resource) => {
-      acc[resource] = comparePermissions(val.permissions?.[resource]!, val.member_permissions?.[resource]!)
+      acc[resource] = lowestPermission(val.permissions?.[resource]!, val.member_permissions?.[resource]!)
       return acc
     }, {})
   }

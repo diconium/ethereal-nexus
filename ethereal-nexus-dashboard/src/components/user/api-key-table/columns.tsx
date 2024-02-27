@@ -2,8 +2,8 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
-import { Badge } from "@/components/ui/badge"
 import Link from 'next/link';
+import { ComponentsDataTableRowActions } from './data-table-row-actions';
 
 export const columns = [
   {
@@ -45,5 +45,11 @@ export const columns = [
         return date.toLocaleString('en-US', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     },
     enableSorting: true,
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => (
+      <ComponentsDataTableRowActions row={row} />
+    ),
   },
 ];

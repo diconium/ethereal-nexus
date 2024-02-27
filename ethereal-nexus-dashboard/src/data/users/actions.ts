@@ -10,7 +10,7 @@ import {
   apiKeySchema,
   NewApiKey,
   newApiKeySchema,
-  newUserSchema,
+  newUserSchema, PublicApiKey,
   PublicUser,
   userEmailSchema,
   userIdSchema,
@@ -23,6 +23,9 @@ import { ActionResponse } from '@/data/action';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import { members } from '@/data/member/schema';
 import { lowestPermission } from '@/data/users/permission-utils';
+import { projects } from '@/data/projects/schema';
+import { userIsMember } from '@/data/member/actions';
+import { projectSchema } from '@/data/projects/dto';
 
 export async function insertUser(user: z.infer<typeof newUserSchema>): ActionResponse<z.infer<typeof userPublicSchema>> {
   const safeUser = newUserSchema.safeParse(user);
@@ -219,7 +222,7 @@ export async function getApiKeyByKey(apiKey: string): ActionResponse<z.infer<typ
   }
 }
 
-export async function upsertApiKey(key: NewApiKey): ActionResponse<ApiKey> {
+export async function upsertApiKey(key: NewApiKey): ActionResponse<Omit<ApiKey, 'member_permissions'>> {
   const input = newApiKeySchema.safeParse(key);
   if (!input.success) {
     return actionZodError('The resources are not valid.', input.error);
@@ -237,7 +240,7 @@ export async function upsertApiKey(key: NewApiKey): ActionResponse<ApiKey> {
       })
       .returning();
 
-    const safeKey = apiKeySchema.safeParse(insert[0]);
+    const safeKey = apiKeySchema.omit({member_permissions: true}).safeParse(insert[0]);
     if (!safeKey.success) {
       return actionZodError(
         'There\'s an issue with the api key record.',
@@ -290,5 +293,27 @@ export async function getUsers(): ActionResponse<PublicUser[]> {
     return actionSuccess(safeUsers.data);
   } catch {
     return actionError('Failed to fetch users from database.');
+  }
+}
+
+export async function deleteApiKey(id: string, userId: string | undefined): ActionResponse<PublicApiKey> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  try {
+    const deleted = await db
+      .delete(apiKeys)
+      .where(and(eq(apiKeys.user_id, userId), eq(apiKeys.id, id)))
+      .returning();
+
+    const safeDeleted = apiKeyPublicSchema.safeParse(deleted);
+    if (!safeDeleted.success) {
+      return actionZodError('There\'s an issue with the API key record.', safeDeleted.error);
+    }
+
+    return actionSuccess(safeDeleted.data);
+  } catch {
+    return actionError('Failed to delete key from database.');
   }
 }

@@ -235,6 +235,7 @@ export async function upsertApiKey(key: NewApiKey): ActionResponse<Omit<ApiKey, 
       .onConflictDoUpdate({
         target: apiKeys.id,
         set: {
+          alias: input.data.alias,
           permissions: input.data.permissions,
         },
       })

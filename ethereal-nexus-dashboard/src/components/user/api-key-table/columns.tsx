@@ -36,6 +36,14 @@ export const columns = [
     enableSorting: true,
   },
   {
+    accessorKey: "alias",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Alias" />
+    ),
+    cell: ({ row }) => <Link href={`/users/${row.original.user_id}/keys/${row.original.id}`}> {row.original.alias}</Link>,
+    enableSorting: true,
+  },
+  {
     accessorKey: "created_at",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Created Date" />

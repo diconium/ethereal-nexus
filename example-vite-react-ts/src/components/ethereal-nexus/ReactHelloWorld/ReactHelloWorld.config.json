@@ -1,0 +1,19 @@
+{
+  "version": "1.0.9",
+  "dialog": [
+    {
+      "type": "textfield",
+      "name": "title",
+      "id": "title",
+      "label": "Title",
+      "placeholder": "Title"
+    },
+    {
+      "type": "textfield",
+      "name": "subtitle",
+      "id": "subtitle",
+      "label": "Sub Title",
+      "placeholder": "Sub Title"
+    }
+  ]
+}

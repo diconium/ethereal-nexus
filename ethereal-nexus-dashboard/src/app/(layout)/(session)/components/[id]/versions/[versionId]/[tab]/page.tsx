@@ -4,24 +4,17 @@ import {getComponentAssets, getComponentById, getComponentVersions} from "@/data
 import React from "react";
 import ComponentVersionHeader from "@/components/components/component/version/header";
 import ComponentVersionTabs from "@/components/components/component/version/tabs";
-import {getProjectComponentConfigWithVersion, getProjectComponents, getProjects} from "@/data/projects/actions";
-import {auth} from "@/auth";
 
 
 export default async function EditComponentVersion({params: {id, versionId, tab}}: any) {
 
-    const session = await auth()
-
     const component = await getComponentById(id);
     const versions = await getComponentVersions(id);
     const componentAssets = await getComponentAssets(id,versionId);
-    const selectedVersion = versions.data.filter((version: any) => version.id === versionId)[0];
-    const projects = await getProjectComponentConfigWithVersion(id, session?.user?.id);
-
-    if (!component.success) {
+    if (!versions.success || !component.success || !componentAssets.success) {
         notFound();
     }
-
+    const selectedVersion = versions.data.filter((version: any) => version.id === versionId)[0];
     return (
         <div className="container space-y-6">
             <ComponentVersionHeader versions={versions} component={component}

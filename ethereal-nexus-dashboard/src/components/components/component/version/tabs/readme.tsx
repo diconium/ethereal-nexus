@@ -3,10 +3,12 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import {Separator} from "@/components/ui/separator";
+import {ComponentVersion} from "@/data/components/dto";
 
 
 interface PreviewProps {
-    selectedVersion: string;
+    selectedVersion: ComponentVersion;
+
 }
 
 const Readme: React.FC<PreviewProps> = ({selectedVersion}) => {

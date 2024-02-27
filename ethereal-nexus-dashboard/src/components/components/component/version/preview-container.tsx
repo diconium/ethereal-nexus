@@ -6,11 +6,13 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/c
 import {Input} from "@/components/ui/input";
 import Link from "next/link";
 import {ExternalLinkIcon} from "@radix-ui/react-icons";
+import {z} from "zod";
+import {componentAssetsSchema} from "@/data/components/dto";
 
 
 interface PreviewContainerProps {
-    componentSlug: string;
-    componentAssets: [];
+    componentSlug: string | null;
+    componentAssets: z.infer<typeof componentAssetsSchema>[];
     selectedVersion: any;
     component: any;
 }

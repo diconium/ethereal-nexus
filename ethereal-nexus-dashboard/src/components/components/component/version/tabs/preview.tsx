@@ -1,12 +1,6 @@
 "use client"
 
-import React, {useState} from 'react';
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import {Input} from "@/components/ui/input";
-import Link from "next/link";
-import PreviewContainer from "@/components/components/component/version/preview-container";
-import {ExternalLinkIcon} from "@radix-ui/react-icons";
-
+import React from 'react';
 
 interface PreviewProps {
     component: any;
@@ -17,7 +11,6 @@ interface PreviewProps {
 
 const Preview: React.FC<PreviewProps> = ({key, component, selectedVersion, assets}) => {
 
-    console.log(key)
     return (
         <div>
 

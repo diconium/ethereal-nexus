@@ -1,6 +1,7 @@
 import {getComponentAssets, getComponentById, getComponentVersions} from "@/data/components/actions";
 import PreviewContainer from "@/components/components/component/version/preview-container";
 
+export const revalidate = 0;
 export default async function PreviewVersion({params: {id, versionId}}: any) {
 
 

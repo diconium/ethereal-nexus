@@ -17,8 +17,6 @@ export default async function EditComponentVersion({params: {id, versionId, tab}
     const componentAssets = await getComponentAssets(id,versionId);
     const selectedVersion = versions.data.filter((version: any) => version.id === versionId)[0];
     const projects = await getProjectComponentConfigWithVersion(id, session?.user?.id);
-console.log(projects)
-console.log(projects?.error?.issues)
 
     if (!component.success) {
         notFound();

@@ -128,7 +128,7 @@ export const POST = authenticatedWithKey(
       const { request: responseFromBlob = {} as any } = _response;
       const { url } = responseFromBlob;
 
-      console.log('POST assets', JSON.stringify(_response, undefined, 2))
+      // console.log('POST assets', JSON.stringify(_response, undefined, 2))
       if (!url) {
         return NextResponse.json('Failed to upload assets', {
           status: HttpStatus.BAD_REQUEST,

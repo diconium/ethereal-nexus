@@ -305,7 +305,7 @@ export async function getProjectComponentConfigWithVersion(
   id: string | undefined | null,
   userId: string | undefined | null,
 ): ActionResponse<z.infer<typeof projectWithComponentAssetsSchema>> {
-  console.log('getProjectComponentConfigWithVersion',id,userId)
+
   if (!id) {
     return actionError('No identifier provided.');
   }

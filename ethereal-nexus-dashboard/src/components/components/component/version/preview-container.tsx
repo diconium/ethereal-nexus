@@ -45,11 +45,7 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
                 <div className="flex items-center justify-between p-4 min-h-[300px]">
                     {componentAssets.map(({url, type, id}, index) => {
                         if (type === "js") {
-                            return <Script onLoad={() => {
-                                console.log('Script has loaded', router)
-                                console.log('Script has loaded', selectedVersion)
-
-                            }} id={id} key={id} src={url} type={"module"}></Script>
+                            return <Script key={id} src={url} type={"module"}></Script>
                         }
 
                     })}

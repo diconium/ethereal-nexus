@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { HttpStatus } from '@/app/api/utils';
 import { authenticatedWithKey } from '@/lib/route-wrappers';
 import { upsertComponent } from '@/data/components/actions';
+import {revalidatePath} from "next/cache";
 
 /**
  * @swagger
  * /api/v1/components:
  *   post:
- *     summary: Creates/Updates a project
- *     description: Creates/Updates a project
+ *     summary: Creates/Updates a component
+ *     description: Creates/Updates a component
  *     tags:
  *      - Components
  *     produces:

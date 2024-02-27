@@ -301,6 +301,78 @@ export async function getProjectComponentConfig(
     return actionError('Failed to fetch project from database.');
   }
 }
+export async function getProjectComponentConfigWithVersion(
+  id: string | undefined | null,
+  userId: string | undefined | null,
+): ActionResponse<z.infer<typeof projectWithComponentAssetsSchema>> {
+
+  if (!id) {
+    return actionError('No identifier provided.');
+  }
+
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  const assets = sql`
+    ARRAY_AGG(
+      jsonb_build_object(
+        'id', ${componentAssets.id},
+        'url', ${componentAssets.url},
+        'type', ${componentAssets.type}
+      )
+    )
+  `;
+  const latest_version = db.select()
+      .from(componentVersions)
+      .as('latest_version');
+
+  try{
+    const result = await db
+      .select({
+        id: components.id,
+        name: components.name,
+        title: components.title,
+        version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
+        dialog: sql`coalesce(${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
+        assets
+      })
+      .from(projectComponentConfig)
+      .leftJoin(components, eq(components.id, projectComponentConfig.component_id))
+      .leftJoin(componentVersions, eq(componentVersions.id, projectComponentConfig.component_version))
+      .fullJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
+      .leftJoin(componentAssets, sql`coalesce(${componentVersions.id}, ${latest_version.id}) = ${componentAssets.version_id}`)
+      .where(and(
+        // eq(projectComponentConfig.project_id, id),
+        eq(projectComponentConfig.is_active, true),
+      ))
+      // .orderBy(sql`string_to_array(${latest_version.version}, '.')::int[] DESC`)
+      // .limit(1)
+      .groupBy(
+        projectComponentConfig.project_id,
+        components.id,
+        componentVersions.version,
+        sql`${componentVersions.dialog}::jsonb`,
+        sql`${latest_version.dialog}::jsonb`,
+        latest_version.version,
+        latest_version.id,
+      )
+
+    const safe =
+      projectWithComponentAssetsSchema.safeParse(result[0]);
+    if (!safe.success) {
+      return actionZodError(
+        "There's an issue with the project records.",
+        safe.error,
+      );
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to fetch project from database.');
+  }
+}
 
 export async function deleteProject(
   id: string,

@@ -3,6 +3,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ComponentsDataTableRowActions } from "./data-table-row-actions";
 import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
+import Link from "next/link";
 
 export const columns = [
   {
@@ -31,7 +32,7 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
     ),
-    cell: ({ row }) => row.getValue("name"),
+    cell: ({ row }) => <Link href={`/components/${row.original.id}`}>{row.getValue("name")}</Link>,
     enableSorting: true,
     enableHiding: true,
   },

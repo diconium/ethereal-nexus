@@ -1,6 +1,6 @@
 import "swagger-ui-react/swagger-ui.css";
 import { getSwaggerSpec } from "@/lib/api-doc/api-doc.service";
-import ReactSwagger from "@/app/api-doc/react-swagger";
+import ReactSwagger from "./react-swagger";
 
 export default async function ApiDoc() {
   const spec = await getSwaggerSpec();

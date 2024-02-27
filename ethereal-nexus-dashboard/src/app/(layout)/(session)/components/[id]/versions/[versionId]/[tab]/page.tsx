@@ -10,8 +10,8 @@ export default async function EditComponentVersion({params: {id, versionId, tab}
 
     const component = await getComponentById(id);
     const versions = await getComponentVersions(id);
-    const componentAssets = await getComponentAssets(id,versionId);
-    if (!versions.success || !component.success || !componentAssets.success) {
+
+    if (!versions.success || !component.success) {
         notFound();
     }
     const selectedVersion = versions.data.filter((version: any) => version.id === versionId)[0];
@@ -20,7 +20,8 @@ export default async function EditComponentVersion({params: {id, versionId, tab}
             <ComponentVersionHeader versions={versions} component={component}
                                     selectedVersion={selectedVersion} activeTab={tab}/>
             <Separator/>
-            <ComponentVersionTabs activeTab={tab} versions={versions} selectedVersion={selectedVersion} component={component} componentAssets={componentAssets}/>
+            <ComponentVersionTabs activeTab={tab} versions={versions} selectedVersion={selectedVersion}
+                                  component={component}/>
         </div>
     );
 }

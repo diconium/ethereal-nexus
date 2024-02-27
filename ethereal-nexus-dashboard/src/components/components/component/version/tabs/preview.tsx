@@ -3,21 +3,16 @@
 import React from 'react';
 
 interface PreviewProps {
-    component: any;
-    assets: any;
-    selectedVersion: any;
-    key: any;
+    componentId: string;
+    selectedVersionId: string;
 }
 
-const Preview: React.FC<PreviewProps> = ({key, component, selectedVersion, assets}) => {
+const Preview: React.FC<PreviewProps> = ({componentId, selectedVersionId}) => {
 
     return (
         <div>
-
-            <iframe src={`/components/${component.data.id}/versions/${selectedVersion.id}/preview-new-window`}
+            <iframe src={`/components/${componentId}/versions/${selectedVersionId}/preview-new-window`}
                     className="w-full h-[500px] border-none"/>
-
-
         </div>
     );
 };

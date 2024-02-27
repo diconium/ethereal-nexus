@@ -7,7 +7,7 @@ import Readme from "@/components/components/component/version/tabs/readme";
 import Dependents from "@/components/components/component/version/tabs/dependents";
 
 
-const ComponentVersionTabs = ({activeTab, component, versions, componentAssets, selectedVersion}) => {
+const ComponentVersionTabs = ({activeTab, component, versions, selectedVersion}) => {
     const {push} = useRouter();
 
     return (
@@ -23,8 +23,8 @@ const ComponentVersionTabs = ({activeTab, component, versions, componentAssets, 
                 <Readme selectedVersion={selectedVersion}/>
             </TabsContent>
             <TabsContent value="preview">
-                <Preview key={selectedVersion.id} component={component} assets={componentAssets.data}
-                         selectedVersion={selectedVersion}/>
+                <Preview key={selectedVersion.id} componentId={component.data.id}
+                         selectedVersionId={selectedVersion.id}/>
             </TabsContent>
             <TabsContent value="dependents">
                 <Dependents></Dependents>

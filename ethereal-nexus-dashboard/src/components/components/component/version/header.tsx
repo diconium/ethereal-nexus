@@ -14,7 +14,7 @@ import {useRouter} from "next/navigation";
 
 
 const ComponentVersionHeader = ({component,selectedVersion,versions,activeTab}) => {
-    const { push,replace, forward } = useRouter();
+    const { push } = useRouter();
 
     return (
         <div className={"flex"}>

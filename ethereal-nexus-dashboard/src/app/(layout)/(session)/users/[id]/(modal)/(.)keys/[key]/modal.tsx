@@ -18,7 +18,7 @@ export default function ApiKeyModal({projects, apyKey}) {
         </DialogDescription>
       </DialogHeader>
       <Separator className="mb-4" />
-      <ApiKeyForm apyKey={apyKey} onComplete={router.back} availableProjects={projects} />
+      <ApiKeyForm apyKey={apyKey} onComplete={router.refresh} availableProjects={projects} />
     </DialogContent>
   </Dialog>
 }

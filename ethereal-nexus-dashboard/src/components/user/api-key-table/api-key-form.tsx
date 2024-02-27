@@ -37,6 +37,7 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
   }
 
   const defaultValues = apyKey ?? {
+    alias: "",
     user_id: session?.user?.id,
     permissions:  {
         ...session?.permissions as ApiKeyPermissions,
@@ -56,11 +57,11 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
     if (key.success) {
       setKey(key.data.key);
       toast({
-        title: 'Api Key added successfully!'
+        title: `Api Key ${apyKey?.id ? 'updated' : 'added'} successfully!`
       });
     } else {
       toast({
-        title: 'Failed to add Api Key.',
+        title: `Failed to ${apyKey?.id ? 'update' : 'add'} API key!`,
         description: key.error.message
       });
     }
@@ -79,6 +80,21 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
             Select the the entities permissions for the API key.
           </FormDescription>
         </div>
+        <FormField
+          control={form.control}
+          name="alias"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Alias</FormLabel>
+              <FormControl>
+                <Input placeholder='Alias...' {...field} value={field.value ?? ""}/>
+              </FormControl>
+              <FormDescription>This is the key public display name.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Separator className="my-4" />
         <FormField
           control={form.control}
           name={'permissions'}

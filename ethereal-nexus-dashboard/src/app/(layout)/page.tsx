@@ -8,7 +8,7 @@ import { logger } from "@/logger"; // our logger import
 export default async function Home() {
     const session = await auth()
     const projects = await getProjects(session?.user?.id);
-    logger.info("Home Page called "); // calling our logger
+
 
     return <div className="container flex-col md:flex">
         <div className="flex-1 space-y-4 p-8 pt-6">

@@ -20,6 +20,8 @@ export const componentVersions = pgTable("component_version", {
   version: text('version').notNull(),
   dialog: json('dialog'),
   created_at: timestamp("created_at").defaultNow().notNull(),
+  readme: text("readme"),
+  changelog: text("changelog"),
 })
 export const componentVersionsRelations = relations(componentVersions, ({ one }) => ({
   component: one(components, {

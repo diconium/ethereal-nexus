@@ -8,13 +8,14 @@ import { upsertApiKey } from '@/data/users/actions';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ApiKey, ApiKeyPermissions, apiKeyPermissionsSchema, NewApiKey, newApiKeySchema } from '@/data/users/dto';
+import { ApiKey, ApiKeyPermissions, NewApiKey, newApiKeySchema } from '@/data/users/dto';
 import { useSession } from 'next-auth/react';
 import { notFound } from 'next/navigation';
+import { ShieldBan } from 'lucide-react';
+import { isPermissionsHigher, Permissions } from '@/data/users/permission-utils';
 
 type ProjectLabels = {
   id: string,
@@ -22,7 +23,7 @@ type ProjectLabels = {
 }
 
 type ApiKeyDialogProps = {
-  apyKey?: ApiKey;
+  apyKey?: Omit<ApiKey, 'member_permissions'>;
   availableProjects: ProjectLabels[];
   onComplete?: () => void
 }
@@ -129,6 +130,7 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
             control={form.control}
             name={'permissions'}
             render={({ field }) => {
+              const restricted = isPermissionsHigher(field.value?.[item.id], session?.permissions[item.id])
               return (
                 <FormItem
                   key={item.id}
@@ -137,7 +139,9 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
                   <FormLabel className="font-normal">
                     {item.name}
                   </FormLabel>
-                  <FormControl>
+                  <div className="flex gap-2">
+                    {restricted ? <span className="flex items-center gap-1 text-muted-foreground text-sm" ><ShieldBan className="h-4 w-4" color="red" />Restricted</span> : null}
+                    <FormControl>
                     <Select
                       value={field.value?.[item.id]}
                       defaultValue={session?.permissions[item.id] ?? 'read'}
@@ -154,12 +158,15 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
                       <SelectContent>
                         <SelectGroup>
                           <SelectItem value="none">No access</SelectItem>
-                          <SelectItem value="read">Can read</SelectItem>
-                          <SelectItem value="write">Can edit</SelectItem>
+                          <SelectItem value="read" disabled={session?.permissions[item.id] === 'none'}>Can read</SelectItem>
+                          <SelectItem value="write" disabled={session?.permissions[item.id] !== 'write'}>Can edit</SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>
                   </FormControl>
+
+                  </div>
+                  <FormMessage />
                 </FormItem>
               )
             }}

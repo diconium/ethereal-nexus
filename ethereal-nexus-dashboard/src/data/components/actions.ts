@@ -18,13 +18,17 @@ import {
     componentVersionsSchema,
     ComponentWithVersion,
 } from './dto';
-import {and, eq} from 'drizzle-orm';
+import {and, eq, sql} from 'drizzle-orm';
 import {
     componentAssets,
     components,
     componentVersions,
 } from '@/data/components/schema';
 import {revalidatePath} from 'next/cache';
+import {projectComponentConfig, projects} from "@/data/projects/schema";
+import {projectWithOwners, ProjectWithOwners} from "@/data/projects/dto";
+import {members} from "@/data/member/schema";
+import {users} from "@/data/users/schema";
 
 export async function upsertComponent(
     component: ComponentToUpsert,
@@ -358,6 +362,47 @@ export async function getComponentVersions(
     } catch (error) {
         // console.error(error);
         return actionError('Failed to fetch component from database.');
+    }
+}
+
+export async function getComponentDependentsProjectsWithOwners(
+    component_id: string,
+): ActionResponse<ProjectWithOwners[]> {
+    if (!component_id) {
+        return actionError('No component id provided.');
+    }
+    try {
+        const select = await db.select(
+            {
+                id: projects.id,
+                name: projects.name,
+                description: projects.description,
+                owners:  sql`ARRAY_AGG(${users.name})`
+            })
+            .from(projectComponentConfig)
+            .leftJoin(projects, eq(projects.id, projectComponentConfig.project_id))
+            .leftJoin(members,
+                and(
+                    eq(members.resource, projectComponentConfig.project_id),
+                    eq(members.role, 'owner')))
+            .leftJoin(users,eq(users.id,members.user_id))
+            .where(eq(projectComponentConfig.component_id, component_id))
+            .groupBy(
+               projects.id,
+            )
+
+        const safe = projectWithOwners.array().safeParse(select);
+        if (!safe.success) {
+            return actionZodError(
+                "There's an issue with the component records.",
+                safe.error,
+            );
+        }
+
+        return actionSuccess(safe.data);
+    } catch (error) {
+        console.error(error);
+        return actionError('Failed to fetch components from database.');
     }
 }
 

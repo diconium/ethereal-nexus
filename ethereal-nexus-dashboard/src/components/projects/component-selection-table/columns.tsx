@@ -6,6 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { ActiveSwitch } from '@/components/projects/component-selection-table/active-switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { VersionPicker } from '@/components/projects/component-selection-table/version-picker';
+import Link from "next/link";
 
 export const columns = [
   {
@@ -36,7 +37,7 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
     ),
-    cell: ({ row }) => row.getValue("name"),
+    cell: ({ row }) => <Link href={`/components/${row.original.id}`}>{row.getValue("name")}</Link>,
     enableSorting: true,
     enableHiding: true,
   },
@@ -46,7 +47,7 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Title" />
     ),
-    cell: ({ row }) => row.getValue("title"),
+    cell: ({ row }) => <Link href={`/components/${row.original.id}`}>{row.getValue("title")}</Link>,
     enableSorting: true,
     enableHiding: true,
   },

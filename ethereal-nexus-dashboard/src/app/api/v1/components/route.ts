@@ -57,7 +57,6 @@ export const POST = authenticatedWithKey(async (request: NextRequest, ext) => {
   const req = await request.json();
 
   const permissions = ext?.user.permissions;
-  console.log(permissions)
   if (permissions?.['components'] !== 'write') {
     return NextResponse.json('You do not have permissions to write this resource.', {
       status: HttpStatus.FORBIDDEN,

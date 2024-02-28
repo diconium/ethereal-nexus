@@ -223,7 +223,6 @@ export async function getApiKeyByKey(apiKey: string): ActionResponse<z.infer<typ
         safe.error
       );
     }
-    console.log(safe.data[0])
     return actionSuccess(safe.data[0]);
   } catch (error) {
     console.log(error)

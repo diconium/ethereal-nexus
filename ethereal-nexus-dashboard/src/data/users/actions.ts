@@ -152,11 +152,22 @@ export async function getApiKeyById(apiKey: string): ActionResponse<Omit<ApiKey,
 
 const apiKeyValidPermissions = apiKeySchema.transform(val => {
   let permissions = val.permissions;
-  if(val.permissions && val.member_permissions) {
-    permissions = Object.keys(val.permissions).reduce((acc, resource) => {
-      acc[resource] = lowestPermission(val.permissions?.[resource]!, val.member_permissions?.[resource]!)
-      return acc
-    }, {})
+  const memberPermissions = val.member_permissions;
+
+  if(permissions && memberPermissions) {
+    permissions = Object.keys(permissions)
+      .reduce((acc, resource) => {
+        const keyPermission = permissions![resource]
+        const memberPermission = memberPermissions[resource]
+
+        if (!memberPermission) {
+          acc[resource] = keyPermission
+        } else {
+          acc[resource] = lowestPermission(keyPermission, memberPermission)
+        }
+
+        return acc
+      }, {})
   }
 
   return {
@@ -205,8 +216,6 @@ export async function getApiKeyByKey(apiKey: string): ActionResponse<z.infer<typ
         apiKeys.id,
       );
 
-    console.log(result)
-
     const safe = apiKeyValidPermissions.array().safeParse(result);
     if (!safe.success) {
       return actionZodError(
@@ -214,7 +223,7 @@ export async function getApiKeyByKey(apiKey: string): ActionResponse<z.infer<typ
         safe.error
       );
     }
-
+    console.log(safe.data[0])
     return actionSuccess(safe.data[0]);
   } catch (error) {
     console.log(error)

@@ -7,7 +7,7 @@ import Readme from "@/components/components/component/version/tabs/readme";
 import Dependents from "@/components/components/component/version/tabs/dependents";
 
 
-const ComponentVersionTabs = ({activeTab, component, versions, selectedVersion}) => {
+const ComponentVersionTabs = ({activeTab, component, versions, selectedVersion,dependents}) => {
     const {push} = useRouter();
 
     return (
@@ -27,7 +27,7 @@ const ComponentVersionTabs = ({activeTab, component, versions, selectedVersion})
                          selectedVersionId={selectedVersion.id}/>
             </TabsContent>
             <TabsContent value="dependents">
-                <Dependents></Dependents>
+                <Dependents dependents={dependents}></Dependents>
             </TabsContent>
             <TabsContent value="versions">
                 <ul role="list" className="divide-y divide-gray-100">

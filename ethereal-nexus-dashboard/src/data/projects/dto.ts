@@ -6,6 +6,9 @@ import {
   componentVersionsSchema
 } from '@/data/components/dto';
 import { z } from 'zod';
+import {users} from "@/data/users/schema";
+import {members} from "@/data/member/schema";
+import {userSchema} from "@/data/users/dto";
 
 /**
  * @swagger
@@ -110,6 +113,10 @@ export const projectComponentsWithDialogSchema = projectComponentsSchema
       dialog: componentVersionsSchema.shape.dialog.nullable(),
     },
   );
+export const projectWithOwners = projectSchema
+  .extend( { owners: z.array(userSchema.shape.name)});
+export type ProjectWithOwners = z.infer<typeof projectWithOwners>;
+
 export type ProjectComponentsWithDialog = z.infer<
   typeof projectComponentsWithDialogSchema
 >;

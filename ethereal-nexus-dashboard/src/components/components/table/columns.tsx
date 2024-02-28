@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ComponentsDataTableRowActions } from "./data-table-row-actions";
 import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
 import Link from "next/link";
+import * as React from "react";
 
 export const columns = [
   {
@@ -41,7 +42,7 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Title" />
     ),
-    cell: ({ row }) => row.getValue("title"),
+    cell: ({ row }) => <Link href={`/components/${row.original.id}`}>{row.getValue("title")}</Link>,
     enableSorting: true,
     enableHiding: true,
   },

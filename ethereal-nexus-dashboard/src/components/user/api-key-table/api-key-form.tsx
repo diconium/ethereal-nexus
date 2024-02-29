@@ -74,12 +74,6 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        <div className="mb-4">
-          <FormLabel className="text-base">Entities</FormLabel>
-          <FormDescription>
-            Select the the entities permissions for the API key.
-          </FormDescription>
-        </div>
         <FormField
           control={form.control}
           name="alias"
@@ -87,7 +81,7 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
             <FormItem>
               <FormLabel>Alias</FormLabel>
               <FormControl>
-                <Input placeholder='Alias...' {...field} value={field.value ?? ""}/>
+                <Input placeholder='Alias...' {...field} value={field.value ?? ""} />
               </FormControl>
               <FormDescription>This is the key public display name.</FormDescription>
               <FormMessage />
@@ -95,6 +89,12 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
           )}
         />
         <Separator className="my-4" />
+        <div className="mb-4">
+          <FormLabel className="text-base">Entities</FormLabel>
+          <FormDescription>
+            Select the the entities permissions for the API key.
+          </FormDescription>
+        </div>
         <FormField
           control={form.control}
           name={'permissions'}
@@ -156,30 +156,33 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
                     {item.name}
                   </FormLabel>
                   <div className="flex gap-2">
-                    {restricted ? <span className="flex items-center gap-1 text-muted-foreground text-sm" ><ShieldBan className="h-4 w-4" color="red" />Restricted</span> : null}
+                    {restricted ? <span className="flex items-center gap-1 text-muted-foreground text-sm"><ShieldBan
+                      className="h-4 w-4" color="red" />Restricted</span> : null}
                     <FormControl>
-                    <Select
-                      value={field.value?.[item.id]}
-                      defaultValue={session?.permissions[item.id] ?? 'read'}
-                      onValueChange={value => {
-                        field.onChange({
-                          ...field.value,
-                          [item.id]: value
-                        })
-                      }}
-                    >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectItem value="none">No access</SelectItem>
-                          <SelectItem value="read" disabled={session?.permissions[item.id] === 'none'}>Can read</SelectItem>
-                          <SelectItem value="write" disabled={session?.permissions[item.id] !== 'write'}>Can edit</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
+                      <Select
+                        value={field.value?.[item.id]}
+                        defaultValue={session?.permissions[item.id] ?? 'read'}
+                        onValueChange={value => {
+                          field.onChange({
+                            ...field.value,
+                            [item.id]: value
+                          })
+                        }}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem value="none">No access</SelectItem>
+                            <SelectItem value="read" disabled={session?.permissions[item.id] === 'none'}>Can
+                              read</SelectItem>
+                            <SelectItem value="write" disabled={session?.permissions[item.id] !== 'write'}>Can
+                              edit</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
 
                   </div>
                   <FormMessage />

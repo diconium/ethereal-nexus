@@ -2,7 +2,7 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { apiKeys, users } from '@/data/users/schema';
 import { z } from 'zod';
 
-export const apiKeyPermissionsSchema = z.record(z.enum(['read', 'write', 'none']).optional()).nullable()
+export const apiKeyPermissionsSchema = z.record(z.enum(['read', 'write', 'none'])).nullable()
 export type ApiKeyPermissions = z.infer<typeof apiKeyPermissionsSchema>
 
 export const userSchema = createSelectSchema(users);

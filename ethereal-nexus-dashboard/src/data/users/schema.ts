@@ -21,3 +21,9 @@ export const apiKeys = pgTable("api_key", {
   created_at: timestamp("created_at").defaultNow().notNull(),
 })
 
+export const invites = pgTable("invite", {
+  id: uuid("id").notNull().primaryKey().defaultRandom(),
+  key: uuid("key").notNull().unique().defaultRandom(),
+  email: text("email").notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+})

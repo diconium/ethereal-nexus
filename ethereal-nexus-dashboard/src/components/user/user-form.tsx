@@ -8,9 +8,9 @@ import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, Form
 import {Input} from "@/components/ui/input";
 import {zodResolver} from "@hookform/resolvers/zod";
 import React from "react";
-import { newUserSchema } from '@/data/users/dto';
-import { insertUser } from '@/data/users/actions';
-import { useRouter } from 'next/navigation';
+import { NewUser, newUserSchema } from '@/data/users/dto';
+import { insertInvitedUser, insertUser } from '@/data/users/actions';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 import { PasswordInput } from '@/components/ui/password-input';
 
@@ -19,32 +19,33 @@ type UserFormProps = {
 }
 
 export default function UserForm({ onComplete }: UserFormProps) {
+  const searchParams = useSearchParams()
   const router = useRouter();
   const { toast } = useToast()
 
-  const form: any = useForm<z.infer<typeof newUserSchema>>({
+  const form = useForm<NewUser>({
     resolver: zodResolver(newUserSchema)
   });
 
   async function handler(formdata) {
-    const user = await insertUser(formdata);
+    const user = await insertInvitedUser(formdata, searchParams.get('key'));
     if (user.success) {
       toast({
         title: 'User created successfully!',
       });
       if(onComplete) onComplete();
-      router.push("/users");
-    } else {
-      toast({
-        title: 'Failed to create user.',
-        description: user.error.message,
-      });
+      return router.push("/api/auth/signin");
     }
+
+    form.setError('email', {
+      type: "manual",
+      message: user.error.message,
+    })
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handler)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(handler)} className="space-y-4">
         <FormField
           control={form.control}
           name="name"
@@ -52,7 +53,7 @@ export default function UserForm({ onComplete }: UserFormProps) {
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <Input placeholder="John Doe" {...field} value={field.value ?? ''} />
               </FormControl>
               <FormDescription>
                 This is the name user.
@@ -84,7 +85,7 @@ export default function UserForm({ onComplete }: UserFormProps) {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <PasswordInput placeholder="****" {...field} />
+                <PasswordInput placeholder="****" {...field} value={field.value ?? ''} />
               </FormControl>
               <FormDescription>
                 Please select a password.
@@ -93,7 +94,7 @@ export default function UserForm({ onComplete }: UserFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit">Create user</Button>
+        <Button className='w-full' type="submit">Create user</Button>
       </form>
     </Form>
   );

@@ -3,8 +3,8 @@
 import React from "react";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import UserForm from '@/components/user/user-form';
 import { useRouter } from 'next/navigation';
+import UserInviteForm from '@/components/user/user-invitation-form';
 
 export default function NewUserModal() {
   const router = useRouter();
@@ -17,7 +17,7 @@ export default function NewUserModal() {
           Create a new user
         </DialogDescription>
       </DialogHeader>
-      <UserForm onComplete={router.back}/>
+      <UserInviteForm />
     </DialogContent>
   </Dialog>
 }

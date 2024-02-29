@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { Meteors } from '@/components/ui/meteors';
 import UserForm from '@/components/user/user-form';
+import {Suspense} from "react";
 
 export const metadata: Metadata = {
   title: "Authentication",
@@ -37,7 +38,9 @@ export default function AuthenticationPage() {
               Enter your email below to create your account
             </p>
           </div>
-          <UserForm />
+            <Suspense fallback={<div>Loading...</div>}>
+                <UserForm />
+            </Suspense>
         </div>
       </div>
     </div>

@@ -30,12 +30,15 @@ export default function UserForm({ onComplete }: UserFormProps) {
     const user = await insertUser(formdata);
     if (user.success) {
       toast({
-        title: 'User created successfully!',
+        title: 'User invite created successfully!',
       });
       if(onComplete) onComplete();
-      router.push("/api/auth/signin");
+      router.push("/users");
     } else {
-      form.setError('Failed to create User.')
+      toast({
+        title: 'Failed to create invite.',
+        description: user.error.message,
+      });
     }
   }
 

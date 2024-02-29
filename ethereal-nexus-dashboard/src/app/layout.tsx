@@ -20,9 +20,7 @@ export default async function RootLayout({
         <NewRelicSnippet/>
     </head>): null}
     <body className={inter.className}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        {children}
-    </ThemeProvider>
+    {children}
     </body>
     </html>;
 }

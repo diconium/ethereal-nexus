@@ -154,7 +154,11 @@ const apiKeyValidPermissions = apiKeySchema.transform(val => {
   let permissions = val.permissions;
   if(val.permissions && val.member_permissions) {
     permissions = Object.keys(val.permissions).reduce((acc, resource) => {
-      acc[resource] = lowestPermission(val.permissions?.[resource]!, val.member_permissions?.[resource]!)
+      if(resource !== "components") {
+        acc[resource] = lowestPermission(val.permissions?.[resource]!, val.member_permissions?.[resource]!)
+      } else {
+        acc[resource] = val.permissions?.[resource]
+      }
       return acc
     }, {})
   }
@@ -204,8 +208,6 @@ export async function getApiKeyByKey(apiKey: string): ActionResponse<z.infer<typ
       .groupBy(
         apiKeys.id,
       );
-
-    console.log(result)
 
     const safe = apiKeyValidPermissions.array().safeParse(result);
     if (!safe.success) {

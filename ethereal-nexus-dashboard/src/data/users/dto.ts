@@ -1,5 +1,5 @@
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { apiKeys, users } from '@/data/users/schema';
+import { apiKeys, invites, users } from '@/data/users/schema';
 import { z } from 'zod';
 
 export const apiKeyPermissionsSchema = z.record(z.enum(['read', 'write', 'none']).optional()).nullable()
@@ -27,6 +27,7 @@ export const newUserSchema = createInsertSchema(users, {
     password: true
   })
   .omit({ id: true });
+export type NewUser = z.infer<typeof newUserSchema>
 
 export const userLoginSchema = newUserSchema.pick({
   password: true,
@@ -58,3 +59,9 @@ export const newApiKeySchema = createInsertSchema(apiKeys)
     permissions: apiKeyPermissionsSchema,
   })
 export type NewApiKey = z.infer<typeof newApiKeySchema>
+
+export const inviteSchema = createSelectSchema(invites)
+export type Invite = z.infer<typeof inviteSchema>
+
+export const newInviteSchema = createInsertSchema(invites)
+export type NewInvite = z.infer<typeof newInviteSchema>

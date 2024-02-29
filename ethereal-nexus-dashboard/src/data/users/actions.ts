@@ -3,14 +3,20 @@
 import * as bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 import { db } from '@/db';
-import { apiKeys, users } from '@/data/users/schema';
+import { apiKeys, invites, users } from '@/data/users/schema';
 import {
   ApiKey,
   apiKeyPublicSchema,
   apiKeySchema,
+  Invite,
+  inviteSchema,
   NewApiKey,
   newApiKeySchema,
-  newUserSchema, PublicApiKey,
+  NewInvite,
+  newInviteSchema,
+  NewUser,
+  newUserSchema,
+  PublicApiKey,
   PublicUser,
   userEmailSchema,
   userIdSchema,
@@ -23,11 +29,8 @@ import { ActionResponse } from '@/data/action';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import { members } from '@/data/member/schema';
 import { lowestPermission } from '@/data/users/permission-utils';
-import { projects } from '@/data/projects/schema';
-import { userIsMember } from '@/data/member/actions';
-import { projectSchema } from '@/data/projects/dto';
 
-export async function insertUser(user: z.infer<typeof newUserSchema>): ActionResponse<z.infer<typeof userPublicSchema>> {
+export async function insertUser(user: NewUser): ActionResponse<PublicUser> {
   const safeUser = newUserSchema.safeParse(user);
   if (!safeUser.success) {
     return actionZodError('Failed to parse user input.', safeUser.error);
@@ -66,6 +69,31 @@ export async function insertUser(user: z.infer<typeof newUserSchema>): ActionRes
   } catch (error) {
     return actionError('Failed to insert user into database.');
   }
+}
+
+export async function insertInvitedUser(user: NewUser, key?: string | null): ActionResponse<PublicUser> {
+  if(!key) {
+    return actionError('No invite key was provided.');
+  }
+
+  const invite = await db
+    .select({ id: invites.id, email: invites.email })
+    .from(invites)
+    .where(eq(invites.key, key));
+
+  if (invite.length <= 0) {
+    return actionError('No invite matches the key.');
+  }
+
+  if (invite[0].email !== user.email) {
+    return actionError('The emails doesn\'t match the invite.');
+  }
+
+  await db
+    .delete(invites)
+    .where(eq(invites.key, key));
+
+  return insertUser(user);
 }
 
 export async function getUserById(userId?: string): ActionResponse<z.infer<typeof userPublicSchema>> {
@@ -316,5 +344,43 @@ export async function deleteApiKey(id: string, userId: string | undefined): Acti
     return actionSuccess(safeDeleted.data);
   } catch {
     return actionError('Failed to delete key from database.');
+  }
+}
+
+export async function insertInvite(invite: NewInvite): ActionResponse<Invite> {
+  const input = newInviteSchema.safeParse(invite);
+  if (!input.success) {
+    return actionZodError('Failed to parse invite input.', input.error);
+  }
+
+  const { email } = input.data;
+
+  const existingUser = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email));
+
+  if (existingUser.length > 0) {
+    return actionError('User with that email already exists.');
+  }
+
+  try {
+    const insert = await db
+      .insert(invites)
+      .values(input.data)
+      .returning();
+
+    const result = inviteSchema.safeParse(insert[0]);
+    if (!result.success) {
+      return actionZodError(
+        'Failed to parse inserted invite.',
+        result.error
+      );
+    }
+
+    return actionSuccess(result.data);
+  } catch (error) {
+    console.error(error)
+    return actionError('Failed to insert invite into database.');
   }
 }

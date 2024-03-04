@@ -44,15 +44,26 @@ Before you begin, ensure you have the following prerequisites:
     4. Assign your configuration to a sites project.
 ### OR
 * On your AEM Project (Preferred)
-  1. Add the Maven dependency to you AEM project on module: all file: pom.xml
+  1. Add the github repository
+    ```xml
+  <repositories>
+    <repository>
+      <id>ethereal-nexus</id>
+      <name>GitHub Ethereal Nexus</name>
+      <url>https://maven.pkg.github.com/diconium/ethereal-nexus</url>
+    </repository>
+  </repositories>
+    ```
+  3. Add the Maven dependency to you AEM project on module: all file: pom.xml
     ```xml 
     <dependency>
         <groupId>com.diconium</groupId>
         <artifactId>ethereal-nexus.all</artifactId>
         <version>1.2.16</version>
+        <type>zip</type>
     </dependency>
   ```
-  2. Add the Embeded vault package definition on module: all file: pom.xml
+  3. Add the Embeded vault package definition on module: all file: pom.xml
     ```xml 
     <embedded>
         <groupId>com.diconium</groupId>

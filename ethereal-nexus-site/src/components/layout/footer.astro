@@ -1,0 +1,50 @@
+---
+import { siteConfig } from "@/config/site";
+import { cn } from "@/lib/utils";
+import { Icon } from "astro-icon/components";
+import { ThemeToggle } from "@/components/theme-toggle";
+// https://github.com/mickasmt/astro-nomy/blob/master/src/components/layout/footer.astro
+type Props = {
+  className?: string;
+};
+
+const { className } = Astro.props;
+---
+
+<footer class={cn(className)}>
+  <div
+    class="container flex flex-col items-center justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0"
+  >
+    <div
+      class="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0"
+    >
+      <a href="/" aria-label="Ethereal Nexus homepage homepage">
+          {siteConfig.name}
+      </a>
+
+      <p class="text-center text-sm leading-loose md:text-left balance-text">
+        Built by{" "}
+        <a
+          href={siteConfig.links.diconium}
+          target="_blank"
+          rel="noreferrer"
+          class="font-medium underline underline-offset-4"
+        >
+          diconium
+        </a>
+        . The source code is available on{" "}
+        <a
+          href={siteConfig.links.github}
+          target="_blank"
+          rel="noreferrer"
+          class="font-medium underline underline-offset-4"
+        >
+          GitHub
+        </a>
+        .
+      </p>
+    </div>
+
+    <ThemeToggle client:idle />
+  </div>
+</footer>

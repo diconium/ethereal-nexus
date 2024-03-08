@@ -23,7 +23,7 @@ export default function UserInviteForm({ onComplete }: UserInviteFormProps) {
   const [inviteKey, setKey] = useState<string | null>(null);
   const [copiedText, copy] = useCopyToClipboard()
 
-  const inviteUrl = typeof window !== 'undefined' ? `${window?.location.protocol}//${window.location.host}/signup?key=${inviteKey}` : ''
+  const inviteUrl = typeof window !== 'undefined' ? `${window?.location.protocol}//${window.location.host}/auth/signup?key=${inviteKey}` : ''
 
   const form: any = useForm<NewInvite>({
     resolver: zodResolver(newInviteSchema)

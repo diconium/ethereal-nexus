@@ -18,7 +18,10 @@ export const userIdSchema = userSchema
   .pick({ id: true });
 export type UserId = z.infer<typeof userIdSchema>
 
-export const newUserSchema = createInsertSchema(users, {
+export const newUserSchema  = createInsertSchema(users)
+export type NewUser = z.infer<typeof newUserSchema>
+
+export const newCredentialsUserSchema =  createInsertSchema(users, {
   password: (schema) => schema.password
     .min(8, 'Password must be longer than 8 characters'),
   email: (schema) => schema.email.email()
@@ -27,12 +30,13 @@ export const newUserSchema = createInsertSchema(users, {
     password: true
   })
   .omit({ id: true });
-export type NewUser = z.infer<typeof newUserSchema>
+export type NewCredentialsUser = z.infer<typeof newCredentialsUserSchema>
 
 export const userLoginSchema = newUserSchema.pick({
   password: true,
   email: true
 });
+export type UserLogin = z.infer<typeof userLoginSchema>
 
 export const userEmailSchema = newUserSchema.pick({
   email: true

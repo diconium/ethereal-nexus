@@ -6,7 +6,7 @@ export default auth((req) => {
 
   if (!isLoggedIn) {
     return Response.redirect(new URL(
-      `/api/auth/signin`,
+      `/auth/signin`,
       nextUrl
     ));
   }
@@ -15,5 +15,5 @@ export default auth((req) => {
 })
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|signup|.*\\.png$).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|signup|auth|.*\\.png$).*)'],
 };

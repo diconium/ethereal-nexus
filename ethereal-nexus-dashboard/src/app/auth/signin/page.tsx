@@ -1,8 +1,10 @@
 import LoginForm from '@/components/user/login-form';
 import Link from 'next/link';
 import React from 'react';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export default async function AuthenticationPage() {
+  noStore()
   const providers = [
     process.env.GITHUB_SECRET ? 'github' : false,
     process.env.AZURE_AD_CLIENT_SECRET ? 'azure-ad' : false,
@@ -10,7 +12,7 @@ export default async function AuthenticationPage() {
     .filter(Boolean) as ('github' | 'azure-ad')[]
 
   return <>
-    <LoginForm providers={providers}/>
+    <LoginForm providers={providers} />
     <p className="px-8 text-center text-sm text-muted-foreground">
       If you don&apos;t have an account please <Link href="/auth/signup" className="underline underline-offset-4 hover:text-primary">signup here.</Link>
     </p>

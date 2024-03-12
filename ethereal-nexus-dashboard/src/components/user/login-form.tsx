@@ -91,8 +91,6 @@ export default function LoginForm({ onComplete, providers }: UserFormProps) {
               GitHub
         </span>
         </Button>
-      </div>
-      <div className="flex flex-col space-y-4">
         <Button
           disabled={!providers.includes('azure-ad')}
           variant="outline"

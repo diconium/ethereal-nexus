@@ -13,12 +13,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Github } from '@/components/ui/icons/Github';
+import { Microsoft } from '@/components/ui/icons/Microsoft';
 
 type UserFormProps = {
-  onComplete?: () => void
+  onComplete?: () => void;
+  providers:  ('github' | 'azure-ad')[]
 }
 
-export default function UserForm({ onComplete }: UserFormProps) {
+export default function UserForm({ onComplete, providers }: UserFormProps) {
   const searchParams = useSearchParams()
   const router = useRouter();
   const { toast } = useToast()
@@ -118,7 +120,8 @@ export default function UserForm({ onComplete }: UserFormProps) {
       </div>
       <div className="flex flex-col space-y-4">
         <Button
-          variant='outline'
+          disabled={!providers.includes('github')}
+          variant="outline"
           className="flex space-x-2 items-center justify-start"
           type="submit"
           onClick={() => login('github')}
@@ -126,6 +129,18 @@ export default function UserForm({ onComplete }: UserFormProps) {
           <Github className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
           <span className="text-neutral-700 dark:text-neutral-300 text-sm">
               GitHub
+        </span>
+        </Button>
+        <Button
+          disabled={!providers.includes('azure-ad')}
+          variant="outline"
+          className="flex space-x-2 items-center justify-start"
+          type="submit"
+          onClick={() => login('azure-ad')}
+        >
+          <Microsoft className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
+          <span className="text-neutral-700 dark:text-neutral-300 text-sm">
+              Microsoft
         </span>
         </Button>
       </div>

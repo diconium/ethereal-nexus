@@ -1,7 +1,6 @@
 'use server';
 
 import * as bcrypt from 'bcryptjs';
-import { randomUUID } from 'crypto';
 import { db } from '@/db';
 import { apiKeys, invites, users } from '@/data/users/schema';
 import {
@@ -12,6 +11,8 @@ import {
   inviteSchema,
   NewApiKey,
   newApiKeySchema,
+  NewCredentialsUser,
+  newCredentialsUserSchema,
   NewInvite,
   newInviteSchema,
   NewUser,
@@ -20,6 +21,7 @@ import {
   PublicUser,
   userEmailSchema,
   userIdSchema,
+  UserLogin,
   userPublicSchema,
   userSchema
 } from '@/data/users/dto';
@@ -29,32 +31,26 @@ import { ActionResponse } from '@/data/action';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import { members } from '@/data/member/schema';
 import { lowestPermission } from '@/data/users/permission-utils';
+import { signIn } from '@/auth';
 
-export async function insertUser(user: NewUser): ActionResponse<PublicUser> {
-  const safeUser = newUserSchema.safeParse(user);
-  if (!safeUser.success) {
-    return actionZodError('Failed to parse user input.', safeUser.error);
-  }
+type Providers = 'credentials' | 'github' | 'azure-ad'
+export async function login(provider: Providers, login?: UserLogin) {
+  return await signIn(provider, {
+      email: login?.email,
+      password: login?.password,
+      redirectTo: '/'
+    },
+    {
+      signin_type: 'login'
+    }
+  );
+}
 
-  const { email, password } = safeUser.data;
-
-  const existingUser = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(eq(users.email, email));
-  if (existingUser.length > 0) {
-    return actionError('User with that email already exists.');
-  }
-
+async function insertUser(user: NewUser): ActionResponse<PublicUser> {
   try {
-    const hashedPassword = await bcrypt.hash(password!, 10);
     const insert = await db
       .insert(users)
-      .values({
-        ...safeUser.data,
-        id: randomUUID(),
-        password: hashedPassword
-      })
+      .values(user)
       .returning();
 
     const result = userPublicSchema.safeParse(insert[0]);
@@ -71,9 +67,43 @@ export async function insertUser(user: NewUser): ActionResponse<PublicUser> {
   }
 }
 
-export async function insertInvitedUser(user: NewUser, key?: string | null): ActionResponse<PublicUser> {
+async function insertCredentialsUser(user: NewCredentialsUser): ActionResponse<PublicUser> {
+  const safeUser = newCredentialsUserSchema.safeParse(user);
+  if (!safeUser.success) {
+    return actionZodError('Failed to parse user input.', safeUser.error);
+  }
+
+  const { email, password } = safeUser.data;
+
+  const existingUser = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email));
+  if (existingUser.length > 0) {
+    return actionError('User with that email already exists.');
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password!, 10);
+    return insertUser({
+      ...safeUser.data,
+      password: hashedPassword
+    })
+
+
+  } catch (error) {
+    return actionError('Failed to insert user into database.');
+  }
+}
+
+export async function insertInvitedCredentialsUser(user: any, key?: string | null): ActionResponse<PublicUser> {
   if(!key) {
     return actionError('No invite key was provided.');
+  }
+
+  const safeUser = newCredentialsUserSchema.safeParse(user);
+  if (!safeUser.success) {
+    return actionZodError('Failed to parse user input.', safeUser.error);
   }
 
   const invite = await db
@@ -85,15 +115,31 @@ export async function insertInvitedUser(user: NewUser, key?: string | null): Act
     return actionError('No invite matches the key.');
   }
 
-  if (invite[0].email !== user.email) {
+  if (invite[0].email.localeCompare(user.email, undefined, { sensitivity: 'accent' }) === 0) {
     return actionError('The emails doesn\'t match the invite.');
   }
+  await deleteInvite(key)
 
-  await db
-    .delete(invites)
-    .where(eq(invites.key, key));
+  return insertCredentialsUser(user);
+}
 
-  return insertUser(user);
+export async function insertInvitedSsoUser(user: any, key?: string | null): ActionResponse<PublicUser> {
+  const safeUser = newUserSchema.safeParse(user);
+  if (!safeUser.success) {
+    return actionZodError('Failed to parse user input.', safeUser.error);
+  }
+
+  const invite = await db
+    .select({ id: invites.id, email: invites.email, key: invites.key })
+    .from(invites)
+    .where(eq(invites.email, safeUser.data.email));
+
+  if (invite.length === 0) {
+    return actionError('No invite matches the key.');
+  }
+  await deleteInvite(invite[0].key)
+
+  return insertUser(safeUser.data);
 }
 
 export async function getUserById(userId?: string): ActionResponse<z.infer<typeof userPublicSchema>> {
@@ -124,7 +170,7 @@ export async function getUserById(userId?: string): ActionResponse<z.infer<typeo
   }
 }
 
-export async function getUserByEmail(unsafeEmail: string): ActionResponse<z.infer<typeof userSchema>> {
+export async function getUserByEmail(unsafeEmail: string | undefined | null): ActionResponse<z.infer<typeof userSchema>> {
   const safeEmail = userEmailSchema.safeParse({ email: unsafeEmail });
   if (!safeEmail.success) {
     return actionZodError('The email input is not valid.', safeEmail.error);
@@ -390,5 +436,23 @@ export async function insertInvite(invite: NewInvite): ActionResponse<Invite> {
   } catch (error) {
     console.error(error)
     return actionError('Failed to insert invite into database.');
+  }
+}
+
+export async function deleteInvite(key: string): ActionResponse<Invite> {
+  try {
+    const deleted = await db
+      .delete(invites)
+      .where(eq(invites.key, key));
+
+    const safeDeleted = inviteSchema.safeParse(deleted);
+    if (!safeDeleted.success) {
+      return actionZodError('There\'s an issue with the invite record.', safeDeleted.error);
+    }
+
+    return actionSuccess(safeDeleted.data);
+  } catch (error) {
+    console.error(error)
+    return actionError('Failed to delete invite from database.');
   }
 }

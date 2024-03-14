@@ -206,7 +206,7 @@ export async function getActiveProjectComponents(
         eq(componentVersions.id, projectComponentConfig.component_version),
       )
       .leftJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
-      .where(eq(projectComponentConfig.is_active, true));
+      .where(and(eq(projectComponentConfig.is_active, true),eq(projectComponentConfig.project_id, id)))
 
     const safe = projectComponentsWithDialogSchema.array().safeParse(select);
     if (!safe.success) {

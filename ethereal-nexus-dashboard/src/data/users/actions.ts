@@ -18,7 +18,7 @@ import {
   NewUser,
   newUserSchema,
   PublicApiKey,
-  PublicUser,
+  PublicUser, UpdatePassword, User,
   userEmailSchema,
   userIdSchema,
   UserLogin,
@@ -31,7 +31,7 @@ import { ActionResponse } from '@/data/action';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import { members } from '@/data/member/schema';
 import { lowestPermission } from '@/data/users/permission-utils';
-import { signIn } from '@/auth';
+import { signIn, signOut } from '@/auth';
 
 type Providers = 'credentials' | 'github' | 'azure-ad'
 export async function login(provider: Providers, login?: UserLogin) {
@@ -46,6 +46,9 @@ export async function login(provider: Providers, login?: UserLogin) {
   );
 }
 
+export async function logout() {
+  return await signOut();
+}
 async function insertUser(user: NewUser): ActionResponse<PublicUser> {
   try {
     const insert = await db
@@ -142,21 +145,40 @@ export async function insertInvitedSsoUser(user: any, key?: string | null): Acti
   return insertUser(safeUser.data);
 }
 
-export async function getUserById(userId?: string): ActionResponse<z.infer<typeof userPublicSchema>> {
-  const input = userIdSchema.safeParse({ id: userId });
-  if (!input.success) {
-    return actionZodError('The id input is not valid.', input.error);
-  }
-
-  const { id } = input.data;
+export async function getUserById(userId: string): ActionResponse<User> {
 
   try {
     const userSelect = await db.query.users
       .findFirst({
-        where: eq(users.id, id)
+        where: eq(users.id, userId)
       });
 
-    const safeUser = userPublicSchema.safeParse(userSelect);
+    const safeUser = userSchema.safeParse(userSelect);
+    if (!safeUser.success) {
+      return actionZodError(
+        'There\'s an issue with the user record.',
+        safeUser.error
+      );
+    }
+
+    return actionSuccess(safeUser.data);
+  } catch {
+    return actionError('Failed to fetch user from database.');
+  }
+}
+export async function getPublicUserById(userId?: string): ActionResponse<PublicUser> {
+  try {
+    const input = userIdSchema.safeParse({ id: userId });
+    if (!input.success) {
+      return actionZodError('The id input is not valid.', input.error);
+    }
+
+    const user = await getUserById(input.data.id)
+    if(!user.success) {
+      return user;
+    }
+
+    const safeUser = userPublicSchema.safeParse(user.data);
     if (!safeUser.success) {
       return actionZodError(
         'There\'s an issue with the user record.',
@@ -456,3 +478,69 @@ export async function deleteInvite(key: string): ActionResponse<Invite> {
     return actionError('Failed to delete invite from database.');
   }
 }
+
+export async function updateUser(user: PublicUser): ActionResponse<PublicUser> {
+  try {
+    const updated = await db
+      .update(users)
+      .set({
+        name: user.name,
+        email: user.email,
+      })
+      .where(eq(users.id, user.id))
+      .returning();
+
+    console.log(updated)
+
+    const safeUpdated = userPublicSchema.safeParse(updated[0]);
+    if (!safeUpdated.success) {
+      return actionZodError('There\'s an issue with the user record.', safeUpdated.error);
+    }
+
+    return actionSuccess(safeUpdated.data);
+  } catch (error) {
+    console.error(error)
+    return actionError('Failed to update user on the database.');
+  }
+}
+
+export async function updateUserPassword(user: UpdatePassword): ActionResponse<PublicUser> {
+  try {
+    const existingUser = await getUserById(user.id);
+    if(!existingUser.success || !existingUser.data.password || !user.oldPassword) {
+      return actionError('Cannot update user\'s password.');
+    }
+
+    console.log(existingUser)
+    const passwordMatches = bcrypt.compare(
+      user.oldPassword,
+      existingUser.data.password
+    )
+    if(!passwordMatches) {
+      return actionError('Cannot update user\'s password.');
+    }
+
+    console.log(existingUser)
+
+    const newPassword = await bcrypt.hash(user.password!, 10);
+    const updated = await db
+      .update(users)
+      .set({
+        password: newPassword
+      })
+      .where(eq(users.id, user.id))
+      .returning();
+
+    const safeUpdated = userPublicSchema.safeParse(updated[0]);
+    if (!safeUpdated.success) {
+      return actionZodError('There\'s an issue with the user record.', safeUpdated.error);
+    }
+
+    return actionSuccess(safeUpdated.data);
+  } catch (error) {
+    console.error(error)
+    return actionError('Failed to update user password on the database.');
+  }
+}
+
+

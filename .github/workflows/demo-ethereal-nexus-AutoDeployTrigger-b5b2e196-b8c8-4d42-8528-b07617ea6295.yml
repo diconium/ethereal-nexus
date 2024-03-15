@@ -53,7 +53,7 @@ jobs:
           registryPassword: ${{ secrets.DOCKER_PASSWORD }}
           containerAppName: demo-ethereal-nexus
           resourceGroup: RG-Ethereal-nexus
-          imageToBuild: registry.hub.docker.com/demo-ethereal-nexus:${{ github.sha }}
+          imageToBuild: docker19diconium/remote-components:${{ github.sha }}
           
             
 

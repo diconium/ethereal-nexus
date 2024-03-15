@@ -56,6 +56,9 @@ jobs:
           appSourcePath: ${{ github.workspace }}/ethereal-nexus-dashboard
           containerAppName: demo-ethereal-nexus
           resourceGroup: RG-Ethereal-nexus
+          registryUrl: registry.hub.docker.com
+          registryUsername: ${{ secrets.DOCKER_USERNAME }}
+          registryPassword: ${{ secrets.DOCKER_PASSWORD }}
           imageToBuild: docker19diconium/remote-components:${{ github.sha }}
           
             

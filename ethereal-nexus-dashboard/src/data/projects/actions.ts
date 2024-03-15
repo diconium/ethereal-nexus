@@ -520,7 +520,7 @@ export async function upsertComponentConfig(
       })
       .returning();
 
-    const safe = projectComponentConfigSchema.safeParse(insert);
+    const safe = projectComponentConfigSchema.safeParse(insert[0]);
     if (!safe.success) {
       return actionZodError(
         "There's an issue with the component config records.",

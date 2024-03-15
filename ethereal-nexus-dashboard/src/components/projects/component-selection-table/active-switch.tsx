@@ -20,9 +20,7 @@ export function ActiveSwitch({componentId, disabled, projectId, active}:ActiveSw
 
   const onSubmit = async (data) => {
     const update = await upsertComponentConfig({project_id: projectId, component_id: componentId, is_active: data.is_active}, session?.user?.id)
-    if(update.success){
-      router.refresh()
-    } else {
+    if(!update.success){
       toast({
         title: "Failed to activate component.",
       });

@@ -60,7 +60,7 @@ jobs:
           targetPort: 3000 --registry-server registry.hub.docker.com
           registryUsername: ${{ secrets.DOCKER_USERNAME }}
           registryPassword: ${{ secrets.DOCKER_PASSWORD }}
-          imageToBuild: docker19diconium/remote-components:${{ github.sha }}
+          imageToBuild: registry.hub.docker.com/docker19diconium/remote-components:${{ github.sha }}
           
             
 

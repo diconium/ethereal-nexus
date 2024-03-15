@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import Image from 'next/image';
-const LogoImage = () => {
+export const LogoImage = () => {
   const imageSizePixels = 267;
   const {theme} = useTheme();
   const logoWithSystemColor = typeof window !== 'undefined' &&
@@ -13,7 +13,7 @@ const LogoImage = () => {
     theme === 'system' ?  setImage(logoWithSystemColor) : setImage(`/ethereal-nexus-logo-${theme}-mode.jpg`);
   }, [theme]);
 
-  return <Image src={image} alt="Ethereal Nexus Logo" width={imageSizePixels} height={imageSizePixels/9}/>;
+  return <Image data-testid={`ethereal-logo-${theme}-image`} src={image} alt="Ethereal Nexus Logo" width={imageSizePixels} height={imageSizePixels/9}/>;
 };
 
 export default LogoImage;

@@ -17,18 +17,17 @@ describe('LogoImage component', () => {
   };
 
   beforeEach(() => {
-    // Mock the return value of useTheme
     useTheme.mockReturnValue({ theme: 'light', setTheme: jest.fn() });
 
     // Set up mock implementation for window.matchMedia
     window.matchMedia = jest.fn().mockImplementation(query => {
       return {
-        matches: false, // Set the initial match status as needed
+        matches: false,
         media: query,
         onchange: null,
-        addListener: jest.fn(), // Mock addListener method
-        removeListener: jest.fn(), // Mock removeListener method
-        dispatchEvent: jest.fn(), // Mock dispatchEvent method
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        dispatchEvent: jest.fn(),
       };
     });
     renderComponent();
@@ -45,7 +44,6 @@ describe('LogoImage component', () => {
   });
 
   it('should render the dark mode image theme when theme is "dark"', () => {
-    // Mock useTheme hook to return 'dark' theme
     useTheme.mockReturnValue({ theme: 'dark', setTheme: jest.fn() });
 
     renderComponent();

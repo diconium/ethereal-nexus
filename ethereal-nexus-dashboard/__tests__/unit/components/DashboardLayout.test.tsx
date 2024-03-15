@@ -40,12 +40,12 @@ jest.mock('@/components/ui/toaster', () => ({
 // Set up mock implementation for window.matchMedia
 window.matchMedia = jest.fn().mockImplementation(query => {
   return {
-    matches: false, // Set the initial match status as needed
+    matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(), // Mock addListener method
-    removeListener: jest.fn(), // Mock removeListener method
-    dispatchEvent: jest.fn(), // Mock dispatchEvent method
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    dispatchEvent: jest.fn(),
   };
 });
 

@@ -29,9 +29,11 @@ export async function MainNav({
         Components
       </NavLink>
       <NavLink
-        href="/api-doc"
+          rel="noreferrer noopener"
+          target="_blank"
+          href="https://diconium.github.io/ethereal-nexus/"
       >
-        API Documentation
+        Documentation
       </NavLink>
       {session?.user?.role === 'admin' ? (
         <NavLink

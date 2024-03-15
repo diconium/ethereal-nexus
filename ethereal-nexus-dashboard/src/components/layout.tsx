@@ -12,8 +12,7 @@ export default function DashboardLayout({
 
   return (
     <>
-      <div className="flex-col md:flex relative mt-6">
-        <div className="relative">
+      <div className="flex-col md:flex mt-6">
           <div className="flex h-16 items-center px-8">
             <LogoImage />
             <MainNav className="mx-6" />
@@ -22,8 +21,7 @@ export default function DashboardLayout({
               <UserNav />
             </div>
           </div>
-        </div>
-        <div className="flex-1 space-y-4 p-8 mt-6 absolute">
+        <div className="flex-1 space-y-4 p-8 mt-6">
           {children}
         </div>
         <Toaster />

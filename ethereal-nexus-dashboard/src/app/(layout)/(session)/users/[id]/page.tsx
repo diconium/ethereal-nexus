@@ -1,19 +1,21 @@
 import { Separator } from '@/components/ui/separator';
 import { auth } from '@/auth';
 import { notFound } from 'next/navigation';
-import { getUserById } from '@/data/users/actions';
+import { getPublicUserById } from '@/data/users/actions';
 import { ApiKeyList } from '@/components/user/api-key-table/api-key-list';
-import { DataTable } from '@/components/ui/data-table/data-table';
-import { columns } from '@/components/projects/table/columns';
 import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ProfileForm from '@/components/user/profile-form';
+import PasswordForm from '@/components/user/password-form';
 
-export default async function UserPage({ params: { id } }: any) {
+export default async function UserPage({ params: { id }, searchParams: {tab} }: any) {
   const session = await auth();
-  const user = await getUserById(session?.user?.id);
-
+  const user = await getPublicUserById(session?.user?.id);
   if (!user.success || id !== session?.user?.id) {
     notFound();
   }
+
+  const { name, email } = user.data
 
   return (
     <div className="container h-full flex-1 flex-col space-y-8 p-8 md:flex">
@@ -24,7 +26,28 @@ export default async function UserPage({ params: { id } }: any) {
         </div>
       </div>
       <Separator />
-      <ApiKeyList />
+      <Tabs defaultValue={tab ?? 'profile'} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="profile">
+            Profile
+          </TabsTrigger>
+          <TabsTrigger value="password">
+            Password
+          </TabsTrigger>
+          <TabsTrigger value="keys">
+            Api Keys
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="profile" className="space-y-4 p-6">
+          <ProfileForm name={name} email={email} />
+        </TabsContent>
+        <TabsContent value="password" className="space-y-4 p-6">
+          <PasswordForm />
+        </TabsContent>
+        <TabsContent value="keys" className="space-y-4 p-6">
+          <ApiKeyList />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

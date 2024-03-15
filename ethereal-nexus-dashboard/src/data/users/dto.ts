@@ -32,6 +32,14 @@ export const newCredentialsUserSchema =  createInsertSchema(users, {
   .omit({ id: true });
 export type NewCredentialsUser = z.infer<typeof newCredentialsUserSchema>
 
+export const updatePasswordSchema = userSchema
+  .pick({id: true})
+  .extend({
+    password: newCredentialsUserSchema.shape.password,
+    oldPassword: newCredentialsUserSchema.shape.password
+  })
+export type UpdatePassword = z.infer<typeof updatePasswordSchema>
+
 export const userLoginSchema = newUserSchema.pick({
   password: true,
   email: true

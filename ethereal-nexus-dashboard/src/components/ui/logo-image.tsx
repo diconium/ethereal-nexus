@@ -5,10 +5,12 @@ import Image from 'next/image';
 const LogoImage = () => {
   const imageSizePixels = 267;
   const {theme} = useTheme();
-  const [image, setImage] = useState('/ethereal-nexus-logo-dark-mode.jpg');
+  const logoWithSystemColor = typeof window !== 'undefined' &&
+  window.matchMedia('(prefers-color-scheme: dark)').matches ? '/ethereal-nexus-logo-dark-mode.jpg' : '/ethereal-nexus-logo-light-mode.jpg';
+  const [image, setImage] = useState(logoWithSystemColor);
 
   useEffect(() => {
-    setImage(`/ethereal-nexus-logo-${theme}-mode.jpg`);
+    theme === 'system' ?  setImage(logoWithSystemColor) : setImage(`/ethereal-nexus-logo-${theme}-mode.jpg`);
   }, [theme]);
 
   return <Image src={image} alt="Ethereal Nexus Logo" width={imageSizePixels} height={imageSizePixels/9}/>;

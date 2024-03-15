@@ -57,10 +57,9 @@ jobs:
           containerAppName: demo-ethereal-nexus
           resourceGroup: RG-Ethereal-nexus
           registryUrl: registry.hub.docker.com
-          registryServer: registry.hub.docker.com
           registryUsername: ${{ secrets.DEMOETHEREALNEXUS_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.DEMOETHEREALNEXUS_REGISTRY_PASSWORD }}
-          imageToBuild: docker19diconium/remote-components:${{ github.sha }}
+          imageToBuild: docker19diconium/remote-components:${{ github.sha }} --registry-server registry.hub.docker.com
           
             
 

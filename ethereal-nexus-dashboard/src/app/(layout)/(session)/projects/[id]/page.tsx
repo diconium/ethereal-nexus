@@ -6,8 +6,9 @@ import { auth } from '@/auth';
 import { notFound } from 'next/navigation';
 import { ProjectMemberList } from '@/components/projects/members-table/member-list';
 import { ProjectComponentsList } from '@/components/projects/component-selection-table/components-list';
+import Link from 'next/link';
 
-export default async function EditProject({ params: { id } }: any) {
+export default async function EditProject({ params: { id }, searchParams: { tab } }: any) {
   const session = await auth();
   const project = await getProjectById(id, session?.user?.id);
 
@@ -26,16 +27,22 @@ export default async function EditProject({ params: { id } }: any) {
         </p>
       </div>
       <Separator />
-      <Tabs defaultValue="overview" className="space-y-4">
+      <Tabs value={tab} defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">
-            Overview
+            <Link href={`/projects/${id}?tab=overview`} >
+              Overview
+            </Link>
           </TabsTrigger>
           <TabsTrigger value="components">
-            Components
+            <Link href={`/projects/${id}?tab=components`} >
+              Components
+            </Link>
           </TabsTrigger>
           <TabsTrigger value="users">
-            Users
+            <Link href={`/projects/${id}?tab=users`} >
+              Users
+            </Link>
           </TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4 p-6">
@@ -44,10 +51,14 @@ export default async function EditProject({ params: { id } }: any) {
           />
         </TabsContent>
         <TabsContent value="components" className="space-y-4 p-6">
-          <ProjectComponentsList id={id} />
+          <ProjectComponentsList
+            id={id}
+          />
         </TabsContent>
         <TabsContent value="users" className="space-y-4 p-6">
-          <ProjectMemberList id={id} />
+          <ProjectMemberList
+            id={id}
+          />
         </TabsContent>
       </Tabs>
     </div>

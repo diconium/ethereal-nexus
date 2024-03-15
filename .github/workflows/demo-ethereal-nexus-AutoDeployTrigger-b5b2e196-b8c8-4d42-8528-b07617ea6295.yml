@@ -25,7 +25,19 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.DEMOETHEREALNEXUS_AZURE_CREDENTIALS }}
-
+          
+      - name: 'Create env file'
+        run: |
+          echo "${{ secrets.MONGODB_URI }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.PGHOST }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.PGUSER }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.PGPORT }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.PGPASSWORD }}" >> ./ethereal-nexus-dashboard/.env
+          echo "PGSSL=true" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./ethereal-nexus-dashboard/.env
+          
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:

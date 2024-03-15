@@ -29,13 +29,15 @@ function isSelected(pathname: string, href: string | UrlObject) {
   return href !== '/' && pathname.startsWith(href.toString());
 }
 
-export function NavLink({href, className, children}: NavLinkProps) {
+export function NavLink({href, className, children, target, rel}: NavLinkProps) {
   const pathname = usePathname()
   const selected = isSelected(pathname, href);
 
   return (
       <Link
         href={href}
+        target={target}
+        rel={rel}
         className={link({ selected, className })}
       >
         {children}

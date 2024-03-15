@@ -26,12 +26,6 @@ jobs:
         with:
           creds: ${{ secrets.DEMOETHEREALNEXUS_AZURE_CREDENTIALS }}
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
@@ -55,8 +49,8 @@ jobs:
         with:
           appSourcePath: ${{ github.workspace }}/ethereal-nexus-dashboard 
           registryUrl: registry.hub.docker.com
-          registryUsername: ${{ secrets.DEMOETHEREALNEXUS_REGISTRY_USERNAME }}
-          registryPassword: ${{ secrets.DEMOETHEREALNEXUS_REGISTRY_PASSWORD }}
+          registryUsername: ${{ secrets.DOCKER_USERNAME }}
+          registryPassword: ${{ secrets.DOCKER_PASSWORD }}
           containerAppName: demo-ethereal-nexus
           resourceGroup: RG-Ethereal-nexus
           imageToBuild: registry.hub.docker.com/demo-ethereal-nexus:${{ github.sha }}

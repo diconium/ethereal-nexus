@@ -53,10 +53,7 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}/ethereal-nexus-dashboard 
-          registryUrl: registry.hub.docker.com
-          registryUsername: ${{ secrets.DOCKER_USERNAME }}
-          registryPassword: ${{ secrets.DOCKER_PASSWORD }}
+          appSourcePath: ${{ github.workspace }}/ethereal-nexus-dashboard
           containerAppName: demo-ethereal-nexus
           resourceGroup: RG-Ethereal-nexus
           imageToBuild: docker19diconium/remote-components:${{ github.sha }}

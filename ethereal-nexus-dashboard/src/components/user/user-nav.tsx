@@ -46,7 +46,10 @@ export async function UserNav() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <Link href={`/users/${session?.user?.id}`} >
+              <Link href={`/users/${session?.user?.id}?tab=profile`} >
+                <DropdownMenuItem>Profile</DropdownMenuItem>
+              </Link>
+              <Link href={`/users/${session?.user?.id}?tab=keys`} >
                 <DropdownMenuItem>Settings</DropdownMenuItem>
               </Link>
             </DropdownMenuGroup>

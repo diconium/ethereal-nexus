@@ -65,7 +65,7 @@ export function DataTable<TData, TValue>({ columns, data, meta, entity, createSl
         entityName={entity}
         createSlot={createSlot}
       />
-      <div className="rounded-md border">
+      <div className="rounded-md">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

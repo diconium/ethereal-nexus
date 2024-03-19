@@ -8,18 +8,21 @@ import { buttonVariants } from '@/components/ui/button';
 import { PlusCircledIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { getComponentById, getComponents } from '@/data/components/actions';
 
 export default async function Projects() {
   const session = await auth()
   const projects = await getProjects(session?.user?.id);
   logger.info("Projects Page called "); // calling our logger
 
+  const components = await getComponents();
+  console.log('components: ', components.success ? components.data.length : '')
   return (
     <div className="container h-full flex-1 flex-col space-y-8 p-8 md:flex">
       <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
-          <p className="text-muted-foreground">Manage your projects here!</p>
+        <div className="flex items-baseline">
+          <h2 className="text-2xl font-bold tracking-tight w-2/2">Active Projects</h2>
+          <h4 className="w-2/2 pl-2">({projects.success ? projects.data.length : ''})</h4>
         </div>
       </div>
       {

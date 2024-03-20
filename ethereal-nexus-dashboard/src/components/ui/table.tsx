@@ -80,14 +80,21 @@ const TableHead = React.forwardRef<
 ))
 TableHead.displayName = "TableHead"
 
+interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
+  columnIndex?: number;
+}
+
 const TableCell = React.forwardRef<
     HTMLTableCellElement,
-    React.TdHTMLAttributes<HTMLTableCellElement>
->(({className, ...props}, ref) => (
+    TableCellProps
+
+>(({className, columnIndex, ...props}, ref) => (
     <td
         ref={ref}
         className={cn(
             "p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+            columnIndex === 0 && "w-1/4",
+            columnIndex === 1 && "w-1/3",
             className
         )}
         {...props}

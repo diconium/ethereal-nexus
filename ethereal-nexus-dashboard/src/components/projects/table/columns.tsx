@@ -28,7 +28,20 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader className="text-xs font-bold" column={column} title="Components" />
     ),
-    cell: ({ row }) => ( <div className="text-orange-500"> {row.getValue("components")?.length || 0}</div> ),
+    cell: ({ row }) => (
+      <div className="inline-flex">
+        {
+          row.getValue("components")?.length ?
+          row.getValue("components").map((projectComponents, index, refProjectComponents) => (
+            <div key={projectComponents.id} className="text-orange-500">
+              {projectComponents.component.name}
+              <span className="text-muted-foreground transition-colors pr-1"> {index < refProjectComponents.length - 1 && "/"} </span>
+            </div>
+          )) : null
+        }
+      </div>
+
+    ),
     enableSorting: false,
     enableHiding: true,
   },

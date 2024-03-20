@@ -25,9 +25,10 @@ interface DataTableProps<TData, TValue> {
   handlerPath?: string
   entity: ComponentProps<typeof DataTableToolbar>['entityName']
   createSlot?: ComponentProps<typeof DataTableToolbar>['createSlot']
+  colWidth?: boolean;
 }
 
-export function DataTable<TData, TValue>({ columns, data, meta, entity, createSlot }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, meta, entity, createSlot, colWidth }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -92,8 +93,8 @@ export function DataTable<TData, TValue>({ columns, data, meta, entity, createSl
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                  {row.getVisibleCells().map((cell, index) => (
+                    <TableCell key={cell.id} columnIndex={colWidth ? index : -1}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

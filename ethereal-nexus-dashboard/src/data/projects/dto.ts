@@ -55,7 +55,14 @@ export type ProjectComponentConfig = z.infer<
  *                   component_id: string
  */
 export const projectWithComponentIdSchema = projectSchema.extend({
-  components: projectComponentConfigSchema.pick({ component_id: true }).array(),
+  components: projectComponentConfigSchema
+    .pick({
+      component_id: true
+    })
+    .extend({
+      component: componentsSchema
+    })
+    .array(),
 });
 export type ProjectWithComponentId = z.infer<
   typeof projectWithComponentIdSchema

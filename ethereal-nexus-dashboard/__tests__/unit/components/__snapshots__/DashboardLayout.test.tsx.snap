@@ -1,0 +1,44 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Dashboard layout component should match snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class="flex-col md:flex relative mt-6"
+  >
+    <div
+      class="relative"
+    >
+      <div
+        class="flex h-16 items-center px-8"
+      >
+        <div>
+          Ethereal Nexus Logo
+        </div>
+        <div>
+          Main Nav
+        </div>
+        <div
+          class="ml-auto flex items-center space-x-4"
+        >
+          <div>
+            ThemePicker
+          </div>
+          <div>
+            User Nav
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="flex-1 space-y-4 p-8 mt-6 absolute"
+    >
+      <div>
+        Child Component
+      </div>
+    </div>
+    <div>
+      Toaster
+    </div>
+  </div>
+</DocumentFragment>
+`;

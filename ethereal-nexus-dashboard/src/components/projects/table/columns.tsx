@@ -32,10 +32,10 @@ export const columns = [
       <div className="inline-flex">
         {
           row.getValue("components")?.length ?
-          row.getValue("components").map((projectComponents, index, refProjectComponents) => (
-            <div key={projectComponents.id} className="text-orange-500">
-              {projectComponents.component.name}
-              <span className="text-muted-foreground transition-colors pr-1"> {index < refProjectComponents.length - 1 && "/"} </span>
+          row.getValue("components").map((projectComps, index, refProjectComps) => (
+            <div key={projectComps.component.id} className="text-orange-500 text-base">
+              {projectComps.component.name}
+              <span className="text-muted-foreground transition-colors pr-1"> {index < refProjectComps.length - 1 && "/"} </span>
             </div>
           )) : null
         }

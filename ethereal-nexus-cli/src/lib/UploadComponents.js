@@ -24,7 +24,7 @@ const putComponentInRemoteComponentsAPI = async ({ config, element }) => {
         return true;
       } else {
         console.error(
-          `Updated component failed for: ${JSON.stringify(element.name)}`,
+          `\nUpdated component failed for: ${JSON.stringify(element.name)}. (status:${response.status})`,
         );
         return false;
       }
@@ -46,7 +46,8 @@ export const processComponents = async ({ config, components }) => {
     await Promise.all(
       components.map(async (element, index) => {
         if (element.name && element.version) {
-          await putComponentInRemoteComponentsAPI({ config, element }).then(
+          await putComponentInRemoteComponentsAPI({ config, element })
+              .then(
             async (success) => {
               spinner.text = `Uploading component ${element.name} [${
                 index + 1

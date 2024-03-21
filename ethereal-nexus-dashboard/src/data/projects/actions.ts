@@ -27,6 +27,7 @@ import { and, desc, eq, getTableColumns, sql } from 'drizzle-orm';
 import { projectComponentConfig, projects } from './schema';
 import { insertMembers, userIsMember } from '@/data/member/actions';
 import { componentAssets, components, componentVersions } from '@/data/components/schema';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 export async function getProjects(
   userId: string | undefined | null,
@@ -478,6 +479,7 @@ export async function upsertProject(
       }
     }
 
+    revalidatePath(`/projects`, 'page')
     return actionSuccess(result.data);
   } catch (error) {
     console.error(error);
@@ -518,7 +520,7 @@ export async function upsertComponentConfig(
       })
       .returning();
 
-    const safe = projectComponentConfigSchema.safeParse(insert);
+    const safe = projectComponentConfigSchema.safeParse(insert[0]);
     if (!safe.success) {
       return actionZodError(
         "There's an issue with the component config records.",
@@ -526,6 +528,7 @@ export async function upsertComponentConfig(
       );
     }
 
+    revalidatePath('/(layout)/(session)/projects/[id]', 'layout')
     return actionSuccess(safe.data);
   } catch (error) {
     console.error(error);

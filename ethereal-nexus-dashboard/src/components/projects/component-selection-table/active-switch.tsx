@@ -4,6 +4,8 @@ import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { upsertComponentConfig } from '@/data/projects/actions';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { useRouter } from 'next/navigation';
+import { toast } from '@/components/ui/use-toast';
 
 type ActiveSwitchProps = {
   componentId: string,
@@ -12,11 +14,17 @@ type ActiveSwitchProps = {
   active: boolean,
 }
 export function ActiveSwitch({componentId, disabled, projectId, active}:ActiveSwitchProps) {
-  const { data: session } = useSession()
+  const router = useRouter();
+  const { data: session } = useSession();
   const form = useForm({defaultValues: {is_active: active}});
 
   const onSubmit = async (data) => {
-    await upsertComponentConfig({project_id: projectId, component_id: componentId, is_active: data.is_active}, session?.user?.id)
+    const update = await upsertComponentConfig({project_id: projectId, component_id: componentId, is_active: data.is_active}, session?.user?.id)
+    if(!update.success){
+      toast({
+        title: "Failed to activate component.",
+      });
+    }
   }
 
   return <Form {...form}>

@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`LogoImage component should match snapshot 1`] = `
+<body>
+  <div>
+    <img
+      alt="Ethereal Nexus Logo"
+      data-nimg="1"
+      data-testid="ethereal-logo-light-image"
+      decoding="async"
+      height="29.666666666666668"
+      loading="lazy"
+      src="/_next/image?url=%2Fethereal-nexus-logo-light-mode.jpg&w=640&q=75"
+      srcset="/_next/image?url=%2Fethereal-nexus-logo-light-mode.jpg&w=384&q=75 1x, /_next/image?url=%2Fethereal-nexus-logo-light-mode.jpg&w=640&q=75 2x"
+      style="color: transparent;"
+      width="267"
+    />
+  </div>
+</body>
+`;

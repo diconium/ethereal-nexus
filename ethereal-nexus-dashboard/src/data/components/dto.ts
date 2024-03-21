@@ -42,7 +42,7 @@ export type ComponentWithVersion = z.infer<typeof componentWithVersionSchema>;
 export const componentsUpsertSchema = createInsertSchema(components)
   .omit({ id: true })
   .required({ name: true })
-  .extend(componentVersionsSchema.pick({ version: true, dialog: true }).shape)
+  .extend(componentVersionsSchema.pick({ version: true, dialog: true, readme: true }).shape)
   .transform((val) => ({
     ...val,
     slug: val.slug ?? val.name.toLowerCase().replaceAll(' ', '_'),

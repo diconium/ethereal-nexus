@@ -94,6 +94,7 @@ export async function upsertComponent(
             component_id: upsertedComponent.id,
             version: component.version,
             dialog: component.dialog,
+            readme: component.readme,
         };
 
         const safeComponentVersion =

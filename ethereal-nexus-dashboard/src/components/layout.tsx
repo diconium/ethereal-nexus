@@ -13,7 +13,7 @@ export default function DashboardLayout({
   return (
     <>
       <div className="flex-col md:flex mt-6">
-          <div className="flex h-16 items-center px-8">
+          <div className="container flex h-16 items-center px-8">
             <LogoImage />
             <MainNav className="mx-6" />
             <div className="ml-auto flex items-center space-x-4">

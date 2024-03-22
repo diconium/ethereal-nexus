@@ -44,9 +44,6 @@ export async function getProjects(
           columns: {
             component_id: true,
           },
-          with: {
-            component: true,
-          },
           where: (component, { eq }) => eq(component?.is_active, true),
         },
       },

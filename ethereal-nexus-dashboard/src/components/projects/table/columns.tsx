@@ -30,17 +30,8 @@ export const columns = [
     ),
     cell: ({ row }) => (
       <div className="inline-flex">
-        {
-          row.getValue("components")?.length ?
-          row.getValue("components").map((projectComps, index, refProjectComps) => (
-            <div key={projectComps.component.id} className="text-orange-500 text-base">
-              {projectComps.component.name}
-              <span className="text-muted-foreground transition-colors pr-1"> {index < refProjectComps.length - 1 && "/"} </span>
-            </div>
-          )) : null
-        }
+        <div className="text-orange-500 text-base"> { row.getValue("components")?.length || 0 } </div>
       </div>
-
     ),
     enableSorting: false,
     enableHiding: true,
@@ -51,7 +42,6 @@ export const columns = [
       <div className="flex justify-end" >
         <ProjectsDataTableRowActions row={row} table={table} />
       </div>
-
     ),
   },
 ];

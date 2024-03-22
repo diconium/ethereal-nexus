@@ -69,12 +69,7 @@ export const navMenuConfig: NavMenuConfig = {
       items: [
         {
           title: 'Getting started',
-          href: '/getting-started',
-          description: 'Read the full documentation',
-        },
-        {
-          title: 'Documentation',
-          href: '/docs',
+          href: '/docs/introduction',
           description: 'Read the full documentation',
         },
         {

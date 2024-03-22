@@ -2,29 +2,23 @@
 import Footer from "@/components/layout/footer.astro";
 import Header from "@/components/layout/header.astro";
 import { MainNavigationMenu } from "@/components/main-navigation-menu";
-import { cn } from "@/lib/utils";
+import { siteConfig } from "@/config/site";
+import { Icon } from "astro-icon/components";
 import BaseLayout from "./base-layout.astro";
 import { SheetMobileNav } from "@/components/layout/sheet-mobile-nav";
 import { navMenuConfig } from "@/config/nav-menu";
 
 type Props = {
   title: string;
-  description?: string;
-  mainClass?: string;
+  description: string;
 };
 
-const { title, description, mainClass } = Astro.props;
+const { title, description } = Astro.props;
 ---
 
 <BaseLayout title={title} description={description}>
-  <Header>
-    <!-- if using only normals links  -->
-    <!-- <MainNav items={marketingConfig.mainNav} slot="left-header" />
-    <SheetMobileNav
-      mainNavItems={marketingConfig.mainNav}
-      slot="mobile-nav-header"
-      client:load
-    /> -->
+  <Header className="border-b">
+
 
     <!-- if use Navigation Menu on desktop -->
     <MainNavigationMenu slot="left-header" client:load />
@@ -36,11 +30,16 @@ const { title, description, mainClass } = Astro.props;
       slot="mobile-nav-header"
       client:load
     />
+
+    <nav slot="right-header">
+      <a href={siteConfig.links.github} target="_blank" rel="noreferrer">
+        <Icon name="mdi:github" class="size-8" />
+        <span class="sr-only">GitHub</span>
+      </a>
+    </nav>
   </Header>
 
-  <main class={cn(mainClass)}>
-      <slot />
-  </main>
+  <slot />
 
-  <Footer />
+  <Footer className="border-t" />
 </BaseLayout>

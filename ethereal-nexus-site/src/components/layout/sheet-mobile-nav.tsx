@@ -43,7 +43,6 @@ export function SheetMobileNav({
       </SheetTrigger>
       <SheetContent side="left" className="pr-0">
         <a href="/" className="flex items-center">
-          <Icons.logo className="mr-2 size-8" />
           <span className="font-bold">{siteConfig.name}</span>
         </a>
         <ScrollArea className="my-4 h-[calc(100vh-8rem)] pb-10 pl-10">

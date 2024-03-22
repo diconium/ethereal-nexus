@@ -1,13 +1,13 @@
 ---
-import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
-import { Icon } from "astro-icon/components";
+import { LogoImage } from '../logo-image';
 
 type Props = {
   className?: string;
 };
 
 const { className } = Astro.props;
+
 ---
 
 <header
@@ -20,7 +20,7 @@ const { className } = Astro.props;
     <div class="flex items-center gap-6 md:gap-8 lg:gap-10">
       <a href="/" class="hidden items-center space-x-2 md:flex">
         <span class="hidden font-bold sm:inline-block">
-          {siteConfig.name}
+         <LogoImage client:load/>
         </span>
       </a>
 
@@ -33,13 +33,17 @@ const { className } = Astro.props;
 
     <!-- logo mobile center -->
     <div
-      class="absolute top-1/2 left-1/2 -translate-x-4 -translate-y-4 md:hidden"
+      class=" md:hidden h-full"
     >
       <a href="/" aria-label="Ethereal Nexus homepage">
-        {siteConfig.name}
+        <LogoImage client:load/>
       </a>
     </div>
 
     <slot name="right-header" />
   </div>
 </header>
+
+<script>
+
+</script>

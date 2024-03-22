@@ -10,7 +10,7 @@ export type SiteConfig = {
 };
 
 export const siteConfig: SiteConfig = {
-  name: 'Etheral Nexus',
+  name: 'Ethereal Nexus',
   title: 'Component Management Made Easy',
   description:
     'Empower Your Web Development with Seamless Component Management and Deployment',

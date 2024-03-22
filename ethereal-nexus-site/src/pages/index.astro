@@ -4,8 +4,7 @@ import { siteConfig } from "@/config/site";
 import MainLayout from "@/layouts/main-layout.astro";
 import { cn } from "@/lib/utils";
 import { Icon } from "astro-icon/components";
-import { Icons } from '@/icons';
-
+import { SvgIcon } from '../components/icon';
 ---
 
 <MainLayout title="Etheral Nexus">
@@ -28,7 +27,7 @@ import { Icons } from '@/icons';
 
 			<div class="flex justify-center space-x-2 md:space-x-4">
 				<a
-					href="/docs/getting-started/"
+					href="/docs/introduction/"
 					class={cn(buttonVariants({ size: "lg"}))}
 				>
 					Get Started
@@ -67,8 +66,8 @@ import { Icons } from '@/icons';
 			class="mx-auto grid justify-center gap-4 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3"
 		>
 			<div class="relative overflow-hidden rounded-lg border bg-background p-2">
-				<div class="flex h-[180px] flex-col justify-center items-center rounded-md p-5">
-					<Icons.component className="size-10"/>
+				<div class="flex h-[250px] flex-col justify-center items-center rounded-md p-5">
+					<SvgIcon name='component' className="size-10 mb-5" client:load/>
 
 					<div class="space-y-2">
 						<h3 class="font-bold">Component Library Management</h3>
@@ -79,8 +78,8 @@ import { Icons } from '@/icons';
 				</div>
 			</div>
 			<div class="relative overflow-hidden rounded-lg border bg-background p-2">
-				<div class="flex h-[180px] flex-col justify-center items-center rounded-md p-5">
-					<Icons.deploy className="size-10"/>
+				<div class="flex h-[250px] flex-col justify-center items-center rounded-md p-5">
+					<SvgIcon name='deploy' className="size-10 mb-5" client:load/>
 					<div class="space-y-2">
 						<h3 class="font-bold">Seamless Deployment</h3>
 						<p class="text-sm text-muted-foreground">
@@ -90,8 +89,8 @@ import { Icons } from '@/icons';
 				</div>
 			</div>
 			<div class="relative overflow-hidden rounded-lg border bg-background p-2">
-				<div class="flex h-[180px] flex-col justify-center items-center rounded-md p-5">
-					<Icons.version className="size-10"/>
+				<div class="flex h-[250px] flex-col justify-center items-center rounded-md p-5">
+					<SvgIcon name='version' className="size-10 mb-5" client:load/>
 					<div class="space-y-2">
 						<h3 class="font-bold">Version Control</h3>
 						<p class="text-sm text-muted-foreground">
@@ -101,8 +100,8 @@ import { Icons } from '@/icons';
 				</div>
 			</div>
 			<div class="relative overflow-hidden rounded-lg border bg-background p-2">
-				<div class="flex h-[180px] flex-col justify-center items-center rounded-md p-5">
-					<Icons.crossPlatform className="size-10"/>
+				<div class="flex h-[250px] flex-col justify-center items-center rounded-md p-5">
+					<SvgIcon name='crossPlatform' className="size-10 mb-5" client:load/>
 					<div class="space-y-2">
 						<h3 class="font-bold">Cross-Platform Compatibility</h3>
 						<p class="text-sm text-muted-foreground mt-3">
@@ -112,8 +111,8 @@ import { Icons } from '@/icons';
 				</div>
 			</div>
 			<div class="relative overflow-hidden rounded-lg border bg-background p-2">
-				<div class="flex h-[180px] flex-col justify-center items-center rounded-md p-5">
-					<Icons.realTime className="size-10"/>
+				<div class="flex h-[250px] flex-col justify-center items-center rounded-md p-5">
+					<SvgIcon name='realTime' className="size-10 mb-5" client:load/>
 					<div class="space-y-2">
 						<h3 class="font-bold">Real-Time Updates</h3>
 						<p class="text-sm text-muted-foreground">
@@ -123,8 +122,8 @@ import { Icons } from '@/icons';
 				</div>
 			</div>
 			<div class="relative overflow-hidden rounded-lg border bg-background p-2">
-				<div class="flex h-[180px] flex-col justify-center items-center rounded-md p-5">
-					<Icons.collaboration className="size-10"/>
+				<div class="flex h-[250px] flex-col justify-center items-center rounded-md p-5">
+					<SvgIcon name='collaboration' className="size-10 mb-5" client:load/>
 					<div class="space-y-2">
 						<h3 class="font-bold">Collaboration and Sharing</h3>
 						<p class="text-sm text-muted-foreground">

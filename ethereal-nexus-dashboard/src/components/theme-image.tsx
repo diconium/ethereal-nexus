@@ -18,5 +18,4 @@ export const ThemeImage = (props: Props) => {
   }, [resolvedTheme]);
 
   return <Image {...rest} src={imageSrc} />;
-
 };

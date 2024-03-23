@@ -5,9 +5,7 @@ import { MainNav } from '@/components/ui/main-nav/main-nav';
 import LogoImage from '@/components/ui/logo-image';
 import { Loading } from '@/components/ui/loading';
 
-export default function DashboardLayout({
-                                          children,
-                                        }: {
+export default function DashboardLayout({ children }: {
   children: React.ReactNode;
 }) {
 

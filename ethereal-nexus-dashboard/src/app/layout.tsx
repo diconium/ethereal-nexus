@@ -12,7 +12,7 @@ export default async function RootLayout({
 }) {
     const env = process.env.NODE_ENV
 
-    return <html lang="en">
+  return <html lang="en" suppressHydrationWarning>
     { env == "production" ? (
     <head>
         <NewRelicSnippet/>

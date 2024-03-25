@@ -17,14 +17,15 @@ export default async function Projects() {
   return (
     <div className="container h-full flex-1 flex-col space-y-8 p-8 md:flex">
       <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
-          <p className="text-muted-foreground">Manage your projects here!</p>
+        <div className="flex items-baseline">
+          <h2 className="text-2xl font-bold tracking-tight w-2/2">Active Projects</h2>
+          <h4 className="w-2/2 pl-2">({projects.success ? projects.data.length : ''})</h4>
         </div>
       </div>
       {
         projects.success ?
           <DataTable
+            colWidth
             entity={'projects'}
             columns={columns}
             data={projects.data}

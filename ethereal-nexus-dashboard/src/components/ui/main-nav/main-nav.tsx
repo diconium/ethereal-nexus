@@ -16,21 +16,21 @@ export async function MainNav({className = "", ...props } : React.HTMLAttributes
     >
       <div className="flex items-center space-x-4 lg:space-x-6">
         <NavLink className='flex items-center justify-center w-36' href="/">
-          <div className="mr-4 transition-colors">
+          <div className="mr-4">
             <HomeIcon width={20} height={20} />
           </div>
           <span>Home</span>
         </NavLink>
 
         <NavLink className="flex items-center justify-center w-40" href="/projects">
-          <div className="mr-4 transition-colors">
+          <div className="mr-4">
             <ProjectsIcon width={20} height={20} />
           </div>
           <span>Projects</span>
         </NavLink>
 
         <NavLink className="flex items-center justify-center w-44" href="/components">
-          <div className="mr-4 transition-colors">
+          <div className="mr-4">
             <ComponentsIcon width={20} height={20} />
           </div>
           <span>Components</span>
@@ -54,7 +54,7 @@ export async function MainNav({className = "", ...props } : React.HTMLAttributes
           <div className="mr-4">
             <ApiDocumentationIcon width={20} height={20} />
           </div>
-          <span>Documentation</span>
+          <span>API Documentation</span>
         </NavLink>
       </div>
     </nav>

@@ -5,9 +5,9 @@ import { auth } from '@/auth';
 import { columns } from '@/components/projects/table/columns';
 import {logger} from "@/logger";
 import { buttonVariants } from '@/components/ui/button';
-import { PlusCircledIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { ToogleViewProjects } from '@/components/ui/toogle-view-projects';
 
 export default async function Projects() {
   const session = await auth()
@@ -15,13 +15,36 @@ export default async function Projects() {
   logger.info("Projects Page called "); // calling our logger
 
   return (
-    <div className="container h-full flex-1 flex-col space-y-8 p-8 md:flex">
-      <div className="flex items-center justify-between space-y-2">
+    <div className="container h-full flex-1 flex-col space-y-4 md:flex">
+      <div className="flex items-center justify-between">
         <div className="flex items-baseline">
-          <h2 className="text-2xl font-bold tracking-tight w-2/2">Active Projects</h2>
-          <h4 className="w-2/2 pl-2">({projects.success ? projects.data.length : ''})</h4>
+          <h2 className="text-4xl font-bold tracking-tight">Active Projects</h2>
+          <h4 className="pl-2">({projects.success ? projects.data.length : ''})</h4>
+        </div>
+        <div className="flex items-center">
+          {
+            projects.success && (
+              <Link
+                href="/projects/new"
+                passHref
+                className={cn(
+                  buttonVariants({
+                    variant: 'outline',
+                    size: 'sm',
+                    className: 'mr-2 transition-colors bg-orange-600 rounded-full text-white py-4 px-8 flex justify-center items-center',
+                  }),
+                  session?.user?.role === 'viewer' && 'pointer-events-none opacity-50',
+                )}
+              >
+                <span className="text-sm font-bold">New project</span>
+
+              </Link>
+            )
+          }
+          <ToogleViewProjects></ToogleViewProjects>
         </div>
       </div>
+
       {
         projects.success ?
           <DataTable
@@ -29,28 +52,11 @@ export default async function Projects() {
             entity={'projects'}
             columns={columns}
             data={projects.data}
-            createSlot={
-              <Link
-                href={'/projects/new'}
-                passHref
-                className={
-                cn(
-                  buttonVariants(
-                    {
-                      variant: "outline",
-                      size: 'sm',
-                      className: "ml-auto hidden h-8 lg:flex mr-4" }
-                  ),
-                  session?.user?.role === 'viewer' && 'pointer-events-none opacity-50',
-                )
-                }>
-                <PlusCircledIcon className="mr-2 h-4 w-4" />
-                  Create project
-              </Link>
-            }
+            isShowViewOpt={false}
           /> :
           projects.error.message
       }
     </div>
+
   );
 }

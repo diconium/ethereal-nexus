@@ -1,9 +1,6 @@
 import "./globals.css";
 import React from "react";
-import { Inter } from "next/font/google";
 import NewRelicSnippet from '@/components/newrelicSnippet'
-
-const inter = Inter({ subsets: ["latin"] });
 
 export default async function RootLayout({
   children,
@@ -17,7 +14,7 @@ export default async function RootLayout({
     <head>
         <NewRelicSnippet/>
     </head>): null}
-    <body className={inter.className}>
+    <body className="font-campton">
     {children}
     </body>
     </html>;

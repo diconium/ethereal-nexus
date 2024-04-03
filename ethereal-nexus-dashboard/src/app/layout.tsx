@@ -1,6 +1,6 @@
 import "./globals.css";
 import React from "react";
-import NewRelicSnippet from '@/components/newrelicSnippet'
+import NewRelicSnippet from '@/components/newrelicSnippet';
 
 export default async function RootLayout({
   children,

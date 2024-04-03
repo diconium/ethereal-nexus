@@ -1,5 +1,5 @@
-import { IconJSXProps } from '@/utils/entities/icon';
 import React from 'react';
+import { IconJSXProps } from '@/utils/entities/icon';
 
 export default function ApiDocumentationIcon({ width, height, fill = 'currentColor' }: IconJSXProps) {
   return (

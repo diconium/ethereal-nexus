@@ -1,16 +1,11 @@
 "use client"
 
+import React from 'react';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { columns } from '@/components/projects/table/columns';
-import React, { useEffect, useState } from 'react';
 import { useViewMode } from '@/components/components/projects/ProjectsViewProvider';
-import { ProjectMemberList } from '@/components/projects/members-table/member-list';
-import { getMembersByResourceId } from '@/data/member/actions';
-import { getUsers } from '@/data/users/actions';
-import { auth } from '@/auth';
-import { getProjectById } from '@/data/projects/actions';
 
-export function UpdateTableView({ projects}) {
+export function UpdateProjectsView({ projects}) {
   const { viewMode } = useViewMode();
 
   return (
@@ -31,9 +26,9 @@ export function UpdateTableView({ projects}) {
         <div className="flex">
           {projects.success ? (
             projects.data.map((project) => (
-              <div className="flex flex-row max-w-xs w-full h-70">
+              <div key={project.id} className="flex flex-row max-w-xs w-full h-70">
                 <div className="bg-white border border-gray-300 rounded-lg max-w-xs w-full h-70 p-3 mr-4">
-                  <div key={project.id} className="card ">
+                  <div className="card ">
                     <div
                       className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 max-w-xs h-36 rounded-md"></div>
                     <span className="text-xs">{project.description}</span>
@@ -47,7 +42,7 @@ export function UpdateTableView({ projects}) {
                       <div className="mx-4 border-r border-gray-200 h-10 opacity-40"></div>
                       <div className="flex flex-col items-center">
                         <div className="text-xs">Project Members</div>
-                        <div className="text-orange-500 text-base font-bold">{project.membersLength}</div>
+                        <div className="text-base font-bold">{project.membersLength}</div>
                       </div>
                     </div>
                   </div>

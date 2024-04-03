@@ -1,14 +1,13 @@
 import React from "react";
-import { getProjectById, getProjects } from '@/data/projects/actions';
+import { getProjects } from '@/data/projects/actions';
 import { auth } from '@/auth';
 import {logger} from "@/logger";
 import { buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { ToogleIconViewProjects } from '@/components/ui/toogle-icon-view-projects';
-import { UpdateTableView } from '@/components/ui/update-table-view';
+import { UpdateProjectsView } from '@/components/ui/update-projects-view';
 import { ProjectsViewProvider } from '@/components/components/projects/ProjectsViewProvider';
-import { getUsers } from '@/data/users/actions';
 import { getMembersByResourceId } from '@/data/member/actions';
 
 export default async function Projects() {
@@ -19,7 +18,7 @@ export default async function Projects() {
     projects.data = await Promise.all(
       projects.data.map(async (project) => {
         const membersData = await getMembersByResourceId(project.id, session?.user?.id);
-        return { ...project, membersLength: membersData.data.length };
+        return { ...project, membersLength: membersData.success ? membersData.data.length : 0 };
       })
     );
   }
@@ -57,7 +56,7 @@ export default async function Projects() {
             <ToogleIconViewProjects></ToogleIconViewProjects>
           </div>
         </div>
-        <UpdateTableView projects={projects}/>
+        <UpdateProjectsView projects={projects}/>
       </div>
     </ProjectsViewProvider>
   );

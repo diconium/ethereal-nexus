@@ -1,8 +1,8 @@
 "use client"
 
+import React from 'react';
 import CardViewDisabledIcon from '@/components/ui/icons/CardViewDisabledIcon';
 import ListViewIcon from '@/components/ui/icons/ListViewIcon';
-import React, { useState } from 'react';
 import ListViewDisabledIcon from '@/components/ui/icons/ListViewDisabledIcon';
 import CardViewIcon from '@/components/ui/icons/CardViewIcon';
 import { useViewMode } from '@/components/components/projects/ProjectsViewProvider';

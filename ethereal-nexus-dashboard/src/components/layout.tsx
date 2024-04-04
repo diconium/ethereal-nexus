@@ -21,7 +21,7 @@ export default function DashboardLayout({ children }: {
               <UserNav />
             </div>
           </div>
-          <div className="flex-1 space-y-4 p-8 mt-6">
+          <div className="flex-1 p-8">
             {children}
           </div>
           <Toaster />

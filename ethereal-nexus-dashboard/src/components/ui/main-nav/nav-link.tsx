@@ -5,10 +5,10 @@ import { ComponentProps } from 'react';
 import { usePathname } from 'next/navigation';
 import type { UrlObject } from "url";
 
-const link = cva(["font-medium", "text-sm", "transition-colors"], {
+const link = cva(["font-medium", "transition-colors"], {
   variants: {
     selected: {
-      false: ['text-muted-foreground'],
+      false: [''],
     },
 
   },

@@ -26,9 +26,10 @@ interface DataTableProps<TData, TValue> {
   entity: ComponentProps<typeof DataTableToolbar>['entityName']
   createSlot?: ComponentProps<typeof DataTableToolbar>['createSlot']
   colWidth?: boolean;
+  isShowViewOpt?: boolean;
 }
 
-export function DataTable<TData, TValue>({ columns, data, meta, entity, createSlot, colWidth }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, meta, entity, createSlot, colWidth, isShowViewOpt }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -65,9 +66,9 @@ export function DataTable<TData, TValue>({ columns, data, meta, entity, createSl
         table={table}
         entityName={entity}
         createSlot={createSlot}
+        isShowViewOpt={isShowViewOpt}
       />
-      <div className="rounded-md">
-        <Table>
+      <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -109,7 +110,6 @@ export function DataTable<TData, TValue>({ columns, data, meta, entity, createSl
             )}
           </TableBody>
         </Table>
-      </div>
       <DataTablePagination table={table} />
     </>
   );

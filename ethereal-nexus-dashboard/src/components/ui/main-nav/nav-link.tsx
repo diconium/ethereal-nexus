@@ -5,10 +5,10 @@ import { ComponentProps } from 'react';
 import { usePathname } from 'next/navigation';
 import type { UrlObject } from "url";
 
-const link = cva(["font-medium", "text-sm", "transition-colors", "hover:text-primary"], {
+const link = cva(["font-medium", "transition-colors"], {
   variants: {
     selected: {
-      false: ['text-muted-foreground'],
+      false: [''],
     },
 
   },
@@ -33,12 +33,14 @@ export function NavLink({href, className, children, target, rel}: NavLinkProps) 
   const pathname = usePathname()
   const selected = isSelected(pathname, href);
 
+  const activeNavLink = selected ? 'bg-orange-600 rounded-full text-white py-4 px-8 flex justify-center' : '';
+  const combinedClassName = `${activeNavLink} ${className}`;
   return (
       <Link
         href={href}
         target={target}
         rel={rel}
-        className={link({ selected, className })}
+        className={link({ selected, className: combinedClassName })}
       >
         {children}
       </Link>

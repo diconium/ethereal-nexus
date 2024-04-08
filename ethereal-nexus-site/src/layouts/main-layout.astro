@@ -6,8 +6,6 @@ import { cn } from "@/lib/utils";
 import BaseLayout from "./base-layout.astro";
 import { SheetMobileNav } from "@/components/layout/sheet-mobile-nav";
 import { navMenuConfig } from "@/config/nav-menu";
-// import { marketingConfig } from "@/config/marketing";
-// import MainNav from "@/components/layout/main-nav.astro";
 
 type Props = {
   title: string;
@@ -41,7 +39,7 @@ const { title, description, mainClass } = Astro.props;
   </Header>
 
   <main class={cn(mainClass)}>
-    <slot />
+      <slot />
   </main>
 
   <Footer />

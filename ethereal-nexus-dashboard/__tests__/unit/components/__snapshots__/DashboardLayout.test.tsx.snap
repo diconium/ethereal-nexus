@@ -3,34 +3,30 @@
 exports[`Dashboard layout component should match snapshot 1`] = `
 <DocumentFragment>
   <div
-    class="flex-col md:flex relative mt-6"
+    class="flex-col md:flex mt-6"
   >
     <div
-      class="relative"
+      class="flex h-16 items-center px-8"
     >
+      <div>
+        Ethereal Nexus Logo
+      </div>
+      <div>
+        Main Nav
+      </div>
       <div
-        class="flex h-16 items-center px-8"
+        class="ml-auto flex items-center space-x-4"
       >
         <div>
-          Ethereal Nexus Logo
+          ThemePicker
         </div>
         <div>
-          Main Nav
-        </div>
-        <div
-          class="ml-auto flex items-center space-x-4"
-        >
-          <div>
-            ThemePicker
-          </div>
-          <div>
-            User Nav
-          </div>
+          User Nav
         </div>
       </div>
     </div>
     <div
-      class="flex-1 space-y-4 p-8 mt-6 absolute"
+      class="flex-1 space-y-4 p-8 mt-6"
     >
       <div>
         Child Component

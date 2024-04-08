@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { useMounted } from '@/lib/use-monted';
+import { Theme, themeStore } from '@/lib/theme.ts';
 
 const SunIcon = () => (
   <>
@@ -70,34 +71,43 @@ const MoonIcon = () => (
   </>
 );
 
+export const initialTheme = (): Theme => {
+  if (import.meta.env.SSR) {
+    return Theme.LIGHT;
+  }
+  if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+    return localStorage.getItem('theme') as Theme;
+  }
+  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return Theme.DARK;
+  }
+
+  return Theme.LIGHT;
+};
 export function ThemeToggle() {
-  const [theme, setTheme] = useState(() => {
-    if (import.meta.env.SSR) {
-      return undefined;
-    }
-    if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
-      return localStorage.getItem('theme');
-    }
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    return 'light';
-  });
+  const [theme, setTheme] = useState<Theme>(initialTheme());
+
+  useEffect(() => {
+    themeStore.set(theme);
+  }, []);
 
   const toggleTheme = () => {
-    const t = theme === 'light' ? 'dark' : 'light';
+    const t = theme === Theme.LIGHT ? Theme.DARK : Theme.LIGHT;
     localStorage.setItem('theme', t);
     setTheme(t);
+    themeStore.set(t);
   };
 
   const mounted = useMounted();
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === 'light') {
-      root.classList.remove('dark');
+    if (theme === Theme.DARK) {
+      root.classList.remove(Theme.LIGHT);
+      root.classList.add(Theme.DARK);
     } else {
-      root.classList.add('dark');
+      root.classList.remove(Theme.DARK);
+      root.classList.add(Theme.LIGHT);
     }
   }, [theme]);
 
@@ -109,7 +119,7 @@ export function ThemeToggle() {
     >
       <span className="sr-only">Toggle mode</span>
       <AnimatePresence initial={false}>
-        {theme !== 'dark' ? <SunIcon /> : <MoonIcon />}
+        {theme !== Theme.DARK ? <SunIcon /> : <MoonIcon />}
       </AnimatePresence>
     </button>
   ) : (

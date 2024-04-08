@@ -7,10 +7,10 @@ const Table = React.forwardRef<
     HTMLTableElement,
     React.HTMLAttributes<HTMLTableElement>
 >(({className, ...props}, ref) => (
-    <div className="w-full overflow-auto">
-        <table
-            ref={ref}
-            className={cn("w-full caption-bottom text-sm", className)}
+  <div className={`w-full overflow-auto p-6 border border-gray-300 rounded-lg bg-accent dark:bg-transparent transition-colors`}>
+    <table
+      ref={ref}
+      className={cn('w-full caption-bottom text-sm', className)}
             {...props}
         />
     </div>
@@ -21,7 +21,7 @@ const TableHeader = React.forwardRef<
     HTMLTableSectionElement,
     React.HTMLAttributes<HTMLTableSectionElement>
 >(({className, ...props}, ref) => (
-    <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
+    <thead ref={ref} className={className} {...props} />
 ))
 TableHeader.displayName = "TableHeader"
 
@@ -56,7 +56,7 @@ const TableRow = React.forwardRef<
     <tr
         ref={ref}
         className={cn(
-            "border-b transition-colors hover:bg-muted/50",
+            "transition-colors",
             highlightSelected && "data-[state=selected]:bg-muted",
             className
         )}
@@ -72,7 +72,7 @@ const TableHead = React.forwardRef<
     <th
         ref={ref}
         className={cn(
-            "h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+            "px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
             className
         )}
         {...props}
@@ -80,14 +80,21 @@ const TableHead = React.forwardRef<
 ))
 TableHead.displayName = "TableHead"
 
+interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
+  columnIndex?: number;
+}
+
 const TableCell = React.forwardRef<
     HTMLTableCellElement,
-    React.TdHTMLAttributes<HTMLTableCellElement>
->(({className, ...props}, ref) => (
+    TableCellProps
+
+>(({className, columnIndex, ...props}, ref) => (
     <td
         ref={ref}
         className={cn(
             "p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+            columnIndex === 0 && "w-1/4",
+            columnIndex === 1 && "w-1/3",
             className
         )}
         {...props}

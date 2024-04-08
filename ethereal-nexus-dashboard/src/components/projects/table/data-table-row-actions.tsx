@@ -1,6 +1,5 @@
 "use client";
 
-import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,6 +22,7 @@ import { toast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import { deleteProject } from '@/data/projects/actions';
 import type { Project } from '@/data/projects/dto';
+import DotsIcon from '@/components/ui/icons/DotsIcon';
 
 export function ProjectsDataTableRowActions({ table, row }) {
   const project = row.original;
@@ -71,7 +71,7 @@ export function ProjectsDataTableRowActions({ table, row }) {
             variant="ghost"
             className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
           >
-            <DotsHorizontalIcon className="h-4 w-4" />
+            <DotsIcon data-testid="ethereal-dots-icon" width="20" height="20"/>
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>

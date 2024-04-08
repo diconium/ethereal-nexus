@@ -33,7 +33,7 @@ export default async function Projects() {
             <h2 className="text-4xl font-bold tracking-tight">Active Projects</h2>
             <h4 className="pl-2">({projects.success ? projects.data.length : ''})</h4>
           </div>
-          <div className="flex items-center">
+          <div className="flex items-end">
             {
               projects.success && (
                 <Link

@@ -36,17 +36,8 @@ export async function MainNav({className = "", ...props } : React.HTMLAttributes
           <span>Components</span>
         </NavLink>
 
-        {session?.user?.role === 'admin' && (
-          <NavLink href="/users">Users</NavLink>
-        )}
-      </div>
-
-      {/* Spacer */}
-      <span className="mx-4"></span>
-
-      <div className="flex items-center">
         <NavLink
-          className='flex items-center justify-center'
+          className='flex items-center justify-center w-44'
           rel="noreferrer noopener"
           target="_blank"
           href="https://diconium.github.io/ethereal-nexus/"
@@ -54,8 +45,12 @@ export async function MainNav({className = "", ...props } : React.HTMLAttributes
           <div className="mr-4">
             <ApiDocumentationIcon width={20} height={20} />
           </div>
-          <span>API Documentation</span>
+          <span>Documentation</span>
         </NavLink>
+
+        {session?.user?.role === 'admin' && (
+          <NavLink href="/users">Users</NavLink>
+        )}
       </div>
     </nav>
   );

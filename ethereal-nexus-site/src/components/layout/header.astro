@@ -1,6 +1,6 @@
 ---
 import { cn } from "@/lib/utils";
-import { LogoImage } from '../logo-image';
+import { LogoImageSite } from '../logo-image-site';
 
 type Props = {
   className?: string;
@@ -18,9 +18,9 @@ const { className } = Astro.props;
 >
   <div class="relative container flex items-center justify-between w-full">
     <div class="flex items-center gap-6 md:gap-8 lg:gap-10">
-      <a href="/" class="hidden items-center space-x-2 md:flex">
+      <a class="hidden items-center space-x-2 md:flex">
         <span class="hidden font-bold sm:inline-block">
-         <LogoImage client:load/>
+         <LogoImageSite client:load/>
         </span>
       </a>
 
@@ -36,14 +36,13 @@ const { className } = Astro.props;
       class=" md:hidden h-full"
     >
       <a href="/" aria-label="Ethereal Nexus homepage">
-        <LogoImage client:load/>
+        <LogoImageSite client:load/>
       </a>
     </div>
 
     <slot name="right-header" />
   </div>
 </header>
-
 <script>
 
 </script>

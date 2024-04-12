@@ -6,7 +6,7 @@ export default function CardViewDisabledIcon({ width, height, fill = 'currentCol
     <svg
       width={width}
       height={height}
-      viewBox="0 0 30 34"
+      viewBox="0 0 31 33"
       xmlns="http://www.w3.org/2000/svg"
       fill={fill} >
       <circle cx="16" cy="16" r="16" fill="#575758" />

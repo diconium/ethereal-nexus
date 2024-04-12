@@ -7,10 +7,10 @@ name: Deploy Astro site to Pages
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: 
+    branches:
       ["main"]
     paths:
-    - '/ethereal-nexus-dashboard/**'
+    - '/ethereal-nexus-site/**'
     - '.github/workflows/astro.yml'
 
   # Allows you to run this workflow manually from the Actions tab

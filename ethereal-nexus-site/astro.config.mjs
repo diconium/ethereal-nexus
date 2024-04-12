@@ -7,6 +7,8 @@ import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://diconium.github.io',
+  base:"ethereal-nexus-site",
   integrations: [mdx({
     syntaxHighlight: "shiki",
     shikiConfig: { theme: "github-dark-dimmed" },

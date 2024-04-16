@@ -60,10 +60,10 @@ export const docsConfig: DocsConfig = {
           title: 'AEM',
           href: '/docs/connectors/aem',
         },
-        {
-          title: 'Edge Delivery Services',
-          href: '/docs/connectors/eds',
-        },
+        // {
+        //   title: 'Edge Delivery Services',
+        //   href: '/docs/connectors/eds',
+        // },
         {
           title: 'Strapi',
           href: '/docs/connectors/strapi',

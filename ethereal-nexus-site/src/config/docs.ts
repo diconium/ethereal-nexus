@@ -11,11 +11,11 @@ export const docsConfig: DocsConfig = {
       items: [
         {
           title: 'Introduction',
-          href: '/docs/introduction',
+          href: '/ethereal-nexus/docs/introduction',
         },
         {
           title: 'Setup',
-          href: '/docs/setup',
+          href: '/ethereal-nexus/docs/setup',
         },
       ],
     },
@@ -24,19 +24,19 @@ export const docsConfig: DocsConfig = {
       items: [
         {
           title: 'Dashboard',
-          href: '/docs/dashboard',
+          href: '/ethereal-nexus/docs/dashboard',
         },
         {
           title: 'CLI',
-          href: '/docs/cli',
+          href: '/ethereal-nexus/docs/cli',
         },
         {
           title: 'Components',
-          href: '/docs/components',
+          href: '/ethereal-nexus/docs/components',
         },
         {
           title: 'Connectors',
-          href: '/docs/connectors',
+          href: '/ethereal-nexus/docs/connectors',
         },
       ],
     },
@@ -45,11 +45,11 @@ export const docsConfig: DocsConfig = {
       items: [
         {
           title: 'Introduction',
-          href: '/docs/dashboard/introduction',
+          href: '/ethereal-nexus/docs/dashboard/introduction',
         },
         {
           title: 'API',
-          href: '/docs/dashboard/api',
+          href: '/ethereal-nexus/docs/dashboard/api',
         },
       ],
     },
@@ -58,7 +58,7 @@ export const docsConfig: DocsConfig = {
       items: [
         {
           title: 'AEM',
-          href: '/docs/connectors/aem',
+          href: '/ethereal-nexus/docs/connectors/aem',
         },
         // {
         //   title: 'Edge Delivery Services',
@@ -66,7 +66,7 @@ export const docsConfig: DocsConfig = {
         // },
         {
           title: 'Strapi',
-          href: '/docs/connectors/strapi',
+          href: '/ethereal-nexus/docs/connectors/strapi',
         },
       ],
     },

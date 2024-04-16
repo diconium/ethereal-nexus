@@ -1,12 +1,22 @@
 import React from 'react';
-import { RenderResult, render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import DashboardLayout from '@/components/layout';
 import LogoImage from '@/components/ui/logo-image';
 import { MainNav } from '@/components/ui/main-nav/main-nav';
 import ThemePicker from '@/components/theme-picker';
 import { UserNav } from '@/components/user/user-nav';
 import { Toaster } from '@/components/ui/toaster';
+import { useTheme } from 'next-themes';
 
+jest.useFakeTimers();
+jest.spyOn(global, 'setTimeout');
+jest.mock('next-themes', () => ({
+  ...jest.requireActual('next-themes'),
+  useTheme: jest.fn().mockImplementation(() => ({
+    resolvedTheme: undefined,
+    setTheme: jest.fn(),
+  })),
+}));
 
 jest.mock('next-auth', () => ({
   signIn: jest.fn(),
@@ -70,26 +80,44 @@ describe('Dashboard layout component', () => {
         <div>Child Component</div>
       </DashboardLayout>
     );
+
     expect(asFragment()).toMatchSnapshot();
   });
-  it('should render all child components', () => {
+  it('should render loader if theme is undefined',  () => {
     render(
       <DashboardLayout>
         <div>Child Component</div>
       </DashboardLayout>
     );
 
+    expect(screen.getByTestId('global-loader')).toBeInTheDocument();
+    expect(screen.queryByText('Ethereal Nexus Logo')).not.toBeInTheDocument();
+    expect(screen.queryByText('Main Nav')).not.toBeInTheDocument();
+  });
+  it('should render all child components if theme is defined',  () => {
+    (useTheme as jest.Mock).mockReturnValue({
+      resolvedTheme: 'dark',
+      setTheme: jest.fn(),
+    });
+
+    render(
+      <DashboardLayout>
+        <div>Child Component</div>
+      </DashboardLayout>
+    );
+
+    expect(setTimeout).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    expect(screen.queryByTestId('global-loader')).not.toBeInTheDocument();
     expect(screen.getByText('Ethereal Nexus Logo')).toBeInTheDocument();
     expect(screen.getByText('Main Nav')).toBeInTheDocument();
     expect(screen.getByText('ThemePicker')).toBeInTheDocument();
     expect(screen.getByText('User Nav')).toBeInTheDocument();
     expect(screen.getByText('Toaster')).toBeInTheDocument();
-  });
-
-  it('should render children within the layout', () => {
-    render(<DashboardLayout>Test Content</DashboardLayout>);
-
-    // Test that children are rendered
-    expect(screen.getByText('Test Content')).toBeInTheDocument();
+    expect(screen.getByText('Child Component')).toBeInTheDocument();
   });
 });

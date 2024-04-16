@@ -6,10 +6,9 @@ name: Deploy Astro site to Pages
 
 on:
   # Runs on pushes targeting the default branch
-  pull_request:
-    types: [ closed ]
+  push:
     branches:
-      - main
+      ["main"]
     paths:
     - 'ethereal-nexus-site/**'
     - '.github/workflows/astro.yml'
@@ -35,7 +34,6 @@ env:
 
 jobs:
   build:
-    if: github.event.pull_request.merged == true
     name: Build
     runs-on: ubuntu-latest
     steps:
@@ -82,7 +80,6 @@ jobs:
           path: ${{ env.BUILD_PATH }}/dist
 
   deploy:
-    if: github.event.pull_request.merged == true
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

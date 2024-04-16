@@ -11,7 +11,7 @@ on:
     branches:
       - main
     paths:
-    - '/ethereal-nexus-site/**'
+    - 'ethereal-nexus-site/**'
     - '.github/workflows/astro.yml'
 
   # Allows you to run this workflow manually from the Actions tab

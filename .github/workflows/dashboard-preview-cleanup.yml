@@ -5,6 +5,8 @@ name: Delete preview environments on PR close
 on:
   pull_request:
     types: [closed]
+    paths:
+      - '/ethereal-nexus-dashboard/**'
   workflow_dispatch:
 
 env:

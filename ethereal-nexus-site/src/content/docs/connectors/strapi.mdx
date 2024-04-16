@@ -1,0 +1,44 @@
+---
+title: Strapi
+description: Integrate with Adobe Experience Manager
+---
+import pluginLoaded from '../../../assets/strapi/plugin-loaded.png';
+import pluginConfig from '../../../assets/strapi/configure-plugin.png';
+import pluginComponent from '../../../assets/strapi/add-component.png';
+import frontendComponent from '../../../assets/strapi/frontend-component.png';
+
+Our strapi plugin (ethereal-nexus-strapi) allow strapi authors to include remote components directly form ethereal nexus.
+
+## Features
+
+* Connects to Ethereal Nexus Dashboard
+* Makes Ethereal Nexus components available for use in Strapi CMS
+* Enhances frontend development by providing a wide range of components
+
+## Installation
+
+To install the `ethereal-nexus-strapi` plugin, follow these steps:
+
+1. Navigate to your Strapi project directory
+2. Add the .npmrc with access to diconium npm registry
+3. Add the Ethereal Nexus Strapi plugin dependency. `npm install @diconium/ethereal-nexus-strapi`
+4. Configure the strapi admin to load the Ethereal-Nexus-Strapi plugin.
+* Under `.strapi/client/app.js`
+* add the following lines
+* `import 'import etherealNexusStrapi from "@diconium/ethereal-nexus-strapi/strapi-admin";`
+*  inside `plugins` object add `"ethereal-nexus-strapi": etherealNexusStrapi,`
+5. Add the admin ui component manually, by copying the folder `etheral-nexus` from `component` to `backend/src/components`. (Check component README for more details)
+6. Restart the Strapi server
+7. Check the plugin loaded correctly
+<Image src={pluginLoaded} alt="plugin-loaded" />
+8. Configure the Endpoint and api for your Ethereal Nexus Instance
+<Image src={pluginConfig} alt="plugin-config" />
+9. Add the component Wrapper to the dynamic zone in your content section
+<Image src={pluginComponent} alt="add-component" />
+
+## Example component on author
+
+<Image src={frontendComponent} alt="frontend-component" />
+
+
+

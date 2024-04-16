@@ -4,20 +4,25 @@ import react from '@astrojs/react';
 import icon from "astro-icon";
 import tailwind from "@astrojs/tailwind";
 import sitemap from "@astrojs/sitemap";
+import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://diconium.github.io',
-  base:"ethereal-nexus-site",
-  integrations: [mdx({
-    syntaxHighlight: "shiki",
-    shikiConfig: { theme: "github-dark-dimmed" },
-    gfm: true,
-  }),
+  integrations: [
+    starlight({
+      title: 'My delightful docs site',
+      customCss: [
+        // Path to your Tailwind base styles:
+        './src/styles/globals.css',
+      ],
+    }),
     react({
     experimentalReactChildren: true
   }),
-    tailwind(),
+    tailwind({
+      applyBaseStyles: false,
+    }),
     icon(),
     sitemap(),
   ]

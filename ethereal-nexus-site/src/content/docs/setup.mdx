@@ -1,0 +1,38 @@
+---
+title: Setup
+description: How to setup Ethereal Nexus?
+---
+import { FileTree } from '@astrojs/starlight/components';
+
+## Prerequisites
+
+Before you begin, ensure you have met the following requirements:
+
+- You have a CMS and the connector is available.
+- You have a running instance of Ethereal Nexus. With a valid URL.
+- You have process to export the frontend components to Ethereal Nexus instance. (e.g. ethereal-nexus-cli)
+
+## Example Project Structure
+
+Our implementation project looks like this:
+
+<FileTree>
+
+- CMS/ **(e.g. AEM)**
+- frontend
+    - src
+        - components
+            - ... **(frontend components)**
+            - ethereal-nexus
+                - HelloWorld
+                    - HelloWorld.tsx
+                    - **HelloWorld.config.json**
+                    - HelloWorld.md
+                    - HelloWorld.css
+    - package.json
+    - remote-components.config.json
+
+</FileTree>
+
+
+

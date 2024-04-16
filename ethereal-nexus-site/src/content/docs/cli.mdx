@@ -1,5 +1,28 @@
 ---
-title: CLI
+title: ethereal-nexus-cli
 description:  Easily organize and maintain your component library with intuitive tools for categorization, version control, and access control.
 ---
-WIP
+import { Code } from '@astrojs/starlight/components';
+export const remoteFileConfigExample = `{
+"url": "https://localhost:3000",
+"authorization": "apikey REPLACE_WITH_YOUR_API_KEY"
+}`;
+export const cli_command = `remote-components-cli publish`;
+
+In order to use the cli you need to install on your frontend project the `@diconium/ethereal-nexus-ci` package.
+
+## Prerequisites
+
+### remote-components.config.json
+Create a remote-components.config.json file in the root of your frontend project.
+
+#### Configuration of remote-components.config.json
+
+<Code code={remoteFileConfigExample} lang={"json"}/>
+
+#### Usage
+To publish the components under src/components/ethereal-nexus run the following command:
+<Code code={cli_command} lang={"shell"}/>
+
+
+###

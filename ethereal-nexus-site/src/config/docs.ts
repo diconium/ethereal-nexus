@@ -11,11 +11,11 @@ export const docsConfig: DocsConfig = {
       items: [
         {
           title: 'Introduction',
-          href: '/docs/introduction/',
+          href: '/docs/introduction',
         },
         {
-          title: 'Installation',
-          href: '/docs/installation/',
+          title: 'Setup',
+          href: '/docs/setup',
         },
       ],
     },
@@ -63,6 +63,10 @@ export const docsConfig: DocsConfig = {
         {
           title: 'Edge Delivery Services',
           href: '/docs/connectors/eds',
+        },
+        {
+          title: 'Strapi',
+          href: '/docs/connectors/strapi',
         },
       ],
     },

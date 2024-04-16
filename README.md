@@ -63,7 +63,7 @@ Before you begin, ensure you have the following prerequisites:
         <type>zip</type>
     </dependency>
   ```
-  3. Add the Embeded vault package definition on module: all file: pom.xml
+  3. Add the Embedded vault package definition on module: all file: pom.xml
     ```xml 
     <embedded>
         <groupId>com.diconium</groupId>

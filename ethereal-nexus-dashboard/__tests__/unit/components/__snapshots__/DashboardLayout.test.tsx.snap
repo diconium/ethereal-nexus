@@ -6,34 +6,19 @@ exports[`Dashboard layout component should match snapshot 1`] = `
     class="flex-col md:flex mt-6"
   >
     <div
-      class="flex h-16 items-center px-8"
+      class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+      data-testid="global-loader"
     >
-      <div>
-        Ethereal Nexus Logo
-      </div>
-      <div>
-        Main Nav
-      </div>
-      <div
-        class="ml-auto flex items-center space-x-4"
+      <span
+        style="display: inherit; width: 100px; height: 100px; position: relative;"
       >
-        <div>
-          ThemePicker
-        </div>
-        <div>
-          User Nav
-        </div>
-      </div>
-    </div>
-    <div
-      class="flex-1 space-y-4 p-8 mt-6"
-    >
-      <div>
-        Child Component
-      </div>
-    </div>
-    <div>
-      Toaster
+        <span
+          style="position: absolute; top: 0px; left: 0px; width: 100px; height: 100px; border: 10px solid #ff5600; opacity: 0.4; border-radius: 100%; animation-fill-mode: forwards; animation: react-spinners-RingLoader-right 2s 0s infinite linear;"
+        />
+        <span
+          style="position: absolute; top: 0px; left: 0px; width: 100px; height: 100px; border: 10px solid #ff5600; opacity: 0.4; border-radius: 100%; animation-fill-mode: forwards; animation: react-spinners-RingLoader-left 2s 0s infinite linear;"
+        />
+      </span>
     </div>
   </div>
 </DocumentFragment>

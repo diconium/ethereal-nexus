@@ -1,50 +1,37 @@
 import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import DashboardLayout from '@/components/layout';
-import LogoImage from '@/components/ui/logo-image';
-import { MainNav } from '@/components/ui/main-nav/main-nav';
-import ThemePicker from '@/components/theme-picker';
-import { UserNav } from '@/components/user/user-nav';
-import { Toaster } from '@/components/ui/toaster';
 import { useTheme } from 'next-themes';
 
-jest.useFakeTimers();
-jest.spyOn(global, 'setTimeout');
 jest.mock('next-themes', () => ({
   ...jest.requireActual('next-themes'),
   useTheme: jest.fn().mockImplementation(() => ({
     resolvedTheme: undefined,
-    setTheme: jest.fn(),
   })),
-}));
-
-jest.mock('next-auth', () => ({
-  signIn: jest.fn(),
-}));
-
-jest.mock('@/components/ui/logo-image', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
-jest.mock('@/components/ui/main-nav/main-nav', () => ({
-  __esModule: true,
-  MainNav: jest.fn(),
-}));
-
-jest.mock('@/components/theme-picker', () => ({
-  __esModule: true,
-  default: jest.fn(),
 }));
 
 jest.mock('@/components/user/user-nav', () => ({
   __esModule: true,
-  UserNav: jest.fn(),
+  UserNav: jest.fn().mockImplementation(() => <div>User Nav</div>),
 }));
 
 jest.mock('@/components/ui/toaster', () => ({
   __esModule: true,
-  Toaster: jest.fn(),
+  Toaster: jest.fn().mockImplementation(() => <div>Toaster</div>),
+}));
+
+jest.mock('@/components/ui/logo-image', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => <div>Ethereal Nexus Logo</div>),
+}));
+
+jest.mock('@/components/theme-picker', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => <div>ThemePicker</div>),
+}));
+jest.mock('@/components/ui/main-nav/main-nav', () => ({
+  __esModule: true,
+  MainNav: jest.fn().mockImplementation(() => <div>Main Nav</div>),
 }));
 
 // Set up mock implementation for window.matchMedia
@@ -61,15 +48,6 @@ window.matchMedia = jest.fn().mockImplementation(query => {
 
 
 describe('Dashboard layout component', () => {
-
-  beforeEach(() => {
-    LogoImage.mockImplementation(() => <div>Ethereal Nexus Logo</div>);
-    MainNav.mockImplementation(() => <div>Main Nav</div>);
-    ThemePicker.mockImplementation(() => <div>ThemePicker</div>);
-    UserNav.mockImplementation(() => <div>User Nav</div>);
-    Toaster.mockImplementation(() => <div>Toaster</div>);
-  });
-
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -95,6 +73,9 @@ describe('Dashboard layout component', () => {
     expect(screen.queryByText('Main Nav')).not.toBeInTheDocument();
   });
   it('should render all child components if theme is defined',  () => {
+    jest.useFakeTimers();
+    jest.spyOn(global, 'setTimeout');
+
     (useTheme as jest.Mock).mockReturnValue({
       resolvedTheme: 'dark',
       setTheme: jest.fn(),

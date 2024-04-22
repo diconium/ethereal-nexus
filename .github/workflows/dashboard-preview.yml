@@ -8,7 +8,7 @@ on:
     branches:
       - main
     paths:
-      - '/ethereal-nexus-dashboard/**'
+      - '/web/dashboard/**'
   workflow_dispatch:
 
 env:
@@ -39,13 +39,13 @@ jobs:
 
       - name: Setup environment
         run: |
-          echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./ethereal-nexus-dashboard/.env
-          echo "DRIZZLE_DATABASE_TYPE=neon" >> ./ethereal-nexus-dashboard/.env
-          echo "DRIZZLE_DATABASE_URL=${{ steps.create-branch.outputs.db_url }}?sslmode=require" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./web/dashboard/.env
+          echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./web/dashboard/.env
+          echo "DRIZZLE_DATABASE_TYPE=neon" >> ./web/dashboard/.env
+          echo "DRIZZLE_DATABASE_URL=${{ steps.create-branch.outputs.db_url }}?sslmode=require" >> ./web/dashboard/.env
+          echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./web/dashboard/.env
           
-          cd ./ethereal-nexus-dashboard
+          cd ./web/dashboard
           npm ci
           npm run generate
 
@@ -53,7 +53,7 @@ jobs:
         uses: azure/container-apps-deploy-action@v1
         with:
           containerAppName: ethereal-nexus-app-${{ github.event.number }}
-          appSourcePath: ${{ github.workspace }}/ethereal-nexus-dashboard
+          appSourcePath: ${{ github.workspace }}/web/dashboard
           acrName: etherealnexus
           acrUsername: ${{ secrets.REGISTRY_USERNAME }}
           acrPassword: ${{ secrets.REGISTRY_PASSWORD }}

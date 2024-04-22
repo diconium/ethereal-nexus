@@ -100,6 +100,9 @@ node/
 coverage/
 reports/
 
+# Next
+.next
+
 # Others
 dispatcher/src/conf.d/variables/default.vars
 ui.tests/test-module/assets/form/themes/**/*diff.png

@@ -6,7 +6,7 @@ on:
   pull_request:
     types: [closed]
     paths:
-      - '/ethereal-nexus-dashboard/**'
+      - '/web/dashboard/**'
   workflow_dispatch:
 
 env:

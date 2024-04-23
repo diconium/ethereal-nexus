@@ -21,6 +21,8 @@ interface FileTypes {
 
 const account = process.env.AZURE_BLOB_STORAGE_ACCOUNT || '';
 const accountKey = process.env.AZURE_BLOB_STORAGE_SECRET || '';
+const azFrontDoor = process.env.AZURE_FRONT_DOOR_URL || '';
+const containerName =process.env.AZURE_CONTAINER_NAME  || 'remote-components-aem-demo';
 
 const sharedKeyCredential = new StorageSharedKeyCredential(account, accountKey);
 const blobServiceClient = new BlobServiceClient(
@@ -126,7 +128,7 @@ export const POST = authenticatedWithKey(
         contentType,
       );
       const { request: responseFromBlob = {} as any } = _response;
-      const { url } = responseFromBlob;
+      const url = azFrontDoor ?`${azFrontDoor}/${containerName}/${filePath}` : responseFromBlob.url;
 
       // console.log('POST assets', JSON.stringify(_response, undefined, 2))
       if (!url) {
@@ -161,7 +163,7 @@ const uploadToStorage = async (
   contentType: string,
 ) => {
   const containerClient = blobServiceClient.getContainerClient(
-    'remote-components-aem-demo',
+    containerName,
   );
 
   const jsonData = request.body;

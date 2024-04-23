@@ -8,6 +8,7 @@ import { AuthenticatedWithApiKeyUser, authenticatedWithKey, DefaultExt } from '@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateAssets } from '@/data/components/actions';
 import * as console from 'console';
+import { v4 as uuidv4 } from 'uuid';
 
 const fileTypes: FileTypes = {
   'text/css': 'css',
@@ -29,6 +30,9 @@ const blobServiceClient = new BlobServiceClient(
   `https://${account}.blob.core.windows.net`,
   sharedKeyCredential,
 );
+
+//TODO: We should allow these to be configured by the admin.
+const blobCacheControl = 'public, max-age=31536000';
 
 /**
  * @swagger
@@ -195,6 +199,7 @@ const uploadToStorage = async (
               ? 'text/javascript'
               : contentType
           }`,
+          blobCacheControl: blobCacheControl,
         },
       },
     );
@@ -214,5 +219,6 @@ function getFilePath(
   }: { name: string; version: string; fileName: string },
   contentType: string,
 ): string {
-  return `${name}/${version}/${fileName}.${fileTypes[contentType]}`;
+  const myUUID = uuidv4().replace(/-/g, '');
+  return `${name}/${version}/${fileName}.${myUUID}.${fileTypes[contentType]}`;
 }

@@ -19,7 +19,7 @@ export const Loading = ({ children }: {
   }, [resolvedTheme]);
 
   return loading ?
-    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" data-testid="global-loader">
       <RingLoader size={100} color={'#FF5600'} loading={loading} />
     </div>
     : <div>{children}</div>;

@@ -54,7 +54,7 @@ export const columns: ColumnDef<MemberWithPublicUser>[] = [
   {
     accessorKey: 'role',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="role" />
+      <DataTableColumnHeader column={column} title="Role" />
     ),
     cell: ({ row }) => <Badge variant="outline">{row.original.role}</Badge>,
     enableSorting: true
@@ -62,7 +62,7 @@ export const columns: ColumnDef<MemberWithPublicUser>[] = [
   {
     accessorKey: 'permissions',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Permissions" />
+      <DataTableColumnHeader className="font-bold" column={column} title="Permissions" />
     ),
     cell: ({ row }) => <MemberPermissionsSelect value={row.original.permissions} memberId={row.original.id} role={row.original.role} resource={row.original.resource}/>,
     enableSorting: false

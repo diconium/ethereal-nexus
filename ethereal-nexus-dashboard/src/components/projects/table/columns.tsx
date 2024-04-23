@@ -8,7 +8,7 @@ export const columns = [
   {
     accessorKey: "name",
     header: ({ column }) => (
-      <DataTableColumnHeader className="text-xs font-bold" column={column} title="Name" />
+      <DataTableColumnHeader className="font-bold" column={column} title="Name" />
     ),
     cell: ({ row }) => <Link className="text-2xl font-bold" href={`/projects/${row.original.id}`}>{row.getValue("name")}</Link>,
     enableSorting: false,
@@ -17,7 +17,7 @@ export const columns = [
   {
     accessorKey: "description",
     header: ({ column }) => (
-      <DataTableColumnHeader className="text-xs font-bold" column={column} title="Description" />
+      <DataTableColumnHeader className="font-bold" column={column} title="Description" />
     ),
     cell: ({ row }) => <Link className="font-normal text-base leading-4" href={`/projects/${row.original.id}`}>{row.getValue("description")}</Link>,
     enableSorting: false,
@@ -26,7 +26,7 @@ export const columns = [
   {
     accessorKey: "components",
     header: ({ column }) => (
-      <DataTableColumnHeader className="text-xs font-bold" column={column} title="Components" />
+      <DataTableColumnHeader className="font-bold" column={column} title="Components" />
     ),
     cell: ({ row }) => (
       <div className="inline-flex">

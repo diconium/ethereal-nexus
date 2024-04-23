@@ -7,10 +7,10 @@ const Table = React.forwardRef<
     HTMLTableElement,
     React.HTMLAttributes<HTMLTableElement>
 >(({className, ...props}, ref) => (
-  <div className={`w-full overflow-auto p-6 border border-gray-300 rounded-lg bg-accent dark:bg-transparent transition-colors`}>
+  <div className={`w-full overflow-auto border border-gray-300 rounded-lg transition-colors`}>
     <table
       ref={ref}
-      className={cn('w-full caption-bottom text-sm', className)}
+      className={cn('w-full caption-bottom text-base', className)}
             {...props}
         />
     </div>
@@ -31,7 +31,7 @@ const TableBody = React.forwardRef<
 >(({className, ...props}, ref) => (
     <tbody
         ref={ref}
-        className={cn("[&_tr:last-child]:border-0", className)}
+        className={cn("[&_tr:last-child]:border-0 dark:bg-transparent bg-accent", className)}
         {...props}
     />
 ))
@@ -56,8 +56,7 @@ const TableRow = React.forwardRef<
     <tr
         ref={ref}
         className={cn(
-            "transition-colors",
-            highlightSelected && "data-[state=selected]:bg-muted",
+            "transition-colors border",
             className
         )}
         {...props}
@@ -72,7 +71,7 @@ const TableHead = React.forwardRef<
     <th
         ref={ref}
         className={cn(
-            "px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+            "px-3 py-2 text-left align-middle font-medium [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
             className
         )}
         {...props}
@@ -92,7 +91,7 @@ const TableCell = React.forwardRef<
     <td
         ref={ref}
         className={cn(
-            "p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+            "px-3 py-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
             columnIndex === 0 && "w-1/4",
             columnIndex === 1 && "w-1/3",
             className

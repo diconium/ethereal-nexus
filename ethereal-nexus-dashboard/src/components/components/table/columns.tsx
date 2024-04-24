@@ -50,7 +50,7 @@ export const columns = [
     id: 'version',
     accessorFn: row => row.versions[0].version,
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Version" />
+      <DataTableColumnHeader className="font-bold" column={column} title="Version" />
     ),
     cell: ({ row }) => (
       row.getValue("version")
@@ -60,6 +60,9 @@ export const columns = [
   },
   {
     id: "actions",
+    header: ({ column }) => (
+      <DataTableColumnHeader className="font-bold" column={column} title="Permissions" />
+    ),
     cell: ({ row }) => (
       <ComponentsDataTableRowActions row={row} />
     ),

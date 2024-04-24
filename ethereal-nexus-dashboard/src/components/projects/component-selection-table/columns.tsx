@@ -55,7 +55,7 @@ export const columns = [
     id: "version",
     accessorFn: row => row.version,
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Version" />
+      <DataTableColumnHeader className="font-bold" column={column} title="Version" />
     ),
     cell: ({ row, table }) => {
       const {id, version, versions} = row.original;
@@ -77,7 +77,7 @@ export const columns = [
     id: "active",
     accessorFn: row => row.is_active,
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Active" />
+      <DataTableColumnHeader className="font-bold" column={column} title="Active" />
     ),
     cell: ({ row, table }) => {
       const {id} = row.original;

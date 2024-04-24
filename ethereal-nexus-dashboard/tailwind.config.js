@@ -91,6 +91,9 @@ module.exports = {
         "accordion-up": "accordion-up 0.2s ease-out",
         "meteor-effect": "meteor 5s linear infinite",
       },
+      gridTemplateColumns: {
+        'hero': '1fr 1.2fr',
+      }
     },
   },
   plugins: [require("tailwindcss-animate")],

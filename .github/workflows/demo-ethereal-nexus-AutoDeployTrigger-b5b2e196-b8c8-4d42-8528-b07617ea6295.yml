@@ -53,7 +53,8 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}/web/dashboard
+          appSourcePath: ${{ github.workspace }}
+          dockerfilePath: web/dashboard/Dockerfile
           containerAppName: demo-ethereal-nexus
           resourceGroup: RG-Ethereal-nexus
           registryUrl: registry.hub.docker.com

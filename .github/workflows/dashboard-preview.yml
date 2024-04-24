@@ -8,7 +8,8 @@ on:
     branches:
       - main
     paths:
-      - '/web/dashboard/**'
+      - 'web/dashboard'
+      - '.github/workflows/dashboard-preview.yml'
   workflow_dispatch:
 
 env:
@@ -46,14 +47,17 @@ jobs:
           echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./web/dashboard/.env
           
           cd ./web/dashboard
-          npm ci
-          npm run generate
+          
+          corepack enable pnpm
+          pnpm i --frozen-lockfile
+          pnpm --filter "@ethereal-nexus/dashboard" run generate
 
       - name: Deploy Container App
         uses: azure/container-apps-deploy-action@v1
         with:
           containerAppName: ethereal-nexus-app-${{ github.event.number }}
-          appSourcePath: ${{ github.workspace }}/web/dashboard
+          appSourcePath: ${{ github.workspace }}
+          dockerfilePath: web/dashboard/Dockerfile
           acrName: etherealnexus
           acrUsername: ${{ secrets.REGISTRY_USERNAME }}
           acrPassword: ${{ secrets.REGISTRY_PASSWORD }}

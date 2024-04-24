@@ -29,26 +29,20 @@ jobs:
 
       - name: 'Create env file'
         run: |
-          echo "${{ secrets.MONGODB_URI }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.PGHOST }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.PGUSER }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.PGPORT }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.PGPASSWORD }}" >> ./ethereal-nexus-dashboard/.env
-          echo "PGSSL=true" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./ethereal-nexus-dashboard/.env
-
-      - name: debug env file
-        run: |
-          ls -la .
-          ls -la ./ethereal-nexus-dashboard/
-          cat ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.MONGODB_URI }}" >> ./web/dashboard/.env
+          echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./web/dashboard/.env
+          echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./web/dashboard/.env
+          echo "${{ secrets.PGHOST }}" >> ./web/dashboard/.env
+          echo "${{ secrets.PGUSER }}" >> ./web/dashboard/.env
+          echo "${{ secrets.PGPORT }}" >> ./web/dashboard/.env
+          echo "${{ secrets.PGPASSWORD }}" >> ./web/dashboard/.env
+          echo "PGSSL=true" >> ./web/dashboard/.env
+          echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./web/dashboard/.env
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-          context: ./web/dashboard/
+          context: ./
           file: ./web/dashboard/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}

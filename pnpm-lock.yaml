@@ -71,6 +71,9 @@ importers:
 
   examples/vite-react-ts:
     dependencies:
+      '@ethereal-nexus/core':
+        specifier: workspace:*
+        version: link:../../lib/core
       '@r2wc/react-to-web-component':
         specifier: ^2.0.3
         version: 2.0.3(react-dom@18.2.0)(react@18.2.0)

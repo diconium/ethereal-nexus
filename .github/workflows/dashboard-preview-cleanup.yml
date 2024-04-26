@@ -6,7 +6,7 @@ on:
   pull_request:
     types: [closed]
     paths:
-      - 'web/dashboard'
+      - 'web/dashboard/**'
       - '.github/workflows/dashboard-preview-cleanup.yml'
   workflow_dispatch:
 

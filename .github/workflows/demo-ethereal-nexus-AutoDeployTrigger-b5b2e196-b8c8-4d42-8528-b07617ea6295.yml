@@ -7,7 +7,7 @@ on:
     branches: 
       [ main ]
     paths:
-    - '/web/dashboard/**'
+    - 'web/dashboard/**'
     - '.github/workflows/demo-ethereal-nexus-AutoDeployTrigger-b5b2e196-b8c8-4d42-8528-b07617ea6295.yml'
 
   # Allow manual trigger 

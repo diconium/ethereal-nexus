@@ -15,6 +15,7 @@
   "dependencies": {
     "@r2wc/react-to-web-component": "^2.0.3",
     "@szhsin/react-accordion": "^1.2.3",
+    "@ethereal-nexus/core": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

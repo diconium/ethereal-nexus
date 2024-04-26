@@ -4,10 +4,10 @@ import {useForm} from "react-hook-form";
 import * as z from "zod";
 import {Button} from "@/components/ui/button";
 
-import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
+import {TextArea} from '@/components/ui/text-area';
 import {zodResolver} from "@hookform/resolvers/zod";
-import {useRouter} from "next/navigation";
 import React from "react";
 import { useToast } from '@/components/ui/use-toast';
 import { ProjectInput } from '@/data/projects/dto';
@@ -22,11 +22,12 @@ const projectsFormSchema = z.object({
 });
 
 type ProjectsFormProps = {
-  project?: ProjectInput
-  onComplete?: () => void
+  project?: ProjectInput,
+  onComplete?: () => void,
+  onCancel?: () => void,
 }
 
-export default function ProjectsForm({project, onComplete}: ProjectsFormProps) {
+export default function ProjectsForm({project, onComplete, onCancel}: ProjectsFormProps) {
   const {data: session} = useSession();
   const { toast } = useToast()
   const form: any = useForm<ProjectInput>({
@@ -61,13 +62,10 @@ export default function ProjectsForm({project, onComplete}: ProjectsFormProps) {
           name="name"
           render={({field}) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel className="text-stone-600 dark:text-gray-300 font-bold">Name</FormLabel>
               <FormControl>
-                <Input placeholder="Name" {...field} />
+                <Input placeholder="Name" {...field} className="bg-white dark:bg-transparent font-bold" />
               </FormControl>
-              <FormDescription>
-                This is the name of the project or component library.
-              </FormDescription>
               <FormMessage/>
             </FormItem>
           )}
@@ -77,18 +75,24 @@ export default function ProjectsForm({project, onComplete}: ProjectsFormProps) {
           name="description"
           render={({field}) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel className="text-stone-600 dark:text-gray-300 font-bold">Description</FormLabel>
               <FormControl>
-                <Input placeholder="Description" {...field} />
+                <TextArea placeholder="Description" {...field} rows={5} className="bg-white dark:bg-transparent" />
               </FormControl>
-              <FormDescription>
-                Add a small description that explains the scope of the project.
-              </FormDescription>
               <FormMessage/>
             </FormItem>
           )}
         />
-        <Button type="submit">{`${project?.id ? "Update" : "Create"} project`}</Button>
+        <div className="flex items-center gap-14">
+          {
+            onCancel && (
+              <Button onClick={onCancel} variant="text" className="text-orange-500 font-bold text-base p-0">
+                Cancel
+              </Button>
+            )
+          }
+          <Button type="submit" variant="primary" size="base">{`${project?.id ? "Save" : "Create project"}`}</Button>
+        </div>
       </form>
     </Form>
   );

@@ -18,6 +18,12 @@ module.exports = {
         "2xl": "1400px",
       },
     },
+    screens: {
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'xl': '1280px',
+    },
     extend: {
       colors: {
         border: "hsl(var(--border))",
@@ -85,6 +91,9 @@ module.exports = {
         "accordion-up": "accordion-up 0.2s ease-out",
         "meteor-effect": "meteor 5s linear infinite",
       },
+      gridTemplateColumns: {
+        'hero': '1fr 1.2fr',
+      }
     },
   },
   plugins: [require("tailwindcss-animate")],

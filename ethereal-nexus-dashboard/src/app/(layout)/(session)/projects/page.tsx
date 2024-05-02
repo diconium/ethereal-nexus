@@ -43,7 +43,7 @@ export default async function Projects() {
                     buttonVariants({
                       variant: 'outline',
                       size: 'sm',
-                      className: 'mr-2 transition-colors bg-orange-600 rounded-full text-white py-4 px-8 flex justify-center items-center',
+                      className: 'mr-2 transition-colors bg-orange-500 rounded-full text-white py-4 px-8 flex justify-center items-center',
                     }),
                     session?.user?.role === 'viewer' && 'pointer-events-none opacity-50',
                   )}

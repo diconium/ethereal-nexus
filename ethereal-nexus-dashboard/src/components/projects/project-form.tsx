@@ -46,7 +46,7 @@ export default function ProjectsForm({project, onComplete, onCancel}: ProjectsFo
     }
 
     toast({
-      title: `Project ${data.id ? "update" : "create"}d sucessfully!`,
+      title: `Project ${project?.id ? "update" : "create"}d sucessfully!`,
     });
 
     if(onComplete) {
@@ -60,26 +60,27 @@ export default function ProjectsForm({project, onComplete, onCancel}: ProjectsFo
         <FormField
           control={form.control}
           name="name"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-stone-600 dark:text-gray-300 font-bold">Name</FormLabel>
+              <FormLabel
+                className="text-stone-600 dark:text-gray-300 font-bold">{`${project?.id ? "" : "Name"}`}</FormLabel>
               <FormControl>
                 <Input placeholder="Name" {...field} className="bg-white dark:bg-transparent font-bold" />
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
           name="description"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-stone-600 dark:text-gray-300 font-bold">Description</FormLabel>
+              <FormLabel className="transition-colors text-muted-foreground font-bold">Description</FormLabel>
               <FormControl>
                 <TextArea placeholder="Description" {...field} rows={5} className="bg-white dark:bg-transparent" />
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />

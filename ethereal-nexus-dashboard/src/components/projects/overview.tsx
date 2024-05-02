@@ -26,7 +26,7 @@ export function Overview ({ project }: OverviewProps) {
         ) : (
           <>
             <h2 className="text-4xl font-bold tracking-tight">{project.name}</h2>
-            <p className="text-sm text-stone-600 dark:text-gray-300 font-bold mt-8">Description</p>
+            <p className="text-sm font-bold mt-8 transition-colors text-muted-foreground">Description</p>
             <p className="mt-2">{project.description}</p>
             <Button onClick={handleEditToggle} variant="text" className="text-orange-500 font-bold text-base p-0 mt-8">
               Edit

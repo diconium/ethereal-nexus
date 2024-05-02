@@ -26,7 +26,7 @@ export default async function Home() {
               buttonVariants({
                 variant: 'link',
                 size: 'sm',
-                className: 'text-orange-600 p-0 py-2 mt-10',
+                className: 'text-orange-500 p-0 py-2 mt-10',
               }),
               session?.user?.role === 'viewer' && 'pointer-events-none opacity-50',
             )}

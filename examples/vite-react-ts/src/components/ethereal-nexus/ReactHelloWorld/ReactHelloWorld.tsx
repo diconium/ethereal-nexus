@@ -1,5 +1,5 @@
-import r2wc from '@r2wc/react-to-web-component';
-import { dialog, text, type Output } from '@ethereal-nexus/core';
+import { webcomponent, dialog, text, type Output } from '@ethereal-nexus/core';
+import React from 'react';
 
 const schema = dialog({
   title: text({
@@ -13,7 +13,7 @@ const schema = dialog({
 });
 
 //version: 1.0.2
-const ReactHelloWorld = ({title, subtitle}: Output<typeof schema>) => {
+export const ReactHelloWorld: React.FC<Output<typeof schema>> = ({title, subtitle}) => {
     return (
         <div>
             My new text Hello World from react! v.1.0.9
@@ -26,17 +26,7 @@ const ReactHelloWorld = ({title, subtitle}: Output<typeof schema>) => {
         </div>
     );
 };
+ReactHelloWorld.displayName = 'ReactHelloWorld';
+export default ReactHelloWorld
 
-export default ReactHelloWorld;
-
-if (!window.customElements.get('react-hello-world')) {
-    customElements.define(
-        'react-hello-world',
-        r2wc(ReactHelloWorld, {
-            props: {
-                title: 'string',
-                subtitle: 'string',
-            },
-        }),
-    );
-}
+webcomponent(schema, ReactHelloWorld)

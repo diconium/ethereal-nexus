@@ -14,6 +14,7 @@ export interface DialogEntries {
 type EntriesOutput<TEntries extends DialogEntries> = {
   [TKey in keyof TEntries]: Output<TEntries[TKey]>;
 };
+
 /**
  * Object output inference type.
  */

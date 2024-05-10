@@ -5,7 +5,7 @@ function App() {
 
     return (
         <>
-            <ReactHelloWorld title={"Table"} />
+            <ReactHelloWorld title={"Table"} subtitle={"Subtitle"} />
         </>
     )
 }

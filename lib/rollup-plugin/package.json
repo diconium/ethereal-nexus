@@ -35,8 +35,11 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@swc/core": "^1.5.5",
     "acorn": "^8.11.3",
-    "acorn-walk": "^8.3.2"
+    "acorn-walk": "^8.3.2",
+    "esbuild": "^0.21.2",
+    "magic-string": "^0.30.10"
   },
   "peerDependencies": {
     "@ethereal-nexus/core": "workspace:*"

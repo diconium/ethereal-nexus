@@ -1,12 +1,19 @@
-import { type Plugin as RollupPlugin } from 'rollup';
+import {
+  type OutputBundle,
+  type OutputChunk,
+  type ParseAst,
+  type Plugin as RollupPlugin,
+  type ProgramNode,
+} from 'rollup';
 import path from 'node:path';
 import * as fs from 'node:fs';
-import { type Identifier, type ImportSpecifier, parse, type Program } from 'acorn';
+import { type Identifier, type ImportSpecifier} from 'acorn';
 import { simple } from 'acorn-walk';
 import * as vm from 'node:vm';
+import MagicString, { Bundle } from 'magic-string';
+import { build } from 'esbuild'
 
 type DialogCode = string | null
-type FilePath = string
 
 export interface Options {
   exclude?: string | RegExp | Array<string | RegExp>;
@@ -17,7 +24,7 @@ const whitelist = [
   'text'
 ];
 
-function extractDialog(ast: Program, code: string): DialogCode | null {
+function extractDialog(ast: ProgramNode, code: string): DialogCode | null {
   let schema: DialogCode | null = null;
   let imports: string[] = [];
   // Parse the source code
@@ -68,74 +75,151 @@ function saveFile(name: string, json: string) {
   fs.writeFileSync(outputFilePath, json);
 }
 
-export default function rollupEthereal(opts: Options = {}): RollupPlugin {
-  return {
-    name: 'ethereal',
+function resolveDependencies(chunk: OutputChunk, magicBundle: Bundle, bundle: OutputBundle, parser: ParseAst) {
+  const code = chunk.code;
+  const ast = parser(code);
+  const magic = new MagicString(code);
 
-    async buildStart() {
-      console.log('Building ethereal bundles...');
-      fs.rmSync('./dist/.ethereal', {recursive: true, force: true})
-    },
-    async transform(code, id) {
-      // Check if the file imports ethereal nexus
-      if (!code.includes('@ethereal-nexus/core') || id.includes('__etherealHelper__')) {
-        return null;
-      }
-      const name = id.split('/').pop()!.split('.')[0];
-      const ast = parse(code, { ecmaVersion: 'latest', sourceType: 'module' });
-
-      const schemaCode = extractDialog(ast, code);
-      if (schemaCode) {
-        const json = await parseDialog(schemaCode);
-        saveFile(name, json);
-      }
-
-      let serverCode = ''
-
-      simple(ast, {
-        CallExpression(node) {
-          if(node.callee.type === 'Identifier' && node.callee.name === 'webcomponent'){
-            if(node.arguments[1].type === 'Identifier'){
-              serverCode = `import { renderToString } from "react-dom/server";
-${code.substring(0, node.start) + code.substring(node.end + 2, code.length)}
-if (typeof global !== "undefined" && global.props != void 0) {
-  global.output = renderToString(/* @__PURE__ */ jsx(${node.arguments[1].name}, { ...global.props }));
-}`
-            }
-
-          }
-        }
-      });
-
-      fs.mkdirSync('dist/tmp', { recursive: true });
-      fs.writeFileSync(`dist/tmp/__etherealHelper__${name}`, code);
-      fs.writeFileSync(`dist/tmp/__etherealHelper__server__${name}`, serverCode);
-
-      this.emitFile({
-        type: 'chunk',
-        fileName: `.ethereal/${name}/index.js`,
-        id: `dist/tmp/__etherealHelper__${name}`,
-      });
-
-      this.emitFile({
-        type: 'chunk',
-        fileName: `.ethereal/${name}/server.js`,
-        id: `dist/tmp/__etherealHelper__server__${name}`,
-      });
-
-      return null;
-    },
-    async writeBundle(_options, bundle) {
-      for(const chunk of Object.values(bundle)) {
-        if(chunk.type === 'chunk' && chunk.facadeModuleId?.includes('__etherealHelper__')){
-          for(const imports of chunk.imports){
-            fs.copyFileSync(`./dist/${imports}`, `./dist/${path.dirname(chunk.preliminaryFileName)}/${imports}`)
-          }
-        }
+  simple(ast, {
+    ExportNamedDeclaration(node) {
+      const {start, end} = node;
+      magic.remove(start, end);
+      const nextChar = code[end];
+      if (nextChar === '\n') {
+        // If there's a new line character, delete it
+        magic.remove(end, end + 1);
       }
     },
-    buildEnd() {
-      fs.rmSync('./dist/tmp', {recursive: true})
+    ImportDeclaration(node) {
+      const {start, end} = node;
+      magic.remove(start, end);
+      const nextChar = code[end];
+      if (nextChar === '\n') {
+        magic.remove(end, end + 1);
+      }
+    },
+  });
+
+  if(chunk.imports) {
+    for(const i of chunk.imports) {
+      const chunk = bundle[i];
+      if(chunk.type === 'chunk'){
+        resolveDependencies(chunk, magicBundle, bundle, parser)
+      }
     }
-  };
+  }
+
+  return;
+}
+
+export default function rollupEthereal(opts: Options = {}): RollupPlugin[] {
+  const serverImports: string[] = [];
+
+  return [
+    {
+      name: 'ethereal',
+      async buildStart() {
+        console.log('Building ethereal bundles...');
+        fs.rmSync('./dist/.ethereal', { recursive: true, force: true });
+      },
+      async transform(code, id) {
+        // Check if the file imports ethereal nexus
+        if (!code.includes('@ethereal-nexus/core') || id.includes('__etherealHelper__')) {
+          return null;
+        }
+        const name = id.split('/').pop()!.split('.')[0];
+        const ast = this.parse(code);
+
+        const schemaCode = extractDialog(ast, code);
+        if (schemaCode) {
+          const json = await parseDialog(schemaCode);
+          saveFile(name, json);
+        }
+
+        let serverCode = new MagicString(code);
+        simple(ast, {
+          CallExpression(node) {
+            if (node.callee.type === 'Identifier' && node.callee.name === 'webcomponent') {
+              if (node.arguments[1].type === 'Identifier') {
+                serverCode.prepend('import { renderToString } from "react-dom/server";')
+                serverCode.append(`if (ethereal?.props != void 0) {
+  const data = await getServerSideProps(ethereal.props);
+  ethereal.serverSideProps = { ...data.props };
+  ethereal.output = renderToString(/* @__PURE__ */ jsxs(${node.arguments[1].name}, { ...{...ethereal.props, ...ethereal.serverSideProps} }));
+}`);
+                serverCode.remove(node.start, node.end);
+                const nextChar = code[node.end];
+                if (nextChar === '\n') {
+                  // If there's a new line character, delete it
+                  serverCode.remove(node.end, node.end + 1);
+                }
+              }
+            }
+          },
+        });
+
+        fs.mkdirSync('dist/tmp', { recursive: true });
+        fs.writeFileSync(`dist/tmp/__etherealHelper__${name}`, code);
+        fs.writeFileSync(`dist/tmp/__etherealHelper__server__${name}`, serverCode.toString());
+
+        this.emitFile({
+          type: 'chunk',
+          fileName: `.ethereal/${name}/index.js`,
+          id: `dist/tmp/__etherealHelper__${name}`
+        });
+
+        await build({
+          entryPoints: [`dist/tmp/__etherealHelper__server__${name}`],
+          format: 'esm',
+          target: 'es2022',
+          bundle: true,
+          allowOverwrite: true,
+          minify: false,
+          legalComments: 'none',
+          outfile: `dist/tmp/__etherealHelper__server__${name}`,
+        })
+
+        this.emitFile({
+          type: 'chunk',
+          fileName: `.ethereal/${name}/server.js`,
+          id: `dist/tmp/__etherealHelper__server__${name}`,
+        });
+
+        return null;
+      },
+      async writeBundle(_options, bundle) {
+        for (const chunk of Object.values(bundle)) {
+          if (chunk.type === 'chunk' && chunk.facadeModuleId?.includes('__etherealHelper__')) {
+            for (const imports of chunk.imports) {
+              const importPath = path.parse(imports);
+              const chunkPath = path.dirname(chunk.preliminaryFileName);
+
+              fs.copyFileSync(`./dist/${imports}`, `./dist/${chunkPath}/${importPath.base}`);
+            }
+          }
+        }
+      },
+      async renderChunk(code, chunk) {
+        if(chunk.facadeModuleId?.includes('__etherealHelper__')){
+          const ast = this.parse(code);
+          const magic = new MagicString(code);
+
+          simple(ast, {
+            ImportDeclaration(node){
+              const { value, start, end } = node.source;
+              if(value && typeof value === 'string'){
+                magic.update(start + 1, end - 1, `./${value.split('/').pop()}`)
+              }
+            }
+          })
+
+          return magic.toString()
+        }
+
+        return null;
+      },
+      buildEnd() {
+        fs.rmSync('./dist/tmp', { recursive: true });
+      }
+    }];
 }

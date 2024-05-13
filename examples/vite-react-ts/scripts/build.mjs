@@ -21,6 +21,6 @@ await build({
       target: 'esnext',
       outDir: `./dist`,
       emptyOutDir: false,
-      minify:false
+      minify: false,
     },
   });

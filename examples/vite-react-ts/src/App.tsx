@@ -1,5 +1,5 @@
 import './App.css'
-import ReactHelloWorld from "./components/ethereal-nexus/ReactHelloWorld/ReactHelloWorld.tsx";
+import { ReactHelloWorld } from "./components/ethereal-nexus/ReactHelloWorld/ReactHelloWorld.tsx";
 
 function App() {
 

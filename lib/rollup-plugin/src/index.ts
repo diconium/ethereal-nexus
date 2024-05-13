@@ -174,7 +174,7 @@ export default function rollupEthereal(opts: Options = {}): RollupPlugin[] {
           target: 'es2022',
           bundle: true,
           allowOverwrite: true,
-          minify: false,
+          minify: true,
           legalComments: 'none',
           outfile: `dist/tmp/__etherealHelper__server__${name}`,
         })

@@ -41,4 +41,8 @@ export const getServerSideProps = (async () => {
   return { props: { datetime: time.datetime } }
 }) satisfies GetServerSideProps<ReactHelloWorldProps>
 
-webcomponent(schema, ReactHelloWorld)
+webcomponent(schema, ReactHelloWorld, {
+  props: {
+    datetime: 'string'
+  }
+})

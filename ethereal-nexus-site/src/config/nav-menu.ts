@@ -58,10 +58,10 @@ export const navMenuConfig: NavMenuConfig = {
     },
   ],
   links: [
-    {
-      title: 'Customers',
-      href: '/customers',
-    },
+    // {
+    //   title: 'Customers',
+    //   href: '/customers',
+    // },
   ],
   resourcesNav: [
     {
@@ -72,11 +72,11 @@ export const navMenuConfig: NavMenuConfig = {
           href: '/docs/introduction',
           description: 'Read the full documentation',
         },
-        {
-          title: 'Showcase',
-          href: '/showcase',
-          description: `Unlock the potential with these powerful use cases.`,
-        },
+        // {
+        //   title: 'Showcase',
+        //   href: '/showcase',
+        //   description: `Unlock the potential with these powerful use cases.`,
+        // },
       ],
     },
   ],

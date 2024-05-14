@@ -1,6 +1,6 @@
 {
-  "name": "remote-components-cli",
-  "version": "1.2.0",
+  "name": "@diconium/ethereal-nexus-cli",
+  "version": "1.0.0",
   "type": "module",
   "description": "",
   "main": "index.js",
@@ -14,10 +14,9 @@
     "node-fetch": "^3.3.1",
     "ora": "^7.0.1",
     "readline": "^1.3.0",
-    "remote-components-cli": "^1.0.3",
     "yargs": "^17.7.2"
   },
   "bin": {
-    "remote-components-cli": "./index.js"
+    "ethereal-nexus-cli": "index.js"
   }
 }

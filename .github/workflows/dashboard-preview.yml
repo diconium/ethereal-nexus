@@ -8,7 +8,8 @@ on:
     branches:
       - main
     paths:
-      - '/ethereal-nexus-dashboard/**'
+      - 'web/dashboard/**'
+      - '.github/workflows/dashboard-preview.yml'
   workflow_dispatch:
 
 env:
@@ -39,21 +40,24 @@ jobs:
 
       - name: Setup environment
         run: |
-          echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./ethereal-nexus-dashboard/.env
-          echo "DRIZZLE_DATABASE_TYPE=neon" >> ./ethereal-nexus-dashboard/.env
-          echo "DRIZZLE_DATABASE_URL=${{ steps.create-branch.outputs.db_url }}?sslmode=require" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./ethereal-nexus-dashboard/.env
+          echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./web/dashboard/.env
+          echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./web/dashboard/.env
+          echo "DRIZZLE_DATABASE_TYPE=neon" >> ./web/dashboard/.env
+          echo "DRIZZLE_DATABASE_URL=${{ steps.create-branch.outputs.db_url }}?sslmode=require" >> ./web/dashboard/.env
+          echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./web/dashboard/.env
           
-          cd ./ethereal-nexus-dashboard
-          npm ci
-          npm run generate
+          cd ./web/dashboard
+          
+          corepack enable pnpm
+          pnpm i --frozen-lockfile
+          pnpm --filter "@ethereal-nexus/dashboard" run generate
 
       - name: Deploy Container App
         uses: azure/container-apps-deploy-action@v1
         with:
           containerAppName: ethereal-nexus-app-${{ github.event.number }}
-          appSourcePath: ${{ github.workspace }}/ethereal-nexus-dashboard
+          appSourcePath: ${{ github.workspace }}
+          dockerfilePath: web/dashboard/Dockerfile
           acrName: etherealnexus
           acrUsername: ${{ secrets.REGISTRY_USERNAME }}
           acrPassword: ${{ secrets.REGISTRY_PASSWORD }}

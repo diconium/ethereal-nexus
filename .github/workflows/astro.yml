@@ -10,7 +10,7 @@ on:
     branches:
       ["main"]
     paths:
-    - 'ethereal-nexus-site/**'
+    - 'web/site/**'
     - '.github/workflows/astro.yml'
 
   # Allows you to run this workflow manually from the Actions tab
@@ -29,7 +29,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  BUILD_PATH: "./ethereal-nexus-site" # default value when not using subfolders
+  BUILD_PATH: "./web/site" # default value when not using subfolders
   # BUILD_PATH: subfolder
 
 jobs:

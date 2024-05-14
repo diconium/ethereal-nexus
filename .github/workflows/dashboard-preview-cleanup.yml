@@ -6,7 +6,8 @@ on:
   pull_request:
     types: [closed]
     paths:
-      - '/ethereal-nexus-dashboard/**'
+      - 'web/dashboard/**'
+      - '.github/workflows/dashboard-preview-cleanup.yml'
   workflow_dispatch:
 
 env:

@@ -20,7 +20,8 @@ COPY . .
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
-RUN corepack enable pnpm && pnpm --filter "@ethereal-nexus/dashboard" build
+RUN corepack enable pnpm && pnpm i
+RUN pnpm --filter "@ethereal-nexus/dashboard" build
 
 # Production image, copy all the files and run next
 FROM base AS runner

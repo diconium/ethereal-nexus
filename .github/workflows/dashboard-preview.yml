@@ -42,9 +42,9 @@ jobs:
         run: |
           echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./web/dashboard/.env
           echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./web/dashboard/.env
+          echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./web/dashboard/.env
           echo "DRIZZLE_DATABASE_TYPE=neon" >> ./web/dashboard/.env
           echo "DRIZZLE_DATABASE_URL=${{ steps.create-branch.outputs.db_url }}?sslmode=require" >> ./web/dashboard/.env
-          echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./web/dashboard/.env
           
           cd ./web/dashboard
           

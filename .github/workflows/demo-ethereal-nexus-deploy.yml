@@ -8,7 +8,7 @@ on:
       [ main ]
     paths:
     - 'web/dashboard/**'
-    - '.github/workflows/demo-ethereal-nexus-AutoDeployTrigger-b5b2e196-b8c8-4d42-8528-b07617ea6295.yml'
+    - '.github/workflows/demo-ethereal-nexus-deploy.yml'
 
   # Allow manual trigger 
   workflow_dispatch:
@@ -16,7 +16,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
+    environment: playground
     steps:
       - name: Checkout to the branch
         uses: actions/checkout@v2
@@ -40,16 +40,16 @@ jobs:
           
       - name: 'Create env file'
         run: |
-          echo "${{ secrets.MONGODB_URI }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.PGHOST }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.PGUSER }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.PGPORT }}" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.PGPASSWORD }}" >> ./ethereal-nexus-dashboard/.env
-          echo "PGSSL=true" >> ./ethereal-nexus-dashboard/.env
-          echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./ethereal-nexus-dashboard/.env
-          
+          echo "${{ secrets.MONGODB_URI }}" >> ./web/dashboard/.env
+          echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./web/dashboard/.env
+          echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./web/dashboard/.env
+          echo "${{ secrets.PGHOST }}" >> ./web/dashboard/.env
+          echo "${{ secrets.PGUSER }}" >> ./web/dashboard/.env
+          echo "${{ secrets.PGPORT }}" >> ./web/dashboard/.env
+          echo "${{ secrets.PGPASSWORD }}" >> ./web/dashboard/.env
+          echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./web/dashboard/.env
+          echo "PGSSL=true" >> ./web/dashboard/.env
+
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:

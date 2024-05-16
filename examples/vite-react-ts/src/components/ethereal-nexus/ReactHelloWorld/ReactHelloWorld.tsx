@@ -1,4 +1,12 @@
-import { webcomponent, dialog, text, type Output, type GetServerSideProps } from '@ethereal-nexus/core';
+import {
+  webcomponent,
+  dialog,
+  text,
+  hidden,
+  optional,
+  type Output,
+  type GetServerSideProps,
+} from '@ethereal-nexus/core';
 import React from 'react';
 
 const schema = dialog({
@@ -9,15 +17,16 @@ const schema = dialog({
   subtitle: text({
     label: "Title",
     placeholder: "Title",
-  })
+  }),
+  datetime: optional(hidden({
+    type: 'string'
+  }))
 });
 
-type ReactHelloWorldProps = Output<typeof schema> & {
-  datetime?: string;
-}
+type Props = Output<typeof schema>
 
 //version: 1.0.2
-export const ReactHelloWorld: React.FC<ReactHelloWorldProps> = ({title, subtitle, datetime}) => {
+export const ReactHelloWorld: React.FC<Props> = ({title, subtitle, datetime}) => {
   return (
     <div>
       My new text Hello World from react! v.1.0.9
@@ -39,10 +48,6 @@ export const getServerSideProps = (async () => {
   const time = await res.json()
   // Pass data to the page via props
   return { props: { datetime: time.datetime } }
-}) satisfies GetServerSideProps<ReactHelloWorldProps>
+}) satisfies GetServerSideProps<Output<typeof schema>>
 
-webcomponent(schema, ReactHelloWorld, {
-  props: {
-    datetime: 'string'
-  }
-})
+webcomponent(schema)(ReactHelloWorld)

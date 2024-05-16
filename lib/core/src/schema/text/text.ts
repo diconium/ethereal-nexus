@@ -9,7 +9,6 @@ export interface TextSchema<TOutput extends string = string> extends BaseSchema<
 
 interface TextInput extends BaseFieldInput {
   placeholder: string;
-  label: string;
 }
 
 export function text(input: TextInput): TextSchema {

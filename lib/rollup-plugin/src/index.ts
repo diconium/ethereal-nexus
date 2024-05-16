@@ -1,7 +1,4 @@
 import {
-  type OutputBundle,
-  type OutputChunk,
-  type ParseAst,
   type Plugin as RollupPlugin,
   type ProgramNode,
 } from 'rollup';
@@ -10,7 +7,7 @@ import * as fs from 'node:fs';
 import { type Identifier, type ImportSpecifier} from 'acorn';
 import { simple } from 'acorn-walk';
 import * as vm from 'node:vm';
-import MagicString, { Bundle } from 'magic-string';
+import MagicString from 'magic-string';
 import { build } from 'esbuild'
 
 type DialogCode = string | null
@@ -18,11 +15,6 @@ type DialogCode = string | null
 export interface Options {
   exclude?: string | RegExp | Array<string | RegExp>;
 }
-
-const whitelist = [
-  'dialog',
-  'text'
-];
 
 function extractDialog(ast: ProgramNode, code: string): DialogCode | null {
   let schema: DialogCode | null = null;
@@ -37,7 +29,6 @@ function extractDialog(ast: ProgramNode, code: string): DialogCode | null {
           .map(identifier => {
             return ((identifier as ImportSpecifier).imported as Identifier).name;
           })
-          .filter(name => whitelist.includes(name));
       }
     },
     VariableDeclaration(node) {
@@ -61,8 +52,8 @@ async function parseDialog(schemaCode: string) {
       '@ethereal-nexus/core': await import('@ethereal-nexus/core')
     }
   });
-  const schema = vm.runInNewContext(schemaCode, ctx);
 
+  const schema = vm.runInNewContext(schemaCode, ctx);
   return JSON.stringify(schema, null, 2);
 }
 
@@ -73,43 +64,6 @@ function saveFile(name: string, json: string) {
 
   // Write JSON to file
   fs.writeFileSync(outputFilePath, json);
-}
-
-function resolveDependencies(chunk: OutputChunk, magicBundle: Bundle, bundle: OutputBundle, parser: ParseAst) {
-  const code = chunk.code;
-  const ast = parser(code);
-  const magic = new MagicString(code);
-
-  simple(ast, {
-    ExportNamedDeclaration(node) {
-      const {start, end} = node;
-      magic.remove(start, end);
-      const nextChar = code[end];
-      if (nextChar === '\n') {
-        // If there's a new line character, delete it
-        magic.remove(end, end + 1);
-      }
-    },
-    ImportDeclaration(node) {
-      const {start, end} = node;
-      magic.remove(start, end);
-      const nextChar = code[end];
-      if (nextChar === '\n') {
-        magic.remove(end, end + 1);
-      }
-    },
-  });
-
-  if(chunk.imports) {
-    for(const i of chunk.imports) {
-      const chunk = bundle[i];
-      if(chunk.type === 'chunk'){
-        resolveDependencies(chunk, magicBundle, bundle, parser)
-      }
-    }
-  }
-
-  return;
 }
 
 export default function rollupEthereal(opts: Options = {}): RollupPlugin[] {
@@ -139,13 +93,13 @@ export default function rollupEthereal(opts: Options = {}): RollupPlugin[] {
         let serverCode = new MagicString(code);
         simple(ast, {
           CallExpression(node) {
-            if (node.callee.type === 'Identifier' && node.callee.name === 'webcomponent') {
-              if (node.arguments[1].type === 'Identifier') {
+            if (node.callee.type === 'CallExpression' && node.callee.callee.type == 'Identifier' && node.callee.callee.name === 'webcomponent') {
+              if (node.arguments[0].type === 'Identifier') {
                 serverCode.prepend('import { renderToString } from "react-dom/server";')
                 serverCode.append(`if (ethereal?.props != void 0) {
   const data = await getServerSideProps(ethereal.props);
   ethereal.serverSideProps = { ...data.props };
-  ethereal.output = renderToString(/* @__PURE__ */ jsxs(${node.arguments[1].name}, { ...{...ethereal.props, ...ethereal.serverSideProps} }));
+  ethereal.output = renderToString(/* @__PURE__ */ jsxs(${node.arguments[0].name}, { ...{...ethereal.props, ...ethereal.serverSideProps} }));
 }`);
                 serverCode.remove(node.start, node.end);
                 const nextChar = code[node.end];
@@ -153,7 +107,7 @@ export default function rollupEthereal(opts: Options = {}): RollupPlugin[] {
                   // If there's a new line character, delete it
                   serverCode.remove(node.end, node.end + 1);
                 }
-              }
+             }
             }
           },
         });

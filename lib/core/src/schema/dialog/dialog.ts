@@ -1,10 +1,10 @@
-import type { BaseSchema } from '../../types/schema';
+import type { BaseSchema } from '../../types';
 import { DialogEntries, DialogOutput } from './types';
 import { WebcomponentPropTypes } from '../../types/webcomponent';
 
-export interface DialogSchema<TEntries extends DialogEntries> extends BaseSchema<DialogOutput<TEntries>> {
+export interface DialogSchema<TEntries extends DialogEntries, TOutput = DialogOutput<TEntries>> extends BaseSchema<TOutput> {
   type: 'dialog';
- }
+}
 
 export function dialog<TEntries extends DialogEntries>(entries: TEntries): DialogSchema<TEntries> {
   return {
@@ -15,7 +15,12 @@ export function dialog<TEntries extends DialogEntries>(entries: TEntries): Dialo
           id: key,
           name: key,
           ...entry._parse()
-        }));
+        }))
+        .filter((entry: object) => {
+          if('type' in entry){
+            return entry.type !== 'hidden'
+          }
+        })
     },
     _primitive() {
       return Object.entries(entries)

@@ -5,26 +5,23 @@ import { pascalToKebab } from '../../utils/pascalToKebab';
 import { parsePrimitives } from '../../functions';
 import { WebcomponentPropTypes } from '../../types/webcomponent';
 
-type BaseOptions = {
-  props?: {
-    [key: string]: WebcomponentPropTypes
-  }
-}
+type BaseOptions = {}
 
-export function webcomponent<T extends DialogEntries, P extends {} = {}>(schema: DialogSchema<T>, component: React.ComponentType<P>, options: BaseOptions) {
-  const name = pascalToKebab(component.displayName!)
+export function webcomponent<T extends DialogEntries>(schema: DialogSchema<T>, options?: BaseOptions) {
   const props: Record<string, WebcomponentPropTypes> = {
     ...parsePrimitives(schema),
-    ...options.props,
   };
 
-  console.log(props)
-  if (!window.customElements.get(name)) {
-    customElements.define(
-      name,
-      r2wc(component, {
-        props,
-      }),
-    );
+  return <P extends {} = {}>(component: React.ComponentType<P>) => {
+    const name = pascalToKebab(component.displayName!)
+
+    if (!window.customElements.get(name)) {
+      customElements.define(
+        name,
+        r2wc(component, {
+          props,
+        }),
+      );
+    }
   }
 }

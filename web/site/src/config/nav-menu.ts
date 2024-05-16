@@ -40,18 +40,18 @@ export const navMenuConfig: NavMenuConfig = {
       items: [
         {
           title: 'Features',
-          href: '/features',
+          href: '/ethereal-nexus/docs/features',
           description:
             'Discover the full potential of Ethereal Nexus features.',
         },
         {
           title: 'Changelog',
-          href: '/docs/changelog',
+          href: '/ethereal-nexus/docs/changelog',
           description: `Be in the know with our constant upgrades and new features.`,
         },
         {
           title: 'Integrations',
-          href: '/docs/integrations',
+          href: '/ethereal-nexus/docs/integrations',
           description: `Explore our available integrations.`,
         },
       ],
@@ -69,7 +69,7 @@ export const navMenuConfig: NavMenuConfig = {
       items: [
         {
           title: 'Getting started',
-          href: '/docs/introduction',
+          href: '/ethereal-nexus/docs/introduction',
           description: 'Read the full documentation',
         },
         // {

@@ -9,7 +9,7 @@ import starlight from '@astrojs/starlight';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://diconium.github.io',
-  base:"site",
+  base:"ethereal-nexus",
   integrations: [
     starlight({
       title: 'My delightful docs site',

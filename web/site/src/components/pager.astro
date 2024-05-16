@@ -12,7 +12,7 @@ type Props = {
 export function getPagerForDoc(slug: string) {
   const flattenedLinks = [...flatten(docsConfig.sidebarNav)];
   let activeIndex = flattenedLinks.findIndex(
-    (link) => `/docs/${slug}` === link?.href
+    (link) => `/ethereal-nexus/docs/${slug}` === link?.href
   );
 
   activeIndex = Math.max(activeIndex, 0);

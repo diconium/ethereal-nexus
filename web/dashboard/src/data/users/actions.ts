@@ -121,11 +121,11 @@ export async function insertInvitedCredentialsUser(
   if (invite.length <= 0) {
     return actionError('No invite matches the key.');
   }
-
+  
   if (
     invite[0].email.localeCompare(user.email, undefined, {
-      sensitivity: 'accent',
-    }) === 0
+      sensitivity: 'base',
+    }) !== 0
   ) {
     return actionError("The emails doesn't match the invite.");
   }

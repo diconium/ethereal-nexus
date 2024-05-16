@@ -95,13 +95,16 @@ export const authConfig = {
       return false
     },
     async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role
+      const dbUser = await getUserByEmail(token.email);
+      if (user && dbUser.success) {
+        token.role = user.role;
+        token.sub = dbUser.data.id;
       }
       return token
     },
     async session({ session, token }) {
       const members = await getMembersByUser(token.sub)
+
       if(members.success && members.data.length > 0) {
         session.permissions = members.data.reduce((acc,member) => {
           acc[member.resource] = member.permissions;

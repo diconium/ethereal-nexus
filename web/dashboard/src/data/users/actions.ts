@@ -129,14 +129,18 @@ export async function insertInvitedCredentialsUser(
   ) {
     return actionError("The emails doesn't match the invite.");
   }
-  await deleteInvite(key);
 
-  return insertCredentialsUser(user);
+  const result = await insertCredentialsUser(user);
+
+  if(result.success){
+    await deleteInvite(key);
+  }
+  
+  return result;
 }
 
 export async function insertInvitedSsoUser(
   user: any,
-  key?: string | null,
 ): ActionResponse<PublicUser> {
   const safeUser = newUserSchema.safeParse(user);
   if (!safeUser.success) {
@@ -149,7 +153,7 @@ export async function insertInvitedSsoUser(
     .where(eq(invites.email, safeUser.data.email));
 
   if (invite.length === 0) {
-    return actionError('No invite matches the key.');
+    return actionError('No invite matches the email.');
   }
   await deleteInvite(invite[0].key);
 

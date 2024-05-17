@@ -1,7 +1,0 @@
-{
-  "name": "@ethereal-nexus/root",
-  "private": "true",
-  "devDependencies": {
-    "prettier": "^3.0.3"
-  }
-}

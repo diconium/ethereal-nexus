@@ -1,5 +1,4 @@
 import {
-  webcomponent,
   dialog,
   text,
   hidden,
@@ -40,7 +39,6 @@ export const ReactHelloWorld: React.FC<Props> = ({title, subtitle, datetime}) =>
     </div>
   );
 };
-ReactHelloWorld.displayName = 'ReactHelloWorld';
 
 export const getServerSideProps = (async () => {
   // Fetch data from external API
@@ -49,5 +47,3 @@ export const getServerSideProps = (async () => {
   // Pass data to the page via props
   return { props: { datetime: time.datetime } }
 }) satisfies GetServerSideProps<Output<typeof schema>>
-
-webcomponent(schema)(ReactHelloWorld)

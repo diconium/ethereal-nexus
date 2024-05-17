@@ -8,7 +8,7 @@ export default {
     ethereal({
       exposes: {
         ReactHelloWorld: './src/components/ReactHelloWorld/ReactHelloWorld.tsx'
-      }
+      },
     }),
   ],
   build: {

@@ -9,7 +9,7 @@ importers:
   .:
     devDependencies:
       prettier:
-        specifier: ^3.0.3
+        specifier: ^3.2.5
         version: 3.2.5
 
   examples/next-mf:

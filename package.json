@@ -2,6 +2,10 @@
   "name": "@ethereal-nexus/root",
   "private": "true",
   "devDependencies": {
-    "prettier": "^3.0.3"
+    "prettier": "^3.2.5"
+  },
+  "engines": {
+    "npm": "please-use-pnpm",
+    "pnpm": ">=3"
   }
 }

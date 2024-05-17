@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-import ethereal from '@ethereal-nexus/rollup-plugin-ethereal-nexus';
+
 import { build } from 'vite';
-import react from '@vitejs/plugin-react';
 
 await build({
     plugins: [

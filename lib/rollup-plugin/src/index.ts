@@ -1,20 +1,16 @@
-import {
-  type Plugin as RollupPlugin,
-  type ProgramNode,
-} from 'rollup';
+import { type Plugin as RollupPlugin, type ProgramNode } from 'rollup';
 import path from 'node:path';
 import * as fs from 'node:fs';
-import { type Identifier, type ImportSpecifier} from 'acorn';
+import { type Identifier, type ImportSpecifier } from 'acorn';
 import { simple } from 'acorn-walk';
 import * as vm from 'node:vm';
 import MagicString from 'magic-string';
-import { build } from 'esbuild'
+import { build } from 'esbuild';
+import { EtherealPluginOptions } from './types';
+import { fileURLToPath } from 'node:url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 type DialogCode = string | null
-
-export interface Options {
-  exclude?: string | RegExp | Array<string | RegExp>;
-}
 
 function extractDialog(ast: ProgramNode, code: string): DialogCode | null {
   let schema: DialogCode | null = null;
@@ -66,21 +62,29 @@ function saveFile(name: string, json: string) {
   fs.writeFileSync(outputFilePath, json);
 }
 
-export default function rollupEthereal(opts: Options = {}): RollupPlugin[] {
-  const serverImports: string[] = [];
-
+export default function rollupEthereal(opts: EtherealPluginOptions): RollupPlugin[] {
   return [
     {
       name: 'ethereal',
       async buildStart() {
         console.log('Building ethereal bundles...');
         fs.rmSync('./dist/.ethereal', { recursive: true, force: true });
+        for(const component of Object.values(opts.exposes))  {
+          if(typeof component === 'string') {
+            this.emitFile({
+              type: 'chunk',
+              fileName: path.resolve(component).substring(1),
+              id: path.resolve(component),
+            })
+          }
+        }
       },
       async transform(code, id) {
         // Check if the file imports ethereal nexus
         if (!code.includes('@ethereal-nexus/core') || id.includes('__etherealHelper__')) {
           return null;
         }
+        console.log(id)
         const name = id.split('/').pop()!.split('.')[0];
         const ast = this.parse(code);
 
@@ -173,7 +177,7 @@ export default function rollupEthereal(opts: Options = {}): RollupPlugin[] {
         return null;
       },
       buildEnd() {
-        fs.rmSync('./dist/tmp', { recursive: true });
+        fs.rmSync('./dist/tmp', { force: true, recursive: true });
       }
     }];
 }

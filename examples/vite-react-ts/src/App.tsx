@@ -1,13 +1,5 @@
-import './App.css'
-import { ReactHelloWorld } from "./components/ethereal-nexus/ReactHelloWorld/ReactHelloWorld.tsx";
-
 function App() {
-
-    return (
-        <>
-            <ReactHelloWorld title={"Table"} subtitle={"Subtitle"} />
-        </>
-    )
+    return <div>Hello World!</div>
 }
 
 export default App;

@@ -31,7 +31,7 @@ function isSelected(pathname: string, href: string | UrlObject) {
 
 export function NavLink({href, className, children, target, rel}: NavLinkProps) {
   const pathname = usePathname()
-  const selected = isSelected(pathname, href);
+  const selected = href != '/' && isSelected(pathname, href);
 
   const activeNavLink = selected ? 'bg-orange-500 rounded-full text-white py-4 px-8 flex justify-center' : '';
   const combinedClassName = `${activeNavLink} ${className}`;

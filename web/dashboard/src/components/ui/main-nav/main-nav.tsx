@@ -1,25 +1,22 @@
 import { cn } from "@/lib/utils";
 import { NavLink } from './nav-link';
 import { auth } from '@/auth';
-import HomeIcon from '@/components/ui/icons/HomeIcon';
 import ProjectsIcon from '@/components/ui/icons/ProjectsIcon';
 import ComponentsIcon from '@/components/ui/icons/ComponentsIcon';
 import ApiDocumentationIcon from '@/components/ui/icons/ApiDocumentationIcon';
+import LogoImage from "@/components/ui/logo-image";
 
 export async function MainNav({className = "", ...props } : React.HTMLAttributes<HTMLElement>) {
   const session = await auth()
 
   return (
     <nav
-      className={cn("flex items-center justify-between pl-4 pr-4 w-full", className)}
+      className={cn("flex items-center justify-between w-full", className)}
       {...props}
     >
-      <div className="flex items-center space-x-4 lg:space-x-6">
-        <NavLink className='flex items-center justify-center w-36' href="/">
-          <div className="mr-4">
-            <HomeIcon width={20} height={20} />
-          </div>
-          <span>Home</span>
+      <div className="flex items-center space-x-4 lg:space-x-9">
+        <NavLink className='flex items-center justify-center' href="/">
+          <LogoImage/>
         </NavLink>
 
         <NavLink className="flex items-center justify-center w-40" href="/projects">

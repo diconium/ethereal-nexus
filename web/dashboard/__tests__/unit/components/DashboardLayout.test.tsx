@@ -94,7 +94,6 @@ describe('Dashboard layout component', () => {
     });
 
     expect(screen.queryByTestId('global-loader')).not.toBeInTheDocument();
-    expect(screen.getByText('Ethereal Nexus Logo')).toBeInTheDocument();
     expect(screen.getByText('Main Nav')).toBeInTheDocument();
     expect(screen.getByText('ThemePicker')).toBeInTheDocument();
     expect(screen.getByText('User Nav')).toBeInTheDocument();

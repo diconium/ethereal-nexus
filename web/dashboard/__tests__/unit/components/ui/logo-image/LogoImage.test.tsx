@@ -17,10 +17,8 @@ describe('LogoImage component', () => {
     expect(wrapper.baseElement).toMatchSnapshot();
   });
 
-  it('should render image logo with src and alt attributes', () => {
+  it('should render image logo svg', () => {
     const image = screen.getByTestId('ethereal-logo');
     expect(image).toBeInTheDocument();
-    expect(image).toHaveAttribute('src', expect.stringContaining('dark'));
-    expect(image).toHaveAttribute('alt', 'Ethereal Nexus Logo');
   });
 });

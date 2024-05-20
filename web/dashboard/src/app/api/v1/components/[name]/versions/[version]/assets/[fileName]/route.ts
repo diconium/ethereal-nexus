@@ -6,7 +6,7 @@ import {
 import { headers } from 'next/headers';
 import { AuthenticatedWithApiKeyUser, authenticatedWithKey, DefaultExt } from '@/lib/route-wrappers';
 import { NextRequest, NextResponse } from 'next/server';
-import { updateAssets } from '@/data/components/actions';
+import { upsertAssets } from '@/data/components/actions';
 import * as console from 'console';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -140,7 +140,7 @@ export const POST = authenticatedWithKey(
           status: HttpStatus.BAD_REQUEST,
         });
       }
-      const response = await updateAssets(
+      const response = await upsertAssets(
         params.name,
         params.version,
         url,

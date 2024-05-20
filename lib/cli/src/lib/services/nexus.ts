@@ -2,10 +2,9 @@ import wretch from "wretch"
 import { getConfig } from '../../utils/get-config';
 import fs from 'node:fs';
 import path from 'path';
-import { logger } from '../../utils/logger';
 
 const config = await getConfig()
-const nexusApi = wretch(config?.url) // Base url
+const nexusApi = wretch(config?.url)
   .auth(`apikey ${config?.auth}`)
 
 const publish = async (filePath: string) => {
@@ -16,7 +15,11 @@ const publish = async (filePath: string) => {
 
   form.append('file', blob, fileName);
 
-  return await nexusApi.url("/publish").post(form).json()
+  return await nexusApi
+    .url("/api/v1/publish")
+    .body(form)
+    .post()
+    .json()
 }
 
 export const nexus = {

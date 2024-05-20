@@ -11,7 +11,7 @@ import { createTar } from '../utils/create-tar';
 import ora from 'ora';
 import { nexus } from '../lib/services/nexus';
 
-const addOptionsSchema = z.object({
+const publishOptionsSchema = z.object({
   components: z.array(z.string()).optional(),
   yes: z.boolean(),
   overwrite: z.boolean(),
@@ -29,7 +29,7 @@ export const publish = new Command()
   .option('-p, --path <path>', 'the path to .ethereal folder where the component are.')
   .action(async (components, opts) => {
     try {
-      const options = addOptionsSchema.parse({
+      const options = publishOptionsSchema.parse({
         components,
         ...opts
       });
@@ -93,7 +93,13 @@ export const publish = new Command()
       }
       spinner.stop();
 
+      logger.info("")
       spinner.succeed(`Done.`);
+      logger.info(
+        `${chalk.green(
+          "Success!"
+        )} You may now start using your components.`
+      )
     } catch (error) {
       handleError(error);
     }

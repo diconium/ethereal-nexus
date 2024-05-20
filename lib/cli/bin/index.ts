@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Command } from "commander"
 import { publish } from '../src/commands/publish';
+import { init } from '../src/commands/init';
 import { getPackageInfo } from "../src/utils/get-package-info"
 
 process.on("SIGINT", () => process.exit(0))
@@ -19,6 +20,7 @@ function main() {
     )
 
   program
+    .addCommand(init)
     .addCommand(publish)
     .parse()
 }

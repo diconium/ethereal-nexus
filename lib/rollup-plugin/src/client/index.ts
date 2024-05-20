@@ -36,7 +36,7 @@ export function bundleClient(code: string, exposed: Map<string, string>, id: str
 
   emitFile({
     type: 'chunk',
-    fileName: `.ethereal/${name}/index.js`,
+    fileName: `.ethereal/${name}/[hash]-index.js`,
     id: `dist/tmp/__etherealHelper__${name}`
   });
 }

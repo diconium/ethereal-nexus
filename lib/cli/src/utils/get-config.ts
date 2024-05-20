@@ -6,7 +6,7 @@ export const DEFAULT_PATH = "./dist/.ethereal"
 
 const explorer = cosmiconfig("ethereal");
 
-const configSchema = z
+export const configSchema = z
   .object({
     $schema: z.string().optional(),
     url: z.string(),

@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^9.0.7",
     "@types/node": "^20.12.12",
     "tsup": "^8.0.2",
     "type-fest": "^4.18.2"

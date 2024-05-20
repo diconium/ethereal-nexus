@@ -163,7 +163,7 @@ export async function upsertComponent(
     }
 }
 
-export async function updateAssets(
+export async function upsertAssets(
     componentName: string,
     versionId: string,
     url: string,

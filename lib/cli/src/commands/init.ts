@@ -88,7 +88,7 @@ export async function promptForConfig(
     }
   }
   logger.info("")
-  const spinner = ora(`Writing config.json...`).start()
+  const spinner = ora(`Writing .etherealrc...`).start()
   const targetPath = path.resolve(cwd, ".etherealrc")
   await fs.writeFile(targetPath, JSON.stringify(config, null, 2), "utf8")
   spinner.succeed()

@@ -1,8 +1,8 @@
-/** @type {import('vite').UserConfig} */
+import { defineConfig } from 'vite'
 import ethereal from '@ethereal-nexus/rollup-plugin-ethereal-nexus';
 import react from '@vitejs/plugin-react';
 
-export default {
+export default defineConfig({
   plugins: [
     react(),
     ethereal({
@@ -25,4 +25,4 @@ export default {
     emptyOutDir: false,
     minify: false,
   },
-}
+})

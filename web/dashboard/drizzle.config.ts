@@ -14,5 +14,5 @@ export default defineConfig({
     url: process.env.DRIZZLE_DATABASE_URL!,
   },
   verbose: true,
-  strict: true,
+  strict: false,
 })

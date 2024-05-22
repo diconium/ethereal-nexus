@@ -1,6 +1,7 @@
 import { EmitFile, OutputBundle, ParseAst, ProgramNode, RenderedChunk } from 'rollup';
 import MagicString from 'magic-string';
 import { simple } from 'acorn-walk';
+import { createHash } from 'crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -34,9 +35,14 @@ export function bundleClient(code: string, exposed: Map<string, string>, id: str
   const clientCode = createClientCode(code, exposed.get(id)!, ast);
   fs.writeFileSync(`dist/tmp/__etherealHelper__${name}`, clientCode.toString());
 
+  const hash = createHash('sha256')
+    .update(code)
+    .digest('hex')
+    .slice(0, 16);
+
   emitFile({
     type: 'chunk',
-    fileName: `.ethereal/${name}/[hash]-index.js`,
+    fileName: `.ethereal/${name}/${hash}-index.js`,
     id: `dist/tmp/__etherealHelper__${name}`
   });
 }

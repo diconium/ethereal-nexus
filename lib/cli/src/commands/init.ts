@@ -1,5 +1,4 @@
 import { existsSync, promises as fs } from 'fs';
-import path from 'path';
 import { Command } from 'commander';
 import { logger } from '../utils/logger';
 import chalk from 'chalk';
@@ -8,6 +7,7 @@ import ora from 'ora';
 import inquirer from 'inquirer';
 import { configSchema, DEFAULT_PATH } from '../utils/get-config';
 import { z } from 'zod';
+import { resolve } from 'node:path';
 
 const initOptionsSchema = z.object({
   yes: z.boolean(),
@@ -20,7 +20,7 @@ export const init = new Command()
   .action(async (opts) => {
     try {
       const options = initOptionsSchema.parse(opts)
-      const cwd = path.resolve(process.cwd())
+      const cwd = resolve(process.cwd())
 
       // Ensure target directory exists.
       if (!existsSync(cwd)) {
@@ -89,7 +89,7 @@ export async function promptForConfig(
   }
   logger.info("")
   const spinner = ora(`Writing .etherealrc...`).start()
-  const targetPath = path.resolve(cwd, ".etherealrc")
+  const targetPath = resolve(cwd, ".etherealrc")
   await fs.writeFile(targetPath, JSON.stringify(config, null, 2), "utf8")
   spinner.succeed()
 }

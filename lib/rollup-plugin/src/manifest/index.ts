@@ -2,7 +2,7 @@ import vm from 'node:vm';
 import { ProgramNode } from 'rollup';
 import { simple } from 'acorn-walk';
 import type { Identifier, ImportSpecifier } from 'acorn';
-import { saveFile } from '../utils';
+import { convertCamelCaseToDashCase, convertCamelCaseToSpaceCase, getPackageInfo, saveFile } from '../utils';
 
 type DialogCode = string | null
 
@@ -47,11 +47,15 @@ export async function parseDialog(schemaCode: string) {
 
 export async function generateManifest(code: string, ast: ProgramNode, name: string) {
   const schemaCode = extractDialog(ast, code);
+  const packageJson = await getPackageInfo();
+
   if (schemaCode) {
     const dialog = await parseDialog(schemaCode);
     const manifest = {
       name,
-      version: '0.0.99',
+      title: convertCamelCaseToSpaceCase(name),
+      slug: convertCamelCaseToDashCase(name),
+      version: packageJson.version,
       readme: '',
       ...dialog,
     }

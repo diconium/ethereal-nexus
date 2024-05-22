@@ -185,6 +185,9 @@ importers:
       esbuild:
         specifier: ^0.21.2
         version: 0.21.2
+      fs-extra:
+        specifier: ^11.2.0
+        version: 11.2.0
       magic-string:
         specifier: ^0.30.10
         version: 0.30.10
@@ -192,6 +195,9 @@ importers:
       '@ethereal-nexus/core':
         specifier: workspace:*
         version: link:../core
+      '@types/fs-extra':
+        specifier: ^11.0.4
+        version: 11.0.4
       '@types/node':
         specifier: ^20.12.8
         version: 20.12.8
@@ -201,6 +207,9 @@ importers:
       tsup:
         specifier: ^8.0.2
         version: 8.0.2(@swc/core@1.5.5)(typescript@5.4.5)
+      type-fest:
+        specifier: ^4.18.2
+        version: 4.18.2
       typescript:
         specifier: ^5.4.5
         version: 5.4.5

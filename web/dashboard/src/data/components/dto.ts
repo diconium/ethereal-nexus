@@ -29,13 +29,14 @@ export const componentVersionsCreateSchema = createInsertSchema(
 )
   .omit({ id: true })
   .required({ component_id: true, version: true });
+export type NewComponentVersion =  z.infer<typeof componentVersionsCreateSchema>;
 
 export const componentAssetsCreateSchema = createInsertSchema(componentAssets)
   .omit({ id: true })
   .required({ component_id: true, version_id: true, url: true, type: true });
 
 export const componentWithVersionSchema = componentsSchema.extend({
-  version: componentVersionsSchema.pick({ version: true, dialog: true }),
+  version: componentVersionsSchema.pick({ id: true, version: true, dialog: true }),
 });
 export type ComponentWithVersion = z.infer<typeof componentWithVersionSchema>;
 

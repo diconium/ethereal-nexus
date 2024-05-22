@@ -2,7 +2,7 @@ import { type Plugin as RollupPlugin } from 'rollup';
 import * as fs from 'node:fs';
 import { EtherealPluginOptions } from './types';
 import { bundleSSR } from './server';
-import { generateDialog } from './dialog';
+import { generateManifest } from './manifest';
 import { adjustChunkImport, bundleClient, copyChunkFiles } from './client';
 import { cleanTemporary, cleanWorkspace } from './utils';
 import { extractExposeInto } from './options';
@@ -29,7 +29,7 @@ export default function rollupEthereal(opts: EtherealPluginOptions): RollupPlugi
         const name = exposed.get(id)!;
         const ast = this.parse(code);
 
-        await generateDialog(code, ast, name);
+        await generateManifest(code, ast, name);
 
         fs.mkdirSync('dist/tmp', { recursive: true });
         bundleClient(code, exposed, id, ast, name, this.emitFile);

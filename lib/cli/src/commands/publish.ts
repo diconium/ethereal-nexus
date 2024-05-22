@@ -80,16 +80,19 @@ export const publish = new Command()
         spinner.text = `Publishing ${folder}...\n`;
         const tar = `${folder}/ethereal_nexus.tar.gz`;
         try {
-          await nexus.publish(tar);
+          const result = await nexus.publish(tar);
+          spinner.stopAndPersist({
+            text: folder,
+            symbol: chalk.green('✔')
+          });
+
+          if(result === 409) {
+            logger.warn('Some assets were already present.');
+          }
         } catch (e) {
           logger.error(`Failed to publish ${tar}.`, e);
           process.exit(1);
         }
-
-        spinner.stopAndPersist({
-          text: folder,
-          symbol: chalk.green('✔')
-        });
       }
       spinner.stop();
 

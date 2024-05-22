@@ -19,7 +19,9 @@ const publish = async (filePath: string) => {
     .url("/api/v1/publish")
     .body(form)
     .post()
+    .error(409, (error) => 409)
     .json()
+
 }
 
 export const nexus = {

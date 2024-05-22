@@ -42,14 +42,21 @@ export async function parseDialog(schemaCode: string) {
     }
   });
 
-  const schema = vm.runInNewContext(schemaCode, ctx);
-  return JSON.stringify(schema, null, 2);
+  return vm.runInNewContext(schemaCode, ctx);
 }
 
-export async function generateDialog(code: string, ast: ProgramNode, name: string) {
+export async function generateManifest(code: string, ast: ProgramNode, name: string) {
   const schemaCode = extractDialog(ast, code);
   if (schemaCode) {
-    const json = await parseDialog(schemaCode);
+    const dialog = await parseDialog(schemaCode);
+    const manifest = {
+      name,
+      version: '0.0.99',
+      readme: '',
+      ...dialog,
+    }
+
+    const json = JSON.stringify(manifest, undefined, 2)
     saveFile(name, json);
   }
 }

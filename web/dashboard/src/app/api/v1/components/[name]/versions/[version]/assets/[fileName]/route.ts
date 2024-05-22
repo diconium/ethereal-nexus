@@ -147,6 +147,12 @@ export const POST = authenticatedWithKey(
         fileTypes[contentType],
       );
       if (!response.success) {
+        if(response.error.message === 'Asset already exists.') {
+          return NextResponse.json(response.error.message, {
+            status: HttpStatus.CONFLICT,
+          });
+        }
+
         return NextResponse.json('Failed to update assets', {
           status: HttpStatus.BAD_REQUEST,
         });

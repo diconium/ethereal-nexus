@@ -121,7 +121,7 @@ export async function upsertAssets(
   componentId: string,
   versionId: string,
   url: string,
-  contentType: 'css' | 'js' | 'chunk' | null
+  contentType: 'css' | 'js' | 'chunk' | 'server' | null
 ) {
     try {
         const assetToUpsert: z.infer<typeof componentAssetsCreateSchema> = {

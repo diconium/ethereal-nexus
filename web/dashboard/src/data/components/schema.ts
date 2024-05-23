@@ -1,7 +1,7 @@
 import { json, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-export const assetTypeEnum = pgEnum('asset_type', ['css', 'js', 'chunk']);
+export const assetTypeEnum = pgEnum('asset_type', ['css', 'js', 'chunk', 'server']);
 
 export const components = pgTable("component", {
   id: uuid('id').primaryKey().notNull().defaultRandom(),

@@ -98,11 +98,13 @@ export const POST = authenticatedWithKey(async (request, ext) => {
           urlObject.host = azFrontDoor;
         }
 
-        let type: 'css' | 'js' | 'chunk' = 'chunk' as const;
+        let type: 'css' | 'js' | 'chunk' | 'server' = 'chunk' as const;
         if (fileName.endsWith('.css')) {
           type = 'css';
         } else if (fileName.endsWith('index.js')) {
           type = 'js';
+        } else if (fileName.endsWith('server.js')) {
+          type = 'server';
         }
 
         const response = await upsertAssets(

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { HttpStatus } from '@/app/api/utils';
 import { authenticatedWithKey } from '@/lib/route-wrappers';
-import {getComponents, upsertComponentWithVersion} from '@/data/components/actions';
-import {revalidatePath} from "next/cache";
+import { getComponents, upsertComponentWithVersion } from '@/data/components/actions';
 
 /**
  * @swagger
@@ -62,7 +61,7 @@ export const POST = authenticatedWithKey(async (request: NextRequest, ext) => {
       status: HttpStatus.FORBIDDEN,
     });
   }
-
+  console.log(req)
   const componentWithVersion = await upsertComponentWithVersion(req);
 
   if (!componentWithVersion.success) {

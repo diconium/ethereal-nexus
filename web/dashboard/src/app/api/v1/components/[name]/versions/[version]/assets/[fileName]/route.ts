@@ -6,7 +6,7 @@ import {
 import { headers } from 'next/headers';
 import { AuthenticatedWithApiKeyUser, authenticatedWithKey, DefaultExt } from '@/lib/route-wrappers';
 import { NextRequest, NextResponse } from 'next/server';
-import { upsertAssets } from '@/data/components/actions';
+import { getComponentById, getComponentByName, getComponentVersions, upsertAssets } from '@/data/components/actions';
 import * as console from 'console';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -140,9 +140,29 @@ export const POST = authenticatedWithKey(
           status: HttpStatus.BAD_REQUEST,
         });
       }
+      const component = await getComponentByName(params.name);
+      if(!component.success){
+        return NextResponse.json('Component does not exist.', {
+          status: HttpStatus.BAD_REQUEST,
+        });
+      }
+
+      const versions = await getComponentVersions(component.data.id);
+      if(!versions.success){
+        return NextResponse.json('No versions exist.', {
+          status: HttpStatus.BAD_REQUEST,
+        });
+      }
+      const version = versions.data.find(version => version.version === params.version)
+      if(!version){
+        return NextResponse.json('Version does not exist.', {
+          status: HttpStatus.BAD_REQUEST,
+        });
+      }
+
       const response = await upsertAssets(
-        params.name,
-        params.version,
+        component.data.id,
+        version.id,
         url,
         fileTypes[contentType],
       );

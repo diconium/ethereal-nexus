@@ -72,6 +72,7 @@ export async function upsertComponentWithVersion(
   component: ComponentToUpsert
 ): Promise<Result<ComponentWithVersion>> {
     const safeComponent = componentsUpsertSchema.safeParse(component);
+    console.log(JSON.stringify(safeComponent.error, undefined, 2))
     if (!safeComponent.success) {
         return actionZodError(
           'There\'s an issue with the component record.',
@@ -215,6 +216,33 @@ export async function getComponentById(
     try {
         const select = await db.query.components.findFirst({
             where: eq(components.id, id)
+        });
+
+        const safe = componentsSchema.safeParse(select);
+        if (!safe.success) {
+            return actionZodError(
+              'There\'s an issue with the component records.',
+              safe.error
+            );
+        }
+
+        return actionSuccess(safe.data);
+    } catch (error) {
+        console.error(error);
+        return actionError('Failed to fetch component from database.');
+    }
+}
+
+export async function getComponentByName(
+  name: string
+): ActionResponse<z.infer<typeof componentsSchema>> {
+    if (!name) {
+        return actionError('No name provided.');
+    }
+
+    try {
+        const select = await db.query.components.findFirst({
+            where: eq(components.name, name)
         });
 
         const safe = componentsSchema.safeParse(select);

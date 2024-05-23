@@ -5,6 +5,7 @@ export * from "./schema/text";
 export * from "./schema/checkbox";
 export * from "./schema/pathbrowser";
 export * from "./schema/image";
+export * from "./schema/select";
 
 export * from "./schema/hidden";
 export * from "./schema/optional";

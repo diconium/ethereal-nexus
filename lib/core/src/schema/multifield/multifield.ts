@@ -32,7 +32,7 @@ export function multifield<const TChildren extends BaseSchema<unknown>>(input: M
       }
     },
     _primitive() {
-      return 'string'
+      return 'json'
     },
     ...input
   };

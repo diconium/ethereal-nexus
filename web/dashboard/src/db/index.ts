@@ -8,6 +8,7 @@ import * as users from '@/data/users/schema';
 import * as projects from '@/data/projects/schema';
 import * as member from '@/data/member/schema';
 import * as components from '@/data/components/schema';
+import * as events from "@/data/events/schema";
 
 function clientFactory() {
   let drizzle, client;
@@ -35,7 +36,8 @@ function clientFactory() {
       ...users,
       ...projects,
       ...member,
-      ...components
+      ...components,
+      ...events,
     }
   })
 }

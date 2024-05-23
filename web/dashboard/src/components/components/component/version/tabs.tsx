@@ -5,9 +5,11 @@ import Preview from "@/components/components/component/version/tabs/preview";
 import {useRouter} from "next/navigation";
 import Readme from "@/components/components/component/version/tabs/readme";
 import Dependents from "@/components/components/component/version/tabs/dependents";
+import Events from "@/components/components/component/version/tabs/events";
 
 
-const ComponentVersionTabs = ({activeTab, component, versions, selectedVersion,dependents}) => {
+
+const ComponentVersionTabs = ({activeTab, component, versions, selectedVersion,dependents,events}) => {
     const {push} = useRouter();
 
     return (
@@ -18,6 +20,7 @@ const ComponentVersionTabs = ({activeTab, component, versions, selectedVersion,d
                 <TabsTrigger value="preview">Preview</TabsTrigger>
                 <TabsTrigger value="dependents">Dependents</TabsTrigger>
                 <TabsTrigger value="versions">Versions</TabsTrigger>
+                <TabsTrigger value="activity">Activity</TabsTrigger>
             </TabsList>
             <TabsContent value="readme">
                 <Readme selectedVersion={selectedVersion}/>
@@ -57,6 +60,9 @@ const ComponentVersionTabs = ({activeTab, component, versions, selectedVersion,d
                             </div>
                         </li>))}
                 </ul>
+            </TabsContent>
+            <TabsContent value="activity">
+                <Events events={events}></Events>
             </TabsContent>
         </Tabs>
     );

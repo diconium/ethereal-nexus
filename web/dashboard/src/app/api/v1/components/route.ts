@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { HttpStatus } from '@/app/api/utils';
 import { authenticatedWithKey } from '@/lib/route-wrappers';
 import {getComponents, upsertComponent} from '@/data/components/actions';
-import {revalidatePath} from "next/cache";
+import {logEvent} from "@/lib/events/event-middleware";
+import {componentVersions} from "@/data/components/schema";
 
 /**
  * @swagger
@@ -55,7 +56,6 @@ import {revalidatePath} from "next/cache";
  */
 export const POST = authenticatedWithKey(async (request: NextRequest, ext) => {
   const req = await request.json();
-
   const permissions = ext?.user.permissions;
   if (permissions?.['components'] !== 'write') {
     return NextResponse.json('You do not have permissions to write this resource.', {
@@ -63,7 +63,8 @@ export const POST = authenticatedWithKey(async (request: NextRequest, ext) => {
     });
   }
 
-  const componentWithVersion = await upsertComponent(req);
+  const componentWithVersion = await upsertComponent(req,ext);
+
 
   if (!componentWithVersion.success) {
     return NextResponse.json(componentWithVersion.error, {

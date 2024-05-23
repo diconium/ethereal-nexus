@@ -28,6 +28,7 @@ import { projectComponentConfig, projects } from './schema';
 import { insertMembers, userIsMember } from '@/data/member/actions';
 import { componentAssets, components, componentVersions } from '@/data/components/schema';
 import { revalidatePath, revalidateTag } from 'next/cache';
+import {logEvent} from "@/lib/events/event-middleware";
 
 export async function getProjects(
   userId: string | undefined | null,
@@ -529,6 +530,20 @@ export async function upsertComponentConfig(
     }
 
     revalidatePath('/(layout)/(session)/projects/[id]', 'layout')
+
+    // const eventData =
+    //     {
+    //       // "component_id":projectComponentConfig.component_id,
+    //       "project_id":projectComponentConfig.project_id,
+    //       // "version_id": safeInput.data.component_version
+    //     };
+    console.log("safeInput.data",safeInput.data)
+    if(safeInput.data.is_active === true){
+      logEvent('component_activated',  userId, safeInput.data)
+    } else {
+      logEvent('component_deactivated',  userId, safeInput.data)
+    }
+
     return actionSuccess(safe.data);
   } catch (error) {
     console.error(error);

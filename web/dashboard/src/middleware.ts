@@ -1,4 +1,5 @@
 import { auth } from '@/auth';
+import {NextRequest, NextResponse} from 'next/server';
 
 export default auth((req) => {
   const { nextUrl } = req;

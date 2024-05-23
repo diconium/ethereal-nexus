@@ -1,24 +1,24 @@
 import { BaseFieldInput, type BaseSchema } from '../../types';
 
-export interface TextSchema<TOutput extends string = string> extends BaseSchema<TOutput> {
+export interface PathBrowserSchema<TOutput extends string = string> extends BaseSchema<TOutput> {
   /**
    * The schema type.
    */
-  type: 'textfield';
+  type: 'pathbrowser';
 }
 
-interface TextInput extends BaseFieldInput {
+interface PathBrowserInput extends BaseFieldInput {
   placeholder: string;
 }
 
-export function text(input: TextInput): TextSchema {
+export function pathbrowser(input: PathBrowserInput): PathBrowserSchema {
   const {placeholder, label} = input;
 
   return {
-    type: 'textfield',
+    type: 'pathbrowser',
     _parse() {
       return {
-        type: 'textfield',
+        type: 'pathbrowser',
         label,
         placeholder,
       }

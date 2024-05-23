@@ -1,12 +1,13 @@
-import { ResolveObject } from '../../types';
-import type { BaseSchema, Output } from '../../types';
-import { OptionalSchema } from '../optional';
+import { OptionalSchema } from '../schema/optional';
+import { BaseSchema, Output } from './schema';
+import { ResolveObject } from './utils';
+
 
 /**
  * Required object keys type.
  */
 type RequiredKeys<
-  TEntries extends DialogEntries,
+  TEntries extends ObjectEntries,
   TObject extends EntriesOutput<TEntries>,
 > = {
   [TKey in keyof TEntries]: TEntries[TKey] extends OptionalSchema<any, any>
@@ -20,7 +21,7 @@ type RequiredKeys<
  * Optional object keys type.
  */
 type OptionalKeys<
-  TEntries extends DialogEntries,
+  TEntries extends ObjectEntries,
   TObject extends EntriesOutput<TEntries>,
 > = {
   [TKey in keyof TEntries]: TEntries[TKey] extends OptionalSchema<any, any>
@@ -34,26 +35,26 @@ type OptionalKeys<
  * Object with question marks type.
  */
 type WithQuestionMarks<
-  TEntries extends DialogEntries,
+  TEntries extends ObjectEntries,
   TObject extends EntriesOutput<TEntries>,
 > = Pick<TObject, RequiredKeys<TEntries, TObject>> &
   Partial<Pick<TObject, OptionalKeys<TEntries, TObject>>>;
 
 /**
- * Dialog entries type.
+ * Object entries type.
  */
-export interface DialogEntries {
+export interface ObjectEntries {
   [key: string]: BaseSchema;
 }
 
 /**
  * Entries output inference type.
  */
-type EntriesOutput<TEntries extends DialogEntries> = {
+type EntriesOutput<TEntries extends ObjectEntries> = {
   [TKey in keyof TEntries]: Output<TEntries[TKey]>;
 };
 
 /**
  * Object output inference type.
  */
-export type DialogOutput<TEntries extends DialogEntries> = ResolveObject<WithQuestionMarks<TEntries, EntriesOutput<TEntries>>>
+export type ObjectOutput<TEntries extends ObjectEntries> = ResolveObject<WithQuestionMarks<TEntries, EntriesOutput<TEntries>>>

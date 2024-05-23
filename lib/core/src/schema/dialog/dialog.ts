@@ -1,12 +1,12 @@
 import type { BaseSchema } from '../../types';
-import { DialogEntries, DialogOutput } from './types';
 import { WebcomponentPropTypes } from '../../types/webcomponent';
+import { ObjectEntries, ObjectOutput } from '../../types/object';
 
-export interface DialogSchema<TEntries extends DialogEntries, TOutput = DialogOutput<TEntries>> extends BaseSchema<TOutput> {
+export interface DialogSchema<TEntries extends ObjectEntries, TOutput = ObjectOutput<TEntries>> extends BaseSchema<TOutput> {
   type: 'dialog';
 }
 
-export function dialog<TEntries extends DialogEntries>(entries: TEntries): DialogSchema<TEntries> {
+export function dialog<TEntries extends ObjectEntries>(entries: TEntries): DialogSchema<TEntries> {
   return {
     type: 'dialog',
     _parse() {

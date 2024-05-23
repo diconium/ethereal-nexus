@@ -72,7 +72,6 @@ export async function upsertComponentWithVersion(
   component: ComponentToUpsert
 ): Promise<Result<ComponentWithVersion>> {
     const safeComponent = componentsUpsertSchema.safeParse(component);
-    console.log(JSON.stringify(safeComponent.error, undefined, 2))
     if (!safeComponent.success) {
         return actionZodError(
           'There\'s an issue with the component record.',

@@ -1,4 +1,3 @@
-import { DialogSchema } from '../schema/dialog';
 import { WebcomponentPropTypes } from './webcomponent';
 
 /**
@@ -25,7 +24,9 @@ export interface BaseSchema<TOutput = any> {
    *
    * @internal
    */
-  _types?: TOutput;
+  _types?: {
+    output: TOutput,
+  };
 }
 
 /**
@@ -43,4 +44,4 @@ export interface BaseFieldInput {
  */
 export type Output<TSchema extends BaseSchema> = NonNullable<
   TSchema['_types']
->;
+>['output'];

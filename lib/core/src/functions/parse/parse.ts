@@ -1,6 +1,7 @@
-import { DialogSchema, DialogEntries } from '../../schema/dialog';
+import { DialogSchema } from '../../schema/dialog';
+import { ObjectEntries } from '../../types/object';
 
-export function parse<T extends DialogEntries>(schema: DialogSchema<T>) {
+export function parse<T extends ObjectEntries>(schema: DialogSchema<T>) {
   return {
     dialog: schema._parse()
   }

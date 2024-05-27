@@ -6,7 +6,7 @@ import {
 import { headers } from 'next/headers';
 import { AuthenticatedWithApiKeyUser, authenticatedWithKey, DefaultExt } from '@/lib/route-wrappers';
 import { NextRequest, NextResponse } from 'next/server';
-import { updateAssets } from '@/data/components/actions';
+import { getComponentById, getComponentByName, getComponentVersions, upsertAssets } from '@/data/components/actions';
 import * as console from 'console';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -140,13 +140,39 @@ export const POST = authenticatedWithKey(
           status: HttpStatus.BAD_REQUEST,
         });
       }
-      const response = await updateAssets(
-        params.name,
-        params.version,
+      const component = await getComponentByName(params.name);
+      if(!component.success){
+        return NextResponse.json('Component does not exist.', {
+          status: HttpStatus.BAD_REQUEST,
+        });
+      }
+
+      const versions = await getComponentVersions(component.data.id);
+      if(!versions.success){
+        return NextResponse.json('No versions exist.', {
+          status: HttpStatus.BAD_REQUEST,
+        });
+      }
+      const version = versions.data.find(version => version.version === params.version)
+      if(!version){
+        return NextResponse.json('Version does not exist.', {
+          status: HttpStatus.BAD_REQUEST,
+        });
+      }
+
+      const response = await upsertAssets(
+        component.data.id,
+        version.id,
         url,
         fileTypes[contentType],
       );
       if (!response.success) {
+        if(response.error.message === 'Asset already exists.') {
+          return NextResponse.json(response.error.message, {
+            status: HttpStatus.CONFLICT,
+          });
+        }
+
         return NextResponse.json('Failed to update assets', {
           status: HttpStatus.BAD_REQUEST,
         });

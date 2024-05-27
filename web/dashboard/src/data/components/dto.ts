@@ -2,9 +2,9 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import {
   componentAssets,
   components,
-  componentVersions,
+  componentVersions
 } from './schema';
-import { z } from 'zod';
+import { tuple, z } from 'zod';
 
 
 export const componentsSchema = createSelectSchema(components);
@@ -21,30 +21,42 @@ export const componentVersionsSchema = createSelectSchema(componentVersions);
 export type ComponentVersion = z.infer<typeof componentVersionsSchema>;
 
 export const componentsWithVersions = componentsSchema.extend({
-  versions: z.array(componentVersionsSchema.pick({version: true}))
+  versions: z.array(componentVersionsSchema.pick({ version: true }))
 });
 
 export const componentVersionsCreateSchema = createInsertSchema(
-  componentVersions,
+  componentVersions
 )
   .omit({ id: true })
   .required({ component_id: true, version: true });
+export type NewComponentVersion = z.infer<typeof componentVersionsCreateSchema>;
 
 export const componentAssetsCreateSchema = createInsertSchema(componentAssets)
   .omit({ id: true })
   .required({ component_id: true, version_id: true, url: true, type: true });
 
 export const componentWithVersionSchema = componentsSchema.extend({
-  version: componentVersionsSchema.pick({ version: true, dialog: true }),
+  version: componentVersionsSchema.pick({ id: true, version: true, dialog: true })
 });
 export type ComponentWithVersion = z.infer<typeof componentWithVersionSchema>;
 
 export const componentsUpsertSchema = createInsertSchema(components)
   .omit({ id: true })
   .required({ name: true })
-  .extend(componentVersionsSchema.pick({ version: true, dialog: true, readme: true }).shape)
+  .extend(componentVersionsSchema
+    .omit({
+      id: true,
+      component_id: true,
+      created_at: true
+    })
+    .partial({
+      readme: true,
+      changelog: true
+    })
+    .shape
+  )
   .transform((val) => ({
     ...val,
-    slug: val.slug ?? val.name.toLowerCase().replaceAll(' ', '_'),
+    slug: val.slug ?? val.name.toLowerCase().replaceAll(' ', '-')
   }));
 export type ComponentToUpsert = z.infer<typeof componentsUpsertSchema>;

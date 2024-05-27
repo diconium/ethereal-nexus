@@ -46,7 +46,7 @@ export default function ProjectsForm({project, onComplete, onCancel}: ProjectsFo
     }
 
     toast({
-      title: `Project ${project?.id ? "update" : "create"}d sucessfully!`,
+      title: `Project ${project?.id ? "update" : "create"}d successfully!`,
     });
 
     if(onComplete) {

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { HttpStatus } from '@/app/api/utils';
 import { authenticatedWithKey } from '@/lib/route-wrappers';
-import {getComponents, upsertComponent} from '@/data/components/actions';
-import {logEvent} from "@/lib/events/event-middleware";
-import {componentVersions} from "@/data/components/schema";
+import { getComponents, upsertComponentWithVersion } from '@/data/components/actions';
 
 /**
  * @swagger
@@ -56,15 +54,14 @@ import {componentVersions} from "@/data/components/schema";
  */
 export const POST = authenticatedWithKey(async (request: NextRequest, ext) => {
   const req = await request.json();
+
   const permissions = ext?.user.permissions;
   if (permissions?.['components'] !== 'write') {
     return NextResponse.json('You do not have permissions to write this resource.', {
       status: HttpStatus.FORBIDDEN,
     });
   }
-
-  const componentWithVersion = await upsertComponent(req,ext);
-
+  const componentWithVersion = await upsertComponentWithVersion(req);
 
   if (!componentWithVersion.success) {
     return NextResponse.json(componentWithVersion.error, {

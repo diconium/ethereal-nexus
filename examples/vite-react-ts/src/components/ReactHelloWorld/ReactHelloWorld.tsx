@@ -38,7 +38,19 @@ const schema = dialog({
       })
     })
   })
-});
+})
+  .tabs({
+    tab1: {
+      subtitle: true,
+      banners: true,
+    },
+    tab2: {
+      banners: true,
+    },
+    tab3: {
+      title: true
+    }
+  });
 
 type Props = Output<typeof schema>
 

@@ -22,7 +22,8 @@
   "types": "./dist/index.d.mts",
   "sideEffects": false,
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "devDependencies": {
     "@types/react": "^18.3.0",

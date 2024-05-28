@@ -21,34 +21,35 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import { deleteProject } from '@/data/projects/actions';
-import type { Project } from '@/data/projects/dto';
 import DotsIcon from '@/components/ui/icons/DotsIcon';
+import { useSession } from 'next-auth/react';
 
 export function ProjectsDataTableRowActions({ table, row }) {
   const project = row.original;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
+  const {data: session} = useSession();
+
+
   const handleDeleteOk = async () => {
     setDeleteDialogOpen(false)
 
-    const { data, setData } = table.getState();
+    const { meta } = table.options;
+
     if (project) {
-      const deleted = await deleteProject(project.id, 'b325fe37-3ea4-41b6-9bc1-ea93fba0097a')
+      const deleted = await deleteProject(project.id, session?.user?.id)
 
       if(deleted.success) {
-        setData(
-          data.filter(
-            (eachProject: Project) => project.name !== eachProject.name,
-          ),
-        );
+        meta.deleteData(project.id);
+
         toast({
           title: `Project ${project.name} was deleted successfully`,
         });
+      } else {
+        toast({
+          title: `Project ${project.name} could not be deleted`,
+        });
       }
-
-      toast({
-        title: `Project ${project.name} could not be deleted`,
-      });
     }
   };
 

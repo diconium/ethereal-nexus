@@ -5,14 +5,22 @@ import { createHash } from 'crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
-export function createClientCode(code: string, name: string, ast: ProgramNode) {
+export function createClientCode(code: string, name: string, id: string, ast: ProgramNode) {
   let magic = new MagicString(code);
+
   simple(ast, {
-    ImportDeclaration(node){
-      if(node.type==='ImportDeclaration' && node.source.value === '@ethereal-nexus/core'){
-        const last = node.specifiers.pop();
-        if(last?.type === 'ImportSpecifier') {
-          magic.appendLeft(last.end, `,\n webcomponent`)
+    ImportDeclaration(node) {
+      if (node.type === 'ImportDeclaration') {
+        const { source: { value, start, end } } = node;
+
+        if (value === '@ethereal-nexus/core') {
+          const last = node.specifiers.pop();
+          if (last?.type === 'ImportSpecifier') {
+            magic.appendLeft(last.end, `,\n webcomponent`);
+          }
+        } else if (typeof value === 'string' && value.startsWith('.')) {
+          const resolvedPath = path.join(path.dirname(id), value);
+          magic.update(start + 1, end - 1, resolvedPath);
         }
       }
     },
@@ -32,7 +40,7 @@ export function createClientCode(code: string, name: string, ast: ProgramNode) {
 }
 
 export function bundleClient(code: string, exposed: Map<string, string>, id: string, ast: ProgramNode, name: string, emitFile: EmitFile) {
-  const clientCode = createClientCode(code, exposed.get(id)!, ast);
+  const clientCode = createClientCode(code, exposed.get(id)!, id, ast);
   fs.writeFileSync(`dist/tmp/__etherealHelper__${name}`, clientCode.toString());
 
   const hash = createHash('sha256')

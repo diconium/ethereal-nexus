@@ -10,6 +10,7 @@ import {
   type Output,
   type GetServerSideProps
 } from '@ethereal-nexus/core';
+import { Item } from '../../patterns';
 
 const schema = dialog({
   title: text({
@@ -44,9 +45,6 @@ const schema = dialog({
       subtitle: true,
       banners: true,
     },
-    tab2: {
-      banners: true,
-    },
     tab3: {
       title: true
     }
@@ -60,9 +58,9 @@ export const ReactHelloWorld: React.FC<Props> = ({ title, subtitle, datetime }) 
       My new text Hello World from react! v.1.0.9
       <div>Props:
         <ul>
-          <li>{title}</li>
-          <li>{subtitle}</li>
-          {datetime ? <li>{datetime}</li> : null}
+          <Item text={title} />
+          <Item text={subtitle} />
+          {datetime ? <Item text={datetime} /> : null}
         </ul>
       </div>
     </div>

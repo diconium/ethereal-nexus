@@ -1,6 +1,7 @@
 {
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "name": "@ethereal-nexus/cli",
   "version": "0.1.0",

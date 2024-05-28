@@ -1,6 +1,6 @@
 {
   "name": "@ethereal-nexus/rollup-plugin-ethereal-nexus",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "",
   "keywords": [
     "rollup-plugin",
@@ -25,7 +25,8 @@
   "types": "./dist/index.d.ts",
   "sideEffects": false,
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "devDependencies": {
     "@ethereal-nexus/core": "workspace:*",

@@ -1,9 +1,16 @@
 import { EmitFile, ProgramNode } from 'rollup';
-import { build, BuildOptions } from 'esbuild';
+import { build, BuildOptions, Plugin as EsbuildPlugin } from 'esbuild';
 import fs from 'node:fs';
 import MagicString from 'magic-string';
 import { simple } from 'acorn-walk';
 import path from 'node:path';
+
+const ignoreCssPlugin: EsbuildPlugin  = {
+  name: 'empty-css-imports',
+  setup(build) {
+    build.onLoad({ filter: /\.(c|sc|sa|le)ss$/i }, () => ({ contents: '' }))
+  },
+}
 
 function createServerCode(code: string, id: string, ast: ProgramNode) {
   let serverCode = new MagicString(code);
@@ -43,11 +50,15 @@ function createServerCode(code: string, id: string, ast: ProgramNode) {
 export async function bundleSSR(code: string, id: string, ast: ProgramNode, name: string, emitFile: EmitFile, options: BuildOptions) {
   const serverCode = createServerCode(code, id, ast);
   fs.writeFileSync(`dist/tmp/__etherealHelper__server__${name}`, serverCode.toString());
+
   await build({
     ...options,
     entryPoints: [`dist/tmp/__etherealHelper__server__${name}`],
     format: 'esm',
     target: 'es2022',
+    plugins: [
+      ignoreCssPlugin,
+    ],
     bundle: true,
     allowOverwrite: true,
     legalComments: 'none',

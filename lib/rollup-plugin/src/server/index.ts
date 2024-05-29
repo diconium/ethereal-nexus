@@ -36,7 +36,7 @@ function createServerCode(code: string, name: string, id: string, ast: ProgramNo
               ethereal.serverSideProps = { ...data.props };
             }
             const combinedProps = { ...ethereal.props, ...ethereal.serverSideProps }
-  ethereal.output = renderToString(/* @__PURE__ */ jsxs(${name}, { ...combinedProps }));
+  ethereal.output = renderToString(/* @__PURE__ */ jsx(${name}, { ...combinedProps }));
 }`);
           componentsExists = true
         }

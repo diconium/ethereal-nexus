@@ -9,7 +9,7 @@ export default defineConfig({
       exposes: {
         ReactHelloWorld: './src/components/ReactHelloWorld/ReactHelloWorld.tsx'
       },
-      server: true
+      server: true,
     }),
   ],
   build: {

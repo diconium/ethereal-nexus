@@ -34,7 +34,7 @@ export default function rollupEthereal(opts: EtherealPluginOptions): RollupPlugi
         fs.mkdirSync('dist/tmp', { recursive: true });
         bundleClient(code, exposed, id, ast, name, this.emitFile);
         if (ssr) {
-          await bundleSSR(code, ast, name, this.emitFile,
+          await bundleSSR(code, id, ast, name, this.emitFile,
             {
               minify
             });

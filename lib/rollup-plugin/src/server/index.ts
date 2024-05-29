@@ -3,10 +3,21 @@ import { build, BuildOptions } from 'esbuild';
 import fs from 'node:fs';
 import MagicString from 'magic-string';
 import { simple } from 'acorn-walk';
+import path from 'node:path';
 
-function createServerCode(code: string, ast: ProgramNode) {
+function createServerCode(code: string, id: string, ast: ProgramNode) {
   let serverCode = new MagicString(code);
   simple(ast, {
+    ImportDeclaration(node) {
+      if (node.type === 'ImportDeclaration') {
+        const { source: { value, start, end } } = node;
+
+        if (typeof value === 'string' && value.startsWith('.')) {
+          const resolvedPath = path.join(path.dirname(id), value);
+          serverCode.update(start + 1, end - 1, resolvedPath);
+        }
+      }
+    },
     CallExpression(node) {
       if (node.callee.type === 'CallExpression' && node.callee.callee.type == 'Identifier' && node.callee.callee.name === 'webcomponent') {
         if (node.arguments[0].type === 'Identifier') {
@@ -29,8 +40,8 @@ function createServerCode(code: string, ast: ProgramNode) {
   return serverCode;
 }
 
-export async function bundleSSR(code: string, ast: ProgramNode, name: string, emitFile: EmitFile, options: BuildOptions) {
-  const serverCode = createServerCode(code, ast);
+export async function bundleSSR(code: string, id: string, ast: ProgramNode, name: string, emitFile: EmitFile, options: BuildOptions) {
+  const serverCode = createServerCode(code, id, ast);
   fs.writeFileSync(`dist/tmp/__etherealHelper__server__${name}`, serverCode.toString());
   await build({
     ...options,

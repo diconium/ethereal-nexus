@@ -31,9 +31,12 @@ function createServerCode(code: string, name: string, id: string, ast: ProgramNo
         if(node.declarations[0].id.type === 'Identifier' && node.declarations[0].id.name === name) {
           serverCode.prepend('import { renderToString } from "react-dom/server";');
           serverCode.append(`if (ethereal?.props != void 0) {
-  const data = await getServerSideProps(ethereal.props);
-  ethereal.serverSideProps = { ...data.props };
-  ethereal.output = renderToString(/* @__PURE__ */ jsxs(${name}, { ...{...ethereal.props, ...ethereal.serverSideProps} }));
+   if(typeof getServerSideProps === 'function') {
+              const data = await getServerSideProps(ethereal.props);
+              ethereal.serverSideProps = { ...data.props };
+            }
+            const combinedProps = { ...ethereal.props, ...ethereal.serverSideProps }
+  ethereal.output = renderToString(/* @__PURE__ */ jsxs(${name}, { ...combinedProps }));
 }`);
           componentsExists = true
         }

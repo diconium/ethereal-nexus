@@ -41,11 +41,11 @@ export function dialog<TEntries extends ObjectEntries>(entries: TEntries): Dialo
               }
             })
 
-          return {
+          return [{
             type: 'tabs',
             id: 'tabs',
             children: tabsArray
-          };
+          }];
         }
       }
     },

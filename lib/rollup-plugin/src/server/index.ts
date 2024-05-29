@@ -12,8 +12,9 @@ const ignoreCssPlugin: EsbuildPlugin  = {
   },
 }
 
-function createServerCode(code: string, id: string, ast: ProgramNode) {
+function createServerCode(code: string, name: string, id: string, ast: ProgramNode) {
   let serverCode = new MagicString(code);
+  let componentsExists = false;
   simple(ast, {
     ImportDeclaration(node) {
       if (node.type === 'ImportDeclaration') {
@@ -25,30 +26,28 @@ function createServerCode(code: string, id: string, ast: ProgramNode) {
         }
       }
     },
-    CallExpression(node) {
-      if (node.callee.type === 'CallExpression' && node.callee.callee.type == 'Identifier' && node.callee.callee.name === 'webcomponent') {
-        if (node.arguments[0].type === 'Identifier') {
+    VariableDeclaration(node) {
+      if(node.declarations.length ===1) {
+        if(node.declarations[0].id.type === 'Identifier' && node.declarations[0].id.name === name) {
           serverCode.prepend('import { renderToString } from "react-dom/server";');
           serverCode.append(`if (ethereal?.props != void 0) {
   const data = await getServerSideProps(ethereal.props);
   ethereal.serverSideProps = { ...data.props };
-  ethereal.output = renderToString(/* @__PURE__ */ jsxs(${node.arguments[0].name}, { ...{...ethereal.props, ...ethereal.serverSideProps} }));
+  ethereal.output = renderToString(/* @__PURE__ */ jsxs(${name}, { ...{...ethereal.props, ...ethereal.serverSideProps} }));
 }`);
-          serverCode.remove(node.start, node.end);
-          const nextChar = code[node.end];
-          if (nextChar === '\n') {
-            // If there's a new line character, delete it
-            serverCode.remove(node.end, node.end + 1);
-          }
+          componentsExists = true
         }
       }
     }
   });
+  if(!componentsExists) {
+    throw new Error(`No component with the name ${name} exists in the file: ${id}`)
+  }
   return serverCode;
 }
 
 export async function bundleSSR(code: string, id: string, ast: ProgramNode, name: string, emitFile: EmitFile, options: BuildOptions) {
-  const serverCode = createServerCode(code, id, ast);
+  const serverCode = createServerCode(code,name, id, ast);
   fs.writeFileSync(`dist/tmp/__etherealHelper__server__${name}`, serverCode.toString());
 
   await build({

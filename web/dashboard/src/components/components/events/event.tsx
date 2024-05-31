@@ -49,7 +49,7 @@ const Event: React.FC<EventProps> = ({event}) => {
                             <Link className="font-medium mr-1" href="#">
                                 {event.data.username}
                             </Link>
-                             activated on
+                             activated on {event.data.version? `version: ${event.data.version}`:''}
                             <Link className="font-medium ml-1" href="#">
                                 {event.data.project}
                             </Link>

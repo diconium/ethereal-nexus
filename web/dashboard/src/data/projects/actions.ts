@@ -185,6 +185,7 @@ export async function getActiveProjectComponents(
     .groupBy(
       componentVersions.id,
       componentVersions.version,
+      componentVersions.component_id,
       componentVersions.created_at,
     )
     .limit(1)
@@ -307,7 +308,6 @@ export async function getProjectComponentConfigWithVersion(
   id: string | undefined | null,
   userId: string | undefined | null,
 ): ActionResponse<z.infer<typeof projectWithComponentAssetsSchema>> {
-
   if (!id) {
     return actionError('No identifier provided.');
   }
@@ -531,13 +531,7 @@ export async function upsertComponentConfig(
 
     revalidatePath('/(layout)/(session)/projects/[id]', 'layout')
 
-    // const eventData =
-    //     {
-    //       // "component_id":projectComponentConfig.component_id,
-    //       "project_id":projectComponentConfig.project_id,
-    //       // "version_id": safeInput.data.component_version
-    //     };
-    console.log("safeInput.data",safeInput.data)
+
     if(safeInput.data.is_active === true){
       logEvent('component_activated',  userId, safeInput.data)
     } else {

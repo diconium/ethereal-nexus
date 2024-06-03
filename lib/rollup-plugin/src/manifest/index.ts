@@ -46,21 +46,23 @@ export async function parseDialog(schemaCode: string) {
 }
 
 export async function generateManifest(code: string, ast: ProgramNode, name: string) {
+  let dialog = { dialog: [] };
   const schemaCode = extractDialog(ast, code);
-  const packageJson = await getPackageInfo();
+  const packageJson = getPackageInfo();
 
   if (schemaCode) {
-    const dialog = await parseDialog(schemaCode);
-    const manifest = {
-      name,
-      title: convertCamelCaseToSpaceCase(name),
-      slug: convertCamelCaseToDashCase(name),
-      version: packageJson.version,
-      readme: '',
-      ...dialog,
-    }
-
-    const json = JSON.stringify(manifest, undefined, 2)
-    saveFile(name, json);
+    dialog = await parseDialog(schemaCode);
   }
+
+  const manifest = {
+    name,
+    title: convertCamelCaseToSpaceCase(name),
+    slug: convertCamelCaseToDashCase(name),
+    version: packageJson.version,
+    readme: '',
+    ...dialog,
+  }
+  const json = JSON.stringify(manifest, undefined, 2)
+  saveFile(name, json);
+
 }

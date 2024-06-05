@@ -1,21 +1,36 @@
+import React from 'react';
 import {Separator} from '@/components/ui/separator';
 import {notFound} from 'next/navigation';
 import {
-    getComponentAssets,
     getComponentById,
     getComponentDependentsProjectsWithOwners,
     getComponentVersions
 } from "@/data/components/actions";
-import React from "react";
 import ComponentVersionHeader from "@/components/components/component/version/header";
 import ComponentVersionTabs from "@/components/components/component/version/tabs";
-
+import {auth} from "@/auth";
+import {getMembersByResourceId} from "@/data/member/actions";
 
 export default async function EditComponentVersion({params: {id, versionId, tab}}: any) {
+    const session = await auth()
 
     const component = await getComponentById(id);
     const versions = await getComponentVersions(id);
     const projects = await getComponentDependentsProjectsWithOwners(id);
+
+    if (projects.success) {
+        projects.data = await Promise.all(
+            projects.data.map(async (project) => {
+                const membersData = await getMembersByResourceId(project.id, session?.user?.id);
+                const userHasAccess = (membersData.success && membersData.data.some(member => member.user_id == session?.user?.id));
+
+                return {
+                    ...project,
+                    userHasAccess
+                };
+            })
+        );
+    }
 
     if (!versions.success || !component.success || !projects.success) {
         notFound();

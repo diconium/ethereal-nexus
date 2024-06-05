@@ -122,7 +122,6 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="none">No access</SelectItem>
                         <SelectItem value="read">Can read</SelectItem>
                         <SelectItem value="write">Can edit</SelectItem>
                       </SelectGroup>
@@ -174,7 +173,6 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem value="none">No access</SelectItem>
                             <SelectItem value="read" disabled={session?.permissions[item.id] === 'none'}>Can
                               read</SelectItem>
                             <SelectItem value="write" disabled={session?.permissions[item.id] !== 'write'}>Can

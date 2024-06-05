@@ -8,27 +8,6 @@ import * as React from "react";
 
 export const columns = [
   {
-    id: "select",
-    header: ({ table }: any) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="translate-y-[2px]"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="translate-y-[2px]"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
     accessorKey: "name",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
@@ -48,7 +27,7 @@ export const columns = [
   },
   {
     id: 'version',
-    accessorFn: row => row.versions[0].version,
+    accessorFn: row => row.versions[0]?.version,
     header: ({ column }) => (
       <DataTableColumnHeader className="font-bold" column={column} title="Version" />
     ),

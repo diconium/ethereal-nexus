@@ -28,3 +28,4 @@ export type RequireAtLeastOne<TObject> = {
  * Receives an object and make a object with the keys, but only a boolean value
  */
 export type EntryMask<T> = RequireAtLeastOne<{ [key in keyof T]?: boolean }>;
+

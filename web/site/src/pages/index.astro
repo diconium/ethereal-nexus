@@ -1,49 +1,48 @@
 ---
+import { Image } from 'astro:assets';
 import { buttonVariants } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import MainLayout from "@/layouts/main-layout.astro";
 import { cn } from "@/lib/utils";
+import teaserImage from "../../public/hero-image.png";
 import { Icon } from "astro-icon/components";
 import { SvgIcon } from '../components/icon';
 ---
 
 <MainLayout title="Etheral Nexus">
-	<section class="space-y-6 pb-12 pt-16 lg:py-28">
-		<div
-			class="container flex max-w-[64rem] flex-col items-center gap-5 text-center"
-		>
+	<div class="container">
+		<article class="grid md:grid-cols-2 items-center">
+			<div>
+				<h2 class="text-5xl uppercase">
+					Seamless Integration <b>Limitless Possibilities</b>
+				</h2>
+				<p class="text-2xl mt-5">
+					Experience excellence with the use of our components that integrate effortlessly with your
+					preferred CMS system, faster than you can blink.
+				</p>
+				<div class="flex gap-2 mt-5">
+					<a
+						href="/ethereal-nexus/docs/introduction/"
+						class={cn(buttonVariants({ size: "lg"}))}
+					>
+						Get Started
+					</a>
+					<a
+						href={siteConfig.links.github}
+						target="_blank"
+						rel="noreferrer"
+						class={cn(buttonVariants({variant: "outline", size: "lg"}))}
+					>
+						<Icon name="github" class="mr-2 size-5" />
+						Github
+					</a>
+				</div>
 
-			<h1
-				class="font-heading text-4xl font-bold sm:text-5xl md:text-6xl lg:text-7xl !leading-[1.1] text-balance"
-			>
-				{siteConfig.title}
-			</h1>
-
-			<p
-				class="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8 text-balance"
-			>
-				{siteConfig.description}
-			</p>
-
-			<div class="flex justify-center space-x-2 md:space-x-4">
-				<a
-					href="/ethereal-nexus/docs/introduction/"
-					class={cn(buttonVariants({ size: "lg"}))}
-				>
-					Get Started
-				</a>
-				<a
-					href={siteConfig.links.github}
-					target="_blank"
-					rel="noreferrer"
-					class={cn(buttonVariants({ variant: "outline", size: "lg" }), "px-4")}
-				>
-					<Icon name="github" class="mr-2 size-5" />
-					Github
-				</a>
 			</div>
-		</div>
-	</section>
+			<Image src={teaserImage} alt="A bird sitting on a nest of eggs." />
+		</article>
+
+	</div>
 
 	<section
 		id="features"

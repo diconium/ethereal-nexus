@@ -2,12 +2,6 @@
 title: Strapi
 description: Integrate with Strapi
 ---
-import { Image } from 'astro:assets';
-
-import pluginLoaded from '../../../assets/strapi/plugin-loaded.png';
-import pluginConfig from '../../../assets/strapi/configure-plugin.png';
-import pluginComponent from '../../../assets/strapi/add-component.png';
-import frontendComponent from '../../../assets/strapi/frontend-component.png';
 
 Our strapi plugin (ethereal-nexus-strapi) allow strapi authors to include remote components directly form ethereal nexus.
 
@@ -32,15 +26,12 @@ To install the `ethereal-nexus-strapi` plugin, follow these steps:
 5. Add the admin ui component manually, by copying the folder `etheral-nexus` from `component` to `backend/src/components`. (Check component README for more details)
 6. Restart the Strapi server
 7. Check the plugin loaded correctly
-<Image src={pluginLoaded} alt="plugin-loaded" />
+!["plugin-loaded"](../../../assets/strapi/plugin-loaded.png)
 8. Configure the Endpoint and api for your Ethereal Nexus Instance
-<Image src={pluginConfig} alt="plugin-config" />
+!["plugin-config"](../../../assets/strapi/configure-plugin.png)
 9. Add the component Wrapper to the dynamic zone in your content section
-<Image src={pluginComponent} alt="add-component" />
+!["add-component"](../../../assets/strapi/add-component.png)
 
 ## Example component on author
 
-<Image src={frontendComponent} alt="frontend-component" />
-
-
-
+!["frontend-component"](../../../assets/strapi/frontend-component.png)

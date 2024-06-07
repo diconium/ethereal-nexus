@@ -1,0 +1,61 @@
+---
+import { Image } from 'astro:assets';
+import CallToAction from './CallToAction.astro';
+import { Spotlight } from '../ui/Spotlight'
+
+const { data } = Astro.props.entry;
+const { title = data.title, tagline, image, actions = [] } = data.hero || {};
+
+const imageAttrs = {
+  loading: 'eager' as const,
+  decoding: 'async' as const,
+  width: 450,
+  height: 450,
+  alt: image?.alt || '',
+};
+
+let darkImage;
+let lightImage;
+let rawHtml: string | undefined;
+if (image) {
+  if ('file' in image) {
+    darkImage = image.file;
+  } else if ('dark' in image) {
+    darkImage = image.dark;
+    lightImage = image.light;
+  } else {
+    rawHtml = image.html;
+  }
+}
+---
+
+<div class="hero relative">
+  <Spotlight
+    className="-top-40 left-0 md:-top-0 dark:text-white text-orange-500"
+    fill="currentColor"
+  />
+  <div class="h-[50rem] w-full relative grid grid-cols-7 items-center justify-center">
+    <div class="col-span-4 flex-col gap-1">
+      <div class="p-4 max-w-7xl mx-auto relative z-10 w-full pt-20 md:pt-0">
+        <h1 id={'_top'} data-page-title set:html={title} class="text-4xl md:text-7xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-b from-purple-700 to-orange-400" />
+        {tagline && <div set:html={tagline} class="mt-4 font-normal text-base dark:text-neutral-300 max-w-lg text-center mx-auto" />}
+      </div>
+      {
+        actions.length > 0 && (
+          <div class="flex gap-1 justify-center">
+            {actions.map(({ text, ...attrs }) => (
+              <CallToAction {...attrs} set:html={text} />
+            ))}
+          </div>
+        )
+      }
+    </div>
+    <div class="col-span-3">
+      <Image
+        src={darkImage}
+        {...imageAttrs}
+        class:list={{ 'light:sl-hidden': Boolean(lightImage) }}
+      />
+    </div>
+  </div>
+</div>

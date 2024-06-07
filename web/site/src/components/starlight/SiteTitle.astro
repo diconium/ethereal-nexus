@@ -1,0 +1,13 @@
+---
+import logo from '../../assets/logo.svg?raw';
+
+const main = '/ethereal-nexus';
+---
+
+<a class="flex logo" href={main} set:html={logo} aria-label="Ethereal Nexus" />
+
+<style>
+    .logo {
+        color: var(--sl-color-white);
+    }
+</style>

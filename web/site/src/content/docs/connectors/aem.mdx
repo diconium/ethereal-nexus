@@ -2,46 +2,47 @@
 title: AEM
 description: Integrate with Adobe Experience Manager
 ---
-import { Image } from 'astro:assets';
-import { Code } from '@astrojs/starlight/components';
-export const etherealNexusRepo = `<repositories>
-  <repository>
-    <id>ethereal-nexus</id>
-    <name>GitHub Ethereal Nexus</name>
-    <url>https://maven.pkg.github.com/diconium/ethereal-nexus</url>
-  </repository>
-</repositories>`;
-export const etherealNexusDependency = `<dependency>
-      <groupId>com.diconium</groupId>
-      <artifactId>ethereal-nexus.all</artifactId>
-      <version>1.2.16</version>
-      <type>zip</type>
-  </dependency>`;
-export const etherealNexusPackage = `<embedded>
-      <groupId>com.diconium</groupId>
-      <artifactId>ethereal-nexus.all</artifactId>
-      <type>zip</type>
-      <target>/apps/REPLACE_WITH_YOUR_CUSTOM_NAME-vendor-packages/remote-components/install</target>
-  </embedded>`;
 
 # Installation on AEM
-
 
 ### Manual
   1. Download the package from the [releases page](https://github.com/diconium/remote-components/packages/1929390?version=1.2.1)
   2. Install the package via the AEM package manager
   3. Configure the endpoint to you Ethereal Nexus Dashboard.
   4. Assign your configuration to a sites project.
-### Adding to your Codebase
-* On your AEM Project (Preferred)
-1. Add the github repository
-<Code code={etherealNexusRepo} lang={"xml"}/>
 
-3. Add the Maven dependency to you AEM project on module: all file: pom.xml
-<Code code={etherealNexusDependency} lang={"xml"}/>
+### Adding to your Codebase
+\* On your AEM Project (Preferred)
+
+1. Add the github repository
+```xml
+<repositories>
+  <repository>
+    <id>ethereal-nexus</id>
+    <name>GitHub Ethereal Nexus</name>
+    <url>https://maven.pkg.github.com/diconium/ethereal-nexus</url>
+  </repository>
+</repositories>
+```
+
+2. Add the Maven dependency to you AEM project on module: all file: pom.xml
+```xml
+<dependency>
+  <groupId>com.diconium</groupId>
+  <artifactId>ethereal-nexus.all</artifactId>
+  <version>1.2.16</version>
+  <type>zip</type>
+</dependency>
+```
 
 3. Add the Embedded vault package definition on module: all file: pom.xml
-<Code code={etherealNexusPackage} lang={"xml"}/>
-
-3. Configure the endpoint to you Ethereal Nexus Dashboard.
-4. Assign your configuration to a sites project.
+```xml
+<embedded>
+    <groupId>com.diconium</groupId>
+    <artifactId>ethereal-nexus.all</artifactId>
+    <type>zip</type>
+    <target>/apps/REPLACE_WITH_YOUR_CUSTOM_NAME-vendor-packages/remote-components/install</target>
+</embedded>
+```
+4. Configure the endpoint to you Ethereal Nexus Dashboard.
+5. Assign your configuration to a sites project.

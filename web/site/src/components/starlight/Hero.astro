@@ -51,11 +51,11 @@ if (image) {
       }
     </div>
     <div class="col-span-3">
-      <Image
+      {darkImage && <Image
         src={darkImage}
         {...imageAttrs}
         class:list={{ 'light:sl-hidden': Boolean(lightImage) }}
-      />
+      />}
     </div>
   </div>
 </div>

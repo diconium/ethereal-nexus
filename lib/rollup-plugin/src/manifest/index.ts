@@ -4,6 +4,8 @@ import { simple } from 'acorn-walk';
 import type { Identifier, ImportSpecifier } from 'acorn';
 import { convertCamelCaseToDashCase, convertCamelCaseToSpaceCase, getPackageInfo, saveFile } from '../utils';
 import MagicString from 'magic-string';
+import path from 'node:path';
+import fs from 'node:fs';
 
 export function extractDialog(ast: ProgramNode, code: string): string {
   let imports: string[] = [];
@@ -62,9 +64,24 @@ export async function parseDialog(schemaCode: string) {
   return vm.runInNewContext(schemaCode, ctx);
 }
 
-export async function generateManifest(code: string, ast: ProgramNode, name: string) {
+function extractReadme(id: string) {
+  const componentPath = path.parse(id)
+  let filePath = `${componentPath.dir}/${componentPath.name}.md`
+
+  if(!fs.existsSync(filePath)){
+    filePath = `${componentPath.dir}/README.md`
+  }
+  if(!fs.existsSync(filePath)){
+    return '';
+  }
+
+  return fs.readFileSync(filePath, 'utf-8')
+}
+
+export async function generateManifest(code: string, ast: ProgramNode, name: string, id: string) {
   let dialog = { dialog: [] };
   const schemaCode = extractDialog(ast, code);
+  const readme = extractReadme(id);
   const packageJson = getPackageInfo();
 
   if (schemaCode) {
@@ -73,13 +90,12 @@ export async function generateManifest(code: string, ast: ProgramNode, name: str
 
   const manifest = {
     name,
+    readme,
     title: convertCamelCaseToSpaceCase(name),
     slug: convertCamelCaseToDashCase(name),
     version: packageJson.version,
-    readme: '',
     ...dialog,
   }
   const json = JSON.stringify(manifest, undefined, 2)
   saveFile(name, json);
-
 }

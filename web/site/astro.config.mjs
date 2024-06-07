@@ -13,9 +13,9 @@ export default defineConfig({
       SiteTitle: './src/components/starlight/SiteTitle.astro',
       Hero: './src/components/starlight/Hero.astro'
     },
-    title: 'Docs with Tailwind',
+    title: 'Ethereal Nexus',
     social: {
-      github: 'https://github.com/withastro/starlight'
+      github: 'https://diconium.github.io/ethereal-nexus'
     },
     sidebar: [{
       label: 'Getting Started',

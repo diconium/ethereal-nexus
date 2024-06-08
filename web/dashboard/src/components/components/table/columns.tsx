@@ -27,7 +27,7 @@ export const columns = [
   },
   {
     id: 'version',
-    accessorFn: row => row.versions[0]?.version,
+    accessorFn: row => row.versions[0].version,
     header: ({ column }) => (
       <DataTableColumnHeader className="font-bold" column={column} title="Version" />
     ),

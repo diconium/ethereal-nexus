@@ -22,7 +22,10 @@ export class GcloudStorage implements IStorage {
       const bucket = this.storage.bucket(GCLOUD_BLOB_STORAGE_NAME);
       await bucket.file(fileName).save(code);
 
-      return new URL(`https://storage.googleapis.com/${GCLOUD_BLOB_STORAGE_NAME}/${fileName}`);
+      const url = new URL(`${process.env.GCLOUD_CDN_URL}`);
+      url.pathname=fileName;
+
+      return url;
     }
 
 }

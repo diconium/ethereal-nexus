@@ -51,7 +51,7 @@ const dialogSchema = dialog({
     }
   })
 
-const schema = component({ name: 'TestReactHelloWorld', version: '0.3.0' }, dialogSchema);
+const schema = component({ name: 'TestReactHelloWorld', version: '1.1.0' }, dialogSchema);
 
 type Props = Output<typeof schema>
 

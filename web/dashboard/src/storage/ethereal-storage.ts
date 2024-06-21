@@ -3,7 +3,12 @@ import { AzureStorage } from '@/storage/azure-storage';
 
 
 export interface IStorage {
-
+  /**
+   * Update to storage and return bundle URL
+   * @param code
+   * @param name
+   * @param file
+   */
   uploadToStorage(code: string, name: string, file: string): Promise<URL>;
 
 }

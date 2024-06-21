@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
-import ethereal from '@ethereal-nexus/rollup-plugin-ethereal-nexus';
+import ethereal from '@ethereal-nexus/vite-plugin-ethereal-nexus';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
@@ -10,7 +10,7 @@ export default defineConfig({
         ReactHelloWorld: './src/components/ReactHelloWorld/ReactHelloWorld.tsx'
       },
       server: true,
-    }),
+    })
   ],
   build: {
     rollupOptions: {

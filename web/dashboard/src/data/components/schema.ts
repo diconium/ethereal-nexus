@@ -1,5 +1,6 @@
 import { json, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+import { customJsonb } from '@/db/custom-types';
 
 export const assetTypeEnum = pgEnum('asset_type', ['css', 'js', 'chunk', 'server']);
 
@@ -18,7 +19,7 @@ export const componentVersions = pgTable("component_version", {
   id: uuid('id').unique().notNull().defaultRandom(),
   component_id:  uuid('component_id').notNull().references(() => components.id, { onDelete: 'cascade' }),
   version: text('version').notNull(),
-  dialog: json('dialog'),
+  dialog: customJsonb('dialog'),
   created_at: timestamp("created_at").defaultNow().notNull(),
   readme: text("readme"),
   changelog: text("changelog"),

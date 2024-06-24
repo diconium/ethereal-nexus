@@ -185,6 +185,7 @@ export async function getActiveProjectComponents(
       componentVersions.id,
       componentVersions.version,
       componentVersions.created_at,
+      componentVersions.component_id,
     )
     .limit(1)
     .as('latest_version');

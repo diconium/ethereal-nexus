@@ -33,7 +33,7 @@ export class EtherealStorage implements IStorage {
   }
 
   uploadToStorage(code: string, name: string, file: string): Promise<URL> {
-    return this.storage.uploadToStorage(code, name, file);
+     return this.storage.uploadToStorage(code, name, file);
   }
 
 

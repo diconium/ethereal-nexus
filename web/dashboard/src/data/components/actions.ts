@@ -113,7 +113,14 @@ export async function upsertComponentWithVersion(
                 "component_id":result?.data.id,
                 "version_id": upsertedVersion.data.id,
             };
-        logEvent("component_update",userId, eventData);
+
+        // logEvent({
+        //     data: eventData,
+        //     resourceId: component.slug,
+        //     resourceType: component.slug,
+        //     type: 'component_update',
+        //     userId: userId,
+        // });
 
         return actionSuccess({
             ...result.data,

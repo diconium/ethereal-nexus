@@ -16,7 +16,7 @@ const Event: React.FC<EventProps> = ({event}) => {
         case 'component_deactivated':
             return (<Card className="rounded-lg shadow-md" key={event.id}>
                 <CardContent className="grid grid-cols-[40px_1fr_auto] items-center gap-4 p-4">
-                    <ToggleLeft className="w-8 h-8 text-primary"/>
+                    <ToggleLeft className="w-8 h-8 text-muted"/>
                     <div className="space-y-1">
                         <p className="font-medium">Component deactivated</p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -49,7 +49,7 @@ const Event: React.FC<EventProps> = ({event}) => {
                             <Link className="font-medium mr-1" href="#">
                                 {event.data.username}
                             </Link>
-                             activated on {event.data.version? `version: ${event.data.version}`:''}
+                             activated on
                             <Link className="font-medium ml-1" href="#">
                                 {event.data.project}
                             </Link>

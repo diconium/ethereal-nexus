@@ -534,9 +534,21 @@ export async function upsertComponentConfig(
 
 
     if(safeInput.data.is_active === true){
-      logEvent('component_activated',  userId, safeInput.data)
+      logEvent({
+        type: 'component_activated',
+        data: safeInput.data,
+        userId,
+        resourceId: safeInput.data.component_id,
+        resourceType: 'component',
+      });
     } else {
-      logEvent('component_deactivated',  userId, safeInput.data)
+      logEvent({
+        type: 'component_deactivated',
+        userId,
+        data: safeInput.data,
+        resourceId: safeInput.data.component_id,
+        resourceType: 'component',
+      });
     }
 
     return actionSuccess(safe.data);

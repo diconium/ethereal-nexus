@@ -48,7 +48,7 @@ export class AzureStorage implements IStorage {
       const urlObject = new URL(url);
 
       if (azFrontDoor) {
-        urlObject.host = azFrontDoor;
+        urlObject.host = new URL(azFrontDoor).host;
       }
 
       return urlObject;

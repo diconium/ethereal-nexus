@@ -126,3 +126,5 @@ pnpm-debug.log*
 
 # macOS-specific files
 .DS_Store
+
+web/dashboard/gcloud-key.json

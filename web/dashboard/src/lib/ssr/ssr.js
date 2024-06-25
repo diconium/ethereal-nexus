@@ -3,7 +3,7 @@ import {TextEncoder} from "util";
 
 export async function callSSR(componentType, componentProps = {}, assets) {
 
-    const jsAsset = assets.filter(asset => asset.type === "js");
+    const jsAsset = assets.filter(asset => asset.type === "server");
 
     if (jsAsset.length > 0) {
         try {
@@ -19,7 +19,7 @@ export async function callSSR(componentType, componentProps = {}, assets) {
                         props: {...componentProps},
                     }
                 }
-                console.log("[SSR] calling SSR with: ", sandbox.ethereal.props)
+            console.log("[SSR] calling SSR with: ", sandbox.ethereal.props)
             await dynamicImport(jsAsset[0].filePath, sandbox);
             console.debug("[SSR] loaded: ", sandbox?.ethereal?.output)
             if (sandbox?.ethereal?.serverSideProps) {

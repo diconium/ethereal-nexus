@@ -22,17 +22,18 @@ export class EtherealStorage implements IStorage {
   constructor() {
 
     switch (STORAGE_TYPE) {
-      case 'gcloud': {
+      case 'gcloud':
         this.storage = new GcloudStorage();
-      } break;
-      default: {
+        break;
+      case 'azure':
+      default:
         this.storage = new AzureStorage();
-      }
+        break;
     }
   }
 
   uploadToStorage(code: string, name: string, file: string): Promise<URL> {
-     return this.storage.uploadToStorage(code, name, file);
+    return this.storage.uploadToStorage(code, name, file);
   }
 
 

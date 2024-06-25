@@ -26,7 +26,6 @@ function clientFactory() {
         {
           max: 30,
           idle_timeout: 20,
-          ssl: process.env.PGSSL === 'true'
         }
       );
   }

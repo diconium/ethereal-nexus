@@ -1,18 +1,19 @@
 import React from 'react';
 import {
-  dialog,
+  component,
   hidden,
   multifield,
   object,
   optional,
   pathbrowser,
   text,
+  dialog,
   type Output,
   type GetServerSideProps
 } from '@ethereal-nexus/core';
 import { Item } from '../../patterns';
 
-const schema = dialog({
+const dialogSchema = dialog({
   title: text({
     label: 'Title',
     placeholder: 'Title'
@@ -43,12 +44,14 @@ const schema = dialog({
   .tabs({
     tab1: {
       subtitle: true,
-      banners: true,
+      banners: true
     },
     tab3: {
       title: true
     }
-  });
+  })
+
+const schema = component({ name: 'TestReactHelloWorld', version: '0.3.0' }, dialogSchema);
 
 type Props = Output<typeof schema>
 

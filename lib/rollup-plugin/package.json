@@ -1,10 +1,9 @@
 {
   "name": "@ethereal-nexus/rollup-plugin-ethereal-nexus",
-  "version": "0.1.1",
+  "version": "0.2.2",
   "description": "",
   "keywords": [
-    "rollup-plugin",
-    "vite-plugin"
+    "rollup-plugin"
   ],
   "author": "",
   "license": "Apache-2.0",

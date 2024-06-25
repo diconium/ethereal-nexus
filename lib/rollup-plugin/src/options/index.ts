@@ -11,7 +11,8 @@ export function extractExposeInto(exposed: Map<string, string>, opts: EtherealPl
       emitFile({
         type: 'chunk',
         fileName: path.resolve(component).substring(1),
-        id
+        id,
+        preserveSignature: 'strict'
       });
     }
   }

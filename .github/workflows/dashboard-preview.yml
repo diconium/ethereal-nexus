@@ -61,11 +61,11 @@ jobs:
           acrName: etherealnexus
           acrUsername: ${{ secrets.REGISTRY_USERNAME }}
           acrPassword: ${{ secrets.REGISTRY_PASSWORD }}
-          resourceGroup: RG-ethereal_realms_accelerator
+          resourceGroup: RG-Ethereal-Nexus
           location: westeurope
           targetPort: 3000
 
       - name: Update Environment Variables
         run: |
-          fqdn=$(az containerapp ingress show -g RG-ethereal_realms_accelerator -n ethereal-nexus-app-$PR_NUMBER | jq -r '.fqdn')
-          az containerapp update -g RG-ethereal_realms_accelerator -n ethereal-nexus-app-$PR_NUMBER --set-env-vars NEXTAUTH_URL=https://${fqdn}
+          fqdn=$(az containerapp ingress show -g RG-Ethereal-Nexus -n ethereal-nexus-app-$PR_NUMBER | jq -r '.fqdn')
+          az containerapp update -g RG-Ethereal-Nexus -n ethereal-nexus-app-$PR_NUMBER --set-env-vars NEXTAUTH_URL=https://${fqdn}

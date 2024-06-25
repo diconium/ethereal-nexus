@@ -7,8 +7,17 @@ import path from 'node:path';
 
 export function createClientCode(code: string, name: string, id: string, ast: ProgramNode) {
   let magic = new MagicString(code);
+  let importsNexus = false;
+  let hasSchema = false
 
   simple(ast, {
+    VariableDeclaration(node) {
+      for (const declaration of node.declarations) {
+        if (declaration.id.type === 'Identifier' && declaration.id.name === 'schema' && declaration.init?.type === 'CallExpression') {
+          hasSchema = true;
+        }
+      }
+    },
     ImportDeclaration(node) {
       if (node.type === 'ImportDeclaration') {
         const { source: { value, start, end } } = node;
@@ -18,6 +27,7 @@ export function createClientCode(code: string, name: string, id: string, ast: Pr
           if (last?.type === 'ImportSpecifier') {
             magic.appendLeft(last.end, `,\n webcomponent`);
           }
+          importsNexus = true;
         } else if (typeof value === 'string' && value.startsWith('.')) {
           const resolvedPath = path.join(path.dirname(id), value);
           magic.update(start + 1, end - 1, resolvedPath);
@@ -28,8 +38,11 @@ export function createClientCode(code: string, name: string, id: string, ast: Pr
       if(node.declaration?.type === 'VariableDeclaration' && node.declaration){
         for(const declaration of node.declaration.declarations) {
           if(declaration.id.type === 'Identifier' && declaration.id.name === name) {
+            if(!importsNexus) {
+              magic.prepend(`import { webcomponent } from "@ethereal-nexus/core";\n`);
+            }
             magic.append(`${name}.displayName = '${name}';\n`)
-            magic.append(`webcomponent(schema)(${name});\n`)
+            magic.append(`webcomponent(${hasSchema ? 'schema' : ''})(${name});\n`)
           }
         }
       }

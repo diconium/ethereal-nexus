@@ -8,10 +8,10 @@ import { ObjectEntries } from '../../types/object';
 
 type BaseOptions = {}
 
-export function webcomponent<T extends ObjectEntries>(schema: DialogSchema<T>, options?: BaseOptions) {
-  const props: Record<string, WebcomponentPropTypes> = {
+export function webcomponent<T extends ObjectEntries>(schema?: DialogSchema<T>, options?: BaseOptions) {
+  const props: Record<string, WebcomponentPropTypes> | undefined = schema ? {
     ...parsePrimitives(schema),
-  };
+  } : undefined;
 
   return <P extends {} = {}>(component: React.ComponentType<P>) => {
     const name = pascalToKebab(component.displayName!)

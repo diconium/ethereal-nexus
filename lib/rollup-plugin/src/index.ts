@@ -7,14 +7,13 @@ import { adjustChunkImport, bundleClient, copyChunkFiles } from './client';
 import { cleanTemporary, cleanWorkspace } from './utils';
 import { extractExposeInto } from './options';
 
-export default function rollupEthereal(opts: EtherealPluginOptions): RollupPlugin[] {
+export default function rollupEthereal(opts: EtherealPluginOptions): RollupPlugin {
   const exposed = new Map<string, string>();
   let ssr = !!opts.server;
   let minify = typeof opts.server === 'object' ? opts.server.minify : false;
 
-  return [
-    {
-      name: 'ethereal',
+  return {
+      name: 'ethereal:compiler',
       async buildStart(_options) {
         console.log('Building ethereal bundles...');
         cleanWorkspace();
@@ -29,7 +28,7 @@ export default function rollupEthereal(opts: EtherealPluginOptions): RollupPlugi
         const name = exposed.get(id)!;
         const ast = this.parse(code);
 
-        await generateManifest(code, ast, name);
+        await generateManifest(code, ast, name, id);
 
         fs.mkdirSync('dist/tmp', { recursive: true });
         bundleClient(code, exposed, id, ast, name, this.emitFile);
@@ -58,5 +57,7 @@ export default function rollupEthereal(opts: EtherealPluginOptions): RollupPlugi
       buildEnd() {
         cleanTemporary();
       }
-    }];
+    };
 }
+
+export type { EtherealPluginOptions };

@@ -1,10 +1,6 @@
 {
-  "files": [
-    "dist",
-    "README.md"
-  ],
   "name": "@ethereal-nexus/cli",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "type": "module",
   "description": "",
   "exports": "./dist/index.js",
@@ -13,6 +9,10 @@
     "dev": "tsup --watch",
     "build": "tsup"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "dependencies": {
     "chalk": "^5.3.0",
     "commander": "^12.1.0",

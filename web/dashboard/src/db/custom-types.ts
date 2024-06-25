@@ -25,3 +25,21 @@ export const customJsonb = customType<{ data: unknown }>({
     return value;
   },
 });
+export const customJson = customType<{ data: unknown }>({
+  dataType() {
+    return 'json';
+  },
+  toDriver(value) {
+    return value;
+  },
+  fromDriver(value): unknown {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        console.warn('Failed to parse json - the default value will be used');
+      }
+    }
+    return value;
+  },
+});

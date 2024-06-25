@@ -1,8 +1,11 @@
 {
-  "name": "@ethereal-nexus/core",
-  "version": "0.2.0",
+  "name": "@ethereal-nexus/vite-plugin-ethereal-nexus",
+  "version": "0.1.0",
   "description": "",
-  "keywords": [],
+  "keywords": [
+    "rollup-plugin",
+    "vite-plugin"
+  ],
   "author": "",
   "license": "Apache-2.0",
   "scripts": {
@@ -19,19 +22,21 @@
   },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
+  "types": "./dist/index.d.ts",
   "sideEffects": false,
   "files": [
     "dist",
     "README.md"
   ],
   "devDependencies": {
-    "@types/react": "^18.3.0",
-    "react": "^18.3.1",
     "tsup": "^8.0.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vite": "^5.3.1"
   },
   "dependencies": {
-    "@r2wc/react-to-web-component": "^2.0.3"
+    "@ethereal-nexus/rollup-plugin-ethereal-nexus": "workspace:*"
+  },
+  "peerDependencies": {
+    "@ethereal-nexus/core": "workspace:*"
   }
 }

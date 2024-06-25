@@ -3,12 +3,14 @@ import { ProgramNode } from 'rollup';
 import { simple } from 'acorn-walk';
 import type { Identifier, ImportSpecifier } from 'acorn';
 import { convertCamelCaseToDashCase, convertCamelCaseToSpaceCase, getPackageInfo, saveFile } from '../utils';
+import MagicString from 'magic-string';
+import path from 'node:path';
+import fs from 'node:fs';
 
-type DialogCode = string | null
-
-export function extractDialog(ast: ProgramNode, code: string): DialogCode | null {
-  let schema: DialogCode | null = null;
+export function extractDialog(ast: ProgramNode, code: string): string {
   let imports: string[] = [];
+  let variables: Set<string> = new Set();
+  const magic = new MagicString('')
 
   // Walk through the AST to find the schema
   simple(ast, {
@@ -23,16 +25,33 @@ export function extractDialog(ast: ProgramNode, code: string): DialogCode | null
     VariableDeclaration(node) {
       for (const declaration of node.declarations) {
         if (declaration.id.type === 'Identifier' && declaration.id.name === 'schema' && declaration.init?.type === 'CallExpression') {
-          schema = `const { ${imports.join(', ')}, parse } = modules['@ethereal-nexus/core']
-          
-parse(${code.substring(declaration.init.callee.start, declaration.end)})
-          `;
+          if(node.declarations[0].init?.type === 'CallExpression') {
+            for (const argument of node.declarations[0].init.arguments) {
+              if(argument.type === 'Identifier') {
+                variables.add(argument.name)
+              }
+            }
+          }
+
+          simple(ast, {
+              VariableDeclaration(node) {
+                for (const declaration of node.declarations) {
+                  if (declaration.id.type === 'Identifier' && variables.has(declaration.id.name)) {
+                    magic.append(code.substring(declaration.start, declaration.end) + '\n')
+                  }
+                }
+              }
+            },
+          )
+
+          magic.prepend(`const { ${imports.join(', ')}, parse } = modules['@ethereal-nexus/core']\n`)
+          magic.append(`parse(${code.substring(declaration.init.callee.start, declaration.end)})`)
         }
       }
     }
   });
 
-  return schema;
+  return magic.toString();
 }
 
 export async function parseDialog(schemaCode: string) {
@@ -45,22 +64,38 @@ export async function parseDialog(schemaCode: string) {
   return vm.runInNewContext(schemaCode, ctx);
 }
 
-export async function generateManifest(code: string, ast: ProgramNode, name: string) {
+function extractReadme(id: string) {
+  const componentPath = path.parse(id)
+  let filePath = `${componentPath.dir}/${componentPath.name}.md`
+
+  if(!fs.existsSync(filePath)){
+    filePath = `${componentPath.dir}/README.md`
+  }
+  if(!fs.existsSync(filePath)){
+    return '';
+  }
+
+  return fs.readFileSync(filePath, 'utf-8')
+}
+
+export async function generateManifest(code: string, ast: ProgramNode, name: string, id: string) {
+  let dialog = { dialog: [] };
   const schemaCode = extractDialog(ast, code);
-  const packageJson = await getPackageInfo();
+  const readme = extractReadme(id);
+  const packageJson = getPackageInfo();
 
   if (schemaCode) {
-    const dialog = await parseDialog(schemaCode);
-    const manifest = {
-      name,
-      title: convertCamelCaseToSpaceCase(name),
-      slug: convertCamelCaseToDashCase(name),
-      version: packageJson.version,
-      readme: '',
-      ...dialog,
-    }
-
-    const json = JSON.stringify(manifest, undefined, 2)
-    saveFile(name, json);
+    dialog = await parseDialog(schemaCode);
   }
+
+  const manifest = {
+    name,
+    readme,
+    title: convertCamelCaseToSpaceCase(name),
+    slug: convertCamelCaseToDashCase(name),
+    version: packageJson.version,
+    ...dialog,
+  }
+  const json = JSON.stringify(manifest, undefined, 2)
+  saveFile(name, json);
 }

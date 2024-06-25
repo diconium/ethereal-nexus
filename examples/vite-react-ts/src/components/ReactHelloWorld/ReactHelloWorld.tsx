@@ -12,6 +12,7 @@ import {
   type GetServerSideProps
 } from '@ethereal-nexus/core';
 import { Item } from '../../patterns';
+import styles from './ReactHelloWorld.module.css'; // Import css modules stylesheet as styles
 
 const dialogSchema = dialog({
   title: text({
@@ -51,13 +52,13 @@ const dialogSchema = dialog({
     }
   })
 
-const schema = component({ name: 'TestReactHelloWorld', version: '1.1.0' }, dialogSchema);
+const schema = component({ name: 'TestReactHelloWorld'}, dialogSchema);
 
 type Props = Output<typeof schema>
 
 export const ReactHelloWorld: React.FC<Props> = ({ title, subtitle, datetime }) => {
   return (
-    <div>
+    <div className={styles.error}>
       My new text Hello World from react! v.1.0.9
       <div>Props:
         <ul>

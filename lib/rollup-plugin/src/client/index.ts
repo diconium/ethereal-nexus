@@ -1,4 +1,4 @@
-import { EmitFile, OutputBundle, ParseAst, ProgramNode, RenderedChunk } from 'rollup';
+import { EmitFile, OutputBundle, OutputChunk, ParseAst, ProgramNode, RenderedChunk } from 'rollup';
 import MagicString from 'magic-string';
 import { simple } from 'acorn-walk';
 import { createHash } from 'crypto';
@@ -68,14 +68,58 @@ export function bundleClient(code: string, exposed: Map<string, string>, id: str
   });
 }
 
+function readJSDeps(chunk: OutputChunk, bundle: OutputBundle, js = new Set<string>()) {
+  if(chunk?.imports) {
+    for (const jsFileName of chunk?.imports) {
+      js.add(jsFileName)
+    }
+  }
+  if(chunk.imports.length > 0) {
+    for(const nestedChunk of chunk.imports) {
+      readJSDeps(bundle[nestedChunk] as OutputChunk, bundle, js)
+    }
+  }
+
+  return js;
+}
+
+type ViteOutputChunk = OutputChunk & {viteMetadata: {importedCss: Set<string>}}
+
+function readCssDeps(chunk: ViteOutputChunk, bundle: OutputBundle, css = new Set<string>()) {
+  if(chunk?.viteMetadata) {
+    for (const cssFileName of chunk.viteMetadata.importedCss.values()) {
+      css.add(cssFileName)
+    }
+  }
+  if(chunk.imports.length > 0) {
+    for(const nestedChunk of chunk.imports) {
+      readCssDeps(bundle[nestedChunk] as ViteOutputChunk, bundle, css)
+    }
+  }
+
+  return css;
+}
+
 export function copyChunkFiles(bundle: OutputBundle) {
   for (const chunk of Object.values(bundle)) {
     if (chunk.type === 'chunk' && chunk.facadeModuleId?.includes('__etherealHelper__')) {
-      for (const imports of chunk.imports) {
-        const importPath = path.parse(imports);
-        const chunkPath = path.dirname(chunk.preliminaryFileName);
+      const chunkPath = path.dirname(chunk.preliminaryFileName);
 
+      const js = readJSDeps(chunk, bundle)
+      for (const imports of js.values()) {
+        const importPath = path.parse(imports);
         fs.copyFileSync(`./dist/${imports}`, `./dist/${chunkPath}/${importPath.base}`);
+      }
+
+      //only works on vite
+      if(chunk.hasOwnProperty('viteMetadata') ) {
+        const cssMap = readCssDeps(chunk as ViteOutputChunk, bundle);
+        for(const css of cssMap.values()) {
+          const cssPath = path.parse(css)
+          fs.copyFileSync(`./dist/${css}`, `./dist/${chunkPath}/${cssPath.base}`);
+        }
+      } else {
+        console.warn('CSS bundling for ethereal nexus only works on vite.')
       }
     }
   }

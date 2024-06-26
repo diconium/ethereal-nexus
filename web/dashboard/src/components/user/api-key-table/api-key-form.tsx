@@ -15,7 +15,7 @@ import { ApiKey, ApiKeyPermissions, NewApiKey, newApiKeySchema } from '@/data/us
 import { useSession } from 'next-auth/react';
 import { notFound } from 'next/navigation';
 import { ShieldBan } from 'lucide-react';
-import { isPermissionsHigher, Permissions } from '@/data/users/permission-utils';
+import { isPermissionsHigher } from '@/data/users/permission-utils';
 
 type ProjectLabels = {
   id: string,
@@ -71,6 +71,12 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
     }
   };
 
+  const apiKeyPermissions = form.watch("permissions")
+
+  // Check if all permissions are not accessible
+  const noAccessPermissions = apiKeyPermissions &&
+    Object.values(apiKeyPermissions).every(value => value === "none") || undefined;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
@@ -122,6 +128,7 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
+                        <SelectItem value="none">No access</SelectItem>
                         <SelectItem value="read">Can read</SelectItem>
                         <SelectItem value="write">Can edit</SelectItem>
                       </SelectGroup>
@@ -139,7 +146,7 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
             Select the projects you want to give permissions in the API key.
           </FormDescription>
         </div>
-        {availableProjects.map((item, index) => (
+        {availableProjects.map((item) => (
           <FormField
             key={item.id}
             control={form.control}
@@ -173,6 +180,7 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
+                            <SelectItem value="none">No access</SelectItem>
                             <SelectItem value="read" disabled={session?.permissions[item.id] === 'none'}>Can
                               read</SelectItem>
                             <SelectItem value="write" disabled={session?.permissions[item.id] !== 'write'}>Can
@@ -200,7 +208,7 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
         }
         <DialogFooter className="flex items-center border-t p-4 sm:justify-between">
           <Button
-            disabled={!!apiKey}
+            disabled={!!apiKey || noAccessPermissions}
             type="submit"
           >
             Continue

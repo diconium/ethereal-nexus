@@ -12,19 +12,19 @@ export function ToogleIconViewProjects() {
   const isListView = viewMode === 'list';
 
   return (
-    <div className="flex items-center h-12 p-1 bg-gray-300 rounded-full">
+    <div className="flex items-center h-9 p-1 bg-gray-300 rounded-full">
       <button className="mr-1" onClick={toggleViewMode}>
         {!isListView ? (
-          <CardViewIcon width={40} height={40} />
+          <CardViewIcon width={30} height={30} />
         ) : (
-          <CardViewDisabledIcon width={40} height={40} />
+          <CardViewDisabledIcon width={30} height={30} />
         )}
       </button>
       <button onClick={toggleViewMode}>
         {isListView ? (
-          <ListViewIcon width={40} height={40} />
+          <ListViewIcon width={30} height={30} />
         ) : (
-          <ListViewDisabledIcon width={40} height={40} />
+          <ListViewDisabledIcon width={30} height={30} />
         )}
       </button>
     </div>

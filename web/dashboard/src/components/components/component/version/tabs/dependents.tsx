@@ -18,6 +18,7 @@ interface DependentsProps extends ProjectWithOwners{
 
 const Dependents: React.FC<PreviewProps> = ({dependents = []}) => {
     const dependentsWithAccess = dependents.filter((dep) => dep.userHasAccess)
+    const totalDependents = dependents.length - dependentsWithAccess.length;
 
     return (
         <div className="grid gap-6">
@@ -63,6 +64,9 @@ const Dependents: React.FC<PreviewProps> = ({dependents = []}) => {
                     </Link>
                 ))
             }
+            {totalDependents > 0 && (
+                <span className="scroll-m-20 text-lg text-gray-500 mb-4">{totalDependents} more other dependent components</span>
+            )}
         </div>
     );
 };

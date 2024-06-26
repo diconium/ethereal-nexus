@@ -7,10 +7,9 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { EyeIcon, Trash } from 'lucide-react';
+import { Trash } from 'lucide-react';
 import { Dialog, DialogTrigger } from '@radix-ui/react-dialog';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useState } from 'react';
@@ -52,11 +51,6 @@ export function ComponentsDataTableRowActions({ row }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem>
-          <EyeIcon className="mr-2 h-4 w-4" />
-          Preview
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
         {/* TODO: ideally we'd have only one dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogTrigger asChild>

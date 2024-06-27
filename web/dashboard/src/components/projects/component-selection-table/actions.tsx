@@ -18,8 +18,11 @@ import { useSession } from 'next-auth/react';
 
 export function ProjectsComponentsRowActions({ table, row }) {
   const component = row.original;
+  const projectId = table.options.meta.projectId
   const {data: session} = useSession()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  console.log(session?.permissions[projectId])
 
   const handleDeleteOk = async () => {
     setDeleteDialogOpen(false)
@@ -55,6 +58,7 @@ export function ProjectsComponentsRowActions({ table, row }) {
           <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <DialogTrigger asChild>
               <DropdownMenuItem
+                disabled={session?.permissions[projectId] === 'read'}
                 className="text-red-600"
                 onSelect={(e) => e.preventDefault()}
               >

@@ -1,36 +1,13 @@
-'use client'
+'use client';
 
 import * as React from 'react';
 import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
-import { Switch } from '@/components/ui/switch';
 import { ActiveSwitch } from '@/components/projects/component-selection-table/active-switch';
-import { Checkbox } from '@/components/ui/checkbox';
 import { VersionPicker } from '@/components/projects/component-selection-table/version-picker';
-import Link from "next/link";
+import Link from 'next/link';
+import { ProjectsComponentsRowActions } from '@/components/projects/component-selection-table/actions';
 
 export const columns = [
-  {
-    id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="translate-y-[2px]"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        key={row.original.id}
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="translate-y-[2px]"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false
-  },
   {
     id: 'name',
     accessorFn: row => row.name,
@@ -93,5 +70,13 @@ export const columns = [
     },
     enableSorting: false,
     enableHiding: true,
+  },
+  {
+    id: "actions",
+    cell: ({ table, row }) => (
+      <div className="flex justify-end" >
+        <ProjectsComponentsRowActions row={row} table={table} />
+      </div>
+    ),
   },
 ];

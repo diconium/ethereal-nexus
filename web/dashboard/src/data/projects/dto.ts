@@ -100,6 +100,7 @@ export const projectWithComponentAssetsSchema = componentsSchema
   })
 
 export const projectComponentsSchema = componentsSchema.extend({
+  config_id: projectComponentConfigSchema.shape.id,
   is_active: projectComponentConfigSchema.shape.is_active.nullable(),
   version: componentVersionsSchema.shape.version.nullable(),
   versions: componentVersionsSchema.pick({id: true, version: true}).array(),

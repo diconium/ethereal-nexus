@@ -42,7 +42,7 @@ export default async function EditProject({ params: { id }, searchParams: { tab 
           />
         </TabsContent>
         <TabsContent value="components" className="space-y-4 p-6">
-        <ProjectComponentsList
+          <ProjectComponentsList
             id={id}
           />
         </TabsContent>

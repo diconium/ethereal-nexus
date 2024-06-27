@@ -120,6 +120,7 @@ export async function getProjectComponents(
     const select = await db
       .select({
         ...getTableColumns(components),
+        config_id: projectComponentConfig.id,
         is_active: projectComponentConfig.is_active,
         version: componentVersions.version,
         versions: sql`ARRAY_AGG(jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`
@@ -140,7 +141,8 @@ export async function getProjectComponents(
       .groupBy(
         components.id,
         componentVersions.version,
-        projectComponentConfig.is_active
+        projectComponentConfig.id,
+        projectComponentConfig.is_active,
       )
       .where(eq(projectComponentConfig.project_id, id))
       .orderBy(
@@ -149,7 +151,6 @@ export async function getProjectComponents(
         components.name
       );
 
-    console.log(select)
     const safe = projectComponentsSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
@@ -535,5 +536,40 @@ export async function upsertComponentConfig(
     return actionError(
       'Failed to insert project component config into database.',
     );
+  }
+}
+
+export async function deleteComponentConfig(
+  id: string,
+  userId: string | undefined | null,
+): ActionResponse<ProjectComponentConfig[]> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  try {
+    const deleted = await db
+      .delete(projectComponentConfig)
+      .where(
+        and(
+          userIsMember(userId, projectComponentConfig.project_id),
+          eq(projectComponentConfig.id, id)
+        )
+      )
+      .returning();
+
+    const safe = z.array(projectComponentConfigSchema).safeParse(deleted);
+    if (!safe.success) {
+      return actionZodError(
+        "There's an issue with the config records.",
+        safe.error,
+      );
+    }
+
+    revalidatePath('/(layout)/(session)/projects/[id]', 'layout')
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to delete config from database.');
   }
 }

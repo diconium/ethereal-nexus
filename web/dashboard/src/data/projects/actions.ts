@@ -124,13 +124,10 @@ export async function getProjectComponents(
         version: componentVersions.version,
         versions: sql`ARRAY_AGG(jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`
       })
-      .from(components)
+      .from(projectComponentConfig)
       .leftJoin(
-        projectComponentConfig,
-        and(
-          eq(components.id, projectComponentConfig.component_id),
-          eq(projectComponentConfig.project_id, id)
-        )
+        components,
+        eq(components.id, projectComponentConfig.component_id),
       )
       .leftJoin(
         componentVersions,
@@ -145,12 +142,14 @@ export async function getProjectComponents(
         componentVersions.version,
         projectComponentConfig.is_active
       )
+      .where(eq(projectComponentConfig.project_id, id))
       .orderBy(
         sql`${projectComponentConfig.is_active} DESC NULLS LAST`,
         sql`${componentVersions.version} NULLS LAST`,
         components.name
       );
 
+    console.log(select)
     const safe = projectComponentsSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(

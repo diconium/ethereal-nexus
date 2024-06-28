@@ -108,7 +108,7 @@ export const projectComponentsSchema = componentsSchema.extend({
 export type ProjectComponent = z.infer<typeof projectComponentsSchema>;
 
 export const projectComponentsWithDialogSchema = projectComponentsSchema
-  .omit({versions: true})
+  .omit({versions: true,config_id:true})
   .extend(
     {
       dialog: componentVersionsSchema.shape.dialog.nullable(),

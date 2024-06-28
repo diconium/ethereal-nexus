@@ -13,7 +13,8 @@ import {
   projectComponentConfigSchema,
   projectComponentsSchema,
   ProjectComponentsWithDialog,
-  projectComponentsWithDialogSchema, ProjectInput,
+  projectComponentsWithDialogSchema,
+  ProjectInput,
   projectInputSchema,
   projectSchema,
   type ProjectWithComponent,
@@ -23,11 +24,12 @@ import {
   projectWithComponentSchema
 } from './dto';
 import * as console from 'console';
-import { and, desc, eq, getTableColumns, sql } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, isNull, sql } from 'drizzle-orm';
 import { projectComponentConfig, projects } from './schema';
 import { insertMembers, userIsMember } from '@/data/member/actions';
 import { componentAssets, components, componentVersions } from '@/data/components/schema';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath } from 'next/cache';
+import { Component, componentsSchema } from '@/data/components/dto';
 
 export async function getProjects(
   userId: string | undefined | null,
@@ -152,6 +154,54 @@ export async function getProjectComponents(
       );
 
     const safe = projectComponentsSchema.array().safeParse(select);
+    if (!safe.success) {
+      return actionZodError(
+        "There's an issue with the project records.",
+        safe.error,
+      );
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to fetch project from database.');
+  }
+}
+
+export async function getComponentsNotInProject(
+  id: string | undefined | null,
+  userId: string | undefined | null,
+): ActionResponse<Component[]> {
+  if (!id) {
+    return actionError('No identifier provided.');
+  }
+
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  try {
+    const select = await db
+      .select({
+        ...getTableColumns(components),
+      })
+      .from(components)
+      .leftJoin(
+        projectComponentConfig,
+        and(
+          eq(components.id, projectComponentConfig.component_id),
+          eq(projectComponentConfig.project_id, id),
+          userIsMember(userId, projectComponentConfig.project_id),
+        ),
+      )
+      .where(
+        isNull(projectComponentConfig.id),
+      )
+      .orderBy(
+        components.name
+      );
+
+    const safe = componentsSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
         "There's an issue with the project records.",

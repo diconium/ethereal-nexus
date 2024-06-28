@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Trash } from 'lucide-react';
+import { Undo2 } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogTrigger } from '@radix-ui/react-dialog';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -62,8 +62,8 @@ export function ProjectsComponentsRowActions({ table, row }) {
                 className="text-red-600"
                 onSelect={(e) => e.preventDefault()}
               >
-                <Trash className="mr-2 h-4 w-4" />
-                Delete
+                <Undo2 className="mr-2 h-4 w-4" />
+                Remove
               </DropdownMenuItem>
             </DialogTrigger>
             <DialogContent>
@@ -85,7 +85,7 @@ export function ProjectsComponentsRowActions({ table, row }) {
                   variant="destructive"
                   onClick={() => handleDeleteOk()}
                 >
-                  Delete
+                  Remove
                 </Button>
               </DialogFooter>
             </DialogContent>

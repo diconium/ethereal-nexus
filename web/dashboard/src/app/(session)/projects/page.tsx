@@ -1,7 +1,6 @@
 import React from "react";
 import { getProjects } from '@/data/projects/actions';
 import { auth } from '@/auth';
-import {logger} from "@/logger";
 import { buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -23,8 +22,6 @@ export default async function Projects() {
       })
     );
   }
-
-  logger.info("Projects Page called "); // calling our logger
 
   return (
     <ProjectsViewProvider>

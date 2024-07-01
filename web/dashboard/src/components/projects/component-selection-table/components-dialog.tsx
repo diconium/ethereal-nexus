@@ -8,12 +8,15 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { upsertComponentConfig } from '@/data/projects/actions';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import { Plus } from 'lucide-react';
 
 type ComponentsDialogProps = {
   components: any,
@@ -59,6 +62,7 @@ export function ComponentsDialog({ components, projectId }: ComponentsDialogProp
         className="ml-auto flex"
         disabled={isDisabled}
       >
+        <Plus />
         Add components
       </Button>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

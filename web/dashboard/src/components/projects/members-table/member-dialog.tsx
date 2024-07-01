@@ -12,11 +12,12 @@ import {
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { type MouseEventHandler, useState } from 'react';
+import React, { type MouseEventHandler, useState } from 'react';
 import { PublicUser } from '@/data/users/dto';
 import { insertMembers } from '@/data/member/actions';
 import { toast } from '@/components/ui/use-toast';
 import { useSession } from 'next-auth/react';
+import { Plus } from 'lucide-react';
 
 type AddMemberProps = {
   users: PublicUser[];
@@ -52,12 +53,12 @@ export function MemberDialog({ users, resource }: AddMemberProps) {
     <>
       <Button
         disabled={data?.permissions[resource] !== 'write'}
-        variant={'outline'}
-        size={'sm'}
+        size="base"
+        variant='primary'
         onClick={() => setOpen(true)}
-        className="ml-auto hidden h-8 lg:flex mr-4">
-        <PlusCircledIcon className="mr-2 h-4 w-4" />
-        Add Member
+        className="ml-auto flex">
+        <Plus />
+        Add User
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="gap-0 p-0 outline-none">

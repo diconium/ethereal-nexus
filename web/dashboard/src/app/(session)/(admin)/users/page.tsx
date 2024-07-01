@@ -4,39 +4,39 @@ import { getUsers } from '@/data/users/actions';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import Link from "next/link";
 import { buttonVariants } from '@/components/ui/button';
-import { PlusCircledIcon } from '@radix-ui/react-icons';
-import { auth } from '@/auth';
+import { cn } from '@/lib/utils';
+import { Plus } from 'lucide-react';
 
 export default async function Teams() {
   const users = await getUsers()
 
   return (
     <div className="container h-full flex-1 flex-col space-y-8 p-8 md:flex">
-      <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Users</h2>
-          <p className="text-muted-foreground">Manage your users here</p>
-        </div>
-      </div>
       {
         users.success ?
           <DataTable
             entity={'users'}
             createSlot={
-              <Link
-                href={'/users/new'}
-                passHref
-                className={
-                  buttonVariants(
-                    {
-                      variant: "outline",
+              <div className="w-full flex justify-between items-end">
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight">Users</h2>
+                  <p className="text-muted-foreground">Manage your users here</p>
+                </div>
+                <Link
+                  href="/users/new"
+                  passHref
+                  className={cn(
+                    buttonVariants({
+                      variant: 'outline',
                       size: 'sm',
-                      className: "ml-auto hidden h-8 lg:flex mr-4" }
-                  )
-                }>
-                <PlusCircledIcon className="mr-2 h-4 w-4" />
-                Invite user
-              </Link>
+                      className: 'mr-2 transition-colors bg-orange-500 rounded-full text-white h-9 px-5 flex justify-center items-center',
+                    })
+                  )}
+                >
+                  <Plus />
+                  <span className="text-sm font-bold">Invite user</span>
+                </Link>
+              </div>
             }
             columns={columns}
             data={users.data}

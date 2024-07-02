@@ -15,19 +15,19 @@ export async function MainNav({className = "", ...props } : React.HTMLAttributes
       className={cn("flex items-center justify-between w-full", className)}
       {...props}
     >
-      <div className="w-full flex items-center gap-9">
-        <NavLink className='flex items-center justify-center' href="/">
+      <div className="w-full flex items-center gap-10">
+        <NavLink className='flex' href="/">
           <LogoImage/>
         </NavLink>
 
-        <NavLink className="flex items-center justify-center w-40" href="/projects">
+        <NavLink className="flex" href="/projects">
           <div className="mr-4">
             <ProjectsIcon width={20} height={20} />
           </div>
           <span>Projects</span>
         </NavLink>
 
-        <NavLink className="flex items-center justify-center w-44" href="/components">
+        <NavLink className="flex" href="/components">
           <div className="mr-4">
             <ComponentsIcon width={20} height={20} />
           </div>
@@ -35,7 +35,7 @@ export async function MainNav({className = "", ...props } : React.HTMLAttributes
         </NavLink>
 
         {session?.user?.role === 'admin' && (
-          <NavLink className='flex items-center justify-center w-44'
+          <NavLink className='flex'
                    href="/users">
             <div className="mr-4">
               <Users2 width={25} height={25} />

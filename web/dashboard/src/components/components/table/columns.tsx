@@ -5,6 +5,7 @@ import { ComponentsDataTableRowActions } from "./data-table-row-actions";
 import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
 import Link from "next/link";
 import * as React from "react";
+import { ProjectsDataTableRowActions } from '@/components/projects/table/data-table-row-actions';
 
 export const columns = [
   {
@@ -39,11 +40,10 @@ export const columns = [
   },
   {
     id: "actions",
-    header: ({ column }) => (
-      <DataTableColumnHeader className="font-bold" column={column} title="Permissions" />
-    ),
-    cell: ({ row }) => (
-      <ComponentsDataTableRowActions row={row} />
+    cell: ({ table, row }) => (
+      <div className="flex justify-end" >
+        <ComponentsDataTableRowActions row={row} />
+      </div>
     ),
   },
 ];

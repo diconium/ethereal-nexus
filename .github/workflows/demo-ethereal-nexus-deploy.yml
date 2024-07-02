@@ -1,4 +1,4 @@
-name: Trigger auto deployment for demo-ethereal-nexus
+name: Build
 
 # When this action will be executed
 on:

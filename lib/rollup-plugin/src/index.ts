@@ -28,7 +28,12 @@ export default function rollupEthereal(opts: EtherealPluginOptions): RollupPlugi
         const name = exposed.get(id)!;
         const ast = this.parse(code);
 
-        await generateManifest(code, ast, name, id);
+        const json = await generateManifest(code, ast, name, id);
+        this.emitFile({
+          type: 'prebuilt-chunk',
+          fileName: `.ethereal/${name}/manifest.json`,
+          code: json,
+        });
 
         fs.mkdirSync('dist/tmp', { recursive: true });
         bundleClient(code, exposed, id, ast, name, this.emitFile);

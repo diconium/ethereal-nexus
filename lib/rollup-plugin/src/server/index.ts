@@ -1,9 +1,11 @@
 import { EmitFile, ProgramNode } from 'rollup';
-import { build, BuildOptions, Plugin as EsbuildPlugin } from 'esbuild';
+import { build, Plugin as EsbuildPlugin } from 'esbuild';
 import fs from 'node:fs';
 import MagicString from 'magic-string';
 import { simple } from 'acorn-walk';
 import path from 'node:path';
+import { getConfig } from '../config';
+import svgr from 'esbuild-plugin-svgr'
 
 const ignoreCssPlugin: EsbuildPlugin  = {
   name: 'empty-css-imports',
@@ -49,27 +51,34 @@ function createServerCode(code: string, name: string, id: string, ast: ProgramNo
   return serverCode;
 }
 
-export async function bundleSSR(code: string, id: string, ast: ProgramNode, name: string, emitFile: EmitFile, options: BuildOptions) {
-  const serverCode = createServerCode(code,name, id, ast);
-  fs.writeFileSync(`dist/tmp/__etherealHelper__server__${name}`, serverCode.toString());
+export async function bundleSSR(code: string, id: string, ast: ProgramNode, name: string, emitFile: EmitFile) {
+  const options = getConfig('esbuildConfig');
 
-  await build({
+  if (!fs.existsSync(`./.ethereal/tmp`)) {
+    fs.mkdirSync(`./.ethereal/tmp`, {recursive: true});
+  }
+  const serverCode = createServerCode(code,name, id, ast);
+  fs.writeFileSync(`.ethereal/tmp/__etherealHelper__server__${name}`, serverCode.toString());
+
+  const result = await build({
     ...options,
-    entryPoints: [`dist/tmp/__etherealHelper__server__${name}`],
+    entryPoints: [`.ethereal/tmp/__etherealHelper__server__${name}`],
     format: 'esm',
     target: 'es2022',
     plugins: [
+      svgr(),
       ignoreCssPlugin,
+      ...options.plugins ? options.plugins : [],
     ],
     bundle: true,
     allowOverwrite: true,
     legalComments: 'none',
-    outfile: `dist/tmp/__etherealHelper__server__${name}`
+    write: false, // Do not write to disk
   });
 
   emitFile({
-    type: 'chunk',
+    type: 'prebuilt-chunk',
     fileName: `.ethereal/${name}/server.js`,
-    id: `dist/tmp/__etherealHelper__server__${name}`
+    code: result.outputFiles[0].text
   });
 }

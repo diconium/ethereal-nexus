@@ -1,6 +1,6 @@
 {
   "name": "@ethereal-nexus/vite-plugin-ethereal-nexus",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "description": "",
   "keywords": [
     "rollup-plugin",
@@ -37,6 +37,7 @@
     "@ethereal-nexus/rollup-plugin-ethereal-nexus": "workspace:*"
   },
   "peerDependencies": {
-    "@ethereal-nexus/core": "workspace:*"
+    "@ethereal-nexus/core": "workspace:*",
+    "vite": "^5.0.0"
   }
 }

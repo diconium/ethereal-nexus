@@ -1,6 +1,6 @@
 {
   "name": "@ethereal-nexus/cli",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "",
   "exports": "./dist/index.js",
@@ -20,6 +20,7 @@
     "fs-extra": "^11.2.0",
     "inquirer": "^9.2.22",
     "ora": "^8.0.1",
+    "tar": "^7.4.0",
     "wretch": "^2.8.1",
     "zod": "^3.22.4"
   },

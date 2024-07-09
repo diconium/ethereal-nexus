@@ -1,5 +1,15 @@
-import child_process from 'node:child_process';
+import { create } from 'tar'
 
 export function createTar(folder: string, excludeList: string) {
-  child_process.execSync(`COPYFILE_DISABLE=1 tar -czvf ${folder}/ethereal_nexus.tar.gz --exclude=${excludeList} -C ${folder} .`, {stdio : 'pipe' });
+  console.log(folder)
+  return create(
+    {
+      gzip: true,
+      file: `${folder}/ethereal_nexus.tar.gz`,
+      excludeList: excludeList,
+      cwd: `${folder}/`,
+      sync: true,
+    },
+    ['.']
+  )
 }

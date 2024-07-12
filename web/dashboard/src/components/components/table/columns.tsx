@@ -5,29 +5,9 @@ import { ComponentsDataTableRowActions } from "./data-table-row-actions";
 import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
 import Link from "next/link";
 import * as React from "react";
+import { ProjectsDataTableRowActions } from '@/components/projects/table/data-table-row-actions';
 
 export const columns = [
-  {
-    id: "select",
-    header: ({ table }: any) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="translate-y-[2px]"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="translate-y-[2px]"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
   {
     accessorKey: "name",
     header: ({ column }) => (
@@ -60,11 +40,10 @@ export const columns = [
   },
   {
     id: "actions",
-    header: ({ column }) => (
-      <DataTableColumnHeader className="font-bold" column={column} title="Permissions" />
-    ),
-    cell: ({ row }) => (
-      <ComponentsDataTableRowActions row={row} />
+    cell: ({ table, row }) => (
+      <div className="flex justify-end" >
+        <ComponentsDataTableRowActions row={row} />
+      </div>
     ),
   },
 ];

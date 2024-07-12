@@ -7,8 +7,9 @@ import { pipeline } from 'stream/promises';
 import { authenticatedWithKey } from '@/lib/route-wrappers';
 import { HttpStatus } from '@/app/api/utils';
 import { upsertAssets, upsertComponentWithVersion } from '@/data/components/actions';
-import { BlobServiceClient, StorageSharedKeyCredential } from '@azure/storage-blob';
-import * as path from 'node:path';
+import { EtherealStorage } from '@/storage/ethereal-storage';
+
+const storage = new EtherealStorage();
 
 export const POST = authenticatedWithKey(async (request, ext) => {
   let conflictingAssets = false;
@@ -80,22 +81,16 @@ export const POST = authenticatedWithKey(async (request, ext) => {
 
     for (const [fileName, content] of filesMap) {
       if (fileName.endsWith('.js') || fileName.endsWith('.css')) {
-        const { _response: { request: { url } } } = await uploadToStorage(
+        const urlObject = await storage.uploadToStorage(
           content,
-          slug!,
-          version.version,
+          `${slug}/${version.version}`,
           fileName
         );
 
-        if (!url) {
+        if (!urlObject) {
           return NextResponse.json('Failed to upload assets', {
             status: HttpStatus.BAD_REQUEST
           });
-        }
-
-        const urlObject = new URL(url);
-        if (azFrontDoor) {
-          urlObject.host = azFrontDoor;
         }
 
         let type: 'css' | 'js' | 'chunk' | 'server' = 'chunk' as const;
@@ -140,49 +135,3 @@ export const POST = authenticatedWithKey(async (request, ext) => {
     });
   }
 });
-
-const account = process.env.AZURE_BLOB_STORAGE_ACCOUNT || '';
-const accountKey = process.env.AZURE_BLOB_STORAGE_SECRET || '';
-const azFrontDoor = process.env.AZURE_FRONT_DOOR_URL || '';
-const containerName =process.env.AZURE_CONTAINER_NAME  || 'remote-components-aem-demo';
-const blobCacheControl = 'public, max-age=31536000';
-
-const sharedKeyCredential = new StorageSharedKeyCredential(account, accountKey);
-const blobServiceClient = new BlobServiceClient(
-  `https://${account}.blob.core.windows.net`,
-  sharedKeyCredential,
-);
-
-const uploadToStorage = async (
-  code: string,
-  name: string,
-  version: string,
-  file: string,
-) => {
-  const containerClient = blobServiceClient.getContainerClient(
-    containerName,
-  );
-
-  const blockBlobClient = containerClient.getBlockBlobClient(path.join(`${name}/${version}`, file));
-  if (code) {
-    return await blockBlobClient.upload(
-      code,
-      code.length,
-      {
-        blobHTTPHeaders: {
-          blobContentType: `${
-            file.endsWith('js')
-              ? 'text/javascript'
-              : 'text/css'
-          }`,
-          blobCacheControl: blobCacheControl,
-        },
-      },
-    );
-  } else {
-    return Promise.reject({
-      error: 'There was an issue uploading to storage',
-      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-    });
-  }
-};

@@ -1,9 +1,11 @@
-import { EmitFile, OutputBundle, ParseAst, ProgramNode, RenderedChunk } from 'rollup';
+import { EmitFile, OutputBundle, OutputChunk, ParseAst, ProgramNode, RenderedChunk } from 'rollup';
 import MagicString from 'magic-string';
 import { simple } from 'acorn-walk';
 import { createHash } from 'crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { getConfig } from '../config';
+import { setVirtual } from '../virtual';
 
 export function createClientCode(code: string, name: string, id: string, ast: ProgramNode) {
   let magic = new MagicString(code);
@@ -54,7 +56,13 @@ export function createClientCode(code: string, name: string, id: string, ast: Pr
 
 export function bundleClient(code: string, exposed: Map<string, string>, id: string, ast: ProgramNode, name: string, emitFile: EmitFile) {
   const clientCode = createClientCode(code, exposed.get(id)!, id, ast);
-  fs.writeFileSync(`dist/tmp/__etherealHelper__${name}`, clientCode.toString());
+  const fileId = `.ethereal/tmp/__etherealHelper__${name}`;
+
+  setVirtual(fileId, clientCode.toString())
+  // if (!fs.existsSync(`./.ethereal/tmp`)) {
+  //   fs.mkdirSync(`./.ethereal/tmp`, {recursive: true});
+  // }
+  // fs.writeFileSync(`.ethereal/tmp/__etherealHelper__${name}`, clientCode.toString());
 
   const hash = createHash('sha256')
     .update(code)
@@ -64,18 +72,64 @@ export function bundleClient(code: string, exposed: Map<string, string>, id: str
   emitFile({
     type: 'chunk',
     fileName: `.ethereal/${name}/${hash}-index.js`,
-    id: `dist/tmp/__etherealHelper__${name}`
+    id: fileId
   });
 }
 
+function readJSDeps(chunk: OutputChunk, bundle: OutputBundle, js = new Set<string>()) {
+  if(chunk?.imports) {
+    for (const jsFileName of chunk?.imports) {
+      js.add(jsFileName)
+    }
+  }
+  if(chunk.imports.length > 0) {
+    for(const nestedChunk of chunk.imports) {
+      readJSDeps(bundle[nestedChunk] as OutputChunk, bundle, js)
+    }
+  }
+
+  return js;
+}
+
+type ViteOutputChunk = OutputChunk & {viteMetadata: {importedCss: Set<string>}}
+
+function readCssDeps(chunk: ViteOutputChunk, bundle: OutputBundle, css = new Set<string>()) {
+  if(chunk?.viteMetadata) {
+    for (const cssFileName of chunk.viteMetadata.importedCss.values()) {
+      css.add(cssFileName)
+    }
+  }
+  if(chunk.imports.length > 0) {
+    for(const nestedChunk of chunk.imports) {
+      readCssDeps(bundle[nestedChunk] as ViteOutputChunk, bundle, css)
+    }
+  }
+
+  return css;
+}
+
 export function copyChunkFiles(bundle: OutputBundle) {
+  const outDir = getConfig('outDir');
+
   for (const chunk of Object.values(bundle)) {
     if (chunk.type === 'chunk' && chunk.facadeModuleId?.includes('__etherealHelper__')) {
-      for (const imports of chunk.imports) {
-        const importPath = path.parse(imports);
-        const chunkPath = path.dirname(chunk.preliminaryFileName);
+      const chunkPath = path.dirname(chunk.preliminaryFileName);
 
-        fs.copyFileSync(`./dist/${imports}`, `./dist/${chunkPath}/${importPath.base}`);
+      const js = readJSDeps(chunk, bundle)
+      for (const imports of js.values()) {
+        const importPath = path.parse(imports);
+        fs.copyFileSync(`./${outDir}/${imports}`, `./${outDir}/${chunkPath}/${importPath.base}`);
+      }
+
+      //only works on vite
+      if(chunk.hasOwnProperty('viteMetadata') ) {
+        const cssMap = readCssDeps(chunk as ViteOutputChunk, bundle);
+        for(const css of cssMap.values()) {
+          const cssPath = path.parse(css)
+          fs.copyFileSync(`./${outDir}/${css}`, `./${outDir}/${chunkPath}/${cssPath.base}`);
+        }
+      } else {
+        console.warn('CSS bundling for ethereal nexus only works on vite.')
       }
     }
   }

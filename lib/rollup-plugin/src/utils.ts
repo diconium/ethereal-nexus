@@ -3,20 +3,8 @@ import { type PackageJson } from "type-fest"
 import { join } from 'node:path';
 import { cwd } from 'node:process';
 
-export function saveFile(name: string, json: string) {
-  fs.mkdirSync(`dist/.ethereal/${name}`, { recursive: true });
-  const outputFilePath = join(`dist/.ethereal/${name}`, `manifest.json`);
-
-  // Write JSON to file
-  fs.writeFileSync(outputFilePath, json);
-}
-
 export function cleanTemporary() {
-  fs.rmSync('./dist/tmp', { force: true, recursive: true });
-}
-
-export function cleanWorkspace() {
-  fs.rmSync('./dist/.ethereal', { recursive: true, force: true });
+  fs.rmSync(`./.ethereal`, { force: true, recursive: true });
 }
 
 export function convertCamelCaseToSpaceCase(str: string) {

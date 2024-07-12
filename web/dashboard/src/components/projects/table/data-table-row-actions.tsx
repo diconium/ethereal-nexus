@@ -23,17 +23,19 @@ import Link from "next/link";
 import { deleteProject } from '@/data/projects/actions';
 import type { Project } from '@/data/projects/dto';
 import DotsIcon from '@/components/ui/icons/DotsIcon';
+import { useSession } from 'next-auth/react';
 
 export function ProjectsDataTableRowActions({ table, row }) {
   const project = row.original;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const {data: session} = useSession()
 
   const handleDeleteOk = async () => {
     setDeleteDialogOpen(false)
 
     const { data, setData } = table.getState();
     if (project) {
-      const deleted = await deleteProject(project.id, 'b325fe37-3ea4-41b6-9bc1-ea93fba0097a')
+      const deleted = await deleteProject(project.id, session?.user?.id)
 
       if(deleted.success) {
         setData(

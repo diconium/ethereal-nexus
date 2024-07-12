@@ -100,6 +100,7 @@ export const projectWithComponentAssetsSchema = componentsSchema
   })
 
 export const projectComponentsSchema = componentsSchema.extend({
+  config_id: projectComponentConfigSchema.shape.id,
   is_active: projectComponentConfigSchema.shape.is_active.nullable(),
   version: componentVersionsSchema.shape.version.nullable(),
   versions: componentVersionsSchema.pick({id: true, version: true}).array(),
@@ -107,7 +108,7 @@ export const projectComponentsSchema = componentsSchema.extend({
 export type ProjectComponent = z.infer<typeof projectComponentsSchema>;
 
 export const projectComponentsWithDialogSchema = projectComponentsSchema
-  .omit({versions: true})
+  .omit({versions: true,config_id:true})
   .extend(
     {
       dialog: componentVersionsSchema.shape.dialog.nullable(),

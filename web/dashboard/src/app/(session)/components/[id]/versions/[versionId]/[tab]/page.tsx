@@ -1,24 +1,40 @@
+import React from 'react';
 import {Separator} from '@/components/ui/separator';
 import {notFound} from 'next/navigation';
 import {
-    getComponentAssets,
     getComponentById,
     getComponentDependentsProjectsWithOwners,
     getComponentVersions
 } from "@/data/components/actions";
-import React from "react";
 import ComponentVersionHeader from "@/components/components/component/version/header";
 import ComponentVersionTabs from "@/components/components/component/version/tabs";
-import {getComponentEvents} from "@/data/events/actions";
-
+import {auth} from "@/auth";
+import {getMembersByResourceId, getComponentEvents} from "@/data/member/actions";
 
 export default async function EditComponentVersion({params: {id, versionId, tab}}: any) {
+    const session = await auth()
 
     const component = await getComponentById(id);
     const versions = await getComponentVersions(id);
     const dependents = await getComponentDependentsProjectsWithOwners(id);
     const events = await getComponentEvents(id);
+    const projects = await getComponentDependentsProjectsWithOwners(id);
 
+    if (projects.success) {
+        projects.data = await Promise.all(
+            projects.data.map(async (project) => {
+                const membersData = await getMembersByResourceId(project.id, session?.user?.id);
+                const userHasAccess = (membersData.success && membersData.data.some(member => member.user_id == session?.user?.id));
+
+                return {
+                    ...project,
+                    userHasAccess
+                };
+            })
+        );
+    }
+
+    if (!versions.success || !component.success || !projects.success) {
     if (!versions.success || !component.success || !dependents.success) {
         notFound();
     }
@@ -29,7 +45,7 @@ export default async function EditComponentVersion({params: {id, versionId, tab}
                                     selectedVersion={selectedVersion} activeTab={tab}/>
             <Separator/>
             <ComponentVersionTabs activeTab={tab} versions={versions} selectedVersion={selectedVersion}
-                                  component={component} dependents={dependents.data} events={events.data}/>
+                                  component={component} dependents={projects.data} events={events.data}/>
         </div>
     );
 }

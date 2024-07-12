@@ -1,14 +1,11 @@
 import { HttpStatus } from '@/app/api/utils';
-import {
-  BlobServiceClient,
-  StorageSharedKeyCredential,
-} from '@azure/storage-blob';
 import { headers } from 'next/headers';
 import { AuthenticatedWithApiKeyUser, authenticatedWithKey, DefaultExt } from '@/lib/route-wrappers';
 import { NextRequest, NextResponse } from 'next/server';
-import { getComponentById, getComponentByName, getComponentVersions, upsertAssets } from '@/data/components/actions';
+import { getComponentByName, getComponentVersions, upsertAssets } from '@/data/components/actions';
 import * as console from 'console';
 import { v4 as uuidv4 } from 'uuid';
+import { EtherealStorage } from '@/storage/ethereal-storage';
 
 const fileTypes: FileTypes = {
   'text/css': 'css',
@@ -20,19 +17,8 @@ interface FileTypes {
   [key: string]: 'css' | 'js';
 }
 
-const account = process.env.AZURE_BLOB_STORAGE_ACCOUNT || '';
-const accountKey = process.env.AZURE_BLOB_STORAGE_SECRET || '';
-const azFrontDoor = process.env.AZURE_FRONT_DOOR_URL || '';
-const containerName =process.env.AZURE_CONTAINER_NAME  || 'remote-components-aem-demo';
 
-const sharedKeyCredential = new StorageSharedKeyCredential(account, accountKey);
-const blobServiceClient = new BlobServiceClient(
-  `https://${account}.blob.core.windows.net`,
-  sharedKeyCredential,
-);
-
-//TODO: We should allow these to be configured by the admin.
-const blobCacheControl = 'public, max-age=31536000';
+const storage = new EtherealStorage();
 
 /**
  * @swagger
@@ -126,15 +112,12 @@ export const POST = authenticatedWithKey(
       const headersList = headers();
       const contentType = headersList.get('Content-Type') || '';
       const filePath: string = getFilePath(params, contentType);
-      const { _response } = await uploadToStorage(
+      const url = await uploadToStorage(
         request,
         filePath,
         contentType,
       );
-      const { request: responseFromBlob = {} as any } = _response;
-      const url = azFrontDoor ?`${azFrontDoor}/${containerName}/${filePath}` : responseFromBlob.url;
 
-      // console.log('POST assets', JSON.stringify(_response, undefined, 2))
       if (!url) {
         return NextResponse.json('Failed to upload assets', {
           status: HttpStatus.BAD_REQUEST,
@@ -163,7 +146,7 @@ export const POST = authenticatedWithKey(
       const response = await upsertAssets(
         component.data.id,
         version.id,
-        url,
+        url.toString(),
         fileTypes[contentType],
       );
       if (!response.success) {
@@ -192,10 +175,6 @@ const uploadToStorage = async (
   filePath: string = 'index',
   contentType: string,
 ) => {
-  const containerClient = blobServiceClient.getContainerClient(
-    containerName,
-  );
-
   const jsonData = request.body;
   let reader = jsonData.getReader();
   let readResult = await reader.read();
@@ -209,32 +188,11 @@ const uploadToStorage = async (
       readResult = await reader.read();
     }
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
+  const completeBuffer = Buffer.concat(buffers).toString();
 
-  const blockBlobClient = containerClient.getBlockBlobClient(filePath);
-  if (buffers.length) {
-    const completeBuffer = Buffer.concat(buffers);
-    return await blockBlobClient.upload(
-      completeBuffer.toString(),
-      completeBuffer.toString().length,
-      {
-        blobHTTPHeaders: {
-          blobContentType: `${
-            contentType === 'application/javascript'
-              ? 'text/javascript'
-              : contentType
-          }`,
-          blobCacheControl: blobCacheControl,
-        },
-      },
-    );
-  } else {
-    return Promise.reject({
-      error: 'There was an issue uploading to storage',
-      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-    });
-  }
+  return storage.uploadToStorage(completeBuffer, filePath, contentType);
 };
 
 function getFilePath(

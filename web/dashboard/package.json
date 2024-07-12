@@ -12,8 +12,10 @@
     "test": "set TZ=UTC && jest --coverage --max-workers=75%"
   },
   "dependencies": {
+    "@astrojs/mdx": "^2.2.0",
     "@azure/storage-blob": "^12.15.0",
     "@epic-web/remember": "^1.0.2",
+    "@google-cloud/storage": "^7.11.2",
     "@hookform/resolvers": "^3.3.1",
     "@neondatabase/serverless": "^0.8.1",
     "@newrelic/next": "^0.7.0",

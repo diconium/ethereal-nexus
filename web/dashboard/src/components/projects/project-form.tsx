@@ -62,8 +62,7 @@ export default function ProjectsForm({project, onComplete, onCancel}: ProjectsFo
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel
-                className="text-stone-600 dark:text-gray-300 font-bold">{`${project?.id ? "" : "Name"}`}</FormLabel>
+              <FormLabel className="transition-colors text-muted-foreground font-bold">Name</FormLabel>
               <FormControl>
                 <Input placeholder="Name" {...field} className="bg-white dark:bg-transparent font-bold" />
               </FormControl>

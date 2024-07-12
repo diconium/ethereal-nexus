@@ -5,6 +5,7 @@ import ProjectsIcon from '@/components/ui/icons/ProjectsIcon';
 import ComponentsIcon from '@/components/ui/icons/ComponentsIcon';
 import ApiDocumentationIcon from '@/components/ui/icons/ApiDocumentationIcon';
 import LogoImage from "@/components/ui/logo-image";
+import { Users2 } from 'lucide-react';
 
 export async function MainNav({className = "", ...props } : React.HTMLAttributes<HTMLElement>) {
   const session = await auth()
@@ -14,27 +15,36 @@ export async function MainNav({className = "", ...props } : React.HTMLAttributes
       className={cn("flex items-center justify-between w-full", className)}
       {...props}
     >
-      <div className="flex items-center space-x-4 lg:space-x-9">
-        <NavLink className='flex items-center justify-center' href="/">
+      <div className="w-full flex items-center gap-10">
+        <NavLink className='flex' href="/">
           <LogoImage/>
         </NavLink>
 
-        <NavLink className="flex items-center justify-center w-40" href="/projects">
+        <NavLink className="flex" href="/projects">
           <div className="mr-4">
             <ProjectsIcon width={20} height={20} />
           </div>
           <span>Projects</span>
         </NavLink>
 
-        <NavLink className="flex items-center justify-center w-44" href="/components">
+        <NavLink className="flex" href="/components">
           <div className="mr-4">
             <ComponentsIcon width={20} height={20} />
           </div>
           <span>Components</span>
         </NavLink>
 
+        {session?.user?.role === 'admin' && (
+          <NavLink className='flex'
+                   href="/users">
+            <div className="mr-4">
+              <Users2 width={25} height={25} />
+            </div>
+            <span>Users</span></NavLink>
+        )}
+
         <NavLink
-          className='flex items-center justify-center w-44'
+          className='ml-auto flex items-center justify-center w-44'
           rel="noreferrer noopener"
           target="_blank"
           href="https://diconium.github.io/ethereal-nexus/"
@@ -42,12 +52,9 @@ export async function MainNav({className = "", ...props } : React.HTMLAttributes
           <div className="mr-4">
             <ApiDocumentationIcon width={20} height={20} />
           </div>
-          <span>Documentation</span>
+          <span>Docs</span>
         </NavLink>
 
-        {session?.user?.role === 'admin' && (
-          <NavLink href="/users">Users</NavLink>
-        )}
       </div>
     </nav>
   );

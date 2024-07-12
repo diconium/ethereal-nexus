@@ -15,6 +15,7 @@ import {
   updateMemberPermissionsSchema
 } from '@/data/member/dto';
 import { projects } from '@/data/projects/schema';
+import { PgColumn } from 'drizzle-orm/pg-core';
 
 export async function getMembersByResourceId(id: string, userId: string | undefined | null): ActionResponse<MemberWithPublicUser[]> {
   if (!userId) {
@@ -98,7 +99,6 @@ export async function updateMemberPermissions(member: UpdateMemberPermissions) {
     return actionZodError('Failed to parse member input.', input.error);
   }
 
-
   const { id, permissions } = input.data;
   try {
     const update = await db.update(memberTable)
@@ -115,11 +115,11 @@ export async function updateMemberPermissions(member: UpdateMemberPermissions) {
   }
 }
 
-export const userIsMember = (userId: string) => inArray(
-  projects.id,
+export const userIsMember = (userId: string, projectColumn: PgColumn = projects.id) => inArray(
+  projectColumn,
   db.select({ id: memberTable.resource })
     .from(memberTable)
     .where(
-      eq(memberTable.user_id, userId)
+      eq(memberTable.user_id, userId),
     )
 );

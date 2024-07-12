@@ -2,7 +2,7 @@ import vm from 'node:vm';
 import { ProgramNode } from 'rollup';
 import { simple } from 'acorn-walk';
 import type { Identifier, ImportSpecifier } from 'acorn';
-import { convertCamelCaseToDashCase, convertCamelCaseToSpaceCase, getPackageInfo, saveFile } from '../utils';
+import { convertCamelCaseToDashCase, convertCamelCaseToSpaceCase, getPackageInfo } from '../utils';
 import MagicString from 'magic-string';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -96,6 +96,6 @@ export async function generateManifest(code: string, ast: ProgramNode, name: str
     version: packageJson.version,
     ...dialog,
   }
-  const json = JSON.stringify(manifest, undefined, 2)
-  saveFile(name, json);
+
+  return JSON.stringify(manifest, undefined, 2)
 }

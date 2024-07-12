@@ -13,7 +13,8 @@ import {
   projectComponentConfigSchema,
   projectComponentsSchema,
   ProjectComponentsWithDialog,
-  projectComponentsWithDialogSchema, ProjectInput,
+  projectComponentsWithDialogSchema,
+  ProjectInput,
   projectInputSchema,
   projectSchema,
   type ProjectWithComponent,
@@ -23,11 +24,12 @@ import {
   projectWithComponentSchema
 } from './dto';
 import * as console from 'console';
-import { and, desc, eq, getTableColumns, sql } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, isNull, sql } from 'drizzle-orm';
 import { projectComponentConfig, projects } from './schema';
 import { insertMembers, userIsMember } from '@/data/member/actions';
 import { componentAssets, components, componentVersions } from '@/data/components/schema';
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { Component, componentsSchema } from '@/data/components/dto';
 import {logEvent} from "@/lib/events/event-middleware";
 
 export async function getProjects(
@@ -121,17 +123,15 @@ export async function getProjectComponents(
     const select = await db
       .select({
         ...getTableColumns(components),
+        config_id: projectComponentConfig.id,
         is_active: projectComponentConfig.is_active,
         version: componentVersions.version,
         versions: sql`ARRAY_AGG(jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`
       })
-      .from(components)
+      .from(projectComponentConfig)
       .leftJoin(
-        projectComponentConfig,
-        and(
-          eq(components.id, projectComponentConfig.component_id),
-          eq(projectComponentConfig.project_id, id)
-        )
+        components,
+        eq(components.id, projectComponentConfig.component_id),
       )
       .leftJoin(
         componentVersions,
@@ -144,8 +144,10 @@ export async function getProjectComponents(
       .groupBy(
         components.id,
         componentVersions.version,
-        projectComponentConfig.is_active
+        projectComponentConfig.id,
+        projectComponentConfig.is_active,
       )
+      .where(eq(projectComponentConfig.project_id, id))
       .orderBy(
         sql`${projectComponentConfig.is_active} DESC NULLS LAST`,
         sql`${componentVersions.version} NULLS LAST`,
@@ -153,6 +155,54 @@ export async function getProjectComponents(
       );
 
     const safe = projectComponentsSchema.array().safeParse(select);
+    if (!safe.success) {
+      return actionZodError(
+        "There's an issue with the project records.",
+        safe.error,
+      );
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to fetch project from database.');
+  }
+}
+
+export async function getComponentsNotInProject(
+  id: string | undefined | null,
+  userId: string | undefined | null,
+): ActionResponse<Component[]> {
+  if (!id) {
+    return actionError('No identifier provided.');
+  }
+
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  try {
+    const select = await db
+      .select({
+        ...getTableColumns(components),
+      })
+      .from(components)
+      .leftJoin(
+        projectComponentConfig,
+        and(
+          eq(components.id, projectComponentConfig.component_id),
+          eq(projectComponentConfig.project_id, id),
+          userIsMember(userId, projectComponentConfig.project_id),
+        ),
+      )
+      .where(
+        isNull(projectComponentConfig.id),
+      )
+      .orderBy(
+        components.name
+      );
+
+    const safe = componentsSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
         "There's an issue with the project records.",
@@ -309,6 +359,7 @@ export async function getProjectComponentConfigWithVersion(
   id: string | undefined | null,
   userId: string | undefined | null,
 ): ActionResponse<z.infer<typeof projectWithComponentAssetsSchema>> {
+
   if (!id) {
     return actionError('No identifier provided.');
   }
@@ -557,5 +608,40 @@ export async function upsertComponentConfig(
     return actionError(
       'Failed to insert project component config into database.',
     );
+  }
+}
+
+export async function deleteComponentConfig(
+  id: string,
+  userId: string | undefined | null,
+): ActionResponse<ProjectComponentConfig[]> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  try {
+    const deleted = await db
+      .delete(projectComponentConfig)
+      .where(
+        and(
+          userIsMember(userId, projectComponentConfig.project_id),
+          eq(projectComponentConfig.id, id)
+        )
+      )
+      .returning();
+
+    const safe = z.array(projectComponentConfigSchema).safeParse(deleted);
+    if (!safe.success) {
+      return actionZodError(
+        "There's an issue with the config records.",
+        safe.error,
+      );
+    }
+
+    revalidatePath('/(layout)/(session)/projects/[id]', 'layout')
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to delete config from database.');
   }
 }

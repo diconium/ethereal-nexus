@@ -14,11 +14,11 @@ type MemberPermissionsSelectProps = {
 }
 
 export function MemberPermissionsSelect({ value, memberId, resource, role }: MemberPermissionsSelectProps) {
-  const { data } = useSession()
+  const { data:session } = useSession()
   const form = useForm({defaultValues: { permissions: value }});
 
   const onSubmit = async (data) => {
-    await updateMemberPermissions({id: memberId, permissions: data.permissions})
+    await updateMemberPermissions({id: memberId, permissions: data.permissions}, session?.user?.id, resource);
   }
 
   return <Form {...form}>
@@ -32,7 +32,7 @@ export function MemberPermissionsSelect({ value, memberId, resource, role }: Mem
               <Select
                 {...field}
                 disabled={
-                  data?.permissions[resource] === 'read' ||
+                  session?.permissions[resource] === 'read' ||
                   role === 'owner'
                 }
                 onValueChange={field.onChange}

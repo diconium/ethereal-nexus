@@ -19,7 +19,8 @@ export function ActiveSwitch({componentId, disabled, projectId, active}:ActiveSw
   const form = useForm({defaultValues: {is_active: active}});
 
   const onSubmit = async (data) => {
-    const update = await upsertComponentConfig({project_id: projectId, component_id: componentId, is_active: data.is_active}, session?.user?.id)
+    const update = await upsertComponentConfig(
+      {project_id: projectId, component_id: componentId, is_active: data.is_active}, session?.user?.id, data.is_active ? 'project_component_activated' : 'project_component_deactivated')
     if(!update.success){
       toast({
         title: "Failed to activate component.",

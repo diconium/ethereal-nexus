@@ -31,7 +31,7 @@ export function VersionPicker({version: selected, disabled, versions, projectId,
         component_id: componentId,
         component_version: versionId,
         is_active: true
-      }, session?.user?.id);
+      }, session?.user?.id,'project_component_version_updated');
       setOpen(false);
       router.refresh()
     };

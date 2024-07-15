@@ -21,7 +21,7 @@ import {
   projectWithComponentAssetsSchema,
   type ProjectWithComponentId,
   projectWithComponentIdSchema,
-  projectWithComponentSchema
+  projectWithComponentSchema,
 } from './dto';
 import * as console from 'console';
 import { and, desc, eq, getTableColumns, isNull, sql } from 'drizzle-orm';
@@ -30,7 +30,8 @@ import { insertMembers, userIsMember } from '@/data/member/actions';
 import { componentAssets, components, componentVersions } from '@/data/components/schema';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { Component, componentsSchema } from '@/data/components/dto';
-import {logEvent} from "@/lib/events/event-middleware";
+import { logEvent } from '@/lib/events/event-middleware';
+import { EventType } from '@/lib/events/Event';
 
 export async function getProjects(
   userId: string | undefined | null,
@@ -55,7 +56,7 @@ export async function getProjects(
     const safe = z.array(projectWithComponentIdSchema).safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
+        'There\'s an issue with the project records.',
         safe.error,
       );
     }
@@ -94,7 +95,7 @@ export async function getProjectsWithComponents(
     const safe = z.array(projectWithComponentSchema).safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
+        'There\'s an issue with the project records.',
         safe.error,
       );
     }
@@ -118,7 +119,7 @@ export async function getProjectComponents(
     return actionError('No user provided.');
   }
 
-  const versions = db.select().from(componentVersions).as('versions')
+  const versions = db.select().from(componentVersions).as('versions');
   try {
     const select = await db
       .select({
@@ -126,7 +127,13 @@ export async function getProjectComponents(
         config_id: projectComponentConfig.id,
         is_active: projectComponentConfig.is_active,
         version: componentVersions.version,
-        versions: sql`ARRAY_AGG(jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`
+        versions: sql`ARRAY_AGG
+        (jsonb_build_object('id',
+        ${versions.id},
+        'version',
+        ${versions.version}
+        )
+        )`,
       })
       .from(projectComponentConfig)
       .leftJoin(
@@ -149,15 +156,17 @@ export async function getProjectComponents(
       )
       .where(eq(projectComponentConfig.project_id, id))
       .orderBy(
-        sql`${projectComponentConfig.is_active} DESC NULLS LAST`,
-        sql`${componentVersions.version} NULLS LAST`,
-        components.name
+        sql`${projectComponentConfig.is_active}
+        DESC NULLS LAST`,
+        sql`${componentVersions.version}
+        NULLS LAST`,
+        components.name,
       );
 
     const safe = projectComponentsSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
+        'There\'s an issue with the project records.',
         safe.error,
       );
     }
@@ -199,13 +208,13 @@ export async function getComponentsNotInProject(
         isNull(projectComponentConfig.id),
       )
       .orderBy(
-        components.name
+        components.name,
       );
 
     const safe = componentsSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
+        'There\'s an issue with the project records.',
         safe.error,
       );
     }
@@ -247,8 +256,14 @@ export async function getActiveProjectComponents(
       .select({
         ...getTableColumns(components),
         is_active: projectComponentConfig.is_active,
-        version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
-        dialog: sql`coalesce(${componentVersions.dialog}, ${latest_version.dialog})`,
+        version: sql`coalesce(
+        ${componentVersions.version},
+        ${latest_version.version}
+        )`,
+        dialog: sql`coalesce(
+        ${componentVersions.dialog},
+        ${latest_version.dialog}
+        )`,
       })
       .from(components)
       .leftJoin(
@@ -260,12 +275,12 @@ export async function getActiveProjectComponents(
         eq(componentVersions.id, projectComponentConfig.component_version),
       )
       .leftJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
-      .where(and(eq(projectComponentConfig.is_active, true),eq(projectComponentConfig.project_id, id)))
+      .where(and(eq(projectComponentConfig.is_active, true), eq(projectComponentConfig.project_id, id)));
 
     const safe = projectComponentsWithDialogSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
+        'There\'s an issue with the project records.',
         safe.error,
       );
     }
@@ -295,56 +310,89 @@ export async function getProjectComponentConfig(
   }
 
   const assets = sql`
-    ARRAY_AGG(
+      ARRAY_AGG
+      (
       jsonb_build_object(
-        'id', ${componentAssets.id},
-        'url', ${componentAssets.url},
-        'type', ${componentAssets.type}
+        'id',
+      ${componentAssets.id},
+      'url',
+      ${componentAssets.url},
+      'type',
+      ${componentAssets.type}
       )
-    )
+      )
   `;
   const latest_version = db.select()
     .from(componentVersions)
     .as('latest_version');
 
-  try{
+  try {
     const result = await db
       .select({
         id: components.id,
         name: components.name,
         title: components.title,
-        version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
-        dialog: sql`coalesce(${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
+        version: sql`coalesce(
+        ${componentVersions.version},
+        ${latest_version.version}
+        )`,
+        dialog: sql`coalesce(
+        ${componentVersions.dialog}
+        :
+        :
+        jsonb,
+        ${latest_version.dialog}
+        :
+        :
+        jsonb
+        )`,
         assets,
       })
       .from(projectComponentConfig)
       .leftJoin(components, eq(components.id, projectComponentConfig.component_id))
       .leftJoin(componentVersions, eq(componentVersions.id, projectComponentConfig.component_version))
       .fullJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
-      .leftJoin(componentAssets, sql`coalesce(${componentVersions.id}, ${latest_version.id}) = ${componentAssets.version_id}`)
+      .leftJoin(componentAssets, sql`coalesce(
+      ${componentVersions.id},
+      ${latest_version.id}
+      )
+      =
+      ${componentAssets.version_id}`)
       .where(and(
         eq(projectComponentConfig.project_id, id),
         eq(projectComponentConfig.is_active, true),
         eq(components.slug, name),
       ))
-      .orderBy(sql`string_to_array(${latest_version.version}, '.')::int[] DESC`)
+      .orderBy(sql`string_to_array
+      (
+      ${latest_version.version},
+      '.'
+      )
+      :
+      :
+      int
+      [
+      ]
+      DESC`)
       .limit(1)
       .groupBy(
         projectComponentConfig.project_id,
         components.id,
         components.name,
         componentVersions.version,
-        sql`${componentVersions.dialog}::jsonb`,
-        sql`${latest_version.dialog}::jsonb`,
+        sql`${componentVersions.dialog}
+        ::jsonb`,
+        sql`${latest_version.dialog}
+        ::jsonb`,
         latest_version.version,
         latest_version.id,
-      )
+      );
 
     const safe =
       projectWithComponentAssetsSchema.safeParse(result[0]);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
+        'There\'s an issue with the project records.',
         safe.error,
       );
     }
@@ -355,6 +403,7 @@ export async function getProjectComponentConfig(
     return actionError('Failed to fetch project from database.');
   }
 }
+
 export async function getProjectComponentConfigWithVersion(
   id: string | undefined | null,
   userId: string | undefined | null,
@@ -369,33 +418,54 @@ export async function getProjectComponentConfigWithVersion(
   }
 
   const assets = sql`
-    ARRAY_AGG(
+      ARRAY_AGG
+      (
       jsonb_build_object(
-        'id', ${componentAssets.id},
-        'url', ${componentAssets.url},
-        'type', ${componentAssets.type}
+        'id',
+      ${componentAssets.id},
+      'url',
+      ${componentAssets.url},
+      'type',
+      ${componentAssets.type}
       )
-    )
+      )
   `;
   const latest_version = db.select()
-      .from(componentVersions)
-      .as('latest_version');
+    .from(componentVersions)
+    .as('latest_version');
 
-  try{
+  try {
     const result = await db
       .select({
         id: components.id,
         name: components.name,
         title: components.title,
-        version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
-        dialog: sql`coalesce(${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
-        assets
+        version: sql`coalesce(
+        ${componentVersions.version},
+        ${latest_version.version}
+        )`,
+        dialog: sql`coalesce(
+        ${componentVersions.dialog}
+        :
+        :
+        jsonb,
+        ${latest_version.dialog}
+        :
+        :
+        jsonb
+        )`,
+        assets,
       })
       .from(projectComponentConfig)
       .leftJoin(components, eq(components.id, projectComponentConfig.component_id))
       .leftJoin(componentVersions, eq(componentVersions.id, projectComponentConfig.component_version))
       .fullJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
-      .leftJoin(componentAssets, sql`coalesce(${componentVersions.id}, ${latest_version.id}) = ${componentAssets.version_id}`)
+      .leftJoin(componentAssets, sql`coalesce(
+      ${componentVersions.id},
+      ${latest_version.id}
+      )
+      =
+      ${componentAssets.version_id}`)
       .where(and(
         // eq(projectComponentConfig.project_id, id),
         eq(projectComponentConfig.is_active, true),
@@ -406,17 +476,19 @@ export async function getProjectComponentConfigWithVersion(
         projectComponentConfig.project_id,
         components.id,
         componentVersions.version,
-        sql`${componentVersions.dialog}::jsonb`,
-        sql`${latest_version.dialog}::jsonb`,
+        sql`${componentVersions.dialog}
+        ::jsonb`,
+        sql`${latest_version.dialog}
+        ::jsonb`,
         latest_version.version,
         latest_version.id,
-      )
+      );
 
     const safe =
       projectWithComponentAssetsSchema.safeParse(result[0]);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
+        'There\'s an issue with the project records.',
         safe.error,
       );
     }
@@ -445,7 +517,7 @@ export async function deleteProject(
     const safe = z.array(projectSchema).safeParse(deleted);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
+        'There\'s an issue with the project records.',
         safe.error,
       );
     }
@@ -477,7 +549,7 @@ export async function getProjectById(
     const safe = projectSchema.safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
+        'There\'s an issue with the project records.',
         safe.error,
       );
     }
@@ -500,6 +572,8 @@ export async function upsertProject(
   if (!safeProject.success) {
     return actionZodError('Failed to parse project´s input', safeProject.error);
   }
+
+  const isUpdate = !!project.id
   try {
     const insert = await db
       .insert(projects)
@@ -508,17 +582,26 @@ export async function upsertProject(
         target: projects.id,
         set: {
           name: safeProject.data.name,
-          description: safeProject.data.description
+          description: safeProject.data.description,
         },
       })
       .returning();
 
     const result = projectSchema.safeParse(insert[0]);
+
+
     if (!result.success) {
       return actionZodError('Failed to parse inserted project.', result.error);
     }
 
-    if(!safeProject.data.id) {
+    await logEvent({
+      type: isUpdate? 'project_updated': 'project_created',
+      userId: userId,
+      data: { },
+      resourceId: result.data.id,
+    });
+
+    if (!safeProject.data.id) {
       const insertMember = await insertMembers([
         {
           user_id: userId,
@@ -526,13 +609,13 @@ export async function upsertProject(
           role: 'owner',
           permissions: 'write',
         },
-      ]);
+      ],userId);
       if (!insertMember.success) {
         return actionError('Failed to create owner.');
       }
     }
 
-    revalidatePath(`/projects`, 'page')
+    revalidatePath(`/projects`, 'page');
     return actionSuccess(result.data);
   } catch (error) {
     console.error(error);
@@ -543,6 +626,7 @@ export async function upsertProject(
 export async function upsertComponentConfig(
   componentConfig: ProjectComponentConfigInput,
   userId: string | undefined | null,
+  eventType: EventType | null | undefined,
 ): ActionResponse<ProjectComponentConfig> {
   if (!userId) {
     return actionError('No user provided.');
@@ -568,7 +652,7 @@ export async function upsertComponentConfig(
         ],
         set: {
           is_active: safeInput.data.is_active,
-          component_version: safeInput.data.component_version
+          component_version: safeInput.data.component_version,
         },
       })
       .returning();
@@ -576,30 +660,61 @@ export async function upsertComponentConfig(
     const safe = projectComponentConfigSchema.safeParse(insert[0]);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the component config records.",
+        'There\'s an issue with the component config records.',
         safe.error,
       );
     }
+    revalidatePath('/(layout)/(session)/projects/[id]', 'layout');
 
-    revalidatePath('/(layout)/(session)/projects/[id]', 'layout')
-
-
-    if(safeInput.data.is_active === true){
-      logEvent({
-        type: 'component_activated',
-        data: safeInput.data,
-        userId,
-        resourceId: safeInput.data.component_id,
-        resourceType: 'component',
-      });
-    } else {
-      logEvent({
-        type: 'component_deactivated',
-        userId,
-        data: safeInput.data,
-        resourceId: safeInput.data.component_id,
-        resourceType: 'component',
-      });
+    const logData = {
+      version_id: safe.data.component_version,
+      component_id: safe.data.component_id,
+      project_id: safe.data.project_id,
+    };
+    switch (eventType) {
+      case 'project_component_added':
+        await logEvent({
+          type: 'project_component_added',
+          data: logData,
+          userId,
+          resourceId: safeInput.data.project_id,
+        });
+        break;
+      case 'project_component_activated':
+        await logEvent({
+          type: 'project_component_activated',
+          data: logData,
+          userId,
+          resourceId: safeInput.data.project_id,
+        });
+        await logEvent({
+          type: 'component_activated',
+          data: logData,
+          userId,
+          resourceId: safeInput.data.component_id,
+        });
+        break;
+      case 'project_component_deactivated':
+        await logEvent({
+          type: 'project_component_deactivated',
+          data: logData,
+          userId,
+          resourceId: safeInput.data.project_id,
+        });
+        await logEvent({
+          type: 'component_deactivated',
+          userId,
+          data: logData,
+          resourceId: safeInput.data.component_id,
+        });
+        break;
+      case 'project_component_version_updated':
+        await logEvent({
+          type: 'project_component_version_updated',
+          data: logData,
+          userId,
+          resourceId: safeInput.data.project_id,
+        });
     }
 
     return actionSuccess(safe.data);
@@ -625,20 +740,28 @@ export async function deleteComponentConfig(
       .where(
         and(
           userIsMember(userId, projectComponentConfig.project_id),
-          eq(projectComponentConfig.id, id)
-        )
+          eq(projectComponentConfig.id, id),
+        ),
       )
       .returning();
 
     const safe = z.array(projectComponentConfigSchema).safeParse(deleted);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the config records.",
+        'There\'s an issue with the config records.',
         safe.error,
       );
     }
 
-    revalidatePath('/(layout)/(session)/projects/[id]', 'layout')
+    await logEvent({
+      type: 'project_component_removed',
+      userId,
+      data: { component_id: safe.data[0].component_id },
+      resourceId: safe.data[0].project_id,
+    });
+
+
+    revalidatePath('/(layout)/(session)/projects/[id]', 'layout');
     return actionSuccess(safe.data);
   } catch (error) {
     console.error(error);

@@ -36,7 +36,7 @@ export function MemberDialog({ users, resource }: AddMemberProps) {
         resource,
         user_id: user.id
       }));
-    const members = await insertMembers(newMembers);
+    const members = await insertMembers(newMembers, data?.user?.id);
     if(members.success) {
       toast({
         title: 'Member added successfully!',

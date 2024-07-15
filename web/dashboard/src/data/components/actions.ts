@@ -71,7 +71,7 @@ async function upsertComponentVersion(version: NewComponentVersion) {
 
 export async function upsertComponentWithVersion(
   component: ComponentToUpsert
-  , userId: String | undefined): Promise<Result<ComponentWithVersion>> {
+  , userId ): Promise<Result<ComponentWithVersion>> {
     const safeComponent = componentsUpsertSchema.safeParse(component);
     if (!safeComponent.success) {
         return actionZodError(
@@ -114,13 +114,12 @@ export async function upsertComponentWithVersion(
                 "version_id": upsertedVersion.data.id,
             };
 
-        // logEvent({
-        //     data: eventData,
-        //     resourceId: component.slug,
-        //     resourceType: component.slug,
-        //     type: 'component_update',
-        //     userId: userId,
-        // });
+        await logEvent({
+            data: eventData,
+            resourceId: result?.data.id,
+            type: 'component_update',
+            userId: userId,
+        });
 
         return actionSuccess({
             ...result.data,

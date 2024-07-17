@@ -116,9 +116,9 @@ export async function upsertComponentWithVersion(
 
         await logEvent({
             data: eventData,
-            resourceId: result?.data.id,
+            resource_id: result?.data.id,
             type: 'component_update',
-            userId: userId,
+            user_id: userId,
         });
 
         return actionSuccess({

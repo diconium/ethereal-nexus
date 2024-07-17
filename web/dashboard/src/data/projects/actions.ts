@@ -31,7 +31,7 @@ import { componentAssets, components, componentVersions } from '@/data/component
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { Component, componentsSchema } from '@/data/components/dto';
 import { logEvent } from '@/lib/events/event-middleware';
-import { EventType } from '@/lib/events/Event';
+import { events, eventsTypeEnum } from '@/data/events/schema';
 
 export async function getProjects(
   userId: string | undefined | null,
@@ -596,9 +596,9 @@ export async function upsertProject(
 
     await logEvent({
       type: isUpdate? 'project_updated': 'project_created',
-      userId: userId,
+      user_id: userId,
       data: { },
-      resourceId: result.data.id,
+      resource_id: result.data.id,
     });
 
     if (!safeProject.data.id) {
@@ -626,7 +626,7 @@ export async function upsertProject(
 export async function upsertComponentConfig(
   componentConfig: ProjectComponentConfigInput,
   userId: string | undefined | null,
-  eventType: EventType | null | undefined,
+  eventType: string,
 ): ActionResponse<ProjectComponentConfig> {
   if (!userId) {
     return actionError('No user provided.');
@@ -676,44 +676,44 @@ export async function upsertComponentConfig(
         await logEvent({
           type: 'project_component_added',
           data: logData,
-          userId,
-          resourceId: safeInput.data.project_id,
+          user_id: userId,
+          resource_id: safeInput.data.project_id,
         });
         break;
       case 'project_component_activated':
         await logEvent({
           type: 'project_component_activated',
           data: logData,
-          userId,
-          resourceId: safeInput.data.project_id,
+          user_id: userId,
+          resource_id: safeInput.data.project_id,
         });
         await logEvent({
           type: 'component_activated',
           data: logData,
-          userId,
-          resourceId: safeInput.data.component_id,
+          user_id: userId,
+          resource_id: safeInput.data.component_id,
         });
         break;
       case 'project_component_deactivated':
         await logEvent({
           type: 'project_component_deactivated',
           data: logData,
-          userId,
-          resourceId: safeInput.data.project_id,
+          user_id: userId,
+          resource_id: safeInput.data.project_id,
         });
         await logEvent({
           type: 'component_deactivated',
-          userId,
+          user_id: userId,
           data: logData,
-          resourceId: safeInput.data.component_id,
+          resource_id: safeInput.data.component_id,
         });
         break;
       case 'project_component_version_updated':
         await logEvent({
           type: 'project_component_version_updated',
           data: logData,
-          userId,
-          resourceId: safeInput.data.project_id,
+          user_id: userId,
+          resource_id: safeInput.data.project_id,
         });
     }
 
@@ -755,9 +755,9 @@ export async function deleteComponentConfig(
 
     await logEvent({
       type: 'project_component_removed',
-      userId,
+      user_id: userId,
       data: { component_id: safe.data[0].component_id },
-      resourceId: safe.data[0].project_id,
+      resource_id: safe.data[0].project_id,
     });
 
 

@@ -92,9 +92,9 @@ export async function insertMembers(members: z.infer<typeof newMemberSchema>[], 
       const logData = { member_id: member.user_id};
       logEvent({
         type: 'project_member_added',
-        userId: userId,
+        user_id: userId,
         data: logData,
-        resourceId: member.resource,
+        resource_id: member.resource,
       });
     });
 
@@ -126,9 +126,9 @@ export async function updateMemberPermissions(member: UpdateMemberPermissions, u
       const logData = { member_id: result.data.user_id, permissions: member.permissions};
       await logEvent({
         type: 'project_member_permissions_updated',
-        userId: userId,
+        user_id: userId,
         data: logData,
-        resourceId: resourceId,
+        resource_id: resourceId,
       });
 
   } catch (error) {

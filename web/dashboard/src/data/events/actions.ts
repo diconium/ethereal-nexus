@@ -13,10 +13,7 @@ import { eq, sql } from 'drizzle-orm';
 import { users } from '@/data/users/schema';
 import { components, componentVersions } from '@/data/components/schema';
 import { ActionResponse } from '@/data/action';
-import { ProjectWithOwners } from '@/data/projects/dto';
 import { projects } from '@/data/projects/schema';
-import { componentVersionsSchema } from '@/data/components/dto';
-import { members } from '@/data/member/schema';
 import { alias } from 'drizzle-orm/pg-core';
 
 
@@ -63,19 +60,18 @@ export async function getResourceEvents(
 
       .where(eq(events.resource_id, resourceId));
 
-    // Assuming `select` is an array of events, iterate and conditionally modify each event's data
     const modifiedSelect = select.map(event => {
-      if (event.data && event.data.version && event.data.version.id === null) {
+      if (event.data?.version?.id === null) {
         delete event.data.version; // Remove version if it's null
       }
-      if (event.data && event.data.project && event.data.project.id === null) {
+      if (event.data?.project?.id === null) {
         delete event.data.project; // Remove project if it's null
       }
-      if (event.data && event.data.component && event.data.component.id === null) {
+      if (event.data?.component?.id === null) {
         delete event.data.component; // Remove component if it's null
       }
-      if (event.data && event.data.member && event.data.member.id === null) {
-        delete event.data.member; // Remove members if it's null
+      if (event.data?.member?.id === null) {
+        delete event.data.member; // Remove member if it's null
       }
       return event;
     });

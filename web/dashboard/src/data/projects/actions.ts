@@ -573,7 +573,7 @@ export async function upsertProject(
     return actionZodError('Failed to parse project´s input', safeProject.error);
   }
 
-  const isUpdate = !!project.id
+  const isUpdate = !!project.id;
   try {
     const insert = await db
       .insert(projects)
@@ -595,9 +595,9 @@ export async function upsertProject(
     }
 
     await logEvent({
-      type: isUpdate? 'project_updated': 'project_created',
+      type: isUpdate ? 'project_updated' : 'project_created',
       user_id: userId,
-      data: { },
+      data: {},
       resource_id: result.data.id,
     });
 
@@ -609,7 +609,7 @@ export async function upsertProject(
           role: 'owner',
           permissions: 'write',
         },
-      ],userId);
+      ], userId);
       if (!insertMember.success) {
         return actionError('Failed to create owner.');
       }

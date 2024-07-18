@@ -31,7 +31,6 @@ import { componentAssets, components, componentVersions } from '@/data/component
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { Component, componentsSchema } from '@/data/components/dto';
 import { logEvent } from '@/lib/events/event-middleware';
-import { events, eventsTypeEnum } from '@/data/events/schema';
 
 export async function getProjects(
   userId: string | undefined | null,
@@ -127,13 +126,8 @@ export async function getProjectComponents(
         config_id: projectComponentConfig.id,
         is_active: projectComponentConfig.is_active,
         version: componentVersions.version,
-        versions: sql`ARRAY_AGG
-        (jsonb_build_object('id',
-        ${versions.id},
-        'version',
-        ${versions.version}
-        )
-        )`,
+        versions: sql`ARRAY_AGG(jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`
+
       })
       .from(projectComponentConfig)
       .leftJoin(
@@ -156,11 +150,9 @@ export async function getProjectComponents(
       )
       .where(eq(projectComponentConfig.project_id, id))
       .orderBy(
-        sql`${projectComponentConfig.is_active}
-        DESC NULLS LAST`,
-        sql`${componentVersions.version}
-        NULLS LAST`,
-        components.name,
+        sql`${projectComponentConfig.is_active} DESC NULLS LAST`,
+        sql`${componentVersions.version} NULLS LAST`,
+        components.name
       );
 
     const safe = projectComponentsSchema.array().safeParse(select);
@@ -256,14 +248,8 @@ export async function getActiveProjectComponents(
       .select({
         ...getTableColumns(components),
         is_active: projectComponentConfig.is_active,
-        version: sql`coalesce(
-        ${componentVersions.version},
-        ${latest_version.version}
-        )`,
-        dialog: sql`coalesce(
-        ${componentVersions.dialog},
-        ${latest_version.dialog}
-        )`,
+        version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
+        dialog: sql`coalesce(${componentVersions.dialog}, ${latest_version.dialog})`,
       })
       .from(components)
       .leftJoin(
@@ -275,7 +261,7 @@ export async function getActiveProjectComponents(
         eq(componentVersions.id, projectComponentConfig.component_version),
       )
       .leftJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
-      .where(and(eq(projectComponentConfig.is_active, true), eq(projectComponentConfig.project_id, id)));
+      .where(and(eq(projectComponentConfig.is_active, true),eq(projectComponentConfig.project_id, id)))
 
     const safe = projectComponentsWithDialogSchema.array().safeParse(select);
     if (!safe.success) {
@@ -310,18 +296,13 @@ export async function getProjectComponentConfig(
   }
 
   const assets = sql`
-      ARRAY_AGG
-      (
-      jsonb_build_object(
-        'id',
-      ${componentAssets.id},
-      'url',
-      ${componentAssets.url},
-      'type',
-      ${componentAssets.type}
-      )
-      )
-  `;
+      ARRAY_AGG(
+        jsonb_build_object(
+        'id', ${componentAssets.id},
+        'url', ${componentAssets.url},
+        'type', ${componentAssets.type}
+        )
+      )`;
   const latest_version = db.select()
     .from(componentVersions)
     .as('latest_version');
@@ -332,61 +313,31 @@ export async function getProjectComponentConfig(
         id: components.id,
         name: components.name,
         title: components.title,
-        version: sql`coalesce(
-        ${componentVersions.version},
-        ${latest_version.version}
-        )`,
-        dialog: sql`coalesce(
-        ${componentVersions.dialog}
-        :
-        :
-        jsonb,
-        ${latest_version.dialog}
-        :
-        :
-        jsonb
-        )`,
-        assets,
+        version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
+        dialog: sql`coalesce(${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
+        assets
       })
       .from(projectComponentConfig)
       .leftJoin(components, eq(components.id, projectComponentConfig.component_id))
       .leftJoin(componentVersions, eq(componentVersions.id, projectComponentConfig.component_version))
       .fullJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
-      .leftJoin(componentAssets, sql`coalesce(
-      ${componentVersions.id},
-      ${latest_version.id}
-      )
-      =
-      ${componentAssets.version_id}`)
+      .leftJoin(componentAssets, sql`coalesce(${componentVersions.id}, ${latest_version.id}) = ${componentAssets.version_id}`)
       .where(and(
-        eq(projectComponentConfig.project_id, id),
+        // eq(projectComponentConfig.project_id, id),
         eq(projectComponentConfig.is_active, true),
-        eq(components.slug, name),
       ))
-      .orderBy(sql`string_to_array
-      (
-      ${latest_version.version},
-      '.'
-      )
-      :
-      :
-      int
-      [
-      ]
-      DESC`)
-      .limit(1)
+      // .orderBy(sql`string_to_array(${latest_version.version}, '.')::int[] DESC`)
+      // .limit(1)
       .groupBy(
         projectComponentConfig.project_id,
         components.id,
-        components.name,
         componentVersions.version,
-        sql`${componentVersions.dialog}
-        ::jsonb`,
-        sql`${latest_version.dialog}
-        ::jsonb`,
+        sql`${componentVersions.dialog}::jsonb`,
+        sql`${latest_version.dialog}::jsonb`,
         latest_version.version,
         latest_version.id,
-      );
+      )
+
 
     const safe =
       projectWithComponentAssetsSchema.safeParse(result[0]);
@@ -418,15 +369,11 @@ export async function getProjectComponentConfigWithVersion(
   }
 
   const assets = sql`
-      ARRAY_AGG
-      (
+      ARRAY_AGG(
       jsonb_build_object(
-        'id',
-      ${componentAssets.id},
-      'url',
-      ${componentAssets.url},
-      'type',
-      ${componentAssets.type}
+        'id', ${componentAssets.id},
+      'url', ${componentAssets.url},
+      'type', ${componentAssets.type}
       )
       )
   `;
@@ -440,32 +387,15 @@ export async function getProjectComponentConfigWithVersion(
         id: components.id,
         name: components.name,
         title: components.title,
-        version: sql`coalesce(
-        ${componentVersions.version},
-        ${latest_version.version}
-        )`,
-        dialog: sql`coalesce(
-        ${componentVersions.dialog}
-        :
-        :
-        jsonb,
-        ${latest_version.dialog}
-        :
-        :
-        jsonb
-        )`,
-        assets,
+        version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
+        dialog: sql`coalesce(${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
+        assets
       })
       .from(projectComponentConfig)
       .leftJoin(components, eq(components.id, projectComponentConfig.component_id))
       .leftJoin(componentVersions, eq(componentVersions.id, projectComponentConfig.component_version))
       .fullJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
-      .leftJoin(componentAssets, sql`coalesce(
-      ${componentVersions.id},
-      ${latest_version.id}
-      )
-      =
-      ${componentAssets.version_id}`)
+      .leftJoin(componentAssets, sql`coalesce(${componentVersions.id}, ${latest_version.id}) = ${componentAssets.version_id}`)
       .where(and(
         // eq(projectComponentConfig.project_id, id),
         eq(projectComponentConfig.is_active, true),
@@ -476,13 +406,11 @@ export async function getProjectComponentConfigWithVersion(
         projectComponentConfig.project_id,
         components.id,
         componentVersions.version,
-        sql`${componentVersions.dialog}
-        ::jsonb`,
-        sql`${latest_version.dialog}
-        ::jsonb`,
+        sql`${componentVersions.dialog}::jsonb`,
+        sql`${latest_version.dialog}::jsonb`,
         latest_version.version,
         latest_version.id,
-      );
+      )
 
     const safe =
       projectWithComponentAssetsSchema.safeParse(result[0]);

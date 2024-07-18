@@ -56,7 +56,7 @@ export async function getResourceEvents(
                               ${projects.id}`)
       .leftJoin(componentVersions, sql`(${events.data}->>'version_id')::uuid =  ${componentVersions.id}`)
       .leftJoin(components, sql`(${events.data}->>'component_id')::uuid = ${components.id}`)
-      .leftJoin(members, sql`(${events.data}->>'member_id')::text = ${members.id}`)
+      .leftJoin(members, sql`(${events.data}->>'member_id')::uuid = ${members.id}`)
 
       .where(eq(events.resource_id, resourceId));
 

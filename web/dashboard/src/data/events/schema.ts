@@ -21,7 +21,7 @@ export const events = pgTable("event", {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   type: eventsTypeEnum('type'),
   resource_id: uuid('resource_id').notNull(),
-  user_id: text('user_id').notNull().references(() => users.id),
+  user_id: uuid('user_id').notNull().references(() => users.id),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
   data: customJsonb('data'),
 })

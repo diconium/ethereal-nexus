@@ -78,7 +78,6 @@ async function createModuleFromURL(url, context) {
             context,
         });
     } else if (url.protocol === 'node:') {
-        console.log("node")
         const imported = await import(identifier);
         const exportNames = Object.keys(imported);
 
@@ -86,7 +85,6 @@ async function createModuleFromURL(url, context) {
             exportNames,
             function () {
                 for (const name of exportNames) {
-                    console.log("name", name)
                     this.setExport(name, imported[name]);
                 }
             },

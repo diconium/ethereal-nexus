@@ -16,6 +16,7 @@ import {
 } from '@/data/member/dto';
 import { projects } from '@/data/projects/schema';
 import { PgColumn } from 'drizzle-orm/pg-core';
+import { logEvent } from '@/lib/events/event-middleware';
 
 export async function getMembersByResourceId(id: string, userId: string | undefined | null): ActionResponse<MemberWithPublicUser[]> {
   if (!userId) {
@@ -71,7 +72,7 @@ export async function getMembersByUser(userId: string | undefined | null): Actio
 }
 
 
-export async function insertMembers(members: z.infer<typeof newMemberSchema>[]): ActionResponse<z.infer<typeof memberSchema>[]> {
+export async function insertMembers(members: z.infer<typeof newMemberSchema>[], userId): ActionResponse<z.infer<typeof memberSchema>[]> {
   const input = z.array(newMemberSchema).safeParse(members);
   if (!input.success) {
     return actionZodError('Failed to parse member input.', input.error);
@@ -87,13 +88,23 @@ export async function insertMembers(members: z.infer<typeof newMemberSchema>[]):
       return actionZodError('Failed to parse user inserted user.', result.error);
     }
 
+    members.map(member => {
+      const logData = { member_id: member.user_id};
+      logEvent({
+        type: 'project_member_added',
+        user_id: userId,
+        data: logData,
+        resource_id: member.resource,
+      });
+    });
+
     return actionSuccess(result.data);
   } catch (error) {
     return actionError('Failed to insert user into database.');
   }
 }
 
-export async function updateMemberPermissions(member: UpdateMemberPermissions) {
+export async function updateMemberPermissions(member: UpdateMemberPermissions, userId, resourceId: string) {
   const input = updateMemberPermissionsSchema.safeParse(member);
   if (!input.success) {
     return actionZodError('Failed to parse member input.', input.error);
@@ -106,10 +117,20 @@ export async function updateMemberPermissions(member: UpdateMemberPermissions) {
       .where(eq(memberTable.id, id))
       .returning();
 
-    const result = memberSchema.safeParse(update);
+    const result = memberSchema.safeParse(update[0]);
     if (!result.success) {
+      console.error(result.error)
       return actionZodError('Failed to parse updated user.', result.error);
     }
+
+      const logData = { member_id: result.data.user_id, permissions: member.permissions};
+      await logEvent({
+        type: 'project_member_permissions_updated',
+        user_id: userId,
+        data: logData,
+        resource_id: resourceId,
+      });
+
   } catch (error) {
     return actionError('Failed to update user permissions into database.');
   }

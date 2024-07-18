@@ -7,10 +7,13 @@ import { ProjectMemberList } from '@/components/projects/members-table/member-li
 import { ProjectComponentsList } from '@/components/projects/component-selection-table/components-list';
 import Link from 'next/link';
 import ProjectsForm from '@/components/projects/project-form';
+import { getResourceEvents } from '@/data/events/actions';
+import { ProjectEvents } from '@/components/projects/project-events/project-events';
 
 export default async function EditProject({ params: { id }, searchParams: { tab } }: any) {
   const session = await auth();
   const project = await getProjectById(id, session?.user?.id);
+  const events = await getResourceEvents(id);
 
   if (!project.success) {
     notFound();
@@ -25,7 +28,7 @@ export default async function EditProject({ params: { id }, searchParams: { tab 
         </div>
       </div>
       <Tabs value={tab} defaultValue="components" className="space-y-10 mt-6">
-        <TabsList className="w-[21.5rem]">
+        <TabsList>
           <TabsTrigger value="components" asChild>
             <Link href={`/projects/${id}?tab=components`}>
               Components
@@ -39,6 +42,11 @@ export default async function EditProject({ params: { id }, searchParams: { tab 
           <TabsTrigger value="settings" asChild>
             <Link href={`/projects/${id}?tab=settings`}>
               Settings
+            </Link>
+          </TabsTrigger>
+          <TabsTrigger value="activity" asChild>
+            <Link href={`/projects/${id}?tab=activity`}>
+              Activity
             </Link>
           </TabsTrigger>
         </TabsList>
@@ -56,6 +64,9 @@ export default async function EditProject({ params: { id }, searchParams: { tab 
           <ProjectsForm
             project={project.data}
           />
+        </TabsContent>
+        <TabsContent value="activity">
+         <ProjectEvents events={events} />
         </TabsContent>
       </Tabs>
     </div>

@@ -10,12 +10,15 @@ import ComponentVersionHeader from "@/components/components/component/version/he
 import ComponentVersionTabs from "@/components/components/component/version/tabs";
 import {auth} from "@/auth";
 import {getMembersByResourceId} from "@/data/member/actions";
+import {getResourceEvents} from "@/data/events/actions";
 
 export default async function EditComponentVersion({params: {id, versionId, tab}}: any) {
     const session = await auth()
 
     const component = await getComponentById(id);
     const versions = await getComponentVersions(id);
+    const dependents = await getComponentDependentsProjectsWithOwners(id);
+    const events = await getResourceEvents(id);
     const projects = await getComponentDependentsProjectsWithOwners(id);
 
     if (projects.success) {
@@ -32,7 +35,7 @@ export default async function EditComponentVersion({params: {id, versionId, tab}
         );
     }
 
-    if (!versions.success || !component.success || !projects.success) {
+    if (!versions.success || !component.success || !dependents.success || !projects.success) {
         notFound();
     }
     const selectedVersion = versions.data.filter((version: any) => version.id === versionId)[0];
@@ -42,7 +45,7 @@ export default async function EditComponentVersion({params: {id, versionId, tab}
                                     selectedVersion={selectedVersion} activeTab={tab}/>
             <Separator/>
             <ComponentVersionTabs activeTab={tab} versions={versions} selectedVersion={selectedVersion}
-                                  component={component} dependents={projects.data}/>
+                                  component={component} dependents={projects.data} events={events}/>
         </div>
     );
 }

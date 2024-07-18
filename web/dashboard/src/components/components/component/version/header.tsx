@@ -26,7 +26,7 @@ const ComponentVersionHeader = ({component,selectedVersion,versions,activeTab}) 
             </div>
             <div className="ml-auto">
                 <Select value={selectedVersion.id} onValueChange={(newVersionId) => push(`/components/${component.data.id}/versions/${newVersionId}/${activeTab}`)}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-[180px] bg-white">
                         <SelectValue placeholder="Select a version"/>
                     </SelectTrigger>
                     <SelectContent>

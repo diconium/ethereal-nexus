@@ -29,6 +29,7 @@ import { projectComponentConfig, projects } from '@/data/projects/schema';
 import { projectWithOwners, ProjectWithOwners } from '@/data/projects/dto';
 import { members } from '@/data/member/schema';
 import { users } from '@/data/users/schema';
+import {logEvent} from "@/lib/events/event-middleware";
 
 async function upsertComponentVersion(version: NewComponentVersion) {
     const safeVersion = componentVersionsCreateSchema.safeParse(version);
@@ -70,7 +71,7 @@ async function upsertComponentVersion(version: NewComponentVersion) {
 
 export async function upsertComponentWithVersion(
   component: ComponentToUpsert
-): Promise<Result<ComponentWithVersion>> {
+  , userId ): Promise<Result<ComponentWithVersion>> {
     const safeComponent = componentsUpsertSchema.safeParse(component);
     if (!safeComponent.success) {
         return actionZodError(
@@ -106,6 +107,19 @@ export async function upsertComponentWithVersion(
               upsertedVersion.error.message
             );
         }
+
+        const eventData =
+            {
+                "component_id":result?.data.id,
+                "version_id": upsertedVersion.data.id,
+            };
+
+        await logEvent({
+            data: eventData,
+            resource_id: result?.data.id,
+            type: 'component_update',
+            user_id: userId,
+        });
 
         return actionSuccess({
             ...result.data,

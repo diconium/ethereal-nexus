@@ -22,8 +22,6 @@ export function ProjectsComponentsRowActions({ table, row }) {
   const {data: session} = useSession()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  console.log(session?.permissions[projectId])
-
   const handleDeleteOk = async () => {
     setDeleteDialogOpen(false)
 

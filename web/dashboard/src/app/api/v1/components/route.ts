@@ -61,7 +61,7 @@ export const POST = authenticatedWithKey(async (request: NextRequest, ext) => {
       status: HttpStatus.FORBIDDEN,
     });
   }
-  const componentWithVersion = await upsertComponentWithVersion(req);
+  const componentWithVersion = await upsertComponentWithVersion(req, ext?.user.id);
 
   if (!componentWithVersion.success) {
     return NextResponse.json(componentWithVersion.error, {

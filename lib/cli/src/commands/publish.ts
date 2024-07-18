@@ -45,7 +45,7 @@ export const publish = new Command()
         logger.warn(
           `Configuration is missing. Please run ${chalk.green(
             `'init'`
-          )} to create an .ethereal file.`
+          )} to create an .etherealrc file.`
         );
         process.exit(1);
       }

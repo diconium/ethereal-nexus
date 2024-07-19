@@ -21,14 +21,14 @@ import {
   projectWithComponentAssetsSchema,
   type ProjectWithComponentId,
   projectWithComponentIdSchema,
-  projectWithComponentSchema,
+  projectWithComponentSchema
 } from './dto';
 import * as console from 'console';
 import { and, desc, eq, getTableColumns, isNull, sql } from 'drizzle-orm';
 import { projectComponentConfig, projects } from './schema';
 import { insertMembers, userIsMember } from '@/data/member/actions';
 import { componentAssets, components, componentVersions } from '@/data/components/schema';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 import { Component, componentsSchema } from '@/data/components/dto';
 import { logEvent } from '@/lib/events/event-middleware';
 
@@ -55,7 +55,7 @@ export async function getProjects(
     const safe = z.array(projectWithComponentIdSchema).safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the project records.',
+        "There's an issue with the project records.",
         safe.error,
       );
     }
@@ -94,7 +94,7 @@ export async function getProjectsWithComponents(
     const safe = z.array(projectWithComponentSchema).safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the project records.',
+        "There's an issue with the project records.",
         safe.error,
       );
     }
@@ -118,7 +118,7 @@ export async function getProjectComponents(
     return actionError('No user provided.');
   }
 
-  const versions = db.select().from(componentVersions).as('versions');
+  const versions = db.select().from(componentVersions).as('versions')
   try {
     const select = await db
       .select({
@@ -127,7 +127,6 @@ export async function getProjectComponents(
         is_active: projectComponentConfig.is_active,
         version: componentVersions.version,
         versions: sql`ARRAY_AGG(jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`
-
       })
       .from(projectComponentConfig)
       .leftJoin(
@@ -158,7 +157,7 @@ export async function getProjectComponents(
     const safe = projectComponentsSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the project records.',
+        "There's an issue with the project records.",
         safe.error,
       );
     }
@@ -200,13 +199,13 @@ export async function getComponentsNotInProject(
         isNull(projectComponentConfig.id),
       )
       .orderBy(
-        components.name,
+        components.name
       );
 
     const safe = componentsSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the project records.',
+        "There's an issue with the project records.",
         safe.error,
       );
     }
@@ -266,7 +265,7 @@ export async function getActiveProjectComponents(
     const safe = projectComponentsWithDialogSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the project records.',
+        "There's an issue with the project records.",
         safe.error,
       );
     }
@@ -296,18 +295,19 @@ export async function getProjectComponentConfig(
   }
 
   const assets = sql`
-      ARRAY_AGG(
-        jsonb_build_object(
+    ARRAY_AGG(
+      jsonb_build_object(
         'id', ${componentAssets.id},
         'url', ${componentAssets.url},
         'type', ${componentAssets.type}
-        )
-      )`;
+      )
+    )
+  `;
   const latest_version = db.select()
     .from(componentVersions)
     .as('latest_version');
 
-  try {
+  try{
     const result = await db
       .select({
         id: components.id,
@@ -315,7 +315,7 @@ export async function getProjectComponentConfig(
         title: components.title,
         version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
         dialog: sql`coalesce(${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
-        assets
+        assets,
       })
       .from(projectComponentConfig)
       .leftJoin(components, eq(components.id, projectComponentConfig.component_id))
@@ -323,14 +323,16 @@ export async function getProjectComponentConfig(
       .fullJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
       .leftJoin(componentAssets, sql`coalesce(${componentVersions.id}, ${latest_version.id}) = ${componentAssets.version_id}`)
       .where(and(
-        // eq(projectComponentConfig.project_id, id),
+        eq(projectComponentConfig.project_id, id),
         eq(projectComponentConfig.is_active, true),
+        eq(components.slug, name),
       ))
-      // .orderBy(sql`string_to_array(${latest_version.version}, '.')::int[] DESC`)
-      // .limit(1)
+      .orderBy(sql`string_to_array(${latest_version.version}, '.')::int[] DESC`)
+      .limit(1)
       .groupBy(
         projectComponentConfig.project_id,
         components.id,
+        components.name,
         componentVersions.version,
         sql`${componentVersions.dialog}::jsonb`,
         sql`${latest_version.dialog}::jsonb`,
@@ -338,12 +340,11 @@ export async function getProjectComponentConfig(
         latest_version.id,
       )
 
-
     const safe =
       projectWithComponentAssetsSchema.safeParse(result[0]);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the project records.',
+        "There's an issue with the project records.",
         safe.error,
       );
     }
@@ -354,7 +355,6 @@ export async function getProjectComponentConfig(
     return actionError('Failed to fetch project from database.');
   }
 }
-
 export async function getProjectComponentConfigWithVersion(
   id: string | undefined | null,
   userId: string | undefined | null,
@@ -369,19 +369,19 @@ export async function getProjectComponentConfigWithVersion(
   }
 
   const assets = sql`
-      ARRAY_AGG(
+    ARRAY_AGG(
       jsonb_build_object(
         'id', ${componentAssets.id},
-      'url', ${componentAssets.url},
-      'type', ${componentAssets.type}
+        'url', ${componentAssets.url},
+        'type', ${componentAssets.type}
       )
-      )
+    )
   `;
   const latest_version = db.select()
     .from(componentVersions)
     .as('latest_version');
 
-  try {
+  try{
     const result = await db
       .select({
         id: components.id,
@@ -416,7 +416,7 @@ export async function getProjectComponentConfigWithVersion(
       projectWithComponentAssetsSchema.safeParse(result[0]);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the project records.',
+        "There's an issue with the project records.",
         safe.error,
       );
     }
@@ -445,7 +445,7 @@ export async function deleteProject(
     const safe = z.array(projectSchema).safeParse(deleted);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the project records.',
+        "There's an issue with the project records.",
         safe.error,
       );
     }
@@ -477,7 +477,7 @@ export async function getProjectById(
     const safe = projectSchema.safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the project records.',
+        "There's an issue with the project records.",
         safe.error,
       );
     }
@@ -516,8 +516,6 @@ export async function upsertProject(
       .returning();
 
     const result = projectSchema.safeParse(insert[0]);
-
-
     if (!result.success) {
       return actionZodError('Failed to parse inserted project.', result.error);
     }
@@ -543,7 +541,7 @@ export async function upsertProject(
       }
     }
 
-    revalidatePath(`/projects`, 'page');
+    revalidatePath(`/projects`, 'page')
     return actionSuccess(result.data);
   } catch (error) {
     console.error(error);
@@ -580,7 +578,7 @@ export async function upsertComponentConfig(
         ],
         set: {
           is_active: safeInput.data.is_active,
-          component_version: safeInput.data.component_version,
+          component_version: safeInput.data.component_version
         },
       })
       .returning();
@@ -588,7 +586,7 @@ export async function upsertComponentConfig(
     const safe = projectComponentConfigSchema.safeParse(insert[0]);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the component config records.',
+        "There's an issue with the component config records.",
         safe.error,
       );
     }
@@ -668,15 +666,15 @@ export async function deleteComponentConfig(
       .where(
         and(
           userIsMember(userId, projectComponentConfig.project_id),
-          eq(projectComponentConfig.id, id),
-        ),
+          eq(projectComponentConfig.id, id)
+        )
       )
       .returning();
 
     const safe = z.array(projectComponentConfigSchema).safeParse(deleted);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the config records.',
+        "There's an issue with the config records.",
         safe.error,
       );
     }

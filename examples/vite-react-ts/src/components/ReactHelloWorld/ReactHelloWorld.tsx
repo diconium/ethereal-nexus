@@ -8,6 +8,7 @@ import {
   pathbrowser,
   text,
   dialog,
+  rte,
   type Output,
   type GetServerSideProps
 } from '@ethereal-nexus/core';
@@ -28,6 +29,10 @@ const dialogSchema = dialog({
       type: 'string'
     })
   ),
+  rich: rte({
+    label: 'This is a RTE',
+    placeholder: 'Place any text here'
+  }),
   banners: multifield({
     label: 'Banners',
     children: object({
@@ -47,19 +52,23 @@ const dialogSchema = dialog({
       subtitle: true,
       banners: true
     },
+    tab2: {
+      rich: true
+    },
     tab3: {
       title: true
     }
   })
 
-const schema = component({ name: 'TestReactHelloWorld'}, dialogSchema);
+const schema = component({ name: 'TestReactHelloWorld', version: '0.0.2'}, dialogSchema);
 
 type Props = Output<typeof schema>
 
-export const ReactHelloWorld: React.FC<Props> = ({ title, subtitle, datetime }) => {
+export const ReactHelloWorld: React.FC<Props> = ({ title, subtitle, datetime , rich}) => {
   return (
     <div className={styles.error}>
       My new text Hello World from react! v.1.0.9
+      <div dangerouslySetInnerHTML={{ __html: rich }} />
       <div>Props:
         <ul>
           <Item text={title} />

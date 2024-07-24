@@ -315,6 +315,7 @@ export async function getProjectComponentConfig(
         title: components.title,
         version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
         dialog: sql`coalesce(${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
+        dynamiczones: sql`coalesce(${componentVersions.dynamiczones}::jsonb, ${latest_version.dynamiczones}::jsonb)`,
         assets,
       })
       .from(projectComponentConfig)
@@ -335,7 +336,9 @@ export async function getProjectComponentConfig(
         components.name,
         componentVersions.version,
         sql`${componentVersions.dialog}::jsonb`,
+        sql`${componentVersions.dynamiczones}::jsonb`,
         sql`${latest_version.dialog}::jsonb`,
+        sql`${latest_version.dynamiczones}::jsonb`,
         latest_version.version,
         latest_version.id,
       )

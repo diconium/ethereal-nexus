@@ -36,6 +36,7 @@ const dialogSchema = dialog({
   imagetwo: image({
     label: 'Image 2',
     placeholder: 'Some 2nd Image',
+    tooltip: 'This is the second image',
   }),
   datetime: optional(
     hidden({
@@ -79,7 +80,7 @@ const dynamicSlots = {
   dynamiczoneone: dynamic({}),
   dynamiczonetwo: dynamic({}),
 };
-const schema = component({ name: 'TestReactHelloWorld', version: '0.0.49' }, dialogSchema, dynamicSlots);
+const schema = component({ name: 'TestReactHelloWorld', version: '0.0.50' }, dialogSchema, dynamicSlots);
 
 type Props = Output<typeof schema>
 

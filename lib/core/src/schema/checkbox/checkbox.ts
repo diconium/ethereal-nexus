@@ -10,7 +10,7 @@ export interface CheckBoxSchema<TOutput extends boolean = boolean> extends BaseS
 interface CheckBoxInput extends BaseFieldInput {}
 
 export function checkbox(input: CheckBoxInput): CheckBoxSchema {
-  const {label} = input;
+  const {label, tooltip} = input;
 
   return {
     type: 'checkbox',
@@ -18,6 +18,7 @@ export function checkbox(input: CheckBoxInput): CheckBoxSchema {
       return {
         type: 'checkbox',
         label,
+        tooltip,
       }
     },
     _primitive() {

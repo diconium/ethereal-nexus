@@ -12,7 +12,7 @@ interface TextInput extends BaseFieldInput {
 }
 
 export function text(input: TextInput): TextSchema {
-  const {placeholder, label} = input;
+  const {placeholder, label,tooltip} = input;
 
   return {
     type: 'textfield',
@@ -21,6 +21,7 @@ export function text(input: TextInput): TextSchema {
         type: 'textfield',
         label,
         placeholder,
+        tooltip,
       }
     },
     _primitive() {

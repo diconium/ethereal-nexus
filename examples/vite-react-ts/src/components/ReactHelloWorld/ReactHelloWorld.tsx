@@ -62,7 +62,7 @@ const dialogSchema = dialog({
   }),
 })
   .tabs({
-    'a minha tab': {
+    tab1: {
       subtitle: true,
       banners: true,
     },

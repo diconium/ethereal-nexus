@@ -10,13 +10,15 @@ import {
   dialog,
   rte,
   dynamic,
-  dynamiczones,
   image,
   type Output,
   type GetServerSideProps,
 } from '@ethereal-nexus/core';
+
 import { Item } from '../../patterns';
 import styles from './ReactHelloWorld.module.css';
+import { Parsys } from '@ethereal-nexus/conector-aem-react';
+
 
 const dialogSchema = dialog({
   title: text({
@@ -29,11 +31,11 @@ const dialogSchema = dialog({
   }),
   image: image({
     label: 'Image',
-    placeholder: 'Some Image'
+    placeholder: 'Some Image',
   }),
   imagetwo: image({
     label: 'Image 2',
-    placeholder: 'Some 2nd Image'
+    placeholder: 'Some 2nd Image',
   }),
   datetime: optional(
     hidden({
@@ -73,16 +75,24 @@ const dialogSchema = dialog({
     },
   });
 
-const dynamicZonesSchema = dynamiczones({
+const dynamicSlots = {
   dynamiczoneone: dynamic({}),
   dynamiczonetwo: dynamic({}),
-});
-
-const schema = component({ name: 'TestReactHelloWorld', version: '0.0.31' }, dialogSchema, dynamicZonesSchema);
+};
+const schema = component({ name: 'TestReactHelloWorld', version: '0.0.49' }, dialogSchema, dynamicSlots);
 
 type Props = Output<typeof schema>
 
-export const ReactHelloWorld: React.FC<Props> = ({ title, subtitle, datetime, rich, dynamiczoneone, dynamiczonetwo , image, imagetwo}) => {
+export const ReactHelloWorld: React.FC<Props> = ({
+                                                   title,
+                                                   subtitle,
+                                                   datetime,
+                                                   rich,
+                                                   image,
+                                                   imagetwo,
+                                                   dynamiczoneone,
+                                                   dynamiczonetwo,
+                                                 }) => {
 
   return (
     <div className={styles.error}>
@@ -107,35 +117,12 @@ export const ReactHelloWorld: React.FC<Props> = ({ title, subtitle, datetime, ri
 
       <div className={styles.columnsContainer}>
         <div className={styles.column}>
-          {dynamiczoneone && dynamiczoneone.childrenHtml && (
-            <div className={'new'}>
-              <div dangerouslySetInnerHTML={{ __html: atob(dynamiczoneone?.childrenHtml) }} />
-            </div>
-          )}
-          {dynamiczoneone && dynamiczoneone.dataPath && dynamiczoneone.dataConfig && (
-
-            <div className={'new'}>
-              {/*// @ts-ignore*/}
-              <cq data-path={dynamiczoneone.dataPath} data-config={JSON.stringify(dynamiczoneone.dataConfig)}></cq>
-            </div>
-          )}
+          <Parsys slot={dynamiczoneone} />
         </div>
         <div className={styles.column}>
-          {dynamiczonetwo && dynamiczonetwo.childrenHtml && (
-            <div className={'new'}>
-              <div dangerouslySetInnerHTML={{ __html: atob(dynamiczonetwo?.childrenHtml) }} />
-            </div>
-          )}
-          {dynamiczonetwo && dynamiczonetwo.dataPath && dynamiczonetwo.dataConfig && (
-
-            <div className={'new'}>
-              {/*// @ts-ignore*/}
-              <cq data-path={dynamiczonetwo.dataPath} data-config={JSON.stringify(dynamiczonetwo.dataConfig)}></cq>
-            </div>
-          )}
+          <Parsys slot={dynamiczonetwo} />
         </div>
       </div>
-
 
     </div>
   );

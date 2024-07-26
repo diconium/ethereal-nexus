@@ -1,36 +1,47 @@
 import { BaseSchema, ComponentModel } from '../../types';
-import { ObjectEntries, ObjectOutput } from '../../types/object';
+import { ObjectEntries, ObjectOutput, SlotEntries } from '../../types/object';
 import { DialogSchema } from '../../schema/dialog';
-import { DynamicZoneSchema } from '../../schema/dynamic';
-import { DynamicZonesSchema } from '../../schema/dynamiczones';
+import { WebcomponentPropTypes } from '../../types/webcomponent';
 
-export interface ComponentSchema<TEntries extends ObjectEntries, TOutput = ObjectOutput<TEntries>> extends BaseSchema<TOutput>, Partial<ComponentModel> {
+export interface ComponentSchema<TEntries extends ObjectEntries, TSlots extends SlotEntries, TOutput = ObjectOutput<TEntries & TSlots>> extends BaseSchema<TOutput>, Partial<ComponentModel> {
   type: 'component';
   dialog: Omit<DialogSchema<TEntries>, 'tabs'>;
-  dynamiczones:  Omit<DynamicZonesSchema<{    [key: string]: DynamicZoneSchema}>,'dynamiczones'>,
+  slots: TSlots,
 }
 
-export function component<TEntries extends ObjectEntries>(
+export function component<TEntries extends ObjectEntries, TSlots extends SlotEntries>(
   config: Partial<ComponentModel>,
-  dialogInstance: Omit<DialogSchema<TEntries>, 'tabs'>,
-  dynamicZonesInstance: Omit<DynamicZonesSchema<{    [key: string]: DynamicZoneSchema}>,'dynamiczones'>,
-): ComponentSchema<TEntries> {
+  dialog: Omit<DialogSchema<TEntries>, 'tabs'>,
+  slots: TSlots,
+): ComponentSchema<TEntries, TSlots> {
+
+  const slotsParse = Object.entries(slots).map(([key, slot]) => (
+    {
+      id: key,
+      name: key,
+      ...slot._parse(),
+    }),
+  );
+  const slotsPrimitives = Object.entries(slots).reduce((acc, [key, slot]) => {
+    acc[key] = slot._primitive();
+    return acc
+  }, {} as Record<string, WebcomponentPropTypes | Record<string, WebcomponentPropTypes>>)
 
   return {
     type: 'component',
-    dialog: dialogInstance,
-    dynamiczones: dynamicZonesInstance,
+    dialog,
+    slots,
     _parse() {
       return {
         ...config,
-        ...dialogInstance._parse(),
-        ...dynamicZonesInstance._parse()
+        ...dialog._parse(),
+        dynamiczones: slotsParse,
       };
     },
     _primitive() {
       return {
-        ...dialogInstance._primitive() as object,
-        ...dynamicZonesInstance._primitive() as object,
+        ...dialog._primitive() as object,
+        ...slotsPrimitives as object,
       };
     },
     ...config,

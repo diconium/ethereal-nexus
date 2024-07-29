@@ -12,7 +12,7 @@ interface PathBrowserInput extends BaseFieldInput {
 }
 
 export function pathbrowser(input: PathBrowserInput): PathBrowserSchema {
-  const {placeholder, label} = input;
+  const {placeholder, label, tooltip} = input;
 
   return {
     type: 'pathbrowser',
@@ -21,6 +21,7 @@ export function pathbrowser(input: PathBrowserInput): PathBrowserSchema {
         type: 'pathbrowser',
         label,
         placeholder,
+        tooltip,
       }
     },
     _primitive() {

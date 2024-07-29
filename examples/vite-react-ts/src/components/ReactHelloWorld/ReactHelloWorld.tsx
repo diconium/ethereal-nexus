@@ -9,62 +9,92 @@ import {
   text,
   dialog,
   rte,
+  dynamic,
+  image,
   type Output,
-  type GetServerSideProps
+  type GetServerSideProps,
 } from '@ethereal-nexus/core';
+
 import { Item } from '../../patterns';
-import styles from './ReactHelloWorld.module.css'; // Import css modules stylesheet as styles
+import styles from './ReactHelloWorld.module.css';
+import { Parsys } from '@ethereal-nexus/conector-aem-react';
+
 
 const dialogSchema = dialog({
   title: text({
     label: 'Title',
-    placeholder: 'Title'
+    placeholder: 'Title',
   }),
   subtitle: text({
     label: 'Sub-Title',
-    placeholder: 'Sub-Title'
+    placeholder: 'Sub-Title',
+  }),
+  image: image({
+    label: 'Image',
+    placeholder: 'Some Image',
+  }),
+  imagetwo: image({
+    label: 'Image 2',
+    placeholder: 'Some 2nd Image',
+    tooltip: 'This is the second image',
   }),
   datetime: optional(
     hidden({
-      type: 'string'
-    })
+      type: 'string',
+    }),
   ),
   rich: rte({
     label: 'This is a RTE',
-    placeholder: 'Place any text here'
+    placeholder: 'Place any text here',
   }),
   banners: multifield({
     label: 'Banners',
     children: object({
       title: text({
         label: 'Title',
-        placeholder: 'Title'
+        placeholder: 'Title',
       }),
       link: pathbrowser({
         label: 'Link',
-        placeholder: 'Link'
-      })
-    })
-  })
+        placeholder: 'Link',
+      }),
+    }),
+  }),
 })
   .tabs({
     tab1: {
       subtitle: true,
-      banners: true
+      banners: true,
     },
     tab2: {
-      rich: true
+      rich: true,
     },
     tab3: {
-      title: true
-    }
-  })
+      title: true,
+      image: true,
+      imagetwo: true,
+    },
+  });
 
-const schema = component({ name: 'TestReactHelloWorld', version: '0.0.2'}, dialogSchema);
+const dynamicSlots = {
+  dynamiczoneone: dynamic({}),
+  dynamiczonetwo: dynamic({}),
+};
+const schema = component({ name: 'TestReactHelloWorld', version: '0.0.50' }, dialogSchema, dynamicSlots);
 
 type Props = Output<typeof schema>
 
-export const ReactHelloWorld: React.FC<Props> = ({ title, subtitle, datetime , rich}) => {
+export const ReactHelloWorld: React.FC<Props> = ({
+                                                   title,
+                                                   subtitle,
+                                                   datetime,
+                                                   rich,
+                                                   image,
+                                                   imagetwo,
+                                                   dynamiczoneone,
+                                                   dynamiczonetwo,
+                                                 }) => {
+
   return (
     <div className={styles.error}>
       My new text Hello World from react! v.1.0.9
@@ -76,6 +106,25 @@ export const ReactHelloWorld: React.FC<Props> = ({ title, subtitle, datetime , r
           {datetime ? <Item text={datetime} /> : null}
         </ul>
       </div>
+
+      <div className={styles.columnsContainer}>
+        <div className={styles.column}>
+          <img src={image} alt="image" />
+        </div>
+        <div className={styles.column}>
+          <img src={imagetwo} alt="image 2" />
+        </div>
+      </div>
+
+      <div className={styles.columnsContainer}>
+        <div className={styles.column}>
+          <Parsys slot={dynamiczoneone} />
+        </div>
+        <div className={styles.column}>
+          <Parsys slot={dynamiczonetwo} />
+        </div>
+      </div>
+
     </div>
   );
 };

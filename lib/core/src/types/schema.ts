@@ -37,6 +37,7 @@ export interface BaseFieldInput {
    * The field label.
    */
   label: string;
+  tooltip?: string;
 }
 
 /**

@@ -7,6 +7,7 @@ export * from "./schema/pathbrowser";
 export * from "./schema/image";
 export * from "./schema/select";
 export * from "./schema/rte";
+export * from "./schema/dynamic";
 
 export * from "./schema/hidden";
 export * from "./schema/optional";

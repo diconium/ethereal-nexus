@@ -1,3 +1,12 @@
 .error {
   color: red;
 }
+
+.columnsContainer {
+  display: flex;
+}
+
+.column {
+  flex: 1; /* Makes each column take up equal space */
+  padding: 10px; /* Optional: Adds some spacing inside each column */
+}

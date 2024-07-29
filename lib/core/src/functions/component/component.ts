@@ -1,28 +1,48 @@
 import { BaseSchema, ComponentModel } from '../../types';
-import { ObjectEntries, ObjectOutput } from '../../types/object';
+import { ObjectEntries, ObjectOutput, SlotEntries } from '../../types/object';
 import { DialogSchema } from '../../schema/dialog';
+import { WebcomponentPropTypes } from '../../types/webcomponent';
 
-export interface ComponentSchema<TEntries extends ObjectEntries, TOutput = ObjectOutput<TEntries>> extends BaseSchema<TOutput>, Partial<ComponentModel> {
+export interface ComponentSchema<TEntries extends ObjectEntries, TSlots extends SlotEntries, TOutput = ObjectOutput<TEntries & TSlots>> extends BaseSchema<TOutput>, Partial<ComponentModel> {
   type: 'component';
   dialog: Omit<DialogSchema<TEntries>, 'tabs'>;
+  slots?: TSlots,
 }
 
-export function component<TEntries extends ObjectEntries>(
+export function component<TEntries extends ObjectEntries, TSlots extends SlotEntries>(
   config: Partial<ComponentModel>,
-  dialogInstance: Omit<DialogSchema<TEntries>, 'tabs'>
-): ComponentSchema<TEntries> {
+  dialog: Omit<DialogSchema<TEntries>, 'tabs'>,
+  slots?: TSlots,
+): ComponentSchema<TEntries, TSlots> {
+
+  const slotsParse = slots ? Object.entries(slots).map(([key, slot]) => (
+    {
+      id: key,
+      name: key,
+      ...slot._parse(),
+    }),
+  ) : [];
+  const slotsPrimitives = slots ? Object.entries(slots).reduce((acc, [key, slot]) => {
+    acc[key] = slot._primitive();
+    return acc
+  }, {} as Record<string, WebcomponentPropTypes | Record<string, WebcomponentPropTypes>>) : [];
 
   return {
     type: 'component',
-    dialog: dialogInstance,
+    dialog,
+    slots,
     _parse() {
       return {
         ...config,
-        ...dialogInstance._parse()
+        ...dialog._parse(),
+        dynamiczones: slotsParse,
       };
     },
     _primitive() {
-      return dialogInstance._primitive();
+      return {
+        ...dialog._primitive() as object,
+        ...slotsPrimitives as object,
+      };
     },
     ...config,
   };

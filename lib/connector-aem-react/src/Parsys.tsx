@@ -18,7 +18,6 @@ const Parsys: React.FC<DynamicZoneProps> = ({ slot }) => {
       )}
       {slot && slot.dataPath && slot.dataConfig && (
         <div className={'new'}>
-          {/*// @ts-ignore*/}
           <cq data-path={slot.dataPath} data-config={JSON.stringify(slot.dataConfig)}></cq>
         </div>
       )}

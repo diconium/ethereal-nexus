@@ -20,7 +20,7 @@ export const componentVersions = pgTable("component_version", {
   component_id:  uuid('component_id').notNull().references(() => components.id, { onDelete: 'cascade' }),
   version: text('version').notNull(),
   dialog: customJson('dialog'),
-  dynamiczones: customJson('dynamiczones').default({}),
+  dynamiczones: customJson('dynamiczones').default([]),
   created_at: timestamp("created_at").defaultNow().notNull(),
   readme: text("readme"),
   changelog: text("changelog"),

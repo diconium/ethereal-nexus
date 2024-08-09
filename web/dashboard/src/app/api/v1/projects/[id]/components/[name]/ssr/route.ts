@@ -3,6 +3,10 @@ import {authenticatedWithKey} from '@/lib/route-wrappers';
 import {NextResponse} from 'next/server';
 import {getProjectComponentConfig} from '@/data/projects/actions';
 import {callSSR} from "@/lib/ssr/ssr";
+import crypto from 'crypto';
+import { LRUCache } from '@/lib/cache/LRUCache';
+
+const cache = new LRUCache<string, any>(100); // Set the cache capacity to 100
 
 /**
  * @swagger
@@ -80,19 +84,29 @@ export const POST = authenticatedWithKey(
             });
         }
 
+        const req = await request.json();
         const response = await getProjectComponentConfig(id, name, userId);
 
-        const req = await request.json();
+        const reqHash = crypto.createHash('sha256').update(JSON.stringify(req) + JSON.stringify(response)).digest('hex');
+
+
+        if (cache.get(reqHash)) {
+            return NextResponse.json(cache.get(reqHash), { status: HttpStatus.OK });
+        }
 
         if (!response.success) {
             return NextResponse.json(response.error, {
                 status: HttpStatus.BAD_REQUEST,
             });
         }
-        const {output, serverSideProps } = await callSSR(response.data.name, req, response.data.assets)
+        const {output, serverSideProps } = await callSSR(response.data.name, req, response.data.assets);
+
+        if (output !== "") {
+            const result = {output, serverSideProps};
+            cache.set(reqHash, result);
+            return NextResponse.json(result, { status: HttpStatus.OK });
+        }
 
         return NextResponse.json({output, serverSideProps}, { status: HttpStatus.OK });
-
-
     },
 );

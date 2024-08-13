@@ -1,72 +1,13 @@
 import React from 'react';
-import {
-  component,
-  hidden,
-  multifield,
-  object,
-  optional,
-  pathbrowser,
-  text,
-  dialog,
-  rte,
-  dynamic,
-  image,
-  type Output,
-  type GetServerSideProps,
-} from '@ethereal-nexus/core';
+import { component, dialog, dynamic, type GetServerSideProps, type Output } from '@ethereal-nexus/core';
 
 import { Item } from '../../patterns';
 import styles from './ReactHelloWorld.module.css';
 import { Parsys } from '@ethereal-nexus/conector-aem-react';
+import { entries } from './dialog.ts';
 
 
-const dialogSchema = dialog({
-  title: text({
-    label: 'Title',
-    placeholder: 'Title',
-    required: true,
-  }),
-  subtitle: text({
-    label: 'Sub-Title',
-    placeholder: 'Sub-Title',
-  }),
-  image: image({
-    required: true,
-    label: 'Image',
-    placeholder: 'Some Image',
-  }),
-  imagetwo: image({
-    label: 'Image 2',
-    placeholder: 'Some 2nd Image',
-    tooltip: 'This is the second image',
-  }),
-  datetime: optional(
-    hidden({
-      type: 'string',
-    }),
-  ),
-  rich: rte({
-    label: 'This is a RTE',
-    placeholder: 'Place any text here',
-    required: true
-  }),
-  banners: multifield({
-    required: true,
-    label: 'Banners',
-    children: object({
-      title: text({
-        label: 'Title',
-        placeholder: 'Title',
-        required: true,
-      }),
-      link: pathbrowser({
-        label: 'Link',
-        placeholder: 'Link',
-        required: true,
-      }),
-    }),
-  }),
-})
+const dialogSchema = dialog(entries)
   .tabs({
     tab1: {
       subtitle: true,

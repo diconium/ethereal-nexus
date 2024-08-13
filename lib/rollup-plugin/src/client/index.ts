@@ -59,10 +59,6 @@ export function bundleClient(code: string, exposed: Map<string, string>, id: str
   const fileId = `.ethereal/tmp/__etherealHelper__${name}`;
 
   setVirtual(fileId, clientCode.toString())
-  // if (!fs.existsSync(`./.ethereal/tmp`)) {
-  //   fs.mkdirSync(`./.ethereal/tmp`, {recursive: true});
-  // }
-  // fs.writeFileSync(`.ethereal/tmp/__etherealHelper__${name}`, clientCode.toString());
 
   const hash = createHash('sha256')
     .update(code)

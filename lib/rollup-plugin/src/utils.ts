@@ -2,8 +2,10 @@ import fs from "fs-extra"
 import { type PackageJson } from "type-fest"
 import { join } from 'node:path';
 import { cwd } from 'node:process';
+import { getConfig } from './config';
 
-export function cleanTemporary() {
+export function cleanTemporary(buildDir: string) {
+  fs.rmSync(`./${buildDir}/.ethereal/tmp`, { force: true, recursive: true });
   fs.rmSync(`./.ethereal`, { force: true, recursive: true });
 }
 

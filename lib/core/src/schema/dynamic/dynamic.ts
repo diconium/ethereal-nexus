@@ -3,16 +3,7 @@ import {
 } from '../../types';
 
 export interface DynamicZoneSchema extends BaseSchema<{
-  dataPath: string;
-  childrenHtml: string;
-  dataConfig: {
-    path: string,
-    slingPath: string,
-    type: string,
-    isResponsiveGrid: boolean,
-    csp: string,
-    editConfig: { actions: string[], disableTargeting: boolean }
-  };
+  childrenHtml: string
 }> {
   /**
    * The schema type.

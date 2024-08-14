@@ -8,7 +8,9 @@ export default defineConfig({
     ethereal({
       exposes: {
         ReactHelloWorld: './src/components/ReactHelloWorld/ReactHelloWorld.tsx',
-        SimpleReactHelloWorld: './src/components/SimpleReactHelloWorld/SimpleReactHelloWorld.tsx'
+        SimpleReactHelloWorld: './src/components/SimpleReactHelloWorld/SimpleReactHelloWorld.tsx',
+        EventExample: './src/components/EventExample/EventExample.tsx',
+        DropdownExample: './src/components/DropdownExample/DropdownExample.tsx',
       },
       server: true,
     })

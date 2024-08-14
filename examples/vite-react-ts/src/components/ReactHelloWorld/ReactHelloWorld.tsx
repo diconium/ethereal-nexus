@@ -80,7 +80,8 @@ const dynamicSlots = {
   dynamiczoneone: dynamic({}),
   dynamiczonetwo: dynamic({}),
 };
-const schema = component({ name: 'TestReactHelloWorld', version: '0.0.50' }, dialogSchema, dynamicSlots);
+
+const schema = component({ name: 'TestReactHelloWorld', version: '0.0.86' }, dialogSchema, dynamicSlots);
 
 type Props = Output<typeof schema>
 

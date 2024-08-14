@@ -30,7 +30,6 @@ export function component<TEntries extends ObjectEntries, TSlots extends SlotEnt
   return {
     type: 'component',
     dialog,
-    slots,
     _parse() {
       return {
         ...config,

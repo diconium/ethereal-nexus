@@ -9,4 +9,6 @@
 .column {
   flex: 1; /* Makes each column take up equal space */
   padding: 10px; /* Optional: Adds some spacing inside each column */
+  border: 1px solid black; /* Adds a solid border */
+  background-color: rgba(211, 211, 211, 0.5); /* Adds a transparent light gray background */
 }

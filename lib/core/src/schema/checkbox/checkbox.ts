@@ -7,10 +7,12 @@ export interface CheckBoxSchema<TOutput extends boolean = boolean> extends BaseS
   type: 'checkbox';
 }
 
-interface CheckBoxInput extends BaseFieldInput {}
+interface CheckBoxInput extends BaseFieldInput {
+  showastoggle?: boolean
+}
 
 export function checkbox(input: CheckBoxInput): CheckBoxSchema {
-  const {label, tooltip} = input;
+  const {label, tooltip, showastoggle = false} = input;
 
   return {
     type: 'checkbox',
@@ -19,6 +21,7 @@ export function checkbox(input: CheckBoxInput): CheckBoxSchema {
         type: 'checkbox',
         label,
         tooltip,
+        showastoggle
       }
     },
     _primitive() {

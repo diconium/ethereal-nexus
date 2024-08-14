@@ -8,6 +8,8 @@ export interface SelectSchema<TOutput extends string = string> extends BaseSchem
 }
 
 interface SelectInput extends BaseFieldInput {
+  placeholder: string;
+  multiple?: boolean ;
   values: {
     value: string,
     label: string,
@@ -15,7 +17,7 @@ interface SelectInput extends BaseFieldInput {
 }
 
 export function select(input: SelectInput): SelectSchema {
-  const {label, values, tooltip} = input;
+  const {label, values, tooltip,placeholder,multiple = false} = input;
 
   return {
     type: 'select',
@@ -23,12 +25,14 @@ export function select(input: SelectInput): SelectSchema {
       return {
         type: 'select',
         label,
+        multiple,
         values,
         tooltip,
+        placeholder,
       }
     },
     _primitive() {
-      return 'string'
+      return multiple ? 'json' : 'string';
     },
     ...input,
   }

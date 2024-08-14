@@ -12,13 +12,14 @@ interface DynamicZoneProps {
   slot?: {
     childrenHtml?: string;
   };
+  className?: string;
 }
 
-const Parsys: React.FC<DynamicZoneProps> = ({ slot }) => {
+const Parsys: React.FC<DynamicZoneProps> = ({ slot,className }) => {
   return (
     <>
       {slot && slot.childrenHtml &&  (
-          <div dangerouslySetInnerHTML={{ __html: atob(slot.childrenHtml) }} />
+        <div className={className} dangerouslySetInnerHTML={{ __html: atob(slot.childrenHtml).replaceAll(/\\r\\n/g,"<br />") }} />
         )
       }
 

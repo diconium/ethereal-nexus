@@ -19,7 +19,7 @@ const Parsys: React.FC<DynamicZoneProps> = ({ slot,className }) => {
   return (
     <>
       {slot && slot.childrenHtml &&  (
-        <div className={className} dangerouslySetInnerHTML={{ __html: atob(slot.childrenHtml).replaceAll(/\\r\\n/g,"<br />") }} />
+        <div className={className} dangerouslySetInnerHTML={{ __html: atob(slot.childrenHtml) }} />
         )
       }
 

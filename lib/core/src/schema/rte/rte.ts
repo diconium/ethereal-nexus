@@ -12,7 +12,7 @@ interface RichTextEditorInput extends BaseFieldInput {
 }
 
 export function rte(input: RichTextEditorInput): RichTextEditorSchema {
-  const {placeholder, label, tooltip} = input;
+  const {placeholder, label, tooltip, required} = input;
 
   return {
     type: 'richtexteditor',
@@ -22,6 +22,7 @@ export function rte(input: RichTextEditorInput): RichTextEditorSchema {
         label,
         placeholder,
         tooltip,
+        required
       }
     },
     _primitive() {

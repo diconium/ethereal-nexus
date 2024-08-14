@@ -12,7 +12,7 @@ interface ImageInput extends BaseFieldInput {
 }
 
 export function image(input: ImageInput): ImageSchema {
-  const {placeholder, label, tooltip} = input;
+  const {placeholder, label, tooltip, required} = input;
 
   return {
     type: 'image',
@@ -21,7 +21,8 @@ export function image(input: ImageInput): ImageSchema {
         type: 'image',
         label,
         placeholder,
-        tooltip
+        tooltip,
+        required
       }
     },
     _primitive() {

@@ -17,7 +17,7 @@ interface SelectInput extends BaseFieldInput {
 }
 
 export function select(input: SelectInput): SelectSchema {
-  const {label, values, tooltip,placeholder,multiple = false} = input;
+  const {label, values, tooltip,placeholder,multiple = false, required} = input;
 
   return {
     type: 'select',
@@ -29,6 +29,7 @@ export function select(input: SelectInput): SelectSchema {
         values,
         tooltip,
         placeholder,
+        required
       }
     },
     _primitive() {

@@ -18,7 +18,7 @@ interface DataSourceInput extends BaseFieldInput {
 }
 
 export function datasource(input: DataSourceInput): DataSourceSchema {
-  const {label, body, url, tooltip,placeholder,multiple} = input;
+  const {label, body, url, tooltip,placeholder,multiple, required} = input;
 
   return {
     type: 'datasource',
@@ -31,6 +31,7 @@ export function datasource(input: DataSourceInput): DataSourceSchema {
         body,
         tooltip,
         placeholder,
+        required,
       }
     },
     _primitive() {

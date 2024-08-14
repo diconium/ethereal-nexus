@@ -18,7 +18,7 @@ interface CalendarInput extends BaseFieldInput {
 }
 
 export function calendar(input: CalendarInput): CalendarSchema {
-  const {valueformat,startday=0,min,max, placeholder, label,tooltip} = input;
+  const {valueformat,startday=0,min,max, placeholder, label,tooltip,required} = input;
 
   return {
     type: 'calendar',
@@ -31,7 +31,8 @@ export function calendar(input: CalendarInput): CalendarSchema {
         startday,
         tooltip,
         min,
-        max
+        max,
+        required
       }
     },
     _primitive() {

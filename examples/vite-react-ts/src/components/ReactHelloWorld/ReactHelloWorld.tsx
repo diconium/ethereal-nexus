@@ -24,12 +24,14 @@ const dialogSchema = dialog({
   title: text({
     label: 'Title',
     placeholder: 'Title',
+    required: true,
   }),
   subtitle: text({
     label: 'Sub-Title',
     placeholder: 'Sub-Title',
   }),
   image: image({
+    required: true,
     label: 'Image',
     placeholder: 'Some Image',
   }),
@@ -46,17 +48,21 @@ const dialogSchema = dialog({
   rich: rte({
     label: 'This is a RTE',
     placeholder: 'Place any text here',
+    required: true
   }),
   banners: multifield({
+    required: true,
     label: 'Banners',
     children: object({
       title: text({
         label: 'Title',
         placeholder: 'Title',
+        required: true,
       }),
       link: pathbrowser({
         label: 'Link',
         placeholder: 'Link',
+        required: true,
       }),
     }),
   }),
@@ -81,7 +87,7 @@ const dynamicSlots = {
   dynamiczonetwo: dynamic({}),
 };
 
-const schema = component({ name: 'TestReactHelloWorld', version: '0.0.86' }, dialogSchema, dynamicSlots);
+const schema = component({ name: 'TestReactHelloWorld', version: '0.0.87' }, dialogSchema, dynamicSlots);
 
 type Props = Output<typeof schema>
 

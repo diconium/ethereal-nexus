@@ -23,6 +23,7 @@ const dialogSchema = dialog({
       startday: '1',
       max: '2024-02-09',
       min: '2024-02-01',
+      required: true
     },
   ),
 });

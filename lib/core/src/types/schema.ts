@@ -38,6 +38,7 @@ export interface BaseFieldInput {
    */
   label: string;
   tooltip?: string;
+  required?: boolean;
 }
 
 /**

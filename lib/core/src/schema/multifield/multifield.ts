@@ -19,7 +19,7 @@ interface MultifieldInput<TChildren extends BaseSchema<unknown>> extends BaseFie
 }
 
 export function multifield<const TChildren extends BaseSchema<unknown>>(input: MultifieldInput<TChildren>): MultifieldSchema<TChildren> {
-  const {label, children} = input;
+  const {label, children, required} = input;
   const childrenParse = children._parse();
 
   return {
@@ -28,6 +28,7 @@ export function multifield<const TChildren extends BaseSchema<unknown>>(input: M
       return {
         type: 'multifield',
         label,
+        required,
         children: Array.isArray(childrenParse) ? childrenParse : [childrenParse]
       }
     },

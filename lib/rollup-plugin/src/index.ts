@@ -32,7 +32,6 @@ export default function rollupEthereal(opts: EtherealPluginOptions): RollupPlugi
     },
     async transform(code, id) {
       this.parse;
-
       if (!exposed.has(id)) {
         return null;
       }
@@ -54,7 +53,6 @@ export default function rollupEthereal(opts: EtherealPluginOptions): RollupPlugi
       return null;
     },
     outputOptions(options) {
-      console.log(options.dir)
       const dir = path.relative(cwd(), options.dir || cwd());
       setConfig('outDir', dir);
     },
@@ -70,7 +68,7 @@ export default function rollupEthereal(opts: EtherealPluginOptions): RollupPlugi
     async writeBundle(_options, bundle) {
       copyChunkFiles(bundle);
       for (const [id, name] of exposed) {
-        const json = await generateManifest(name, id);
+        await generateManifest(name, id);
       }
     },
     async closeBundle() {

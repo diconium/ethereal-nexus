@@ -16,9 +16,7 @@ import { titles } from '../../dialogs/titles.ts';
 
 import styles from './ReactHelloWorld.module.css';
 
-
-const dialogSchema = dialog({
-  ...titles,
+const images = {
   image: image({
     label: 'Image',
     placeholder: 'Some Image'
@@ -28,15 +26,22 @@ const dialogSchema = dialog({
     placeholder: 'Some 2nd Image',
     tooltip: 'This is the second image'
   }),
+}
+
+const rteComponent = rte({
+  label: 'This is a RTE',
+  placeholder: 'Place any text here'
+})
+
+const dialogSchema = dialog({
+  ...titles,
+  ...images,
   datetime: optional(
     hidden({
       type: 'string'
     })
   ),
-  rich: rte({
-    label: 'This is a RTE',
-    placeholder: 'Place any text here'
-  }),
+  rich: rteComponent,
   banners: multifield({
     label: 'Banners',
     children: object({

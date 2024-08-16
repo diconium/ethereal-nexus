@@ -1,57 +1,51 @@
 import vm from 'node:vm';
-import { ProgramNode } from 'rollup';
+import { EmitFile, ProgramNode } from 'rollup';
 import { simple } from 'acorn-walk';
 import type { Identifier, ImportSpecifier } from 'acorn';
 import { convertCamelCaseToDashCase, convertCamelCaseToSpaceCase, getPackageInfo } from '../utils';
 import MagicString from 'magic-string';
 import path from 'node:path';
 import fs from 'node:fs';
+import { setVirtual } from '../virtual';
+import { cwd } from 'node:process';
+import { getConfig } from '../config';
 
-export function extractDialog(ast: ProgramNode, code: string): string {
-  let imports: string[] = [];
-  let variables: Set<string> = new Set();
-  const magic = new MagicString('')
+export function extractDialog(ast: ProgramNode, code: string, name: string, id: string, emitFile: EmitFile) {
+  const magic = new MagicString(code)
+  let importsNexus = false;
 
   // Walk through the AST to find the schema
   simple(ast, {
     ImportDeclaration(node) {
-      if (node.source.type === 'Literal' && node.source.value === '@ethereal-nexus/core') {
-        imports = node.specifiers
-          .map(identifier => {
-            return ((identifier as ImportSpecifier).imported as Identifier).name;
-          });
-      }
-    },
-    VariableDeclaration(node) {
-      for (const declaration of node.declarations) {
-        if (declaration.id.type === 'Identifier' && declaration.id.name === 'schema' && declaration.init?.type === 'CallExpression') {
-          if(node.declarations[0].init?.type === 'CallExpression') {
-            for (const argument of node.declarations[0].init.arguments) {
-              if(argument.type === 'Identifier') {
-                variables.add(argument.name)
-              }
-            }
+      if (node.type === 'ImportDeclaration') {
+        const { source: { value, start, end } } = node;
+        if (value === '@ethereal-nexus/core') {
+          const last = node.specifiers.pop();
+          if (last?.type === 'ImportSpecifier') {
+            magic.appendLeft(last.end, `, parse`);
           }
-
-          simple(ast, {
-              VariableDeclaration(node) {
-                for (const declaration of node.declarations) {
-                  if (declaration.id.type === 'Identifier' && variables.has(declaration.id.name)) {
-                    magic.append(code.substring(declaration.start, declaration.end) + '\n')
-                  }
-                }
-              }
-            },
-          )
-
-          magic.prepend(`const { ${imports.join(', ')}, parse } = modules['@ethereal-nexus/core']\n`)
-          magic.append(`parse(${code.substring(declaration.init.callee.start, declaration.end)})`)
+          importsNexus = true;
+        } else if (typeof value === 'string' && value.startsWith('.')) {
+          const resolvedPath = path.join(path.dirname(id), value);
+          magic.update(start + 1, end - 1, resolvedPath);
         }
       }
-    }
+    },
   });
+  if(!importsNexus) {
+    magic.prepend(`import { parse } from "@ethereal-nexus/core";\n`);
+  }
+  magic.append(`export const __dialog = parse(schema)\n`)
 
-  return magic.toString();
+  const fileId = `.ethereal/tmp/__etherealHelper__dialog__${name}.js`;
+  setVirtual(fileId, magic.toString())
+
+  emitFile({
+    type: 'chunk',
+    fileName: fileId,
+    id: fileId,
+    preserveSignature: 'strict'
+  });
 }
 
 export async function parseDialog(schemaCode: string) {
@@ -78,14 +72,17 @@ function extractReadme(id: string) {
   return fs.readFileSync(filePath, 'utf-8')
 }
 
-export async function generateManifest(code: string, ast: ProgramNode, name: string, id: string) {
+export async function generateManifest(name: string, id: string) {
   let dialog = { dialog: [] };
-  const schemaCode = extractDialog(ast, code);
+  const outDir = getConfig('outDir');
+
+  const fileId = `${cwd()}/${outDir}/.ethereal/tmp/__etherealHelper__dialog__${name}.js`;
+  const { __dialog } = await import(fileId)
   const readme = extractReadme(id);
   const packageJson = getPackageInfo();
 
-  if (schemaCode) {
-    dialog = await parseDialog(schemaCode);
+  if (__dialog) {
+    dialog = __dialog;
   }
 
   const manifest = {
@@ -96,6 +93,7 @@ export async function generateManifest(code: string, ast: ProgramNode, name: str
     version: packageJson.version,
     ...dialog,
   }
+  const json = JSON.stringify(manifest, undefined, 2)
 
-  return JSON.stringify(manifest, undefined, 2)
+  fs.writeFileSync(`./${outDir}/.ethereal/${name}/manifest.json`, json);
 }

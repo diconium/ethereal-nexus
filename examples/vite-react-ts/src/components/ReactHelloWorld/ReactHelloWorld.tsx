@@ -1,71 +1,60 @@
 import React from 'react';
 import {
   component,
-  hidden,
-  multifield,
-  object,
-  optional,
-  pathbrowser,
-  text,
   dialog,
-  rte,
   dynamic,
-  image,
-  type Output,
-  type GetServerSideProps,
+  type GetServerSideProps, hidden,
+  image, multifield, object,
+  optional,
+  type Output, pathbrowser, rte,
+  text
 } from '@ethereal-nexus/core';
 
 import { Item } from '../../patterns';
-import styles from './ReactHelloWorld.module.css';
 import { Parsys } from '@ethereal-nexus/conector-aem-react';
+import { titles } from '../../dialogs/titles.ts';
 
+import styles from './ReactHelloWorld.module.css';
 
-const dialogSchema = dialog({
-  title: text({
-    label: 'Title',
-    placeholder: 'Title',
-    required: true,
-  }),
-  subtitle: text({
-    label: 'Sub-Title',
-    placeholder: 'Sub-Title',
-  }),
+const images = {
   image: image({
-    required: true,
     label: 'Image',
-    placeholder: 'Some Image',
+    placeholder: 'Some Image'
   }),
   imagetwo: image({
     label: 'Image 2',
     placeholder: 'Some 2nd Image',
-    tooltip: 'This is the second image',
+    tooltip: 'This is the second image'
   }),
+}
+
+const rteComponent = rte({
+  label: 'This is a RTE',
+  placeholder: 'Place any text here'
+})
+
+const dialogSchema = dialog({
+  ...titles,
+  ...images,
   datetime: optional(
     hidden({
-      type: 'string',
-    }),
+      type: 'string'
+    })
   ),
-  rich: rte({
-    label: 'This is a RTE',
-    placeholder: 'Place any text here',
-    required: true
-  }),
+  rich: rteComponent,
   banners: multifield({
-    required: true,
     label: 'Banners',
     children: object({
       title: text({
         label: 'Title',
-        placeholder: 'Title',
-        required: true,
+        placeholder: 'Title'
       }),
       link: pathbrowser({
         label: 'Link',
-        placeholder: 'Link',
-        required: true,
-      }),
-    }),
-  }),
+        placeholder: 'Link'
+      })
+    })
+  })
 })
   .tabs({
     tab1: {

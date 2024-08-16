@@ -54,6 +54,9 @@ const dialogSchema = dialog({
     })
   })
 })
+  .conditions({
+    datetime: '',
+  })
   .tabs({
     tab1: {
       subtitle: true,

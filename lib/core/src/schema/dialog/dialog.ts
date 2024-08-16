@@ -5,11 +5,19 @@ import { ObjectEntries, ObjectOutput } from '../../types/object';
 export interface DialogSchema<TEntries extends ObjectEntries, TOutput = ObjectOutput<TEntries>> extends BaseSchema<TOutput> {
   type: 'dialog';
   tabs: (tabs: Record<string, EntryMask<TEntries>>) => Omit<DialogSchema<TEntries>, 'tabs'>;
+  conditions: (tabs: Partial<TOutput>) => Omit<DialogSchema<TEntries>, 'conditions'>;
 }
 
 export function dialog<TEntries extends ObjectEntries>(entries: TEntries): DialogSchema<TEntries> {
   return {
     type: 'dialog',
+    conditions(tabs) {
+      return {
+        ...this,
+        conditions: undefined,
+        component: undefined,
+      };
+    },
     tabs(tabs) {
       return {
         ...this,

@@ -1,6 +1,8 @@
 import { BaseFieldInput, type BaseSchema } from '../../types';
+import { SelectSchema } from '../select';
+type DataSourceOutputType<Multiple extends boolean> = Multiple extends true ? string[] : string;
 
-export interface DataSourceSchema<TOutput extends string = string> extends BaseSchema<TOutput> {
+export interface DataSourceSchema<Multiple extends boolean = false> extends BaseSchema<DataSourceOutputType<Multiple>> {
   /**
    * The schema type.
    */
@@ -17,8 +19,8 @@ interface DataSourceInput extends BaseFieldInput {
   body: DataSourceBody;
 }
 
-export function datasource(input: DataSourceInput): DataSourceSchema {
-  const {label, body, url, tooltip,placeholder,multiple, required} = input;
+export function datasource<Multiple extends boolean = false>(input: DataSourceInput & { multiple?: Multiple }): DataSourceSchema<Multiple> {
+  const {label, body, url, tooltip,placeholder, multiple = false as Multiple, required } = input;
 
   return {
     type: 'datasource',

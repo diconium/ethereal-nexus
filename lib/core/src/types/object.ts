@@ -52,7 +52,7 @@ export interface ObjectEntries {
  * Object entries type.
  */
 export interface SlotEntries {
-  [key: string]: DynamicZoneSchema;
+  [key: string]: BaseSchema;
 }
 
 /**

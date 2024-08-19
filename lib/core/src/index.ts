@@ -10,6 +10,7 @@ export * from "./schema/rte";
 export * from "./schema/dynamic";
 export * from "./schema/calendar";
 export * from "./schema/datasource";
+export * from "./schema/group";
 
 export * from "./schema/hidden";
 export * from "./schema/optional";

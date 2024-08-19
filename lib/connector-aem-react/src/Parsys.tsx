@@ -9,17 +9,15 @@ declare global {
 }
 
 interface DynamicZoneProps {
-  slot?: {
-    childrenHtml?: string;
-  };
+  slot: string;
   className?: string;
 }
 
 const Parsys: React.FC<DynamicZoneProps> = ({ slot,className }) => {
   return (
     <>
-      {slot && slot.childrenHtml &&  (
-        <div className={className} dangerouslySetInnerHTML={{ __html: atob(slot.childrenHtml) }} />
+      {slot && slot &&  (
+        <div className={className} dangerouslySetInnerHTML={{ __html: atob(slot) }} />
         )
       }
 

@@ -2,13 +2,11 @@ import {
   BaseSchema,
 } from '../../types';
 
-export interface DynamicZoneSchema extends BaseSchema<{
-  childrenHtml: string
-}> {
+export interface DynamicZoneSchema<TOutput extends string = string> extends BaseSchema<TOutput> {
   /**
    * The schema type.
    */
-  readonly type: 'dynamic';
+  type: 'dynamic';
 }
 
 interface DynamicInput {
@@ -23,7 +21,7 @@ export function dynamic(input: DynamicInput): DynamicZoneSchema {
       };
     },
     _primitive() {
-      return 'json';
+      return 'string';
     },
     ...input,
   };

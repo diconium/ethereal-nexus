@@ -1,6 +1,8 @@
 import { BaseFieldInput, type BaseSchema } from '../../types';
 
-export interface SelectSchema<TOutput extends string = string> extends BaseSchema<TOutput> {
+type SelectOutputType<Multiple extends boolean> = Multiple extends true ? string[] : string;
+
+export interface SelectSchema<Multiple extends boolean = false> extends BaseSchema<SelectOutputType<Multiple>> {
   /**
    * The schema type.
    */
@@ -16,8 +18,8 @@ interface SelectInput extends BaseFieldInput {
   }[]
 }
 
-export function select(input: SelectInput): SelectSchema {
-  const {label, values, tooltip,placeholder,multiple = false, required} = input;
+export function select<Multiple extends boolean = false>(input: SelectInput & { multiple?: Multiple }): SelectSchema<Multiple> {
+  const { label, values, tooltip, placeholder, multiple = false as Multiple, required } = input;
 
   return {
     type: 'select',

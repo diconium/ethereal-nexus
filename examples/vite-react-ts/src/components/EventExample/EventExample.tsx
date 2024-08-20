@@ -12,16 +12,37 @@ import {
   text,
   group,
   pathbrowser,
+  datamodel,
   type Output,
 } from '@ethereal-nexus/core';
 
 const dialogSchema = dialog({
+
+  person: datamodel({
+    placeholder: 'Select a person',
+    label: 'Person',
+    required: true,
+    tooltip: 'This is a person',
+  }),
   anothermultifield: multifield({
     label: 'Nested',
     children: object({
       isadvanced: checkbox({
         label: 'Advanced',
         tooltip: 'Check this box to show advanced options',
+      }),
+    }),
+  }),
+  contributors: multifield({
+    label: 'Contributors',
+    tooltip: 'This is a list of contributors',
+    children: object({
+      person: datamodel({
+        placeholder: 'Selet a person',
+        label: 'Person',
+        required: true,
+        tooltip: 'This is a person',
+
       }),
     }),
   }),
@@ -33,7 +54,6 @@ const dialogSchema = dialog({
 
       image: image({
         label: 'Image',
-        placeholder: 'Some Image',
       }),
       grouptitle: text({
         label: 'Group Title',
@@ -139,7 +159,6 @@ const dialogSchema = dialog({
           }),
           image: image({
             label: 'Image',
-            placeholder: 'Some Image',
           }),
           title: text({
             label: 'Title',
@@ -168,22 +187,29 @@ const dialogSchema = dialog({
     group: true,
   },
   'Non Grouped': {
+    person: true,
     anotherevent: true,
     anothermultifield: true,
+    contributors: true,
   },
 });
 
-const schema = component({ version: '0.0.15' }, dialogSchema,{});
+const schema = component({ version: '0.0.30' }, dialogSchema, {});
 
 type Props = Output<typeof schema>
 
 export const EventExample: React.FC<Props> = ({
                                                 group,
+                                                person,
                                                 anotherevent,
                                                 anothermultifield,
+                                                contributors,
                                               }) => {
   return (
     <div>
+      {person && (
+        <p>person: {person.firstName} {person.lastName}</p>
+      )}
       <p>group.active: {group.active ? 'true' : 'false'}</p>
 
       <h2>Group</h2>
@@ -221,6 +247,15 @@ export const EventExample: React.FC<Props> = ({
         {anothermultifield && anothermultifield.map((item) => (
           <li>isadvanced: {item.isadvanced}</li>
         ))}
+      </ul>
+
+      <h2>Another Multifield with a datamodel </h2>
+      <ul>
+        {contributors && contributors.map(({ person }) => {
+          return (
+            <li>person: {person.firstName} {person.lastName}</li>
+          );
+        })}
       </ul>
     </div>
   );

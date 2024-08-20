@@ -10,7 +10,7 @@ export interface SelectSchema<Multiple extends boolean = false> extends BaseSche
 }
 
 interface SelectInput extends BaseFieldInput {
-  placeholder: string;
+  placeholder?: string;
   multiple?: boolean ;
   values: {
     value: string,

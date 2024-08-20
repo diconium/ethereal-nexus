@@ -8,11 +8,10 @@ export interface ImageSchema<TOutput extends string = string> extends BaseSchema
 }
 
 interface ImageInput extends BaseFieldInput {
-  placeholder: string;
 }
 
 export function image(input: ImageInput): ImageSchema {
-  const {placeholder, label, tooltip, required} = input;
+  const {label, tooltip, required} = input;
 
   return {
     type: 'image',
@@ -20,7 +19,6 @@ export function image(input: ImageInput): ImageSchema {
       return {
         type: 'image',
         label,
-        placeholder,
         tooltip,
         required
       }

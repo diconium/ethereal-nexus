@@ -8,7 +8,7 @@ export interface RichTextEditorSchema<TOutput extends string = string> extends B
 }
 
 interface RichTextEditorInput extends BaseFieldInput {
-  placeholder: string;
+  placeholder?: string;
 }
 
 export function rte(input: RichTextEditorInput): RichTextEditorSchema {

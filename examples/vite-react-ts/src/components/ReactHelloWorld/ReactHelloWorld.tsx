@@ -19,11 +19,9 @@ import styles from './ReactHelloWorld.module.css';
 const images = {
   image: image({
     label: 'Image',
-    placeholder: 'Some Image'
   }),
   imagetwo: image({
     label: 'Image 2',
-    placeholder: 'Some 2nd Image',
     tooltip: 'This is the second image'
   }),
 }

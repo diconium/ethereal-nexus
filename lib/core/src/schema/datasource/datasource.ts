@@ -13,9 +13,9 @@ interface DataSourceBody {
   [key: string]: any;
 }
 interface DataSourceInput extends BaseFieldInput {
-  placeholder: string;
+  placeholder?: string;
   url: string;
-  multiple: boolean;
+  multiple?: boolean;
   body: DataSourceBody;
 }
 

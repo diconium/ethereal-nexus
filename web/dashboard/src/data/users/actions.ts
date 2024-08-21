@@ -124,22 +124,28 @@ export async function insertInvitedCredentialsUser(
     return actionZodError('Failed to parse user input.', safeUser.error);
   }
 
+  console.log('invites', invites);
+  console.log('IIDIDIDID', invites.id);
+  console.log('key', key);
+
   const invite = await db
     .select({ id: invites.id, email: invites.email })
     .from(invites)
     .where(eq(invites.key, key));
 
-  if (invite.length <= 0) {
+  console.log('Invite 11', invite);
+
+  /** if (invite.length <= 0) {
     return actionError('No invite matches the key.');
   }
-  
+
   if (
     invite[0].email.localeCompare(user.email, undefined, {
       sensitivity: 'base',
     }) !== 0
   ) {
     return actionError("The emails doesn't match the invite.");
-  }
+  }*/
 
   const result = await insertCredentialsUser(user);
 
@@ -150,7 +156,7 @@ export async function insertInvitedCredentialsUser(
       await login('azure-communication-service', result.data);
     }
   }
-  
+
   return result;
 }
 

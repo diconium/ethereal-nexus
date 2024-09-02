@@ -20,11 +20,11 @@ const GeneratedCodePreviewer = ({ children, ...props }) => {
     }, []);
 
     return (
-        <div key="asdasd">
+        <React.Fragment>
             <iframe {...props} id="iframe" ref={setContentRef} width="100%" height="500px">
                 {mountNode && createPortal(children, mountNode)}
             </iframe>
-        </div>
+        </React.Fragment>
     )
 }
 

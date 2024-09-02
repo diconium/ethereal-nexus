@@ -9,7 +9,7 @@ const GeneratedCodePreviewer = ({ children, ...props }) => {
     const mountNode = contentRef?.contentWindow?.document?.body;
 
     React.useEffect(() => {
-        const iframe = document.getElementById("iframe");
+        const iframe = document.getElementById(`iframe-${props.id}`);
         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
         const tw = iframeDoc.createElement("script");
         tw.setAttribute("src", "https://cdn.tailwindcss.com");
@@ -21,7 +21,7 @@ const GeneratedCodePreviewer = ({ children, ...props }) => {
 
     return (
         <React.Fragment>
-            <iframe {...props} id="iframe" ref={setContentRef} width="100%" height="500px">
+            <iframe {...props} id={`iframe-${props.id}`} ref={setContentRef} width="100%" height="500px">
                 {mountNode && createPortal(children, mountNode)}
             </iframe>
         </React.Fragment>

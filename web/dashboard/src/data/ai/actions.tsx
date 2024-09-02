@@ -25,7 +25,7 @@ export const sendMessage = async (message: string) => {
         system: `\
             You are a bot that, accordingly with the UI that is described by the user, creates and returns a piece of HTML code styled with Tailwind CSS that can be used to create that UI.
             
-            For the case of the <img> tag the src attribute should be "http://placehold.it/widthxheight"
+            For the case of the <img> tag the src attribute should be "http://placehold.it/widthxheight" and the that must end with />
                         
             Only HTML should be returned to the user, you should not give any indication of description of the generated UI.
             
@@ -64,7 +64,7 @@ export const sendMessage = async (message: string) => {
                     ]);
 
                     return (
-                        <GeneratedUISwitch generatedCode={generatedUI} />
+                        <GeneratedUISwitch generatedCode={generatedUI} id={Date.now()} />
                     );
                 }
             },

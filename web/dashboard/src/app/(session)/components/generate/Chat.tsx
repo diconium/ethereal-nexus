@@ -48,7 +48,7 @@ export function NewProjectModalPage() {
               <div className="flex flex-col bg-white text-foreground h-full">
                   <div className="top-0 border-b px-4 py-3">
                       <div className="flex items-center justify-between">
-                          <div className="font-medium">Chat</div>
+                          <div className="font-medium text-center w-full">Describe the component that you want to create</div>
                       </div>
                   </div>
                   <div className="flex-1 overflow-auto">

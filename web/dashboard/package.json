@@ -48,6 +48,7 @@
     "encoding": "^0.1.13",
     "formidable": "^3.5.1",
     "gunzip-maybe": "^1.4.2",
+    "http-server": "^14.1.1",
     "lucide-react": "^0.274.0",
     "newrelic": "^11.10.4",
     "next": "^14.2.13",

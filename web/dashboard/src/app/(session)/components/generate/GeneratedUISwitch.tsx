@@ -18,21 +18,24 @@ const GeneratedUISwitch = ({ generatedCode, id }) => {
     };
 
     return (
-        <section className="relative border border-gray-300 rounded-lg p-4">
+        <div className="relative border border-gray-300 rounded-lg p-4">
             <div className="absolute right-0 m-2 top-0">
                 <ToogleCodePreviewUI previewCode={displayCode} updateViewMode={() => setDisplayCode(prevState => !prevState)}/>
             </div>
-            <div className="absolute right-0 m-2 bottom-0 p-2">
-                <CopyToClipboard copyCodeToClipboard={copyCodeToClipboard} />
-            </div>
+            {
+                displayCode &&
+                <div className="absolute right-0 m-2 bottom-0 p-2">
+                    <CopyToClipboard copyCodeToClipboard={copyCodeToClipboard} />
+                </div>
+            }
             {
                 displayCode ?
                     <GeneratedCodeDisplay generatedCode={generatedCode} /> :
                     <GeneratedCodePreviewer id={id}>
-                        <div dangerouslySetInnerHTML={{ __html: generatedCode }} />
+                        <div dangerouslySetInnerHTML={{ __html: generatedCode }} className="w-full h-full table" />
                     </GeneratedCodePreviewer>
             }
-        </section>
+        </div>
     );
 };
 

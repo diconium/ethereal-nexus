@@ -29,7 +29,8 @@ export const sendMessage = async (message: string) => {
                         
             Only HTML should be returned to the user, you should not give any indication of description of the generated UI.
             
-            If the user describes a UI that can be created with HTML call \`create_ui\`.
+            If the user describes a new UI that can be created with HTML call \`create_ui\`.
+            If the user asks for changes to the last generated UI call \`update_ui\`.
         `,
         text: ({ content, done }) => { // If the model doesn't have a relevant tool to use
             console.log("Content from text", content);
@@ -49,9 +50,7 @@ export const sendMessage = async (message: string) => {
                     generatedUI: z.string().describe('The HTML code that was generated.'),
                 }),
                 generate: async function* ({ generatedUI }) {
-                    console.log('Described Component aa', generatedUI);
-
-                    yield (<BotMessage>Loading bot message...</BotMessage>)
+                    yield (<BotMessage>Loading bot message...</BotMessage>);
 
                     // Update the AI state again with the response from the model.
                     history.done([
@@ -68,20 +67,42 @@ export const sendMessage = async (message: string) => {
                     );
                 }
             },
+            update_ui: {
+                description: "Update the last UI that was generated with the requested changes.",
+                parameters: z.object({
+                    newGeneratedUI: z.string().describe('The HTML code that was generated.'),
+                }),
+                generate: async function* ({ newGeneratedUI }) {
+                    yield (<BotMessage>Updating ui...</BotMessage>);
+
+                    // Update the AI state again with the response from the model.
+                    history.done([
+                        ...history.get(),
+                        {
+                            role: 'assistant',
+                            name: 'update_ui',
+                            content: newGeneratedUI,
+                        },
+                    ]);
+
+                    return (
+                        <GeneratedUISwitch generatedCode={newGeneratedUI} id={Date.now()} />
+                    );
+                }
+            },
         },
     });
 
     return {
         id: Date.now(),
         role: "assistant",
-        hasGeneratedUi: history.get().slice(-1).name === 'create_ui',
         display: reply.value,
     };
 };
 
 export type AIState = Array<{
     id?: number;
-    name?: "create_ui" | "update_component";
+    name?: "create_ui" | "update_ui";
     role: "assistant" | "user" | "system";
     content: string | ReactNode;
 }>;

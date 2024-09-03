@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 
 const GeneratedCodePreviewer = ({ children, ...props }) => {
     const [contentRef, setContentRef] = useState(null);
+    const [height, setHeight] = React.useState("0px");
 
     const mountNode = contentRef?.contentWindow?.document?.body;
 
@@ -15,16 +16,15 @@ const GeneratedCodePreviewer = ({ children, ...props }) => {
         tw.setAttribute("src", "https://cdn.tailwindcss.com");
         tw.onload = function () {
             iframeDoc.body.innerHTML = iframeDoc.body.innerHTML; // re render
+            if (iframeDoc.body?.scrollHeight) setHeight(`${iframeDoc.body.scrollHeight}px`);
         };
         iframeDoc.head.appendChild(tw);
     }, []);
 
     return (
-        <React.Fragment>
-            <iframe {...props} id={`iframe-${props.id}`} ref={setContentRef} width="100%" height="500px">
-                {mountNode && createPortal(children, mountNode)}
-            </iframe>
-        </React.Fragment>
+        <iframe {...props} id={`iframe-${props.id}`} ref={setContentRef} width="100%" height={height}>
+            {mountNode && createPortal(children, mountNode)}
+        </iframe>
     )
 }
 

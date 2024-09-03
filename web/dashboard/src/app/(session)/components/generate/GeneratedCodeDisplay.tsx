@@ -5,7 +5,7 @@ import React  from 'react';
 const GeneratedCodeDisplay = ({ generatedCode }) => {
     return (
         <section>
-            <pre>
+            <pre className="whitespace-pre-wrap">
                 <code>
                     {generatedCode}
                 </code>

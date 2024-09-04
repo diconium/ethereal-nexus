@@ -1,17 +1,18 @@
 "use client";
 
 import React from "react";
-import type { AI } from "@/data/ai/actions";
+import type { AI } from "@/components/components/create/utils/actions";
 import { Button } from "@/components/ui/button";
 import "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { useForm } from "@/data/ai/use-form";
-import { ChatInputs } from "@/data/ai/chat-schema";
-import { useEnterSubmit } from "@/data/ai/use-enter-submit";
+import { useForm } from "@/components/components/create/utils/use-form";
+import { ChatInputs } from "@/components/components/create/utils/chat-schema";
+import { useEnterSubmit } from "@/components/components/create/utils/use-enter-submit";
 import { useActions, useUIState } from "ai/rsc";
 import type { SubmitHandler } from "react-hook-form";
+import { UserMessage } from "./userMessageCard";
 
-export function NewProjectModalPage() {
+export function NewComponent() {
     const [messages, setMessages] = useUIState<typeof AI>([]);
 
     const { sendMessage } = useActions<typeof AI>();
@@ -51,7 +52,7 @@ export function NewProjectModalPage() {
                           <div className="font-medium text-center w-full">Describe the component that you want to create</div>
                       </div>
                   </div>
-                  <div className="flex-1 overflow-auto">
+                  <div className="flex-1 overflow-auto mb-4">
                       <div className="space-y-4 p-4 h-full">
                           {messages.map((message, index) => {
                                   return (
@@ -73,45 +74,5 @@ export function NewProjectModalPage() {
               </div>
           </div>
       </main>
-    );
-};
-
-
-export function UserMessage({ children } : { children: ReactNode }) {
-    return (
-        <div className="border border-gray-300 rounded-lg p-4 flex items-start gap-4 text-sm">
-            <div className="grid gap-1">
-                <div className="flex items-center gap-2">
-                    <div className="font-semibold">USER</div>
-                </div>
-                <div className="prose text-muted-foreground">
-                    {children}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-export function BotMessage({ children } : { children: ReactNode }) {
-    return (
-        <div className="border border-gray-300 rounded-lg p-4 flex items-start gap-4 text-sm">
-            <div className="grid gap-1">
-                <div className="flex items-center gap-2">
-                    <div className="font-semibold">ASSISTANT</div>
-                </div>
-                <div className="prose text-muted-foreground">
-                    {children}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-export const PreviewScreen = ({ html_code }: { html_code: string }) => {
-    console.log('HTML CODE', html_code);
-    return (
-        <div className="w-full h-full bg-white rounded-lg  shadow-lg p-2 border" style={{ border: "1px solid red" }}>
-            <div dangerouslySetInnerHTML={{ __html: html_code }} />
-        </div>
     );
 };

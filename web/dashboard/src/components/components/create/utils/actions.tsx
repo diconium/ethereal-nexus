@@ -5,8 +5,8 @@ import { getMutableAIState, streamUI, createAI } from "ai/rsc";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 import type { ToolInvocation } from 'ai'
-import { BotMessage } from "@/app/(session)/components/generate/Chat";
-import GeneratedUISwitch from "@/app/(session)/components/generate/GeneratedUISwitch";
+import { BotMessage } from "@/components/components/create/botMessageCard";
+import GeneratedUISwitch from "@/components/components/create/generatedUISwitch";
 
 export const sendMessage = async (message: string) => {
     const history = getMutableAIState<typeof AI>();

@@ -2,19 +2,18 @@
 
 import React  from 'react';
 import { ToogleCodePreviewUI } from "@/components/ui/toogle-code-preview-ui";
-import GeneratedCodeDisplay from "@/app/(session)/components/generate/GeneratedCodeDisplay";
-import GeneratedCodePreviewer from "@/app/(session)/components/generate/GeneratedCodePreviewer";
-import CopyToClipboard from "@/app/(session)/components/generate/CopyToClipboard";
+import GeneratedCodeDisplay from "@/components/components/create/generatedCodeDisplay";
+import GeneratedCodePreviewer from "@/components/components/create/generatedCodePreviewer";
+import { useCopyToClipboard } from "@/components/hooks/useCopyToClipboard";
+import { Button } from "@/components/ui/button";
+import { Clipboard, ClipboardCheck } from "lucide-react";
 
 const GeneratedUISwitch = ({ generatedCode, id }) => {
     const [displayCode, setDisplayCode] = React.useState<boolean>(true);
+    const [copiedText, copy] = useCopyToClipboard();
 
-    const copyCodeToClipboard = async () => {
-        try {
-            await navigator.clipboard.writeText(generatedCode);
-        } catch (error) {
-            console.error(error.message);
-        }
+    const handleCopy = async () => {
+        await copy(generatedCode);
     };
 
     return (
@@ -25,7 +24,11 @@ const GeneratedUISwitch = ({ generatedCode, id }) => {
             {
                 displayCode &&
                 <div className="absolute right-0 m-2 bottom-0 p-2">
-                    <CopyToClipboard copyCodeToClipboard={copyCodeToClipboard} />
+                    <Button variant="secondary" type="button" onClick={handleCopy}>
+                        {
+                            copiedText ? <ClipboardCheck className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />
+                        }
+                    </Button>
                 </div>
             }
             {

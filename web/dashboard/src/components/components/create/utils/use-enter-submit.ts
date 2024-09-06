@@ -2,12 +2,12 @@ import { type RefObject, useRef } from "react";
 
 export function useEnterSubmit(): {
     formRef: RefObject<HTMLFormElement>;
-    onKeyDown: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+    onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
 } {
-    const formRef = useRef<HTMLFormElement>(null);
+    const formRef = useRef<HTMLFormElement | null>(null);
 
     const handleKeyDown = (
-        event: React.KeyboardEvent<HTMLTextAreaElement>,
+        event: React.KeyboardEvent<HTMLInputElement>,
     ): void => {
         if (
             event.key === "Enter" &&

@@ -2,7 +2,11 @@
 
 import React  from 'react';
 
-const GeneratedCodeDisplay = ({ generatedCode }) => {
+interface GeneratedCodeDisplayProps {
+    generatedCode: string;
+};
+
+const GeneratedCodeDisplay = ({ generatedCode }: GeneratedCodeDisplayProps) => {
     return (
         <section>
             <pre className="whitespace-pre-wrap">

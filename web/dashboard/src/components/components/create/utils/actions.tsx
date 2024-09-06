@@ -63,7 +63,7 @@ export const sendMessage = async (message: string) => {
                     ]);
 
                     return (
-                        <GeneratedUISwitch generatedCode={generatedUI} id={Date.now()} />
+                        <GeneratedUISwitch generatedCode={generatedUI} identifier={Date.now()} />
                     );
                 }
             },

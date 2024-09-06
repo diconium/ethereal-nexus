@@ -6,7 +6,7 @@ import PreviewCodeIcon from "@/components/ui/icons/PreviewCodeIcon";
 
 export function ToogleCodePreviewUI({ previewCode, updateViewMode }) {
     return (
-        <div className="flex items-center h-9 p-2 bg-gray-300 rounded-full">
+        <div className="flex items-center h-9 p-2 bg-gray-300 rounded-full bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80">
             <button className="mr-1" onClick={updateViewMode} disabled={previewCode}>
                 {!previewCode ? (
                     <SourceCodeIcon width={25} height={25} fill="#575758" />

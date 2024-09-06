@@ -66,7 +66,7 @@ export function NewComponent() {
                   <div className="bottom-0 border-t px-4 py-3">
                       <div className="relative flex">
                           <form ref={formRef} onSubmit={form.handleSubmit(onSubmitPrompt)} className="mr-2 flex-1">
-                              <Input placeholder="Describe the UI that you want to generate..." className="bg-white dark:bg-transparent font-bold" {...form.register('message')}/>
+                              <Input placeholder="Describe the UI that you want to generate..." className="bg-white dark:bg-transparent font-bold" onKeyDown={onKeyDown} {...form.register('message')}/>
                           </form>
                           <Button type="submit" variant="primary" size="base" disabled={form.watch('message') === ''} onClick={form.handleSubmit(onSubmitPrompt)}>Submit</Button>
                       </div>

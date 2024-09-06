@@ -8,7 +8,12 @@ import { useCopyToClipboard } from "@/components/hooks/useCopyToClipboard";
 import { Button } from "@/components/ui/button";
 import { Clipboard, ClipboardCheck } from "lucide-react";
 
-const GeneratedUISwitch = ({ generatedCode, id }) => {
+interface GeneratedUISwitchProps {
+    generatedCode: string;
+    identifier: number;
+};
+
+const GeneratedUISwitch = ({ generatedCode, identifier } : GeneratedUISwitchProps) => {
     const [displayCode, setDisplayCode] = React.useState<boolean>(true);
     const [copiedText, copy] = useCopyToClipboard();
 
@@ -34,7 +39,7 @@ const GeneratedUISwitch = ({ generatedCode, id }) => {
             {
                 displayCode ?
                     <GeneratedCodeDisplay generatedCode={generatedCode} /> :
-                    <GeneratedCodePreviewer id={id}>
+                    <GeneratedCodePreviewer id={identifier}>
                         <div dangerouslySetInnerHTML={{ __html: generatedCode }} className="w-full h-full table" />
                     </GeneratedCodePreviewer>
             }

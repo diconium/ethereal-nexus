@@ -12,6 +12,10 @@ export class Tabs<TEntries> {
     const result = []
     const usedEntries = new Set();
 
+    if(this.tabs.size === 0) {
+      return entries
+    }
+
     for(const [name, mask] of this.tabs) {
       const children = []
       for(const [key,] of Object.entries(mask)) {

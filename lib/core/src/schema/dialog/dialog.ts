@@ -7,8 +7,8 @@ import { pathToArray } from '../../utils/pathToArray';
 
 export interface DialogSchema<TEntries extends ObjectEntries, TOutput = ObjectOutput<TEntries>> extends BaseSchema<TOutput> {
   type: 'dialog';
-  tabs: any
-  conditions: any
+  tabs: (tabs: Record<string, EntryMask<TEntries>>) => DialogSchema<TEntries>;
+  conditions: (conditions: Partial<Record<keyof TEntries, Conditions>>) => DialogSchema<TEntries>;
 }
 
 class DialogBuilder<TEntries extends ObjectEntries> {

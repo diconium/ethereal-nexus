@@ -61,7 +61,6 @@ const dialogSchema = dialog({
     },
     tab2: {
       rich: true,
-      gajasboas: true,
     },
     tab3: {
       title: true,
@@ -70,16 +69,11 @@ const dialogSchema = dialog({
     },
   })
   .conditions({
-    title: {
+    subtitle: {
       field: 'title',
       operator: 'eq',
-      value: 'ola'
+      value: 'foo'
     },
-    badjoras: {
-      field: 'title',
-      operator: 'eq',
-      value: 'ola'
-    }
   });
 
 const dynamicSlots = {
@@ -87,7 +81,7 @@ const dynamicSlots = {
   dynamiczonetwo: dynamic({}),
 };
 
-const schema = component({ name: 'TestReactHelloWorld', version: '0.0.87' }, dialogSchema, dynamicSlots);
+const schema = component({ name: 'TestReactHelloWorld', version: '0.0.87' }, dialogSchema, dynamicSlots );
 
 type Props = Output<typeof schema>
 

@@ -5,13 +5,13 @@ import { WebcomponentPropTypes } from '../../types/webcomponent';
 
 export interface ComponentSchema<TEntries extends ObjectEntries, TSlots extends SlotEntries, TOutput = ObjectOutput<TEntries & TSlots>> extends BaseSchema<TOutput>, Partial<ComponentModel> {
   type: 'component';
-  dialog: Omit<DialogSchema<TEntries>, 'tabs'>;
+  dialog: Omit<DialogSchema<TEntries>, 'tabs' | 'conditions'>;
   slots?: TSlots,
 }
 
 export function component<TEntries extends ObjectEntries, TSlots extends SlotEntries>(
   config: Partial<ComponentModel>,
-  dialog: Omit<DialogSchema<TEntries>, 'tabs'>,
+  dialog: Omit<DialogSchema<TEntries>, 'tabs' | 'conditions'>,
   slots?: TSlots,
 ): ComponentSchema<TEntries, TSlots> {
 

@@ -54,9 +54,6 @@ const dialogSchema = dialog({
     })
   })
 })
-  .conditions({
-    datetime: '',
-  })
   .tabs({
     tab1: {
       subtitle: true,
@@ -64,12 +61,20 @@ const dialogSchema = dialog({
     },
     tab2: {
       rich: true,
+      // gajasboas: true,
     },
     tab3: {
       title: true,
       image: true,
       imagetwo: true,
     },
+  })
+  .conditions({
+    title: {
+      field: 'title',
+      operator: 'eq',
+      value: 'ola'
+    }
   });
 
 const dynamicSlots = {

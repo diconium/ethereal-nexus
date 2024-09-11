@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  checkbox,
   component,
   dialog,
   dynamic,
@@ -39,6 +40,9 @@ const dialogSchema = dialog({
       type: 'string'
     })
   ),
+  checkbox: checkbox({
+    label: 'Show Links'
+  }),
   rich: rteComponent,
   banners: multifield({
     label: 'Banners',
@@ -69,11 +73,10 @@ const dialogSchema = dialog({
     },
   })
   .conditions({
-    subtitle: {
-      field: 'title',
-      operator: 'eq',
-      value: 'foo'
-    },
+    subtitle: ({ eq }) => eq('title', 'foo'),
+    banners: {
+      link: ops => ops.eq('checkbox', true)
+    }
   });
 
 const dynamicSlots = {

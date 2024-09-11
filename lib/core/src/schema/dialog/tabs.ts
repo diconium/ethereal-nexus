@@ -36,6 +36,10 @@ export class Tabs<TEntries> {
       })
     }
 
-    return result;
+    return [{
+      type: 'tabs',
+      id: 'tabs',
+      children: result
+    }]
   }
 }

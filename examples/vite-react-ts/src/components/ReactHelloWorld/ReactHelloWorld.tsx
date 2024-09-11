@@ -61,7 +61,7 @@ const dialogSchema = dialog({
     },
     tab2: {
       rich: true,
-      // gajasboas: true,
+      gajasboas: true,
     },
     tab3: {
       title: true,
@@ -71,6 +71,11 @@ const dialogSchema = dialog({
   })
   .conditions({
     title: {
+      field: 'title',
+      operator: 'eq',
+      value: 'ola'
+    },
+    badjoras: {
       field: 'title',
       operator: 'eq',
       value: 'ola'

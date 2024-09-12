@@ -75,3 +75,14 @@ export type PathValue<T, P extends string> =
     : P extends keyof T // If there is no dot, check if `P` is a key of `T`
       ? T[P] // Return the type for the key
       : never;
+
+
+/**
+ * Create a type that represents all possible nested key paths in an object.
+ *
+ * The keys are represented as strings, and nested paths are joined by dots.
+ * Each path includes the current key and the keys of any nested objects.
+ */
+export type NestedPaths<T> = T extends object ?
+  { [K in keyof T & string]: K | `${K}.${NestedPaths<T[K]>}` }[keyof T & string] :
+  never;

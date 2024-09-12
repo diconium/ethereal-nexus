@@ -1,14 +1,5 @@
-export interface Conditions {
-  field: string;
-  operator: 'eq' | 'neq' | 'and' | 'or';
-  value: any;
-}
-
-export type NestedPaths<T> = T extends object ?
-  {  [K in keyof T & string]: K | `${K}.${NestedPaths<T[K]>}` }[keyof T & string] :
-  never;
-
-export type Field = { id: string, condition?: Conditions, children: Field[] }
+import { NestedPaths } from '../../types';
+import { Conditions, Field } from './types';
 
 function addConditionToField(fields: Field[], path: string, condition: Conditions): void {
   const keys = path.split('.');
@@ -48,5 +39,4 @@ export class Condition<TEntries> {
 
     return entries;
   }
-
 }

@@ -1,5 +1,5 @@
 import { EntryMask } from '../../types';
-import { Field } from '../condition';
+import { Field } from './types';
 
 export class Tabs<TEntries> {
   private tabs = new Map<string, EntryMask<TEntries>>();

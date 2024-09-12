@@ -1,5 +1,6 @@
 import { WebcomponentPropTypes } from './webcomponent';
-import { Conditions } from '../schema/condition';
+
+import { Conditions } from '../schema/dialog/types';
 
 /**
  * Base schema type.

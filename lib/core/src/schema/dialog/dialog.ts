@@ -1,20 +1,10 @@
-import { AddType, BaseSchema, DeepPartial, EntryMask, Leaves, PathValue, UnArray } from '../../types';
+import { BaseSchema, EntryMask, NestedPaths } from '../../types';
 import { ObjectEntries, ObjectOutput } from '../../types/object';
 import { Tabs } from './tabs';
 import { WebcomponentPropTypes } from '../../types/webcomponent';
-import { Condition, Conditions, Field, NestedPaths } from '../condition';
+import { Condition } from './condition';
 import { pathToArray } from '../../utils/pathToArray';
-
-export interface ConditionOperators<TEntries extends ObjectEntries = any> {
-  eq: <P extends Leaves<UnArray<ObjectOutput<TEntries>>>>(
-    field: P,
-    value: PathValue<UnArray<ObjectOutput<TEntries>>, P>
-  ) => Conditions;
-}
-
-type ConditionFn<TEntries extends ObjectEntries> = (ops: ConditionOperators<TEntries>) => Conditions;
-
-type ConditionsArgument<TEntries extends ObjectEntries> = AddType<UnArray<DeepPartial<ObjectOutput<TEntries>>>, ConditionFn<TEntries>>
+import { ConditionOperators, ConditionsArgument } from './types';
 
 export interface DialogSchema<TEntries extends ObjectEntries> extends BaseSchema<ObjectOutput<TEntries>> {
   type: 'dialog';
@@ -22,7 +12,7 @@ export interface DialogSchema<TEntries extends ObjectEntries> extends BaseSchema
   conditions: (conditions: ConditionsArgument<TEntries>) => DialogSchema<TEntries>;
 }
 
-class DialogBuilder<TEntries extends ObjectEntries> {
+class DialogBuilder<TEntries extends ObjectEntries> implements DialogSchema<TEntries> {
   private conditionsModule: Condition<TEntries>;
   private tabsModule: Tabs<TEntries>;
   private readonly entries: TEntries;
@@ -66,7 +56,7 @@ class DialogBuilder<TEntries extends ObjectEntries> {
         }
       });
 
-    const dialogWithConditions = this.conditionsModule.parse(dialog as unknown as Field[]);
+    const dialogWithConditions = this.conditionsModule.parse(dialog);
     const dialogWithTabs = this.tabsModule.parse(dialogWithConditions);
     return {
       dialog: dialogWithTabs
@@ -87,6 +77,6 @@ class DialogBuilder<TEntries extends ObjectEntries> {
   }
 }
 
-export function dialog<TEntries extends ObjectEntries>(entries: TEntries): DialogSchema<TEntries> {
+export function dialog<TEntries extends ObjectEntries>(entries: TEntries) {
   return new DialogBuilder(entries)
 }

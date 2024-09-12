@@ -1,20 +1,31 @@
 import { ObjectEntries, ObjectOutput } from '../../types/object';
 import { AddType, DeepPartial, Leaves, PathValue, UnArray } from '../../types';
 
-export interface Conditions {
-  field: string;
-  operator: 'eq' | 'neq' | 'and' | 'or';
-  value: any;
+type Operators = 'eq' | 'neq' | 'and' | 'or' | 'exists'
+
+export interface Conditions<T extends Operators = Operators> {
+  operator: T;
+  field?: string;
+  value?: any;
 }
 
 export interface ConditionOperators<TEntries extends ObjectEntries = any> {
   eq: <P extends Leaves<UnArray<ObjectOutput<TEntries>>>>(
     field: P,
     value: PathValue<UnArray<ObjectOutput<TEntries>>, P>
-  ) => Conditions;
+  ) => Conditions<'eq'>;
+  neq: <P extends Leaves<UnArray<ObjectOutput<TEntries>>>>(
+    field: P,
+    value: PathValue<UnArray<ObjectOutput<TEntries>>, P>
+  ) => Conditions<'neq'>;
+  exists: <P extends Leaves<UnArray<ObjectOutput<TEntries>>>>(
+    field: P,
+  ) => Conditions<'exists'>;
+  and: (...args: Conditions[]) => Conditions<'and'>;
+  or: (...args: Conditions[]) => Conditions<'or'>;
 }
 
-type ConditionFn<TEntries extends ObjectEntries> = (ops: ConditionOperators<TEntries>) => Conditions;
+export type ConditionFn<TEntries extends ObjectEntries> = (ops: ConditionOperators<TEntries>) => Conditions;
 
 export type ConditionsArgument<TEntries extends ObjectEntries> = AddType<UnArray<DeepPartial<ObjectOutput<TEntries>>>, ConditionFn<TEntries>>
 

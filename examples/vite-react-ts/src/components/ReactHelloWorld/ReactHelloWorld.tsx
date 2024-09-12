@@ -73,9 +73,15 @@ const dialogSchema = dialog({
     },
   })
   .conditions({
-    subtitle: ({ eq }) => eq('title', 'foo'),
+    subtitle: ({ eq, or }) => or(
+      eq('title', 'foo'),
+      eq('title', 'bar'),
+    ),
     banners: {
-      link: ops => ops.eq('checkbox', true)
+      link: ({ eq, and, exists }) => and(
+        eq('checkbox', true),
+        exists('banners.title'),
+      )
     }
   });
 
@@ -84,7 +90,7 @@ const dynamicSlots = {
   dynamiczonetwo: dynamic({}),
 };
 
-const schema = component({ name: 'TestReactHelloWorld', version: '0.0.87' }, dialogSchema, dynamicSlots );
+const schema = component({ name: 'TestReactHelloWorld', version: '0.0.87' }, dialogSchema, dynamicSlots);
 
 type Props = Output<typeof schema>
 

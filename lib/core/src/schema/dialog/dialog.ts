@@ -4,7 +4,7 @@ import { Tabs } from './tabs';
 import { WebcomponentPropTypes } from '../../types/webcomponent';
 import { Condition } from './condition';
 import { pathToArray } from '../../utils/pathToArray';
-import { ConditionOperators, ConditionsArgument } from './types';
+import { ConditionsArgument } from './types';
 
 export interface DialogSchema<TEntries extends ObjectEntries> extends BaseSchema<ObjectOutput<TEntries>> {
   type: 'dialog';
@@ -25,13 +25,9 @@ class DialogBuilder<TEntries extends ObjectEntries> implements DialogSchema<TEnt
   }
 
   conditions(conditions: ConditionsArgument<TEntries>) {
-    const operators: ConditionOperators<TEntries> = {
-      eq: (field, value) => ({ operator: 'eq', field, value }),
-    };
-
     const conditionsArray = pathToArray(conditions)
     for (const condition of conditionsArray) {
-      this.conditionsModule.addCondition(condition.path.join('.') as NestedPaths<TEntries>, condition.value(operators));
+      this.conditionsModule.addCondition(condition.path.join('.') as NestedPaths<TEntries>, condition.value);
     }
     return this;
   }

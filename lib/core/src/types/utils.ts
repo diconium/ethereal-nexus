@@ -29,3 +29,49 @@ export type RequireAtLeastOne<TObject> = {
  */
 export type EntryMask<T> = RequireAtLeastOne<{ [key in keyof T]?: true }>;
 
+/**
+ * Create a type that makes all properties of an object and its nested objects optional.
+ */
+export type DeepPartial<T> = T extends object ? {
+  [P in keyof T]?: DeepPartial<T[P]>;
+} : T;
+
+/**
+ * Add a union type to all properties of an object and its nested objects.
+ */
+export type AddType<T, TUnion> = T extends object
+  ? { [K in keyof T]: AddType<T[K], TUnion> | TUnion }
+  : TUnion;
+
+/**
+ * Remove all array types, leaving the underlying type, including from nested objects.
+ */
+export type UnArray<T> = T extends Array<infer U>
+  ? UnArray<U>
+  : T extends object
+    ? { [K in keyof T]: UnArray<T[K]> }
+    : T;
+
+/**
+ * Create a type that represents all possible key paths in an object.
+ *
+ * The keys are represented as strings, and nested paths are joined by dots.
+ */
+export type Leaves<T> = T extends object ? {
+  [K in keyof T]:
+  `${Exclude<K, symbol>}${Leaves<T[K]> extends never ? '' : `.${Leaves<T[K]>}`}`
+}[keyof T] : never
+
+/**
+ * Get the type of the value at a given path in an object.
+ *
+ * The path is a string where nested properties are separated by dots.
+ */
+export type PathValue<T, P extends string> =
+  P extends `${infer K}.${infer Rest}` // Split the path into current key `K` and remaining path `Rest`
+    ? K extends keyof T // Check if `K` is a valid key of `T`
+      ? PathValue<T[K], Rest> // Recur for the remaining path `Rest`
+      : never // Invalid key, return never
+    : P extends keyof T // If there is no dot, check if `P` is a key of `T`
+      ? T[P] // Return the type for the key
+      : never;

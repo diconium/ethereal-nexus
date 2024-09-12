@@ -1,36 +1,9 @@
-import { BaseSchema, EntryMask, ResolveObject } from '../../types';
+import { AddType, BaseSchema, DeepPartial, EntryMask, Leaves, PathValue, UnArray } from '../../types';
 import { ObjectEntries, ObjectOutput } from '../../types/object';
 import { Tabs } from './tabs';
 import { WebcomponentPropTypes } from '../../types/webcomponent';
 import { Condition, Conditions, Field, NestedPaths } from '../condition';
 import { pathToArray } from '../../utils/pathToArray';
-
-type DeepPartial<T> = T extends object ? {
-  [P in keyof T]?: DeepPartial<T[P]>;
-} : T;
-
-type AddType<T, TUnion> = T extends object
-  ? { [K in keyof T]: AddType<T[K], TUnion> | TUnion }
-  : TUnion;
-
-type UnArray<T> = T extends Array<infer U>
-  ? UnArray<U>
-  : T extends object
-    ? { [K in keyof T]: UnArray<T[K]> }
-    : T;
-
-type Leaves<T> = T extends object ? { [K in keyof T]:
-  `${Exclude<K, symbol>}${Leaves<T[K]> extends never ? "" : `.${Leaves<T[K]>}`}`
-}[keyof T] : never
-
-type PathValue<T, P extends string> =
-  P extends `${infer K}.${infer Rest}` // Split the path into current key `K` and remaining path `Rest`
-    ? K extends keyof T // Check if `K` is a valid key of `T`
-      ? PathValue<T[K], Rest> // Recur for the remaining path `Rest`
-      : never // Invalid key, return never
-    : P extends keyof T // If there is no dot, check if `P` is a key of `T`
-      ? T[P] // Return the type for the key
-      : never;
 
 export interface ConditionOperators<TEntries extends ObjectEntries = any> {
   eq: <P extends Leaves<UnArray<ObjectOutput<TEntries>>>>(

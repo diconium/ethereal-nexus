@@ -1,11 +1,10 @@
 import { defineConfig } from 'vite'
 import ethereal from '@ethereal-nexus/vite-plugin-ethereal-nexus';
 import react from '@vitejs/plugin-react';
-import tsconfigPaths from 'vite-tsconfig-paths';
+import * as path from 'node:path';
 
 export default defineConfig({
   plugins: [
-    tsconfigPaths(),
     react(),
     ethereal({
       exposes: {
@@ -29,5 +28,10 @@ export default defineConfig({
     target: 'esnext',
     outDir: 'build',
     minify: true
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
   },
 })

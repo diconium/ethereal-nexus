@@ -1,9 +1,11 @@
 import { defineConfig } from 'vite'
 import ethereal from '@ethereal-nexus/vite-plugin-ethereal-nexus';
 import react from '@vitejs/plugin-react';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
   plugins: [
+    tsconfigPaths(),
     react(),
     ethereal({
       exposes: {

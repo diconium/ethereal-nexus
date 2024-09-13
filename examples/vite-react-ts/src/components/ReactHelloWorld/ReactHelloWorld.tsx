@@ -11,9 +11,9 @@ import {
   text
 } from '@ethereal-nexus/core';
 
-import { Item } from '../../patterns';
+import { Item } from '@/patterns';
 import { Parsys } from '@ethereal-nexus/conector-aem-react';
-import { titles } from '../../dialogs/titles.ts';
+import { titles } from '@/dialogs/titles.ts';
 
 import styles from './ReactHelloWorld.module.css';
 

@@ -7,7 +7,7 @@ import {
   type GetServerSideProps, hidden,
   image, multifield, object,
   optional,
-  type Output, pathbrowser, rte,
+  type Output, pathbrowser, rte, select,
   text
 } from '@ethereal-nexus/core';
 
@@ -44,6 +44,20 @@ const dialogSchema = dialog({
     label: 'Show Links'
   }),
   rich: rteComponent,
+  select: select({
+    label: 'Select',
+    multiple: true,
+    values: [
+      {
+        value: 'foo',
+        label: 'Foo'
+      },
+      {
+        value: 'bar',
+        label: 'Bar'
+      }
+    ]
+  }),
   banners: multifield({
     label: 'Banners',
     children: object({
@@ -96,6 +110,7 @@ type Props = Output<typeof schema>
 
 export const ReactHelloWorld: React.FC<Props> = ({
                                                    title,
+                                                   select,
                                                    subtitle,
                                                    datetime,
                                                    rich,

@@ -37,7 +37,7 @@ export function ComponentsDialog({ components, environment, project }: Component
   const handleSubmit = async () => {
     const updateResult = await Promise.all(
       selectedComponents.map( async (component) => (
-        await upsertComponentConfig({environment_id: environment, component_id: component, is_active:true}, session?.user?.id, 'project_component_added')
+        await upsertComponentConfig({environment_id: environment, component_id: component, is_active:true}, project, session?.user?.id, 'project_component_added')
       ))
     );
 

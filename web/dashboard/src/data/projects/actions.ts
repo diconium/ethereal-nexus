@@ -682,6 +682,7 @@ export async function upsertComponentConfig(
 
 export async function deleteComponentConfig(
   id: string,
+  projectId: string,
   userId: string | undefined | null,
 ): ActionResponse<ProjectComponentConfig[]> {
   if (!userId) {
@@ -692,10 +693,7 @@ export async function deleteComponentConfig(
     const deleted = await db
       .delete(projectComponentConfig)
       .where(
-        and(
-          userIsMember(userId, projectComponentConfig.project_id),
-          eq(projectComponentConfig.id, id)
-        )
+        eq(projectComponentConfig.id, id)
       )
       .returning();
 
@@ -711,7 +709,7 @@ export async function deleteComponentConfig(
       type: 'project_component_removed',
       user_id: userId,
       data: { component_id: safe.data[0].component_id },
-      resource_id: safe.data[0].project_id,
+      resource_id: projectId,
     });
 
 

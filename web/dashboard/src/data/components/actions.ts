@@ -39,7 +39,6 @@ async function upsertComponentVersion(version: NewComponentVersion) {
           safeVersion.error
         );
     }
-
     const result = await db
       .insert(componentVersions)
       .values(safeVersion.data)

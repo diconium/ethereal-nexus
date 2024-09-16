@@ -60,7 +60,7 @@ export async function getProjects(
         projectComponentConfig,
         eq(environments.id, projectComponentConfig.environment_id),
       )
-      .where(userIsMember(userId))
+      .where(await userIsMember(userId))
       .groupBy(projects.id);
 
     const safe = z.array(projectWithComponentIdSchema).safeParse(select);

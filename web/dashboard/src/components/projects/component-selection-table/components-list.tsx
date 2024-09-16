@@ -24,7 +24,7 @@ export async function ProjectComponentsList({id}: {id: string}) {
     }}
     entity={'components'}
     createSlot={
-       <ComponentsDialog components={components} projectId={id}/>
+       <ComponentsDialog components={components} environment={environment} project={id}/>
     }
   />
 }

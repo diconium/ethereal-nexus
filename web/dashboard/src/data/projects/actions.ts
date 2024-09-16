@@ -578,6 +578,7 @@ export async function upsertProject(
 
 export async function upsertComponentConfig(
   componentConfig: ProjectComponentConfigInput,
+  projectId: string,
   userId: string | undefined | null,
   eventType: string,
 ): ActionResponse<ProjectComponentConfig> {
@@ -601,7 +602,7 @@ export async function upsertComponentConfig(
       .onConflictDoUpdate({
         target: [
           projectComponentConfig.component_id,
-          projectComponentConfig.project_id,
+          projectComponentConfig.environment_id,
         ],
         set: {
           is_active: safeInput.data.is_active,
@@ -622,7 +623,7 @@ export async function upsertComponentConfig(
     const logData = {
       version_id: safe.data.component_version,
       component_id: safe.data.component_id,
-      project_id: safe.data.project_id,
+      project_id: projectId,
     };
     switch (eventType) {
       case 'project_component_added':
@@ -630,7 +631,7 @@ export async function upsertComponentConfig(
           type: 'project_component_added',
           data: logData,
           user_id: userId,
-          resource_id: safeInput.data.project_id,
+          resource_id: projectId,
         });
         break;
       case 'project_component_activated':
@@ -638,7 +639,7 @@ export async function upsertComponentConfig(
           type: 'project_component_activated',
           data: logData,
           user_id: userId,
-          resource_id: safeInput.data.project_id,
+          resource_id: projectId,
         });
         await logEvent({
           type: 'component_activated',
@@ -652,7 +653,7 @@ export async function upsertComponentConfig(
           type: 'project_component_deactivated',
           data: logData,
           user_id: userId,
-          resource_id: safeInput.data.project_id,
+          resource_id: projectId,
         });
         await logEvent({
           type: 'component_deactivated',
@@ -666,7 +667,7 @@ export async function upsertComponentConfig(
           type: 'project_component_version_updated',
           data: logData,
           user_id: userId,
-          resource_id: safeInput.data.project_id,
+          resource_id: projectId,
         });
     }
 

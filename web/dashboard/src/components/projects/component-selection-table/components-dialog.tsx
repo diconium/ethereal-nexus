@@ -20,14 +20,15 @@ import { Plus } from 'lucide-react';
 
 type ComponentsDialogProps = {
   components: any,
-  projectId: string,
+  project: string,
+  environment: string,
 }
 
-export function ComponentsDialog({ components, projectId }: ComponentsDialogProps) {
+export function ComponentsDialog({ components, environment, project }: ComponentsDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
   const { data: session } = useSession();
-  const isDisabled = session?.permissions[projectId] !== 'write';
+  const isDisabled = session?.permissions[project] !== 'write';
 
   if(!components.success) {
     throw new Error(components.error.message)
@@ -36,7 +37,7 @@ export function ComponentsDialog({ components, projectId }: ComponentsDialogProp
   const handleSubmit = async () => {
     const updateResult = await Promise.all(
       selectedComponents.map( async (component) => (
-        await upsertComponentConfig({project_id: projectId, component_id: component, is_active:true}, session?.user?.id, 'project_component_added')
+        await upsertComponentConfig({environment_id: environment, component_id: component, is_active:true}, session?.user?.id, 'project_component_added')
       ))
     );
 

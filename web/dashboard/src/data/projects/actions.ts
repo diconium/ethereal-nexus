@@ -117,7 +117,7 @@ export async function getProjectsWithComponents(
   }
 }
 
-export async function getProjectComponents(
+export async function getEnvironmentComponents(
   id: string | undefined | null,
   userId: string | undefined | null,
 ): ActionResponse<ProjectComponent[]> {
@@ -158,7 +158,7 @@ export async function getProjectComponents(
         projectComponentConfig.id,
         projectComponentConfig.is_active,
       )
-      .where(eq(projectComponentConfig.project_id, id))
+      .where(eq(projectComponentConfig.environment_id, id))
       .orderBy(
         sql`${projectComponentConfig.is_active} DESC NULLS LAST`,
         sql`${componentVersions.version} NULLS LAST`,
@@ -180,7 +180,7 @@ export async function getProjectComponents(
   }
 }
 
-export async function getComponentsNotInProject(
+export async function getComponentsNotInEnvironment(
   id: string | undefined | null,
   userId: string | undefined | null,
 ): ActionResponse<Component[]> {
@@ -202,8 +202,14 @@ export async function getComponentsNotInProject(
         projectComponentConfig,
         and(
           eq(components.id, projectComponentConfig.component_id),
-          eq(projectComponentConfig.project_id, id),
-          userIsMember(userId, projectComponentConfig.project_id),
+          eq(projectComponentConfig.environment_id, id),
+        ),
+      )
+      .leftJoin(
+        environments,
+        and(
+          eq(projectComponentConfig.environment_id, environments.id),
+          await userIsMember(userId, environments.project_id),
         ),
       )
       .where(

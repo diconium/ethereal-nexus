@@ -1,14 +1,15 @@
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { columns } from './columns';
 import React from 'react';
-import { getComponentsNotInProject, getProjectComponents } from '@/data/projects/actions';
+import { getComponentsNotInEnvironment, getEnvironmentComponents } from '@/data/projects/actions';
 import { auth } from '@/auth';
 import { ComponentsDialog } from '@/components/projects/component-selection-table/components-dialog';
 
 export async function ProjectComponentsList({id}: {id: string}) {
   const session = await auth()
-  const project = await getProjectComponents(id, session?.user?.id);
-  const components = await getComponentsNotInProject(id, session?.user?.id);
+  const environment = '389e0fbf-3815-46fd-84ac-97fdfb7bfff2';
+  const project = await getEnvironmentComponents(environment, session?.user?.id);
+  const components = await getComponentsNotInEnvironment(environment, session?.user?.id);
 
   if(!project.success) {
     throw new Error(project.error.message)
@@ -23,7 +24,7 @@ export async function ProjectComponentsList({id}: {id: string}) {
     }}
     entity={'components'}
     createSlot={
-      <ComponentsDialog components={components} projectId={id}/>
+       <ComponentsDialog components={components} projectId={id}/>
     }
   />
 }

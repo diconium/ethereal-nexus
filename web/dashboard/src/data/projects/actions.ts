@@ -25,7 +25,7 @@ import {
 } from './dto';
 import * as console from 'console';
 import { and, desc, eq, getTableColumns, isNull, sql } from 'drizzle-orm';
-import { projectComponentConfig, projects } from './schema';
+import { environments, projectComponentConfig, projects } from './schema';
 import { insertMembers, userIsMember } from '@/data/member/actions';
 import { componentAssets, components, componentVersions } from '@/data/components/schema';
 import { revalidatePath } from 'next/cache';
@@ -40,17 +40,28 @@ export async function getProjects(
   }
 
   try {
-    const select = await db.query.projects.findMany({
-      where: userIsMember(userId),
-      with: {
-        components: {
-          columns: {
-            component_id: true,
-          },
-          where: (component, { eq }) => eq(component?.is_active, true),
-        },
-      },
-    });
+    const select = await db
+      .select({
+        ...getTableColumns(projects),
+        components: sql`COALESCE(
+                                    JSONB_AGG(
+                                    DISTINCT jsonb_build_object(
+                                    'component_id', ${projectComponentConfig.component_id}
+                                    )
+                                    ) FILTER (WHERE ${projectComponentConfig.is_active} = true), '[]'
+                                )`
+      })
+      .from(projects)
+      .leftJoin(
+        environments,
+        eq(projects.id, environments.project_id),
+      )
+      .leftJoin(
+        projectComponentConfig,
+        eq(environments.id, projectComponentConfig.environment_id),
+      )
+      .where(userIsMember(userId))
+      .groupBy(projects.id);
 
     const safe = z.array(projectWithComponentIdSchema).safeParse(select);
     if (!safe.success) {
@@ -295,13 +306,13 @@ export async function getProjectComponentConfig(
   }
 
   const assets = sql`
-    ARRAY_AGG(
-      jsonb_build_object(
-        'id', ${componentAssets.id},
-        'url', ${componentAssets.url},
-        'type', ${componentAssets.type}
-      )
-    )
+      ARRAY_AGG(
+                   jsonb_build_object(
+                   'id', ${componentAssets.id},
+                   'url', ${componentAssets.url},
+                   'type', ${componentAssets.type}
+                   )
+               )
   `;
   const latest_version = db.select()
     .from(componentVersions)
@@ -372,13 +383,13 @@ export async function getProjectComponentConfigWithVersion(
   }
 
   const assets = sql`
-    ARRAY_AGG(
-      jsonb_build_object(
-        'id', ${componentAssets.id},
-        'url', ${componentAssets.url},
-        'type', ${componentAssets.type}
-      )
-    )
+      ARRAY_AGG(
+                   jsonb_build_object(
+                   'id', ${componentAssets.id},
+                   'url', ${componentAssets.url},
+                   'type', ${componentAssets.type}
+                   )
+               )
   `;
   const latest_version = db.select()
     .from(componentVersions)

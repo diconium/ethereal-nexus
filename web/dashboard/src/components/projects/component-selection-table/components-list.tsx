@@ -5,9 +5,8 @@ import { getComponentsNotInEnvironment, getEnvironmentComponents } from '@/data/
 import { auth } from '@/auth';
 import { ComponentsDialog } from '@/components/projects/component-selection-table/components-dialog';
 
-export async function ProjectComponentsList({id}: {id: string}) {
+export async function ProjectComponentsList({id, environment}: {id: string, environment: string }) {
   const session = await auth()
-  const environment = '389e0fbf-3815-46fd-84ac-97fdfb7bfff2';
   const project = await getEnvironmentComponents(environment, session?.user?.id);
   const components = await getComponentsNotInEnvironment(environment, session?.user?.id);
 
@@ -25,7 +24,7 @@ export async function ProjectComponentsList({id}: {id: string}) {
     }}
     entity={'components'}
     createSlot={
-       <ComponentsDialog components={components} environment={environment} project={id}/>
+      <ComponentsDialog components={components} environment={environment} project={id}/>
     }
   />
 }

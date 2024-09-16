@@ -10,7 +10,7 @@ import ProjectsForm from '@/components/projects/project-form';
 import { getResourceEvents } from '@/data/events/actions';
 import { ProjectEvents } from '@/components/projects/project-events/project-events';
 
-export default async function EditProject({ params: { id }, searchParams: { tab } }: any) {
+export default async function EditProject({ params: { id }, searchParams: { tab, env } }: any) {
   const session = await auth();
   const project = await getProjectById(id, session?.user?.id);
   const events = await getResourceEvents(id);
@@ -53,6 +53,7 @@ export default async function EditProject({ params: { id }, searchParams: { tab 
         <TabsContent value="components" className="space-y-4">
           <ProjectComponentsList
             id={id}
+            environment={env}
           />
         </TabsContent>
         <TabsContent value="users" className="space-y-4">
@@ -66,7 +67,7 @@ export default async function EditProject({ params: { id }, searchParams: { tab 
           />
         </TabsContent>
         <TabsContent value="activity">
-         <ProjectEvents events={events} />
+          <ProjectEvents events={events} />
         </TabsContent>
       </Tabs>
     </div>

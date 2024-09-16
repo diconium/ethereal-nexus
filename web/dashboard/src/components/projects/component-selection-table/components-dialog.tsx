@@ -16,7 +16,8 @@ import { upsertComponentConfig } from '@/data/projects/actions';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Plus } from 'lucide-react';
+import { Check, ChevronDownIcon, Plus } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 type ComponentsDialogProps = {
   components: any,
@@ -26,6 +27,8 @@ type ComponentsDialogProps = {
 
 export function ComponentsDialog({ components, environment, project }: ComponentsDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isEnvironmentOpen, setEnvironmentOpen] = useState(false)
+
   const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
   const { data: session } = useSession();
   const isDisabled = session?.permissions[project] !== 'write';
@@ -55,12 +58,58 @@ export function ComponentsDialog({ components, environment, project }: Component
   };
 
   return (
-    <>
+    <div className="flex justify-between">
+      <Popover open={isEnvironmentOpen} onOpenChange={setEnvironmentOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="flex justify-between min-w-[125px]">
+            {environment}
+            <ChevronDownIcon className="ml-2 h-4 w-4 text-muted-foreground" />
+          </Button>
+        </PopoverTrigger>
+        {/*<PopoverContent className="p-0" align="end">*/}
+        {/*  <Command>*/}
+        {/*    <CommandInput placeholder="Select version..." />*/}
+        {/*    <CommandList>*/}
+        {/*      <CommandEmpty>No versions found.</CommandEmpty>*/}
+        {/*      <CommandGroup>*/}
+        {/*        <CommandItem*/}
+        {/*          key={'latest'}*/}
+        {/*          value={'latest'}*/}
+        {/*          onSelect={handler(null)*/}
+        {/*          }*/}
+        {/*          className="teamaspace-y-1 flex flex-col items-start px-4 py-2"*/}
+        {/*        >*/}
+        {/*      <span*/}
+        {/*        className="flex items-center">*/}
+        {/*        {selected === null ? <Check className="mr-2 h-4 w-4 text-muted-foreground" /> : null}*/}
+        {/*        <p>latest</p>*/}
+        {/*      </span>*/}
+        {/*        </CommandItem>*/}
+        {/*        {*/}
+        {/*          versions.map(version => (*/}
+        {/*            <CommandItem*/}
+        {/*              key={version.id}*/}
+        {/*              value={version.version}*/}
+        {/*              onSelect={handler(version.id)*/}
+        {/*              }*/}
+        {/*              className="teamaspace-y-1 flex flex-col items-start px-4 py-2"*/}
+        {/*            >*/}
+        {/*          <span*/}
+        {/*            className="flex items-center">*/}
+        {/*          {selected === version.version ? <Check className="mr-2 h-4 w-4 text-muted-foreground" /> : null}*/}
+        {/*            <p>{version.version}</p>*/}
+        {/*          </span>*/}
+        {/*            </CommandItem>))*/}
+        {/*        }*/}
+        {/*      </CommandGroup>*/}
+        {/*    </CommandList>*/}
+        {/*  </Command>*/}
+        {/*</PopoverContent>*/}
+      </Popover>
       <Button
         size="base"
         variant='primary'
         onClick={() => setIsOpen(true)}
-        className="ml-auto flex"
         disabled={isDisabled}
       >
         <Plus />
@@ -130,6 +179,6 @@ export function ComponentsDialog({ components, environment, project }: Component
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

@@ -484,11 +484,18 @@ export async function getProjectById(
   }
 
   try {
-    const select = await db.query.projects.findFirst({
-      where: and(eq(projects.id, id), userIsMember(userId)),
-    });
+    const select = await db
+      .select()
+      .from(projects)
+      .where(
+        and(
+          eq(projects.id, id),
+          await userIsMember(userId)
+        )
+      )
+      .limit(1)
 
-    const safe = projectSchema.safeParse(select);
+    const safe = projectSchema.safeParse(select[0]);
     if (!safe.success) {
       return actionZodError(
         "There's an issue with the project records.",

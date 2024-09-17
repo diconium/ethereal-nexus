@@ -157,3 +157,10 @@ export const projectComponentConfigInputSchema = createInsertSchema(
 export type ProjectComponentConfigInput = z.infer<
   typeof projectComponentConfigInputSchema
 >;
+
+export const environmentInputSchema = createInsertSchema(
+  environments
+);
+export type EnvironmentInput = z.infer<
+  typeof environmentInputSchema
+>;

@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import {
-  Environment,
+  Environment, EnvironmentInput, environmentInputSchema,
   environmentsSchema,
   type Project,
   ProjectComponent,
@@ -918,6 +918,57 @@ export async function upsertComponentConfig(
   }
 }
 
+export async function upsertEnvironment(
+  environment: EnvironmentInput,
+  userId: string | undefined | null,
+): ActionResponse<Environment> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  const safeInput = environmentInputSchema.safeParse(environment);
+  if (!safeInput.success) {
+    return actionZodError(
+      'Failed to parse environment input',
+      safeInput.error
+    );
+  }
+
+  try {
+    const insert = await db
+      .insert(environments)
+      .values(safeInput.data)
+      .onConflictDoUpdate({
+        target: [
+          environments.id,
+        ],
+        set: {
+          secure: safeInput.data.secure,
+          description: safeInput.data.description,
+        }
+      })
+      .returning();
+
+    console.log(insert)
+
+    const safe = environmentsSchema.safeParse(insert[0]);
+    if (!safe.success) {
+      return actionZodError(
+        'There\'s an issue with the environment record.',
+        safe.error
+      );
+    }
+    revalidatePath('/(layout)/(session)/projects/[id]', 'layout');
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      'Failed to insert project component config into database.'
+    );
+  }
+}
+
 export async function deleteComponentConfig(
   id: string,
   projectId: string,
@@ -950,6 +1001,41 @@ export async function deleteComponentConfig(
       resource_id: projectId
     });
 
+
+    revalidatePath('/(layout)/(session)/projects/[id]', 'layout');
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to delete config from database.');
+  }
+}
+
+export async function deleteEnvironment(
+  id: string,
+  userId: string | undefined | null
+): ActionResponse<Environment[]> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  try {
+    const deleted = await db
+      .delete(environments)
+      .where(
+        and(
+          eq(environments.id, id),
+          await userIsMember(userId, environments.project_id),
+        )
+      )
+      .returning();
+
+    const safe = z.array(environmentsSchema).safeParse(deleted);
+    if (!safe.success) {
+      return actionZodError(
+        'There\'s an issue with the config records.',
+        safe.error
+      );
+    }
 
     revalidatePath('/(layout)/(session)/projects/[id]', 'layout');
     return actionSuccess(safe.data);

@@ -52,6 +52,7 @@ export default async function EditProject({ params: { id }, searchParams: { tab,
         </TabsList>
         <TabsContent value="components" className="space-y-4">
           <ProjectComponentsList
+            key={env}
             id={id}
             environment={env}
           />

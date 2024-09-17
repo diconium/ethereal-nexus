@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import {
+  Environment,
+  environmentsSchema,
   type Project,
   ProjectComponent,
   ProjectComponentConfig,
@@ -77,6 +79,42 @@ export async function getProjects(
     return actionError('Failed to fetch project from database.');
   }
 }
+
+export async function getEnvironmentsByProject(
+  projectId: string,
+  userId: string | undefined | null,
+): ActionResponse<Environment[]> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  console.log('projectId', projectId)
+  try {
+    const select = await db
+      .select()
+      .from(environments)
+      .where(
+        and(
+          eq(environments.project_id, projectId),
+          await userIsMember(userId, environments.project_id)
+        )
+      )
+
+    const safe = z.array(environmentsSchema).safeParse(select);
+    if (!safe.success) {
+      return actionZodError(
+        "There's an issue with the environments records.",
+        safe.error,
+      );
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to fetch environments from database.');
+  }
+}
+
 
 export async function getProjectsWithComponents(
   userId: string | undefined | null,

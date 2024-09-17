@@ -1,4 +1,4 @@
-import { projectComponentConfig, projects } from './schema';
+import { environments, projectComponentConfig, projects } from './schema';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import {
   componentAssetsSchema,
@@ -29,6 +29,9 @@ import {userSchema} from "@/data/users/dto";
  */
 export const projectSchema = createSelectSchema(projects);
 export type Project = z.infer<typeof projectSchema>;
+
+export const environmentsSchema = createSelectSchema(environments);
+export type Environment = z.infer<typeof environmentsSchema>;
 
 export const projectComponentConfigSchema = createSelectSchema(
   projectComponentConfig,

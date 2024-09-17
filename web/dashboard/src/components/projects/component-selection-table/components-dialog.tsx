@@ -1,38 +1,39 @@
 'use client';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import React, { useState } from 'react';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { upsertComponentConfig } from '@/data/projects/actions';
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
-import { cn } from '@/lib/utils';
 import { Check, ChevronDownIcon, Plus } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { type Environment } from '@/data/projects/dto';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 type ComponentsDialogProps = {
   components: any,
   project: string,
   environment: string,
+  environments: Environment[],
 }
 
-export function ComponentsDialog({ components, environment, project }: ComponentsDialogProps) {
+export function ComponentsDialog({ components, environment, project, environments }: ComponentsDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isEnvironmentOpen, setEnvironmentOpen] = useState(false)
-
   const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
+
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
+
   const { data: session } = useSession();
   const isDisabled = session?.permissions[project] !== 'write';
 
+  const selected = environments.find(env => env.id === environment)
   if(!components.success) {
     throw new Error(components.error.message)
   }
@@ -57,54 +58,58 @@ export function ComponentsDialog({ components, environment, project }: Component
     }
   };
 
+  function handleEnvironment(environmentId: string | null) {
+    return () => {
+      const params = new URLSearchParams(searchParams);
+      if (environmentId) {
+        params.set('env', environmentId);
+      }
+      replace(`${pathname}?${params.toString()}`);
+
+      setEnvironmentOpen(false);
+    }
+  }
+
   return (
     <div className="flex justify-between">
       <Popover open={isEnvironmentOpen} onOpenChange={setEnvironmentOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" className="flex justify-between min-w-[125px]">
-            {environment}
+            { selected!.name }
             <ChevronDownIcon className="ml-2 h-4 w-4 text-muted-foreground" />
           </Button>
         </PopoverTrigger>
-        {/*<PopoverContent className="p-0" align="end">*/}
-        {/*  <Command>*/}
-        {/*    <CommandInput placeholder="Select version..." />*/}
-        {/*    <CommandList>*/}
-        {/*      <CommandEmpty>No versions found.</CommandEmpty>*/}
-        {/*      <CommandGroup>*/}
-        {/*        <CommandItem*/}
-        {/*          key={'latest'}*/}
-        {/*          value={'latest'}*/}
-        {/*          onSelect={handler(null)*/}
-        {/*          }*/}
-        {/*          className="teamaspace-y-1 flex flex-col items-start px-4 py-2"*/}
-        {/*        >*/}
-        {/*      <span*/}
-        {/*        className="flex items-center">*/}
-        {/*        {selected === null ? <Check className="mr-2 h-4 w-4 text-muted-foreground" /> : null}*/}
-        {/*        <p>latest</p>*/}
-        {/*      </span>*/}
-        {/*        </CommandItem>*/}
-        {/*        {*/}
-        {/*          versions.map(version => (*/}
-        {/*            <CommandItem*/}
-        {/*              key={version.id}*/}
-        {/*              value={version.version}*/}
-        {/*              onSelect={handler(version.id)*/}
-        {/*              }*/}
-        {/*              className="teamaspace-y-1 flex flex-col items-start px-4 py-2"*/}
-        {/*            >*/}
-        {/*          <span*/}
-        {/*            className="flex items-center">*/}
-        {/*          {selected === version.version ? <Check className="mr-2 h-4 w-4 text-muted-foreground" /> : null}*/}
-        {/*            <p>{version.version}</p>*/}
-        {/*          </span>*/}
-        {/*            </CommandItem>))*/}
-        {/*        }*/}
-        {/*      </CommandGroup>*/}
-        {/*    </CommandList>*/}
-        {/*  </Command>*/}
-        {/*</PopoverContent>*/}
+        <PopoverContent className="p-0" align="end">
+          <Command>
+            <CommandInput placeholder="Select environment..." />
+            <CommandList>
+              <CommandGroup>
+                {
+                  environments
+                    .map(env => (
+                        <CommandItem
+                          key={env.id}
+                          value={env.name}
+                          onSelect={handleEnvironment(env.id)}
+                          className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
+                        >
+                      <span
+                        className="flex items-center">
+                          {
+                            environment === env.id ?
+                              <Check className="mr-2 h-4 w-4 text-muted-foreground" /> :
+                              null
+                          }
+                        <p>{env.name}</p>
+                      </span>
+                        </CommandItem>
+                      )
+                    )
+                }
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
       </Popover>
       <Button
         size="base"

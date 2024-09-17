@@ -72,8 +72,12 @@ async function upsertComponentVersion(version: NewComponentVersion) {
 
 export async function upsertComponentWithVersion(
   component: ComponentToUpsert,
-  userId: string
+  userId?: string
 ): Promise<Result<ComponentWithVersion>> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
   const safeComponent = componentsUpsertSchema.safeParse(component);
   if (!safeComponent.success) {
     return actionZodError(

@@ -45,6 +45,7 @@ export async function getProjects(
     const select = await db
       .select({
         ...getTableColumns(projects),
+        environments: sql`ARRAY_AGG(jsonb_build_object('id', ${environments.id}, 'name', ${environments.name}))`,
         components: sql`COALESCE
         ( JSONB_AGG(
             DISTINCT jsonb_build_object(
@@ -71,6 +72,7 @@ export async function getProjects(
         safe.error
       );
     }
+    console.log(safe.data)
 
     return actionSuccess(safe.data);
   } catch (error) {

@@ -13,7 +13,6 @@ export function UpdateProjectsView({ projects}) {
   return (
     <>
       {viewMode === 'list' ? (
-
           projects.success ?
             <DataTable
               colWidth

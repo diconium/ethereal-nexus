@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ClipboardCopy, Pencil, Trash } from "lucide-react";
+  DropdownMenuItem, DropdownMenuPortal,
+  DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { ClipboardCopy, Mail, MessageSquare, Pencil, PlusCircle, Trash } from 'lucide-react';
 import { MouseEventHandler, useState } from 'react';
-import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
+import { Dialog, DialogTrigger } from '@radix-ui/react-dialog';
 import {
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { toast } from "@/components/ui/use-toast";
-import Link from "next/link";
+  DialogTitle
+} from '@/components/ui/dialog';
+import { toast } from '@/components/ui/use-toast';
+import Link from 'next/link';
 import { deleteProject } from '@/data/projects/actions';
 import type { Project } from '@/data/projects/dto';
 import DotsIcon from '@/components/ui/icons/DotsIcon';
@@ -28,41 +28,41 @@ import { useSession } from 'next-auth/react';
 export function ProjectsDataTableRowActions({ table, row }) {
   const project = row.original;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const {data: session} = useSession()
+  const { data: session } = useSession();
 
   const handleDeleteOk = async () => {
-    setDeleteDialogOpen(false)
+    setDeleteDialogOpen(false);
 
     const { data, setData } = table.getState();
     if (project) {
-      const deleted = await deleteProject(project.id, session?.user?.id)
+      const deleted = await deleteProject(project.id, session?.user?.id);
 
-      if(deleted.success) {
+      if (deleted.success) {
         setData(
           data.filter(
-            (eachProject: Project) => project.name !== eachProject.name,
-          ),
+            (eachProject: Project) => project.name !== eachProject.name
+          )
         );
         toast({
-          title: `Project ${project.name} was deleted successfully`,
+          title: `Project ${project.name} was deleted successfully`
         });
       }
 
       toast({
-        title: `Project ${project.name} could not be deleted`,
+        title: `Project ${project.name} could not be deleted`
       });
     }
   };
 
-  const copyProjectUrl: MouseEventHandler = () => {
+  const copyProjectUrl: (id: string) => MouseEventHandler = (id) => () => {
     navigator.clipboard.writeText(
       window.location.origin +
-      `/api/v1/projects/${project.id}/components`,
+      `/api/v1/environments/${id}/components`
     ).then(() => {
       toast({
-        title: "Project URL copied to clipboard",
+        title: 'Project URL copied to clipboard'
       });
-    })
+    });
   };
 
   return (
@@ -73,14 +73,27 @@ export function ProjectsDataTableRowActions({ table, row }) {
             variant="ghost"
             className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
           >
-            <DotsIcon data-testid="ethereal-dots-icon" width="20" height="20"/>
+            <DotsIcon data-testid="ethereal-dots-icon" width="20" height="20" />
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
-          <DropdownMenuItem onClick={copyProjectUrl}>
-            <ClipboardCopy className="mr-2 h-4 w-4" /> Copy URL
-          </DropdownMenuItem>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <ClipboardCopy className="mr-2 h-4 w-4" />
+              <span>Copy URL</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                {
+                  project.environments.map(e =>
+                    <DropdownMenuItem key={e.id} onClick={copyProjectUrl(e.id)}>
+                      <span>{e.name}</span>
+                    </DropdownMenuItem>)
+                }
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
           <Link href={`/projects/${project.id}`}>
             <DropdownMenuItem>
               <Pencil className="mr-2 h-4 w-4" /> Edit

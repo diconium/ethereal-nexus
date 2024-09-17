@@ -32,17 +32,10 @@ export function ProjectsDataTableRowActions({ table, row }) {
 
   const handleDeleteOk = async () => {
     setDeleteDialogOpen(false);
-
-    const { data, setData } = table.getState();
     if (project) {
       const deleted = await deleteProject(project.id, session?.user?.id);
 
       if (deleted.success) {
-        setData(
-          data.filter(
-            (eachProject: Project) => project.name !== eachProject.name
-          )
-        );
         toast({
           title: `Project ${project.name} was deleted successfully`
         });

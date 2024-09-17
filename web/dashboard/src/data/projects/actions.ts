@@ -631,6 +631,7 @@ export async function deleteProject(
       );
     }
 
+    revalidatePath(`/projects`, 'page');
     return actionSuccess(safe.data);
   } catch (error) {
     console.error(error);
@@ -688,8 +689,8 @@ export async function upsertProject(
   if (!safeProject.success) {
     return actionZodError('Failed to parse project´s input', safeProject.error);
   }
+  const isUpdate = !!safeProject.data.id;
 
-  const isUpdate = !!project.id;
   try {
     const insert = await db
       .insert(projects)
@@ -715,7 +716,7 @@ export async function upsertProject(
       resource_id: result.data.id
     });
 
-    if (!safeProject.data.id) {
+    if (!isUpdate) {
       const insertMember = await insertMembers([
         {
           user_id: userId,
@@ -726,6 +727,16 @@ export async function upsertProject(
       ], userId);
       if (!insertMember.success) {
         return actionError('Failed to create owner.');
+      }
+
+      const environment = await upsertEnvironment({
+          name: 'main',
+          description: `Default environment for the project ${result.data.name}`,
+          project_id: result.data.id,
+          secure: false,
+        }, userId);
+      if (!environment.success) {
+        return actionError('Failed to create default environment.');
       }
     }
 

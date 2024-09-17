@@ -18,6 +18,11 @@ export class Tabs<TEntries> {
 
     for(const [name, mask] of this.tabs) {
       const children = []
+
+      if(!mask) {
+        throw new Error(`Entry "${String(name)}" does not have an appropriate tab configuration.`);
+      }
+
       for(const [key,] of Object.entries(mask)) {
         const field = entries.find(f => f.id === key)
 

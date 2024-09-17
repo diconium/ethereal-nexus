@@ -94,7 +94,7 @@ const dialogSchema = dialog({
     banners: {
       link: ({ eq, and, exists }) => and(
         eq('checkbox', true),
-        exists('banners.title'),
+        exists('banners'),
       )
     }
   });
@@ -110,7 +110,6 @@ type Props = Output<typeof schema>
 
 export const ReactHelloWorld: React.FC<Props> = ({
                                                    title,
-                                                   select,
                                                    subtitle,
                                                    datetime,
                                                    rich,

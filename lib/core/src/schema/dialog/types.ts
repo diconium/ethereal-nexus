@@ -1,5 +1,5 @@
 import { ObjectEntries, ObjectOutput } from '../../types/object';
-import { AddType, DeepPartial, Leaves, PathValue, UnArray } from '../../types';
+import { AddType, DeepPartial, LeavesPath, NodesPath, PathValue, UnArray } from '../../types';
 
 type Operators = 'eq' | 'neq' | 'and' | 'or' | 'exists'
 
@@ -10,15 +10,15 @@ export interface Conditions<T extends Operators = Operators> {
 }
 
 export interface ConditionOperators<TEntries extends ObjectEntries = any> {
-  eq: <P extends Leaves<UnArray<ObjectOutput<TEntries>>>>(
+  eq: <P extends NodesPath<UnArray<ObjectOutput<TEntries>>>>(
     field: P,
     value: PathValue<UnArray<ObjectOutput<TEntries>>, P>
   ) => Conditions<'eq'>;
-  neq: <P extends Leaves<UnArray<ObjectOutput<TEntries>>>>(
+  neq: <P extends NodesPath<UnArray<ObjectOutput<TEntries>>>>(
     field: P,
     value: PathValue<UnArray<ObjectOutput<TEntries>>, P>
   ) => Conditions<'neq'>;
-  exists: <P extends Leaves<UnArray<ObjectOutput<TEntries>>>>(
+  exists: <P extends NodesPath<UnArray<ObjectOutput<TEntries>>>>(
     field: P,
   ) => Conditions<'exists'>;
   and: (...args: Conditions[]) => Conditions<'and'>;

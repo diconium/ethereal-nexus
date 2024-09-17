@@ -57,9 +57,21 @@ export type UnArray<T> = T extends Array<infer U>
  *
  * The keys are represented as strings, and nested paths are joined by dots.
  */
-export type Leaves<T> = T extends object ? {
+export type LeavesPath<T> = T extends object ? {
   [K in keyof T]:
-  `${Exclude<K, symbol>}${Leaves<T[K]> extends never ? '' : `.${Leaves<T[K]>}`}`
+  `${Exclude<K, symbol>}${LeavesPath<T[K]> extends never ? '' : `.${LeavesPath<T[K]>}`}`
+}[keyof T] : never
+
+/**
+ * Create a type that represents all possible key paths in an object.
+ *
+ * The keys are represented as strings, and nested paths are joined by dots.
+ * This includes both leaves and intermediate branches.
+ */
+export type NodesPath<T> = T extends object ? {
+  [K in keyof T]:
+  | `${Exclude<K, symbol>}`  // Include the current key (branch)
+  | `${Exclude<K, symbol>}${LeavesPath<T[K]> extends never ? '' : `.${NodesPath<T[K]>}`}`  // Recurse into nested objects
 }[keyof T] : never
 
 /**

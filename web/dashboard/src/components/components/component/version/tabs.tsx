@@ -7,9 +7,7 @@ import Readme from "@/components/components/component/version/tabs/readme";
 import Dependents from "@/components/components/component/version/tabs/dependents";
 import Events from "@/components/components/component/version/tabs/events";
 
-
-
-const ComponentVersionTabs = ({activeTab, component, versions, selectedVersion,dependents,events}) => {
+const ComponentVersionTabs = ({activeTab, component, versions, selectedVersion, dependents, events}) => {
     const {push} = useRouter();
 
     return (
@@ -30,7 +28,7 @@ const ComponentVersionTabs = ({activeTab, component, versions, selectedVersion,d
                          selectedVersionId={selectedVersion.id}/>
             </TabsContent>
             <TabsContent value="dependents">
-                <Dependents dependents={dependents}></Dependents>
+              <Dependents dependents={dependents}/>
             </TabsContent>
             <TabsContent value="versions">
                 <ul role="list" className="divide-y divide-gray-100">

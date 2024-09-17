@@ -12,7 +12,7 @@ export const environments = pgTable('environment', {
   project_id: uuid('project_id')
     .notNull()
     .references(() => projects.id, { onDelete: 'cascade' }),
-  name: text('name').notNull().unique(),
+  name: text('name').notNull(),
   secure: boolean('secure').notNull().default(false),
   description: text('description'),
 });

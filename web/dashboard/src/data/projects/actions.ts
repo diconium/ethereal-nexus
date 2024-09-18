@@ -6,7 +6,7 @@ import { db } from '@/db';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import {
   Environment, EnvironmentInput, environmentInputSchema,
-  environmentsSchema,
+  environmentsSchema, EnvironmentWithComponents, environmentWithComponentsSchema,
   type Project,
   ProjectComponent,
   ProjectComponentConfig,
@@ -45,7 +45,8 @@ export async function getProjects(
     const select = await db
       .select({
         ...getTableColumns(projects),
-        environments: sql`ARRAY_AGG(jsonb_build_object('id', ${environments.id}, 'name', ${environments.name}))`,
+        environments: sql`ARRAY_AGG
+            (jsonb_build_object('id', ${environments.id}, 'name', ${environments.name}))`,
         components: sql`COALESCE
         ( JSONB_AGG(
             DISTINCT jsonb_build_object(
@@ -72,7 +73,7 @@ export async function getProjects(
         safe.error
       );
     }
-    console.log(safe.data)
+    console.log(safe.data);
 
     return actionSuccess(safe.data);
   } catch (error) {
@@ -89,7 +90,6 @@ export async function getEnvironmentsByProject(
     return actionError('No user provided.');
   }
 
-  console.log('projectId', projectId);
   try {
     const select = await db
       .select()
@@ -116,6 +116,74 @@ export async function getEnvironmentsByProject(
   }
 }
 
+export async function getEnvironmentsById(
+  id: string,
+  userId: string | undefined | null
+): ActionResponse<EnvironmentWithComponents> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  try {
+    const select = await db
+      .select({
+        ...getTableColumns(environments),
+        components: sql`ARRAY_AGG(jsonb_build_object(
+            'id', ${components.id},
+            'name', ${components.name},
+            'title', ${components.title},
+            'config_id', ${projectComponentConfig.id},
+            'is_active', ${projectComponentConfig.is_active},
+            'version', ${componentVersions.version}
+        ))`
+      })
+      .from(projectComponentConfig)
+      .leftJoin(
+        environments,
+        eq(environments.id, projectComponentConfig.environment_id)
+      )
+      .leftJoin(
+        components,
+        eq(components.id, projectComponentConfig.component_id)
+      )
+      .leftJoin(
+        componentVersions,
+        eq(componentVersions.id, projectComponentConfig.component_version)
+      )
+      .groupBy(
+        environments.id,
+        components.id,
+        componentVersions.version,
+        projectComponentConfig.id,
+        projectComponentConfig.is_active
+      )
+      .where(
+        and(
+          eq(projectComponentConfig.environment_id, id),
+          await userIsMember(userId, environments.project_id)
+        )
+      )
+      .orderBy(
+        sql`${projectComponentConfig.is_active} DESC NULLS LAST`,
+        sql`${componentVersions.version} NULLS LAST`,
+        components.name
+      );
+
+
+    const safe = environmentWithComponentsSchema.safeParse(select[0]);
+    if (!safe.success) {
+      return actionZodError(
+        'There\'s an issue with the environments records.',
+        safe.error
+      );
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to fetch environments from database.');
+  }
+}
 
 export async function getProjectsWithComponents(
   userId: string | undefined | null
@@ -730,11 +798,11 @@ export async function upsertProject(
       }
 
       const environment = await upsertEnvironment({
-          name: 'main',
-          description: `Default environment for the project ${result.data.name}`,
-          project_id: result.data.id,
-          secure: false,
-        }, userId);
+        name: 'main',
+        description: `Default environment for the project ${result.data.name}`,
+        project_id: result.data.id,
+        secure: false
+      }, userId);
       if (!environment.success) {
         return actionError('Failed to create default environment.');
       }
@@ -854,7 +922,7 @@ export async function upsertComponentConfig(
 
 export async function upsertEnvironment(
   environment: EnvironmentInput,
-  userId: string | undefined | null,
+  userId: string | undefined | null
 ): ActionResponse<Environment> {
   if (!userId) {
     return actionError('No user provided.');
@@ -874,16 +942,16 @@ export async function upsertEnvironment(
       .values(safeInput.data)
       .onConflictDoUpdate({
         target: [
-          environments.id,
+          environments.id
         ],
         set: {
           secure: safeInput.data.secure,
-          description: safeInput.data.description,
+          description: safeInput.data.description
         }
       })
       .returning();
 
-    console.log(insert)
+    console.log(insert);
 
     const safe = environmentsSchema.safeParse(insert[0]);
     if (!safe.success) {
@@ -958,7 +1026,7 @@ export async function deleteEnvironment(
       .where(
         and(
           eq(environments.id, id),
-          await userIsMember(userId, environments.project_id),
+          await userIsMember(userId, environments.project_id)
         )
       )
       .returning();

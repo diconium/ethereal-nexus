@@ -8,12 +8,11 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { CheckIcon } from '@radix-ui/react-icons';
 import { upsertComponentConfig } from '@/data/projects/actions';
 import { useSession } from 'next-auth/react';
-import { Check, ChevronDownIcon, ClipboardCopy, Plus } from 'lucide-react';
+import { Check, ChevronDownIcon, ClipboardCopy, Plus, Rocket } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { type Environment } from '@/data/projects/dto';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
 type ComponentsDialogProps = {
   components: any,
@@ -25,6 +24,8 @@ type ComponentsDialogProps = {
 export function ComponentsDialog({ components, environment, project, environments }: ComponentsDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isEnvironmentOpen, setEnvironmentOpen] = useState(false);
+  const [isLaunchOpen, setLaunchOpen] = useState(false);
+
   const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
 
   const searchParams = useSearchParams();
@@ -75,6 +76,19 @@ export function ComponentsDialog({ components, environment, project, environment
     };
   }
 
+  function handleLaunch(environmentId: string | null) {
+    return () => {
+      const params = new URLSearchParams(searchParams);
+      if (environmentId) {
+        params.set('env', environmentId);
+      }
+      replace(`/launch/new/${environment}...${environmentId}`);
+
+      setEnvironmentOpen(false);
+    };
+  }
+
+
   const copyProjectUrl: MouseEventHandler = () => {
     navigator.clipboard.writeText(
       window.location.origin +
@@ -97,7 +111,7 @@ export function ComponentsDialog({ components, environment, project, environment
               <ChevronDownIcon className="ml-2 h-4 w-4 text-muted-foreground" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="p-0" align="end">
+          <PopoverContent className="p-0" align="start">
             <Command>
               <CommandInput placeholder="Select environment..." />
               <CommandList>
@@ -129,11 +143,52 @@ export function ComponentsDialog({ components, environment, project, environment
             </Command>
           </PopoverContent>
         </Popover>
+        <Popover open={isLaunchOpen} onOpenChange={setLaunchOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              size="sm"
+              variant="primary"
+            >
+              <Rocket className="mr-2 h-4 w-4" />
+              <span>Launch</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Select environment..." />
+              <CommandList>
+                <CommandGroup>
+                  {environments
+                    .filter(env => env.id !== environment)
+                    .map(env => (
+                        <CommandItem
+                          key={env.id}
+                          value={env.name}
+                          onSelect={handleLaunch(env.id)}
+                          className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
+                        >
+                          <span className="flex items-center">
+                            {environment === env.id ?
+                              <Check className="mr-2 h-4 w-4 text-muted-foreground" /> :
+                              null
+                            }
+                            <span>{selected?.name}...{env.name}</span>
+                          </span>
+                        </CommandItem>
+                      )
+                    )
+                  }
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
         <Button
           size="sm"
           variant="ghost"
           onClick={copyProjectUrl}>
-          <ClipboardCopy className="mr-2 h-4 w-4" /> Copy URL
+          <ClipboardCopy className="mr-2 h-4 w-4" />
+          <span>Copy URL</span>
         </Button>
       </div>
       <Button

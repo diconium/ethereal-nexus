@@ -4,24 +4,21 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem, DropdownMenuPortal,
-  DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { ClipboardCopy, Mail, MessageSquare, Pencil, PlusCircle, Trash } from 'lucide-react';
+import { ClipboardCopy, Pencil, Trash } from 'lucide-react';
 import { MouseEventHandler, useState } from 'react';
 import { Dialog, DialogTrigger } from '@radix-ui/react-dialog';
-import {
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
+import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
 import Link from 'next/link';
 import { deleteProject } from '@/data/projects/actions';
-import type { Project } from '@/data/projects/dto';
 import DotsIcon from '@/components/ui/icons/DotsIcon';
 import { useSession } from 'next-auth/react';
 

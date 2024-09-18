@@ -164,3 +164,16 @@ export const environmentInputSchema = createInsertSchema(
 export type EnvironmentInput = z.infer<
   typeof environmentInputSchema
 >;
+
+export const environmentWithComponentsSchema = environmentsSchema.extend({
+  components: componentsSchema.pick({
+    id: true,
+    name: true,
+    title: true,
+  }).extend({
+    config_id: projectComponentConfigSchema.shape.id,
+    is_active: projectComponentConfigSchema.shape.is_active,
+    version: componentVersionsSchema.shape.version.nullable(),
+  }).array()
+});
+export type EnvironmentWithComponents = z.infer<typeof environmentWithComponentsSchema>;

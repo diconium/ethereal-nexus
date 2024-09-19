@@ -746,76 +746,6 @@ export async function getProjectById(
   }
 }
 
-export async function upsertProject(
-  project: ProjectInput,
-  userId: string | undefined | null
-): ActionResponse<z.infer<typeof projectSchema>> {
-  if (!userId) {
-    return actionError('No user provided.');
-  }
-  const safeProject = projectInputSchema.safeParse(project);
-  if (!safeProject.success) {
-    return actionZodError('Failed to parse project´s input', safeProject.error);
-  }
-  const isUpdate = !!safeProject.data.id;
-
-  try {
-    const insert = await db
-      .insert(projects)
-      .values(safeProject.data)
-      .onConflictDoUpdate({
-        target: projects.id,
-        set: {
-          name: safeProject.data.name,
-          description: safeProject.data.description
-        }
-      })
-      .returning();
-
-    const result = projectSchema.safeParse(insert[0]);
-    if (!result.success) {
-      return actionZodError('Failed to parse inserted project.', result.error);
-    }
-
-    await logEvent({
-      type: isUpdate ? 'project_updated' : 'project_created',
-      user_id: userId,
-      data: {},
-      resource_id: result.data.id
-    });
-
-    if (!isUpdate) {
-      const insertMember = await insertMembers([
-        {
-          user_id: userId,
-          resource: result.data.id,
-          role: 'owner',
-          permissions: 'write'
-        }
-      ], userId);
-      if (!insertMember.success) {
-        return actionError('Failed to create owner.');
-      }
-
-      const environment = await upsertEnvironment({
-        name: 'main',
-        description: `Default environment for the project ${result.data.name}`,
-        project_id: result.data.id,
-        secure: false
-      }, userId);
-      if (!environment.success) {
-        return actionError('Failed to create default environment.');
-      }
-    }
-
-    revalidatePath(`/projects`, 'page');
-    return actionSuccess(result.data);
-  } catch (error) {
-    console.error(error);
-    return actionError('Failed to insert project into database.');
-  }
-}
-
 export async function upsertComponentConfig(
   componentConfig: ProjectComponentConfigInput,
   projectId: string,
@@ -917,6 +847,76 @@ export async function upsertComponentConfig(
     return actionError(
       'Failed to insert project component config into database.'
     );
+  }
+}
+
+export async function upsertProject(
+  project: ProjectInput,
+  userId: string | undefined | null
+): ActionResponse<z.infer<typeof projectSchema>> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+  const safeProject = projectInputSchema.safeParse(project);
+  if (!safeProject.success) {
+    return actionZodError('Failed to parse project´s input', safeProject.error);
+  }
+  const isUpdate = !!safeProject.data.id;
+
+  try {
+    const insert = await db
+      .insert(projects)
+      .values(safeProject.data)
+      .onConflictDoUpdate({
+        target: projects.id,
+        set: {
+          name: safeProject.data.name,
+          description: safeProject.data.description
+        }
+      })
+      .returning();
+
+    const result = projectSchema.safeParse(insert[0]);
+    if (!result.success) {
+      return actionZodError('Failed to parse inserted project.', result.error);
+    }
+
+    await logEvent({
+      type: isUpdate ? 'project_updated' : 'project_created',
+      user_id: userId,
+      data: {},
+      resource_id: result.data.id
+    });
+
+    if (!isUpdate) {
+      const insertMember = await insertMembers([
+        {
+          user_id: userId,
+          resource: result.data.id,
+          role: 'owner',
+          permissions: 'write'
+        }
+      ], userId);
+      if (!insertMember.success) {
+        return actionError('Failed to create owner.');
+      }
+
+      const environment = await upsertEnvironment({
+        name: 'main',
+        description: `Default environment for the project ${result.data.name}`,
+        project_id: result.data.id,
+        secure: false
+      }, userId);
+      if (!environment.success) {
+        return actionError('Failed to create default environment.');
+      }
+    }
+
+    revalidatePath(`/projects`, 'page');
+    return actionSuccess(result.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to insert project into database.');
   }
 }
 

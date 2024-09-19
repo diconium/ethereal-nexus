@@ -12,8 +12,8 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
 export type LaunchButtonProps = {
-  from: Environment,
-  to: Environment,
+  from: Pick<Environment, 'id' | 'name' | 'project_id'>,
+  to: Pick<Environment, 'id' | 'name' | 'project_id'>,
 }
 
 export function LaunchButton({ from, to }: LaunchButtonProps) {
@@ -23,7 +23,7 @@ export function LaunchButton({ from, to }: LaunchButtonProps) {
   const [isLaunchDialogOpen, setIsLaunchDialogOpen] = useState(false);
 
   const handleLaunch = async () => {
-    const result = await launch(from, to, session?.user?.id);
+    const result = await launch(from.id, to.id, session?.user?.id);
     if (!result.success) {
       toast({
         title: `Launch from ${from.name} to ${to.name} could not be completed.`

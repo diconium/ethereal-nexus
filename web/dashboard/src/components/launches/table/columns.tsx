@@ -30,7 +30,7 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader className="font-bold" column={column} title="Version" />
     ),
-    cell: ({ row }) => <span>{row.getValue("version").from} &rarr; {row.getValue("version").to}</span>,
+    cell: ({ row }) => <span>{row.getValue("version").to} &rarr; {row.getValue("version").from}</span>,
     enableSorting: false,
     enableHiding: true,
   },
@@ -40,7 +40,7 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader className="font-bold" column={column} title="Active" />
     ),
-    cell: ({ row }) => <span>{row.getValue("active").from ? 'Active' : 'Inactive'} &rarr; {row.getValue("active").to ? 'Active' : 'Inactive'}</span>,
+    cell: ({ row }) => <span>{row.getValue("active").to ? 'Active' : 'Inactive'} &rarr; {row.getValue("active").from ? 'Active' : 'Inactive'}</span>,
     enableSorting: false,
     enableHiding: true,
   },

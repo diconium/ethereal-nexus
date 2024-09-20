@@ -1,5 +1,7 @@
 import { WebcomponentPropTypes } from './webcomponent';
 
+import { Conditions } from '../schema/dialog/types';
+
 /**
  * Base schema type.
  */
@@ -8,6 +10,11 @@ export interface BaseSchema<TOutput = any> {
    * The schema type.
    */
   type: string;
+
+  /**
+   * The schema type.
+   */
+  condition?: Conditions[];
 
   /**
    * Internal function to transform the schema into JS object.

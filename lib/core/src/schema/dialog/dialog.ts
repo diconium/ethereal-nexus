@@ -1,84 +1,78 @@
-import { BaseSchema, EntryMask } from '../../types';
-import { WebcomponentPropTypes } from '../../types/webcomponent';
+import { BaseSchema, EntryMask, NestedPaths } from '../../types';
 import { ObjectEntries, ObjectOutput } from '../../types/object';
+import { Tabs } from './tabs';
+import { WebcomponentPropTypes } from '../../types/webcomponent';
+import { Condition } from './condition';
+import { pathToArray } from '../../utils/pathToArray';
+import { ConditionsArgument } from './types';
 
-export interface DialogSchema<TEntries extends ObjectEntries, TOutput = ObjectOutput<TEntries>> extends BaseSchema<TOutput> {
+export interface DialogSchema<TEntries extends ObjectEntries> extends BaseSchema<ObjectOutput<TEntries>> {
   type: 'dialog';
-  tabs: (tabs: Record<string, EntryMask<TEntries>>) => Omit<DialogSchema<TEntries>, 'tabs'>;
+  tabs: (tabs: Record<string, EntryMask<TEntries>>) => DialogSchema<TEntries>;
+  conditions: (conditions: ConditionsArgument<TEntries>) => DialogSchema<TEntries>;
 }
 
-export function dialog<TEntries extends ObjectEntries>(entries: TEntries): DialogSchema<TEntries> {
-  return {
-    type: 'dialog',
-    tabs(tabs) {
-      return {
-        ...this,
-        tabs: undefined,
-        component: undefined,
-        _parse() {
-          const usedEntries = new Set<keyof TEntries>();
+class DialogBuilder<TEntries extends ObjectEntries> implements DialogSchema<TEntries> {
+  private conditionsModule: Condition<TEntries>;
+  private tabsModule: Tabs<TEntries>;
+  private readonly entries: TEntries;
+  readonly type = 'dialog';
 
-          const tabsArray = Object.entries(tabs)
-            .map(([tabKey, value]) => {
+  constructor(entries: TEntries) {
+    this.entries = entries;
+    this.conditionsModule = new Condition<TEntries>();
+    this.tabsModule = new Tabs<TEntries>();
+  }
 
-              const children = Object.entries(value).map(([key, value]) => {
-                if (value === true) {
-                  if (usedEntries.has(key)) {
-                    throw new Error(`Entry "${String(tabKey)}.${String(key)}" is already used in another tab.`);
-                  }
-                  usedEntries.add(key);
-                  return {
-                    id: key,
-                    ...entries[key]._parse()
-                  };
-                }
-              });
-
-              return {
-                type: 'tab',
-                label: tabKey,
-                id: `tab_${tabKey.toLowerCase().replaceAll(' ', '')}`,
-                children
-              };
-            });
-
-          return {
-            dialog: [{
-              type: 'tabs',
-              id: 'tabs',
-              children: tabsArray
-            }]
-          };
-        }
-      };
-    },
-    _parse() {
-      const dialog = Object.entries(entries)
-        .map(([key, entry]) => ({
-          id: key,
-          name: key,
-          ...entry._parse()
-        }))
-        .filter((entry: object) => {
-          if ('type' in entry) {
-            return entry.type !== 'hidden';
-          }
-        });
-
-      return {
-        dialog
-      };
-    },
-    _primitive() {
-      return Object.entries(entries)
-        .reduce(
-          (acc: Record<string, WebcomponentPropTypes>, [key, entry]) => {
-            const type = entry._primitive();
-            if (typeof type === 'string') {
-              acc[key] = type;
-            }
-            return acc;
-          }, {});
+  conditions(conditions: ConditionsArgument<TEntries>) {
+    const conditionsArray = pathToArray(conditions)
+    for (const condition of conditionsArray) {
+      this.conditionsModule.addCondition(condition.path.join('.') as NestedPaths<TEntries>, condition.value);
     }
-  };
+    return this;
+  }
+
+  tabs(tabs: Record<string, EntryMask<TEntries>>) {
+    for (const [key, tab] of Object.entries(tabs)) {
+      this.tabsModule.addTab(key as any, tab!);
+    }
+    return this;
+  }
+
+  _parse() {
+    const dialog = Object.entries(this.entries)
+      .map(([key, entry]) => ({
+        id: key,
+        name: key,
+        ...entry._parse(),
+      }))
+      .filter((entry: object) => {
+        if ('type' in entry) {
+          return entry.type !== 'hidden';
+        }
+      });
+
+    const dialogWithConditions = this.conditionsModule.parse(dialog);
+    const dialogWithTabs = this.tabsModule.parse(dialogWithConditions);
+    return {
+      dialog: dialogWithTabs
+    };
+  }
+
+  _primitive() {
+    const result: Record<string, WebcomponentPropTypes> = {};
+
+    for (const [key, entry] of Object.entries(this.entries)) {
+      const type = entry._primitive();
+      if (typeof type === 'string') {
+        result[key] = type;
+      }
+    }
+
+    return result;
+  }
+}
+
+export function dialog<TEntries extends ObjectEntries>(entries: TEntries) {
+  return new DialogBuilder(entries)
 }

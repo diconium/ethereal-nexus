@@ -1,25 +1,31 @@
-import { BaseFieldInput, type BaseSchema } from '../../types';
+import { BaseFieldInput, BaseSchema } from '../../types';
 
-type SelectOutputType<Multiple extends boolean> = Multiple extends true ? string[] : string;
+type ReadonlyObject<T> = {
+  readonly [K in keyof T]: T[K];
+};
 
-export interface SelectSchema<Multiple extends boolean = false> extends BaseSchema<SelectOutputType<Multiple>> {
+export interface SelectSchema<T, TMultiple extends boolean = false> extends BaseSchema<TMultiple extends true ? T[] : T> {
   /**
    * The schema type.
    */
   type: 'select';
+  multiple: TMultiple
 }
 
 interface SelectInput extends BaseFieldInput {
   placeholder?: string;
-  multiple?: boolean ;
+  multiple?: boolean;
   values: {
-    value: string,
-    label: string,
-  }[]
+    value: string;
+    label: string;
+  }[];
 }
 
-export function select<Multiple extends boolean = false>(input: SelectInput & { multiple?: Multiple }): SelectSchema<Multiple> {
-  const { label, values, tooltip, placeholder, multiple = false as Multiple, required } = input;
+
+type ValuesType<T extends { values: readonly { value: string }[] }> = T['values'][number]['value'];
+
+export function select<const T extends SelectInput, TMultiple extends boolean= T['multiple'] extends true ? true : false>(input: T): SelectSchema<ValuesType<ReadonlyObject<T>>, TMultiple>{
+  const { label, values, tooltip, placeholder, multiple = false, required } = input;
 
   return {
     type: 'select',
@@ -32,11 +38,12 @@ export function select<Multiple extends boolean = false>(input: SelectInput & { 
         tooltip,
         placeholder,
         required
-      }
+      };
     },
     _primitive() {
       return multiple ? 'json' : 'string';
     },
     ...input,
-  }
+    multiple: multiple as TMultiple,
+  };
 }

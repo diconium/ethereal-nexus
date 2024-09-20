@@ -21,13 +21,13 @@
   "module": "dist/index.esm.js",
   "types": "./dist/index.d.mts",
   "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
     "tsup": "^8.0.2",
-    "typescript": "^5.4.5",
-    "@types/react":  "^18.3.0",
-    "@types/react-dom":  "^18.3.0"
+    "typescript": "^5.6.2"
   },
   "dependencies": {
-    "react-dom": "^18.3.0",
-    "react": "^18.3.1"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.0"
   }
 }

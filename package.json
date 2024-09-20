@@ -5,6 +5,7 @@
     "postinstall": "turbo run build --filter='./lib/*'"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.27.8",
     "prettier": "^3.2.5",
     "turbo": "^1.13.3"
   },

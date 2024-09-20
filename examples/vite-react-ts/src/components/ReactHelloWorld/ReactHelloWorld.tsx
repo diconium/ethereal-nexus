@@ -1,18 +1,19 @@
 import React from 'react';
 import {
+  checkbox,
   component,
   dialog,
   dynamic,
   type GetServerSideProps, hidden,
   image, multifield, object,
   optional,
-  type Output, pathbrowser, rte,
+  type Output, pathbrowser, rte, select,
   text
 } from '@ethereal-nexus/core';
 
-import { Item } from '../../patterns';
+import { Item } from '@/patterns';
 import { Parsys } from '@ethereal-nexus/conector-aem-react';
-import { titles } from '../../dialogs/titles.ts';
+import { titles } from '@/dialogs/titles.ts';
 
 import styles from './ReactHelloWorld.module.css';
 
@@ -39,7 +40,24 @@ const dialogSchema = dialog({
       type: 'string'
     })
   ),
+  checkbox: checkbox({
+    label: 'Show Links'
+  }),
   rich: rteComponent,
+  select: select({
+    label: 'Select',
+    multiple: true,
+    values: [
+      {
+        value: 'foo',
+        label: 'Foo'
+      },
+      {
+        value: 'bar',
+        label: 'Bar'
+      }
+    ]
+  }),
   banners: multifield({
     label: 'Banners',
     children: object({
@@ -67,6 +85,18 @@ const dialogSchema = dialog({
       image: true,
       imagetwo: true,
     },
+  })
+  .conditions({
+    subtitle: ({ eq, or }) => or(
+      eq('title', 'foo'),
+      eq('title', 'bar'),
+    ),
+    banners: {
+      link: ({ eq, and, exists }) => and(
+        eq('checkbox', true),
+        exists('banners'),
+      )
+    }
   });
 
 const dynamicSlots = {

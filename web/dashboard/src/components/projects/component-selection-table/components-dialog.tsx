@@ -66,7 +66,7 @@ export function ComponentsDialog({ components, environment, project, environment
 
   function handleEnvironment(environmentId: string | null) {
     return () => {
-      const params = new URLSearchParams(searchParams);
+      const params = new URLSearchParams(searchParams.toString());
       if (environmentId) {
         params.set('env', environmentId);
       }
@@ -78,7 +78,7 @@ export function ComponentsDialog({ components, environment, project, environment
 
   function handleLaunch(environmentId: string | null) {
     return () => {
-      const params = new URLSearchParams(searchParams);
+      const params = new URLSearchParams(searchParams.toString());
       if (environmentId) {
         params.set('env', environmentId);
       }

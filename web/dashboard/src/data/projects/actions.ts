@@ -129,7 +129,7 @@ export async function getEnvironmentsById(
         ...getTableColumns(environments),
         components: sql`COALESCE( 
           jsonb_agg(
-            jsonb_build_object(
+            DISTINCT jsonb_build_object(
               'id', ${components.id},
               'name', ${components.name},
               'title', ${components.title},
@@ -155,11 +155,7 @@ export async function getEnvironmentsById(
         eq(componentVersions.id, projectComponentConfig.component_version)
       )
       .groupBy(
-        environments.id,
-        components.id,
-        componentVersions.version,
-        projectComponentConfig.id,
-        projectComponentConfig.is_active
+        environments.id
       )
       .where(
         and(
@@ -167,12 +163,7 @@ export async function getEnvironmentsById(
           await userIsMember(userId, environments.project_id)
         )
       )
-      .orderBy(
-        sql`${projectComponentConfig.is_active} DESC NULLS LAST`,
-        sql`${componentVersions.version} NULLS LAST`,
-        components.name
-      );
-
+    
     const safe = environmentWithComponentsSchema.safeParse(select[0]);
     if (!safe.success) {
       return actionZodError(
@@ -185,45 +176,6 @@ export async function getEnvironmentsById(
   } catch (error) {
     console.error(error);
     return actionError('Failed to fetch environments from database.');
-  }
-}
-
-export async function getProjectsWithComponents(
-  userId: string | undefined | null
-): ActionResponse<ProjectWithComponent[]> {
-  if (!userId) {
-    return actionError('No user provided.');
-  }
-
-  try {
-    const select = await db.query.projects.findMany({
-      where: userIsMember(userId),
-      with: {
-        components: {
-          columns: {
-            is_active: true,
-            component_version: true
-          },
-          with: {
-            component: true,
-            version: true
-          }
-        }
-      }
-    });
-
-    const safe = z.array(projectWithComponentSchema).safeParse(select);
-    if (!safe.success) {
-      return actionZodError(
-        'There\'s an issue with the project records.',
-        safe.error
-      );
-    }
-
-    return actionSuccess(safe.data);
-  } catch (error) {
-    console.error(error);
-    return actionError('Failed to fetch project from database.');
   }
 }
 

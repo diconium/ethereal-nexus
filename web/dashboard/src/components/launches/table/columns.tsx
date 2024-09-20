@@ -63,12 +63,11 @@ export const columns = [
     cell:
       ({ row }) => <div className="flex gap-2">
         {row.original.new ?
-          <Badge variant={'success'}>{row.getValue('version').from}</Badge> :
+          <Badge variant={'success'}>{row.getValue('active').from ? 'Active' : 'Inactive'}</Badge> :
           row.original.is_active.to === row.original.is_active.from ?
             <span className="text-muted-foreground">{row.original.is_active.to ? 'Active' : 'Inactive'}</span> :
             <>
-              <Badge
-                variant={'destructive'}>{row.getValue('active').to ? 'Active' : 'Inactive'}</Badge>
+              <Badge variant={'destructive'}>{row.getValue('active').to ? 'Active' : 'Inactive'}</Badge>
               <ArrowRight className="text-slate-300" size={20} />
               <Badge variant={'success'}>{row.getValue('active').from ? 'Active' : 'Inactive'}</Badge>
             </>

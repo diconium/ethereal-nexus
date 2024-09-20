@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
+import { Badge } from '@/components/ui/badge';
+import { ArrowRight } from 'lucide-react';
 
 export const columns = [
   {
@@ -10,9 +12,14 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
     ),
-    cell: ({ row }) => <span>{row.getValue("name")}</span>,
+    cell: ({ row }) => <span className={`flex gap-2${row.original.new ? ' text-green-400' : null}`}>{
+      row.original.new ?
+        <Badge variant={'success'}>New</Badge> :
+        null
+    }{row.getValue('name')}
+    </span>,
     enableSorting: true,
-    enableHiding: true,
+    enableHiding: true
   },
   {
     id: 'title',
@@ -20,28 +27,56 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Title" />
     ),
-    cell: ({ row }) => <span>{row.getValue("title")}</span>,
+    cell: ({ row }) => <span
+      className={`flex gap-2${row.original.new ? ' text-green-400' : null}`}>{row.getValue('title')}</span>,
     enableSorting: true,
-    enableHiding: true,
+    enableHiding: true
   },
   {
-    id: "version",
+    id: 'version',
     accessorFn: row => row.version,
     header: ({ column }) => (
       <DataTableColumnHeader className="font-bold" column={column} title="Version" />
     ),
-    cell: ({ row }) => <span>{row.getValue("version").to} &rarr; {row.getValue("version").from}</span>,
+    cell: ({ row }) => <div className="flex gap-2">
+      {row.original.new ?
+        <Badge variant={'success'}>{row.getValue('version').from}</Badge> :
+        row.original.version.to === row.original.version.from ?
+          <span className="text-muted-foreground">{row.original.version.from}</span> :
+        <>
+          <Badge
+            variant={'destructive'}>{row.getValue('version').to}</Badge>
+          <ArrowRight className="text-slate-300" size={20} />
+          <Badge variant={'success'}>{row.getValue('version').from}</Badge>
+        </>
+      }
+    </div>,
     enableSorting: false,
-    enableHiding: true,
+    enableHiding: true
   },
   {
-    id: "active",
+    id: 'active',
     accessorFn: row => row.is_active,
     header: ({ column }) => (
       <DataTableColumnHeader className="font-bold" column={column} title="Active" />
     ),
-    cell: ({ row }) => <span>{row.getValue("active").to ? 'Active' : 'Inactive'} &rarr; {row.getValue("active").from ? 'Active' : 'Inactive'}</span>,
+    cell:
+      ({ row }) => <div className="flex gap-2">
+        {row.original.new ?
+          <Badge variant={'success'}>{row.getValue('version').from}</Badge> :
+          row.original.is_active.to === row.original.is_active.from ?
+            <span className="text-muted-foreground">{row.original.is_active.to ? 'Active' : 'Inactive'}</span> :
+            <>
+              <Badge
+                variant={'destructive'}>{row.getValue('active').to ? 'Active' : 'Inactive'}</Badge>
+              <ArrowRight className="text-slate-300" size={20} />
+              <Badge variant={'success'}>{row.getValue('active').from ? 'Active' : 'Inactive'}</Badge>
+            </>
+        }
+      </div>,
     enableSorting: false,
-    enableHiding: true,
-  },
+    enableHiding: true
+  }
 ];
+
+

@@ -73,7 +73,6 @@ export async function getProjects(
         safe.error
       );
     }
-    console.log(safe.data);
 
     return actionSuccess(safe.data);
   } catch (error) {
@@ -128,19 +127,24 @@ export async function getEnvironmentsById(
     const select = await db
       .select({
         ...getTableColumns(environments),
-        components: sql`ARRAY_AGG(jsonb_build_object(
-            'id', ${components.id},
-            'name', ${components.name},
-            'title', ${components.title},
-            'config_id', ${projectComponentConfig.id},
-            'is_active', ${projectComponentConfig.is_active},
-            'version', ${componentVersions.version}
-        ))`
+        components: sql`COALESCE( 
+          jsonb_agg(
+            jsonb_build_object(
+              'id', ${components.id},
+              'name', ${components.name},
+              'title', ${components.title},
+              'config_id', ${projectComponentConfig.id},
+              'is_active', ${projectComponentConfig.is_active},
+              'version', ${componentVersions.version}
+            )
+          ) FILTER (WHERE ${components.id} IS NOT NULL),
+          '[]'::jsonb
+        )`
       })
-      .from(projectComponentConfig)
+      .from(environments)
       .leftJoin(
-        environments,
-        eq(environments.id, projectComponentConfig.environment_id)
+        projectComponentConfig,
+        eq(projectComponentConfig.environment_id, environments.id)
       )
       .leftJoin(
         components,
@@ -159,7 +163,7 @@ export async function getEnvironmentsById(
       )
       .where(
         and(
-          eq(projectComponentConfig.environment_id, id),
+          eq(environments.id, id),
           await userIsMember(userId, environments.project_id)
         )
       )
@@ -168,7 +172,6 @@ export async function getEnvironmentsById(
         sql`${componentVersions.version} NULLS LAST`,
         components.name
       );
-
 
     const safe = environmentWithComponentsSchema.safeParse(select[0]);
     if (!safe.success) {
@@ -950,8 +953,6 @@ export async function upsertEnvironment(
         }
       })
       .returning();
-
-    console.log(insert);
 
     const safe = environmentsSchema.safeParse(insert[0]);
     if (!safe.success) {

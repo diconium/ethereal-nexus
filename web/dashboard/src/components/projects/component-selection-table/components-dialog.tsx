@@ -82,7 +82,7 @@ export function ComponentsDialog({ components, environment, project, environment
       if (environmentId) {
         params.set('env', environmentId);
       }
-      replace(`/launch/new/${environment}...${environmentId}`);
+      replace(`/projects/launch/new/${environment}...${environmentId}`);
 
       setEnvironmentOpen(false);
     };

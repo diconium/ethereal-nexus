@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Separator } from '@/components/ui/separator';
+import Link from 'next/link';
 
 export function EnvironmentPicker({ from, to, environments }) {
   const [isFromOpen, setIsFromOpen] = useState(false);
@@ -30,8 +31,10 @@ export function EnvironmentPicker({ from, to, environments }) {
               <CommandGroup>
                 {environments
                   .map(env => (
+                    <Link
+                      key={env.id}
+                      href={`/projects/launch/new/${env.id}...${to.id}`}>
                       <CommandItem
-                        key={env.id}
                         value={env.name}
                         className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
                       >
@@ -44,6 +47,7 @@ export function EnvironmentPicker({ from, to, environments }) {
                         <p>{env.name}</p>
                       </span>
                       </CommandItem>
+                    </Link>
                     )
                   )
                 }
@@ -69,8 +73,10 @@ export function EnvironmentPicker({ from, to, environments }) {
               <CommandGroup>
                 {environments
                   .map(env => (
+                    <Link
+                      key={env.id}
+                      href={`/projects/launch/new/${from.id}...${env.id}`}>
                       <CommandItem
-                        key={env.id}
                         value={env.name}
                         className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
                       >
@@ -83,6 +89,7 @@ export function EnvironmentPicker({ from, to, environments }) {
                         <p>{env.name}</p>
                       </span>
                       </CommandItem>
+                    </Link>
                     )
                   )
                 }

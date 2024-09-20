@@ -20,7 +20,7 @@ export const environments = pgTable('environment', {
 export const projectComponentConfig = pgTable(
   'project_component_config',
   {
-    id: uuid('id').notNull().defaultRandom(),
+    id: uuid('id').unique().notNull().defaultRandom(),
     environment_id: uuid('environment_id')
       .notNull()
       .references(() => environments.id, { onDelete: 'cascade' }),

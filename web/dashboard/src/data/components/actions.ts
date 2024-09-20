@@ -382,7 +382,7 @@ export async function getComponentAssets(
 
     return actionSuccess(safe.data);
   } catch (error) {
-    // console.error(error);
+    console.error(error);
     return actionError('Failed to fetch component from database.');
   }
 }

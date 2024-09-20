@@ -4,7 +4,7 @@ import { getEnvironmentsById, getEnvironmentsByProject } from '@/data/projects/a
 import { auth } from '@/auth';
 import { EnvironmentWithComponents } from '@/data/projects/dto';
 import { notFound } from 'next/navigation';
-import { EnvironmentPicker } from '@/app/(session)/launch/new/[id]/picker';
+import { EnvironmentPicker } from './picker';
 
 function compareEnvironments(from: EnvironmentWithComponents, to: EnvironmentWithComponents): ComparisonResult[] {
   const result: ComparisonResult[] = [];
@@ -12,11 +12,12 @@ function compareEnvironments(from: EnvironmentWithComponents, to: EnvironmentWit
   from.components.forEach((compFrom) => {
     const compTo = to.components.find((c) => c.id === compFrom.id);
 
-    if (compTo && (compFrom.is_active !== compTo.is_active || compFrom.version !== compTo.version)) {
+    if (compTo) {
       result.push({
         id: compFrom.id,
         name: compFrom.name,
         title: compFrom.title,
+        new: false,
         is_active: {
           from: compFrom.is_active,
           to: compTo.is_active,
@@ -26,6 +27,21 @@ function compareEnvironments(from: EnvironmentWithComponents, to: EnvironmentWit
           to: compTo.version || 'latest',
         },
       });
+    } else {
+      result.push({
+        id: compFrom.id,
+        name: compFrom.name,
+        title: compFrom.title,
+        new: true,
+        is_active: {
+          from: compFrom.is_active,
+          to: null,
+        },
+        version: {
+          from: compFrom.version || 'latest',
+          to: null,
+        },
+      })
     }
   });
 
@@ -39,7 +55,7 @@ export default async function NewLaunch({ params: { id } }: any) {
   const from = await getEnvironmentsById(fromId, session?.user?.id)
   const to = await getEnvironmentsById(toId, session?.user?.id)
 
-  if (!from.success || !to.success) {
+  if (!from.success || !to.success || from.data.project_id !== to.data.project_id) {
     notFound();
   }
 

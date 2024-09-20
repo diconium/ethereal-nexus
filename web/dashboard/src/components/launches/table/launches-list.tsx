@@ -5,9 +5,10 @@ import { Component } from '@/data/components/dto';
 import { LaunchButton, LaunchButtonProps } from '@/components/launches/table/launch-button';
 
 export type ComparisonResult = Pick<Component, 'id' | 'name'  | 'title'> & {
+  new: boolean;
   is_active: {
-    from: boolean;
-    to: boolean;
+    from: boolean | null;
+    to: boolean | null;
   };
   version: {
     from: string | null;

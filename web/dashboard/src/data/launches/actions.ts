@@ -39,6 +39,7 @@ async function merge(from: EnvironmentWithComponents['components'], to: Environm
       } else {
         result.push({
           ...configFrom,
+          id: undefined,
           environment_id: to.id,
           event
         });

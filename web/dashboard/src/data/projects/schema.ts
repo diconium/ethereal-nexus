@@ -1,5 +1,4 @@
 import { boolean, pgTable, primaryKey, text, uuid } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
 import { components, componentVersions } from '@/data/components/schema';
 
 export const projects = pgTable('project', {
@@ -7,17 +6,24 @@ export const projects = pgTable('project', {
   name: text('name').notNull().unique(),
   description: text('description'),
 });
-export const projectsRelations = relations(projects, ({ many }) => ({
-  components: many(projectComponentConfig),
-}));
+
+export const environments = pgTable('environment', {
+  id: uuid('id').notNull().primaryKey().defaultRandom(),
+  project_id: uuid('project_id')
+    .notNull()
+    .references(() => projects.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  secure: boolean('secure').notNull().default(false),
+  description: text('description'),
+});
 
 export const projectComponentConfig = pgTable(
   'project_component_config',
   {
-    id: uuid('id').notNull().defaultRandom(),
-    project_id: uuid('project_id')
+    id: uuid('id').unique().notNull().defaultRandom(),
+    environment_id: uuid('environment_id')
       .notNull()
-      .references(() => projects.id, { onDelete: 'cascade' }),
+      .references(() => environments.id, { onDelete: 'cascade' }),
     component_id: uuid('component_id')
       .notNull()
       .references(() => components.id, { onDelete: 'cascade' }),
@@ -29,27 +35,11 @@ export const projectComponentConfig = pgTable(
     return {
       pk: primaryKey({
         columns: [
-          table.project_id,
+          table.environment_id,
           table.component_id,
         ],
       }),
     };
   },
 );
-export const projectComponentConfigRelations = relations(
-  projectComponentConfig,
-  ({ one }) => ({
-    project: one(projects, {
-      fields: [projectComponentConfig.project_id],
-      references: [projects.id],
-    }),
-    component: one(components, {
-      fields: [projectComponentConfig.component_id],
-      references: [components.id],
-    }),
-    version: one(componentVersions, {
-      fields: [projectComponentConfig.component_version],
-      references: [componentVersions.id],
-    }),
-  }),
-);
+

@@ -6,6 +6,7 @@ import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-col
 import { MemberPermissionsSelect } from '@/components/projects/members-table/member-permissions-select';
 import { MemberWithPublicUser } from '@/data/member/dto';
 import { Badge } from '@/components/ui/badge';
+import { ProjectsDataTableRowActions } from '@/components/projects/table/data-table-row-actions';
 
 export const columns: ColumnDef<MemberWithPublicUser>[] = [
   {
@@ -45,5 +46,5 @@ export const columns: ColumnDef<MemberWithPublicUser>[] = [
     ),
     cell: ({ row }) => <MemberPermissionsSelect value={row.original.permissions} memberId={row.original.id} role={row.original.role} resource={row.original.resource}/>,
     enableSorting: false
-  }
+  },
 ];

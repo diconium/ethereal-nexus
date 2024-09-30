@@ -9,8 +9,9 @@ import Link from 'next/link';
 import ProjectsForm from '@/components/projects/project-form';
 import { getResourceEvents } from '@/data/events/actions';
 import { ProjectEvents } from '@/components/projects/project-events/project-events';
+import { EnvironmentsList } from '@/components/projects/environments-table/environment-list';
 
-export default async function EditProject({ params: { id }, searchParams: { tab } }: any) {
+export default async function EditProject({ params: { id }, searchParams: { tab, env } }: any) {
   const session = await auth();
   const project = await getProjectById(id, session?.user?.id);
   const events = await getResourceEvents(id);
@@ -39,6 +40,11 @@ export default async function EditProject({ params: { id }, searchParams: { tab 
               Users
             </Link>
           </TabsTrigger>
+          <TabsTrigger value="environments" asChild>
+            <Link href={`/projects/${id}?tab=environments`}>
+              Environments
+            </Link>
+          </TabsTrigger>
           <TabsTrigger value="settings" asChild>
             <Link href={`/projects/${id}?tab=settings`}>
               Settings
@@ -52,11 +58,18 @@ export default async function EditProject({ params: { id }, searchParams: { tab 
         </TabsList>
         <TabsContent value="components" className="space-y-4">
           <ProjectComponentsList
+            key={env}
             id={id}
+            environment={env}
           />
         </TabsContent>
         <TabsContent value="users" className="space-y-4">
           <ProjectMemberList
+            id={id}
+          />
+        </TabsContent>
+        <TabsContent value="environments" className="space-y-4">
+          <EnvironmentsList
             id={id}
           />
         </TabsContent>
@@ -66,7 +79,7 @@ export default async function EditProject({ params: { id }, searchParams: { tab 
           />
         </TabsContent>
         <TabsContent value="activity">
-         <ProjectEvents events={events} />
+          <ProjectEvents events={events} />
         </TabsContent>
       </Tabs>
     </div>

@@ -39,25 +39,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Detect package manager
         id: detect-package-manager
         run: |
           echo "manager=pnpm" >> $GITHUB_OUTPUT
           echo "command=install" >> $GITHUB_OUTPUT
           echo "runner=pnpm run" >> $GITHUB_OUTPUT
+
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
-          version: 8
           run_install: false
+
       - name: Get pnpm store directory
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
       - uses: actions/cache@v4
         name: Setup pnpm cache
         with:
@@ -65,18 +69,22 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
+
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
+
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
         working-directory: ${{ env.BUILD_PATH }}
+
       - name: Build with Astro
         run: |
           ${{ steps.detect-package-manager.outputs.runner }} astro build \
             --site "${{ steps.pages.outputs.origin }}" \
             --base "${{ steps.pages.outputs.base_path }}"
         working-directory: ${{ env.BUILD_PATH }}
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

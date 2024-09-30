@@ -2,4 +2,4 @@
 '@ethereal-nexus/core': patch
 ---
 
-fix type inference for select schema
+Fix type inference for select schema

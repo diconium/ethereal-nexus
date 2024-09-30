@@ -136,7 +136,7 @@ export async function updateMemberPermissions(member: UpdateMemberPermissions, u
   }
 }
 
-export const userIsMember = (userId: string, projectColumn: PgColumn = projects.id) => inArray(
+export const userIsMember = async (userId: string, projectColumn: PgColumn = projects.id) => inArray(
   projectColumn,
   db.select({ id: memberTable.resource })
     .from(memberTable)

@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import {
+  Environment, EnvironmentInput, environmentInputSchema,
+  environmentsSchema, EnvironmentWithComponents, environmentWithComponentsSchema,
   type Project,
   ProjectComponent,
   ProjectComponentConfig,
@@ -25,7 +27,7 @@ import {
 } from './dto';
 import * as console from 'console';
 import { and, desc, eq, getTableColumns, isNull, sql } from 'drizzle-orm';
-import { projectComponentConfig, projects } from './schema';
+import { environments, projectComponentConfig, projects } from './schema';
 import { insertMembers, userIsMember } from '@/data/member/actions';
 import { componentAssets, components, componentVersions } from '@/data/components/schema';
 import { revalidatePath } from 'next/cache';
@@ -33,30 +35,42 @@ import { Component, componentsSchema } from '@/data/components/dto';
 import { logEvent } from '@/lib/events/event-middleware';
 
 export async function getProjects(
-  userId: string | undefined | null,
+  userId: string | undefined | null
 ): ActionResponse<ProjectWithComponentId[]> {
   if (!userId) {
     return actionError('No user provided.');
   }
 
   try {
-    const select = await db.query.projects.findMany({
-      where: userIsMember(userId),
-      with: {
-        components: {
-          columns: {
-            component_id: true,
-          },
-          where: (component, { eq }) => eq(component?.is_active, true),
-        },
-      },
-    });
+    const select = await db
+      .select({
+        ...getTableColumns(projects),
+        environments: sql`ARRAY_AGG
+            (jsonb_build_object('id', ${environments.id}, 'name', ${environments.name}))`,
+        components: sql`COALESCE
+        ( JSONB_AGG(
+            DISTINCT jsonb_build_object(
+            'component_id', ${projectComponentConfig.component_id}
+            )
+            ) FILTER (WHERE ${projectComponentConfig.is_active} = true), '[]')`
+      })
+      .from(projects)
+      .leftJoin(
+        environments,
+        eq(projects.id, environments.project_id)
+      )
+      .leftJoin(
+        projectComponentConfig,
+        eq(environments.id, projectComponentConfig.environment_id)
+      )
+      .where(await userIsMember(userId))
+      .groupBy(projects.id);
 
     const safe = z.array(projectWithComponentIdSchema).safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
-        safe.error,
+        'There\'s an issue with the project records.',
+        safe.error
       );
     }
 
@@ -67,48 +81,107 @@ export async function getProjects(
   }
 }
 
-export async function getProjectsWithComponents(
-  userId: string | undefined | null,
-): ActionResponse<ProjectWithComponent[]> {
+export async function getEnvironmentsByProject(
+  projectId: string,
+  userId: string | undefined | null
+): ActionResponse<Environment[]> {
   if (!userId) {
     return actionError('No user provided.');
   }
 
   try {
-    const select = await db.query.projects.findMany({
-      where: userIsMember(userId),
-      with: {
-        components: {
-          columns: {
-            is_active: true,
-            component_version: true,
-          },
-          with: {
-            component: true,
-            version: true,
-          },
-        },
-      },
-    });
+    const select = await db
+      .select()
+      .from(environments)
+      .where(
+        and(
+          eq(environments.project_id, projectId),
+          await userIsMember(userId, environments.project_id)
+        )
+      );
 
-    const safe = z.array(projectWithComponentSchema).safeParse(select);
+    const safe = z.array(environmentsSchema).safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
-        safe.error,
+        'There\'s an issue with the environments records.',
+        safe.error
       );
     }
 
     return actionSuccess(safe.data);
   } catch (error) {
     console.error(error);
-    return actionError('Failed to fetch project from database.');
+    return actionError('Failed to fetch environments from database.');
   }
 }
 
-export async function getProjectComponents(
+export async function getEnvironmentsById(
+  id: string,
+  userId: string | undefined | null
+): ActionResponse<EnvironmentWithComponents> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  try {
+    const select = await db
+      .select({
+        ...getTableColumns(environments),
+        components: sql`COALESCE( 
+          jsonb_agg(
+            DISTINCT jsonb_build_object(
+              'id', ${components.id},
+              'name', ${components.name},
+              'title', ${components.title},
+              'config_id', ${projectComponentConfig.id},
+              'is_active', ${projectComponentConfig.is_active},
+              'version', ${componentVersions.version}
+            )
+          ) FILTER (WHERE ${components.id} IS NOT NULL),
+          '[]'::jsonb
+        )`
+      })
+      .from(environments)
+      .leftJoin(
+        projectComponentConfig,
+        eq(projectComponentConfig.environment_id, environments.id)
+      )
+      .leftJoin(
+        components,
+        eq(components.id, projectComponentConfig.component_id)
+      )
+      .leftJoin(
+        componentVersions,
+        eq(componentVersions.id, projectComponentConfig.component_version)
+      )
+      .groupBy(
+        environments.id
+      )
+      .where(
+        and(
+          eq(environments.id, id),
+          await userIsMember(userId, environments.project_id)
+        )
+      )
+    
+    const safe = environmentWithComponentsSchema.safeParse(select[0]);
+    if (!safe.success) {
+      return actionZodError(
+        'There\'s an issue with the environments records.',
+        safe.error
+      );
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to fetch environments from database.');
+  }
+}
+
+export async function getEnvironmentComponents(
   id: string | undefined | null,
-  userId: string | undefined | null,
+  userId: string | undefined | null
 ): ActionResponse<ProjectComponent[]> {
   if (!id) {
     return actionError('No identifier provided.');
@@ -118,7 +191,7 @@ export async function getProjectComponents(
     return actionError('No user provided.');
   }
 
-  const versions = db.select().from(componentVersions).as('versions')
+  const versions = db.select().from(componentVersions).as('versions');
   try {
     const select = await db
       .select({
@@ -126,28 +199,29 @@ export async function getProjectComponents(
         config_id: projectComponentConfig.id,
         is_active: projectComponentConfig.is_active,
         version: componentVersions.version,
-        versions: sql`ARRAY_AGG(jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`
+        versions: sql`ARRAY_AGG
+            (jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`
       })
       .from(projectComponentConfig)
       .leftJoin(
         components,
-        eq(components.id, projectComponentConfig.component_id),
+        eq(components.id, projectComponentConfig.component_id)
       )
       .leftJoin(
         componentVersions,
-        eq(componentVersions.id, projectComponentConfig.component_version),
+        eq(componentVersions.id, projectComponentConfig.component_version)
       )
       .leftJoin(
         versions,
-        eq(versions.component_id, components.id),
+        eq(versions.component_id, components.id)
       )
       .groupBy(
         components.id,
         componentVersions.version,
         projectComponentConfig.id,
-        projectComponentConfig.is_active,
+        projectComponentConfig.is_active
       )
-      .where(eq(projectComponentConfig.project_id, id))
+      .where(eq(projectComponentConfig.environment_id, id))
       .orderBy(
         sql`${projectComponentConfig.is_active} DESC NULLS LAST`,
         sql`${componentVersions.version} NULLS LAST`,
@@ -157,8 +231,8 @@ export async function getProjectComponents(
     const safe = projectComponentsSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
-        safe.error,
+        'There\'s an issue with the project records.',
+        safe.error
       );
     }
 
@@ -169,9 +243,9 @@ export async function getProjectComponents(
   }
 }
 
-export async function getComponentsNotInProject(
+export async function getComponentsNotInEnvironment(
   id: string | undefined | null,
-  userId: string | undefined | null,
+  userId: string | undefined | null
 ): ActionResponse<Component[]> {
   if (!id) {
     return actionError('No identifier provided.');
@@ -184,19 +258,25 @@ export async function getComponentsNotInProject(
   try {
     const select = await db
       .select({
-        ...getTableColumns(components),
+        ...getTableColumns(components)
       })
       .from(components)
       .leftJoin(
         projectComponentConfig,
         and(
           eq(components.id, projectComponentConfig.component_id),
-          eq(projectComponentConfig.project_id, id),
-          userIsMember(userId, projectComponentConfig.project_id),
-        ),
+          eq(projectComponentConfig.environment_id, id)
+        )
+      )
+      .leftJoin(
+        environments,
+        and(
+          eq(projectComponentConfig.environment_id, environments.id),
+          await userIsMember(userId, environments.project_id)
+        )
       )
       .where(
-        isNull(projectComponentConfig.id),
+        isNull(projectComponentConfig.id)
       )
       .orderBy(
         components.name
@@ -205,8 +285,8 @@ export async function getComponentsNotInProject(
     const safe = componentsSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
-        safe.error,
+        'There\'s an issue with the project records.',
+        safe.error
       );
     }
 
@@ -219,7 +299,7 @@ export async function getComponentsNotInProject(
 
 export async function getActiveProjectComponents(
   id: string | undefined | null,
-  userId: string | undefined | null,
+  userId: string | undefined | null
 ): ActionResponse<ProjectComponentsWithDialog[]> {
   if (!id) {
     return actionError('No identifier provided.');
@@ -237,7 +317,86 @@ export async function getActiveProjectComponents(
       componentVersions.version,
       componentVersions.component_id,
       componentVersions.created_at,
+      componentVersions.component_id
+    )
+    .limit(1)
+    .as('latest_version');
+
+  const first_environment = db.select()
+    .from(environments)
+    .limit(1)
+    .as('first_environment');
+
+  try {
+    const select = await db
+      .select({
+        ...getTableColumns(components),
+        is_active: projectComponentConfig.is_active,
+        version: sql`coalesce
+            (${componentVersions.version}, ${latest_version.version})`,
+        dialog: sql`coalesce
+            (${componentVersions.dialog}, ${latest_version.dialog})`
+      })
+      .from(components)
+      .leftJoin(
+        projectComponentConfig,
+        eq(components.id, projectComponentConfig.component_id)
+      )
+      .leftJoin(
+        first_environment,
+        eq(first_environment.id, projectComponentConfig.environment_id)
+      )
+      .leftJoin(
+        componentVersions,
+        eq(componentVersions.id, projectComponentConfig.component_version)
+      )
+      .leftJoin(
+        latest_version,
+        eq(latest_version.component_id, projectComponentConfig.component_id)
+      )
+      .where(
+        and(
+          eq(projectComponentConfig.is_active, true),
+          eq(first_environment.project_id, id)
+        )
+      );
+
+    const safe = projectComponentsWithDialogSchema.array().safeParse(select);
+    if (!safe.success) {
+      return actionZodError(
+        'There\'s an issue with the project records.',
+        safe.error
+      );
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to fetch project from database.');
+  }
+}
+
+export async function getActiveEnvironmentComponents(
+  id: string | undefined | null,
+  userId: string | undefined | null
+): ActionResponse<ProjectComponentsWithDialog[]> {
+  if (!id) {
+    return actionError('No identifier provided.');
+  }
+
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  const latest_version = db.select()
+    .from(componentVersions)
+    .orderBy(desc(componentVersions.created_at))
+    .groupBy(
+      componentVersions.id,
+      componentVersions.version,
       componentVersions.component_id,
+      componentVersions.created_at,
+      componentVersions.component_id
     )
     .limit(1)
     .as('latest_version');
@@ -247,26 +406,36 @@ export async function getActiveProjectComponents(
       .select({
         ...getTableColumns(components),
         is_active: projectComponentConfig.is_active,
-        version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
-        dialog: sql`coalesce(${componentVersions.dialog}, ${latest_version.dialog})`,
+        version: sql`coalesce
+            (${componentVersions.version}, ${latest_version.version})`,
+        dialog: sql`coalesce
+            (${componentVersions.dialog}, ${latest_version.dialog})`
       })
       .from(components)
       .leftJoin(
         projectComponentConfig,
-        eq(components.id, projectComponentConfig.component_id),
+        eq(components.id, projectComponentConfig.component_id)
       )
       .leftJoin(
         componentVersions,
-        eq(componentVersions.id, projectComponentConfig.component_version),
+        eq(componentVersions.id, projectComponentConfig.component_version)
       )
-      .leftJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
-      .where(and(eq(projectComponentConfig.is_active, true),eq(projectComponentConfig.project_id, id)))
+      .leftJoin(
+        latest_version,
+        eq(latest_version.component_id, projectComponentConfig.component_id)
+      )
+      .where(
+        and(
+          eq(projectComponentConfig.is_active, true),
+          eq(projectComponentConfig.environment_id, id)
+        )
+      );
 
     const safe = projectComponentsWithDialogSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
-        safe.error,
+        'There\'s an issue with the project records.',
+        safe.error
       );
     }
 
@@ -280,7 +449,7 @@ export async function getActiveProjectComponents(
 export async function getProjectComponentConfig(
   id: string | undefined | null,
   name: string | undefined | null,
-  userId: string | undefined | null,
+  userId: string | undefined | null
 ): ActionResponse<z.infer<typeof projectWithComponentAssetsSchema>> {
   if (!id) {
     return actionError('No identifier provided.');
@@ -295,43 +464,59 @@ export async function getProjectComponentConfig(
   }
 
   const assets = sql`
-    ARRAY_AGG(
-      jsonb_build_object(
-        'id', ${componentAssets.id},
-        'url', ${componentAssets.url},
-        'type', ${componentAssets.type}
-      )
-    )
+      ARRAY_AGG
+      ( jsonb_build_object(
+          'id', ${componentAssets.id},
+          'url', ${componentAssets.url},
+          'type', ${componentAssets.type}
+          ))
   `;
   const latest_version = db.select()
     .from(componentVersions)
     .as('latest_version');
 
-  try{
+  const first_environment = db.select()
+    .from(environments)
+    .limit(1)
+    .as('first_environment');
+
+  try {
     const result = await db
       .select({
         id: components.id,
         name: components.name,
         title: components.title,
-        version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
-        dialog: sql`coalesce(${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
-        dynamiczones: sql`coalesce(${componentVersions.dynamiczones}::jsonb, ${latest_version.dynamiczones}::jsonb)`,
-        assets,
+        version: sql`coalesce
+            (${componentVersions.version}, ${latest_version.version})`,
+        dialog: sql`coalesce
+            (${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
+        dynamiczones: sql`coalesce
+            (${componentVersions.dynamiczones}::jsonb, ${latest_version.dynamiczones}::jsonb)`,
+        assets
       })
       .from(projectComponentConfig)
       .leftJoin(components, eq(components.id, projectComponentConfig.component_id))
       .leftJoin(componentVersions, eq(componentVersions.id, projectComponentConfig.component_version))
       .fullJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
-      .leftJoin(componentAssets, sql`coalesce(${componentVersions.id}, ${latest_version.id}) = ${componentAssets.version_id}`)
+      .leftJoin(
+        first_environment,
+        eq(first_environment.id, projectComponentConfig.environment_id)
+      )
+      .leftJoin(componentAssets, sql`coalesce
+          (${componentVersions.id}, ${latest_version.id})
+          =
+          ${componentAssets.version_id}`)
       .where(and(
-        eq(projectComponentConfig.project_id, id),
+        eq(first_environment.project_id, id),
         eq(projectComponentConfig.is_active, true),
-        eq(components.slug, name),
+        eq(components.slug, name)
       ))
-      .orderBy(sql`string_to_array(${latest_version.version}, '.')::int[] DESC`)
+      .orderBy(sql`string_to_array
+          (${latest_version.version}, '.')
+          ::int[] DESC`)
       .limit(1)
       .groupBy(
-        projectComponentConfig.project_id,
+        first_environment.project_id,
         components.id,
         components.name,
         componentVersions.version,
@@ -340,15 +525,15 @@ export async function getProjectComponentConfig(
         sql`${latest_version.dialog}::jsonb`,
         sql`${latest_version.dynamiczones}::jsonb`,
         latest_version.version,
-        latest_version.id,
-      )
+        latest_version.id
+      );
 
     const safe =
       projectWithComponentAssetsSchema.safeParse(result[0]);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
-        safe.error,
+        'There\'s an issue with the project records.',
+        safe.error
       );
     }
 
@@ -358,13 +543,18 @@ export async function getProjectComponentConfig(
     return actionError('Failed to fetch project from database.');
   }
 }
-export async function getProjectComponentConfigWithVersion(
-  id: string | undefined | null,
-  userId: string | undefined | null,
-): ActionResponse<z.infer<typeof projectWithComponentAssetsSchema>> {
 
+export async function getEnvironmentComponentConfig(
+  id: string | undefined | null,
+  name: string | undefined | null,
+  userId: string | undefined | null
+): ActionResponse<z.infer<typeof projectWithComponentAssetsSchema>> {
   if (!id) {
     return actionError('No identifier provided.');
+  }
+
+  if (!name) {
+    return actionError('No component name provided.');
   }
 
   if (!userId) {
@@ -372,55 +562,66 @@ export async function getProjectComponentConfigWithVersion(
   }
 
   const assets = sql`
-    ARRAY_AGG(
-      jsonb_build_object(
-        'id', ${componentAssets.id},
-        'url', ${componentAssets.url},
-        'type', ${componentAssets.type}
-      )
-    )
+      ARRAY_AGG
+      ( jsonb_build_object(
+          'id', ${componentAssets.id},
+          'url', ${componentAssets.url},
+          'type', ${componentAssets.type}
+          ))
   `;
   const latest_version = db.select()
     .from(componentVersions)
     .as('latest_version');
 
-  try{
+  try {
     const result = await db
       .select({
         id: components.id,
         name: components.name,
         title: components.title,
-        version: sql`coalesce(${componentVersions.version}, ${latest_version.version})`,
-        dialog: sql`coalesce(${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
+        version: sql`coalesce
+            (${componentVersions.version}, ${latest_version.version})`,
+        dialog: sql`coalesce
+            (${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
+        dynamiczones: sql`coalesce
+            (${componentVersions.dynamiczones}::jsonb, ${latest_version.dynamiczones}::jsonb)`,
         assets
       })
       .from(projectComponentConfig)
       .leftJoin(components, eq(components.id, projectComponentConfig.component_id))
       .leftJoin(componentVersions, eq(componentVersions.id, projectComponentConfig.component_version))
       .fullJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
-      .leftJoin(componentAssets, sql`coalesce(${componentVersions.id}, ${latest_version.id}) = ${componentAssets.version_id}`)
+      .leftJoin(componentAssets, sql`coalesce
+          (${componentVersions.id}, ${latest_version.id})
+          =
+          ${componentAssets.version_id}`)
       .where(and(
-        // eq(projectComponentConfig.project_id, id),
+        eq(projectComponentConfig.environment_id, id),
         eq(projectComponentConfig.is_active, true),
+        eq(components.slug, name)
       ))
-      // .orderBy(sql`string_to_array(${latest_version.version}, '.')::int[] DESC`)
-      // .limit(1)
+      .orderBy(sql`string_to_array
+          (${latest_version.version}, '.')
+          ::int[] DESC`)
+      .limit(1)
       .groupBy(
-        projectComponentConfig.project_id,
         components.id,
+        components.name,
         componentVersions.version,
         sql`${componentVersions.dialog}::jsonb`,
+        sql`${componentVersions.dynamiczones}::jsonb`,
         sql`${latest_version.dialog}::jsonb`,
+        sql`${latest_version.dynamiczones}::jsonb`,
         latest_version.version,
-        latest_version.id,
-      )
+        latest_version.id
+      );
 
     const safe =
       projectWithComponentAssetsSchema.safeParse(result[0]);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
-        safe.error,
+        'There\'s an issue with the project records.',
+        safe.error
       );
     }
 
@@ -433,7 +634,7 @@ export async function getProjectComponentConfigWithVersion(
 
 export async function deleteProject(
   id: string,
-  userId: string | undefined | null,
+  userId: string | undefined | null
 ): ActionResponse<Project[]> {
   if (!userId) {
     return actionError('No user provided.');
@@ -442,17 +643,18 @@ export async function deleteProject(
   try {
     const deleted = await db
       .delete(projects)
-      .where(and(userIsMember(userId), eq(projects.id, id)))
+      .where(and(await userIsMember(userId), eq(projects.id, id)))
       .returning();
 
     const safe = z.array(projectSchema).safeParse(deleted);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
-        safe.error,
+        'There\'s an issue with the project records.',
+        safe.error
       );
     }
 
+    revalidatePath(`/projects`, 'page');
     return actionSuccess(safe.data);
   } catch (error) {
     console.error(error);
@@ -462,7 +664,7 @@ export async function deleteProject(
 
 export async function getProjectById(
   id: string,
-  userId: string | undefined | null,
+  userId: string | undefined | null
 ): ActionResponse<z.infer<typeof projectSchema>> {
   if (!userId) {
     return actionError('No user provided.');
@@ -473,15 +675,22 @@ export async function getProjectById(
   }
 
   try {
-    const select = await db.query.projects.findFirst({
-      where: and(eq(projects.id, id), userIsMember(userId)),
-    });
+    const select = await db
+      .select()
+      .from(projects)
+      .where(
+        and(
+          eq(projects.id, id),
+          await userIsMember(userId)
+        )
+      )
+      .limit(1);
 
-    const safe = projectSchema.safeParse(select);
+    const safe = projectSchema.safeParse(select[0]);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the project records.",
-        safe.error,
+        'There\'s an issue with the project records.',
+        safe.error
       );
     }
 
@@ -492,9 +701,113 @@ export async function getProjectById(
   }
 }
 
+export async function upsertComponentConfig(
+  componentConfig: ProjectComponentConfigInput,
+  projectId: string,
+  userId: string | undefined | null,
+  eventType: string
+): ActionResponse<ProjectComponentConfig> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  const safeInput =
+    projectComponentConfigInputSchema.safeParse(componentConfig);
+  if (!safeInput.success) {
+    return actionZodError(
+      'Failed to parse project´s component input',
+      safeInput.error
+    );
+  }
+
+  try {
+    const insert = await db
+      .insert(projectComponentConfig)
+      .values(safeInput.data)
+      .onConflictDoUpdate({
+        target: [
+          projectComponentConfig.component_id,
+          projectComponentConfig.environment_id
+        ],
+        set: {
+          is_active: safeInput.data.is_active,
+          component_version: safeInput.data.component_version
+        }
+      })
+      .returning();
+
+    const safe = projectComponentConfigSchema.safeParse(insert[0]);
+    if (!safe.success) {
+      return actionZodError(
+        'There\'s an issue with the component config records.',
+        safe.error
+      );
+    }
+    revalidatePath('/(layout)/(session)/projects/[id]', 'layout');
+
+    const logData = {
+      version_id: safe.data.component_version,
+      component_id: safe.data.component_id,
+      project_id: projectId
+    };
+    switch (eventType) {
+      case 'project_component_added':
+        await logEvent({
+          type: 'project_component_added',
+          data: logData,
+          user_id: userId,
+          resource_id: projectId
+        });
+        break;
+      case 'project_component_activated':
+        await logEvent({
+          type: 'project_component_activated',
+          data: logData,
+          user_id: userId,
+          resource_id: projectId
+        });
+        await logEvent({
+          type: 'component_activated',
+          data: logData,
+          user_id: userId,
+          resource_id: safeInput.data.component_id
+        });
+        break;
+      case 'project_component_deactivated':
+        await logEvent({
+          type: 'project_component_deactivated',
+          data: logData,
+          user_id: userId,
+          resource_id: projectId
+        });
+        await logEvent({
+          type: 'component_deactivated',
+          user_id: userId,
+          data: logData,
+          resource_id: safeInput.data.component_id
+        });
+        break;
+      case 'project_component_version_updated':
+        await logEvent({
+          type: 'project_component_version_updated',
+          data: logData,
+          user_id: userId,
+          resource_id: projectId
+        });
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      'Failed to insert project component config into database.'
+    );
+  }
+}
+
 export async function upsertProject(
   project: ProjectInput,
-  userId: string | undefined | null,
+  userId: string | undefined | null
 ): ActionResponse<z.infer<typeof projectSchema>> {
   if (!userId) {
     return actionError('No user provided.');
@@ -503,8 +816,8 @@ export async function upsertProject(
   if (!safeProject.success) {
     return actionZodError('Failed to parse project´s input', safeProject.error);
   }
+  const isUpdate = !!safeProject.data.id;
 
-  const isUpdate = !!project.id;
   try {
     const insert = await db
       .insert(projects)
@@ -513,8 +826,8 @@ export async function upsertProject(
         target: projects.id,
         set: {
           name: safeProject.data.name,
-          description: safeProject.data.description,
-        },
+          description: safeProject.data.description
+        }
       })
       .returning();
 
@@ -527,24 +840,34 @@ export async function upsertProject(
       type: isUpdate ? 'project_updated' : 'project_created',
       user_id: userId,
       data: {},
-      resource_id: result.data.id,
+      resource_id: result.data.id
     });
 
-    if (!safeProject.data.id) {
+    if (!isUpdate) {
       const insertMember = await insertMembers([
         {
           user_id: userId,
           resource: result.data.id,
           role: 'owner',
-          permissions: 'write',
-        },
+          permissions: 'write'
+        }
       ], userId);
       if (!insertMember.success) {
         return actionError('Failed to create owner.');
       }
+
+      const environment = await upsertEnvironment({
+        name: 'main',
+        description: `Default environment for the project ${result.data.name}`,
+        project_id: result.data.id,
+        secure: false
+      }, userId);
+      if (!environment.success) {
+        return actionError('Failed to create default environment.');
+      }
     }
 
-    revalidatePath(`/projects`, 'page')
+    revalidatePath(`/projects`, 'page');
     return actionSuccess(result.data);
   } catch (error) {
     console.error(error);
@@ -552,112 +875,59 @@ export async function upsertProject(
   }
 }
 
-export async function upsertComponentConfig(
-  componentConfig: ProjectComponentConfigInput,
-  userId: string | undefined | null,
-  eventType: string,
-): ActionResponse<ProjectComponentConfig> {
+export async function upsertEnvironment(
+  environment: EnvironmentInput,
+  userId: string | undefined | null
+): ActionResponse<Environment> {
   if (!userId) {
     return actionError('No user provided.');
   }
 
-  const safeInput =
-    projectComponentConfigInputSchema.safeParse(componentConfig);
+  const safeInput = environmentInputSchema.safeParse(environment);
   if (!safeInput.success) {
     return actionZodError(
-      'Failed to parse project´s component input',
-      safeInput.error,
+      'Failed to parse environment input',
+      safeInput.error
     );
   }
 
   try {
     const insert = await db
-      .insert(projectComponentConfig)
+      .insert(environments)
       .values(safeInput.data)
       .onConflictDoUpdate({
         target: [
-          projectComponentConfig.component_id,
-          projectComponentConfig.project_id,
+          environments.id
         ],
         set: {
-          is_active: safeInput.data.is_active,
-          component_version: safeInput.data.component_version
-        },
+          secure: safeInput.data.secure,
+          description: safeInput.data.description
+        }
       })
       .returning();
 
-    const safe = projectComponentConfigSchema.safeParse(insert[0]);
+    const safe = environmentsSchema.safeParse(insert[0]);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the component config records.",
-        safe.error,
+        'There\'s an issue with the environment record.',
+        safe.error
       );
     }
     revalidatePath('/(layout)/(session)/projects/[id]', 'layout');
-
-    const logData = {
-      version_id: safe.data.component_version,
-      component_id: safe.data.component_id,
-      project_id: safe.data.project_id,
-    };
-    switch (eventType) {
-      case 'project_component_added':
-        await logEvent({
-          type: 'project_component_added',
-          data: logData,
-          user_id: userId,
-          resource_id: safeInput.data.project_id,
-        });
-        break;
-      case 'project_component_activated':
-        await logEvent({
-          type: 'project_component_activated',
-          data: logData,
-          user_id: userId,
-          resource_id: safeInput.data.project_id,
-        });
-        await logEvent({
-          type: 'component_activated',
-          data: logData,
-          user_id: userId,
-          resource_id: safeInput.data.component_id,
-        });
-        break;
-      case 'project_component_deactivated':
-        await logEvent({
-          type: 'project_component_deactivated',
-          data: logData,
-          user_id: userId,
-          resource_id: safeInput.data.project_id,
-        });
-        await logEvent({
-          type: 'component_deactivated',
-          user_id: userId,
-          data: logData,
-          resource_id: safeInput.data.component_id,
-        });
-        break;
-      case 'project_component_version_updated':
-        await logEvent({
-          type: 'project_component_version_updated',
-          data: logData,
-          user_id: userId,
-          resource_id: safeInput.data.project_id,
-        });
-    }
 
     return actionSuccess(safe.data);
   } catch (error) {
     console.error(error);
     return actionError(
-      'Failed to insert project component config into database.',
+      'Failed to insert project component config into database.'
     );
   }
 }
 
 export async function deleteComponentConfig(
   id: string,
-  userId: string | undefined | null,
+  projectId: string,
+  userId: string | undefined | null
 ): ActionResponse<ProjectComponentConfig[]> {
   if (!userId) {
     return actionError('No user provided.');
@@ -667,18 +937,15 @@ export async function deleteComponentConfig(
     const deleted = await db
       .delete(projectComponentConfig)
       .where(
-        and(
-          userIsMember(userId, projectComponentConfig.project_id),
-          eq(projectComponentConfig.id, id)
-        )
+        eq(projectComponentConfig.id, id)
       )
       .returning();
 
     const safe = z.array(projectComponentConfigSchema).safeParse(deleted);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the config records.",
-        safe.error,
+        'There\'s an issue with the config records.',
+        safe.error
       );
     }
 
@@ -686,9 +953,44 @@ export async function deleteComponentConfig(
       type: 'project_component_removed',
       user_id: userId,
       data: { component_id: safe.data[0].component_id },
-      resource_id: safe.data[0].project_id,
+      resource_id: projectId
     });
 
+
+    revalidatePath('/(layout)/(session)/projects/[id]', 'layout');
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to delete config from database.');
+  }
+}
+
+export async function deleteEnvironment(
+  id: string,
+  userId: string | undefined | null
+): ActionResponse<Environment[]> {
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  try {
+    const deleted = await db
+      .delete(environments)
+      .where(
+        and(
+          eq(environments.id, id),
+          await userIsMember(userId, environments.project_id)
+        )
+      )
+      .returning();
+
+    const safe = z.array(environmentsSchema).safeParse(deleted);
+    if (!safe.success) {
+      return actionZodError(
+        'There\'s an issue with the config records.',
+        safe.error
+      );
+    }
 
     revalidatePath('/(layout)/(session)/projects/[id]', 'layout');
     return actionSuccess(safe.data);

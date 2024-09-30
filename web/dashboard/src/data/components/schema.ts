@@ -1,4 +1,4 @@
-import { pgEnum, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { customJson } from '@/db/custom-types';
 
@@ -19,8 +19,8 @@ export const componentVersions = pgTable("component_version", {
   id: uuid('id').unique().notNull().defaultRandom(),
   component_id:  uuid('component_id').notNull().references(() => components.id, { onDelete: 'cascade' }),
   version: text('version').notNull(),
-  dialog: customJson('dialog'),
-  dynamiczones: customJson('dynamiczones').default([]),
+  dialog: jsonb('dialog'),
+  dynamiczones: jsonb('dynamiczones').default([]),
   created_at: timestamp("created_at").defaultNow().notNull(),
   readme: text("readme"),
   changelog: text("changelog"),

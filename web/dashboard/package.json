@@ -1,6 +1,6 @@
 {
   "name": "@ethereal-nexus/dashboard",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS=' --experimental-vm-modules --inspect' next dev",
@@ -8,8 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write \"{,!(.next)/**/}*.{ts, tsx}\"",
-    "generate": "drizzle-kit push",
-    "test": "set TZ=UTC && jest --coverage --max-workers=75%"
+    "test": "set TZ=UTC && jest --coverage --max-workers=75%",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
     "@astrojs/mdx": "^2.2.0",
@@ -38,7 +39,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "cmdk": "^0.2.0",
-    "drizzle-orm": "^0.30.10",
+    "drizzle-orm": "0.33.0",
     "drizzle-zod": "^0.5.1",
     "encoding": "^0.1.13",
     "formidable": "^3.5.1",

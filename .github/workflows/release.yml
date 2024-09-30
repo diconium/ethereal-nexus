@@ -11,10 +11,9 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    environment: playground
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -31,7 +30,7 @@ jobs:
 
       - name: 'Create env file'
         run: |
-          echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./web/dashboard/.env
+          echo "${{ secrets.AUTH_SECRET }}" >> ./web/dashboard/.env
 
       - name: Build Packages
         run: pnpm run build

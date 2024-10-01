@@ -123,7 +123,7 @@ export async function updateMemberPermissions(member: UpdateMemberPermissions, u
       return actionZodError('Failed to parse updated user.', result.error);
     }
 
-      const logData = { member_id: result.data.user_id, permissions: member.permissions};
+      const logData = { member_id: result.data.user_id, permissions: member.permissions || {}};
       await logEvent({
         type: 'project_member_permissions_updated',
         user_id: userId,

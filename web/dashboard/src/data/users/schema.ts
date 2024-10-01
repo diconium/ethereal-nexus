@@ -1,5 +1,4 @@
-import { pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { customJsonb } from '@/db/custom-types';
+import { jsonb, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 export const userRolesEnum = pgEnum('roles', ['admin', 'user', 'viewer']);
 
@@ -20,7 +19,7 @@ export const apiKeys = pgTable('api_key', {
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   alias: text('alias'),
-  permissions: customJsonb('permissions'),
+  permissions: jsonb('permissions'),
   created_at: timestamp('created_at').defaultNow().notNull(),
 });
 

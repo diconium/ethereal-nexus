@@ -359,13 +359,12 @@ export async function upsertApiKey(
       .insert(apiKeys)
       .values({
         ...input.data,
-        permission: sql`${input.data.permissions}::jsonb`,
       })
       .onConflictDoUpdate({
         target: apiKeys.id,
         set: {
           alias: input.data.alias,
-          permissions: sql`${input.data.permissions}::jsonb`,
+          permissions: input.data.permissions,
         },
       })
       .returning();

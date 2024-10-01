@@ -1,6 +1,5 @@
 import { jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { customJson } from '@/db/custom-types';
 
 export const assetTypeEnum = pgEnum('asset_type', ['css', 'js', 'chunk', 'server']);
 

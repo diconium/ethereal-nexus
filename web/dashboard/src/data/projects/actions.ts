@@ -224,7 +224,6 @@ export async function getEnvironmentComponents(
       .where(eq(projectComponentConfig.environment_id, id))
       .orderBy(
         sql`${projectComponentConfig.is_active} DESC NULLS LAST`,
-        sql`${componentVersions.version} NULLS LAST`,
         components.name
       );
 

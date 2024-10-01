@@ -8,6 +8,7 @@ import { componentVersionsSchema } from '@/data/components/dto';
 import { z } from 'zod';
 import { upsertComponentConfig } from '@/data/projects/actions';
 import { useRouter } from 'next/navigation';
+import {compare} from 'semver';
 
 const versions = componentVersionsSchema.pick({id: true, version: true})
 
@@ -65,7 +66,7 @@ export function VersionPicker({version: selected, disabled, versions, environmen
               </span>
             </CommandItem>
             {
-              versions.map(version => (
+              versions.sort((a, b) => compare(a.version, b.version)).map(version => (
                 <CommandItem
                   key={version.id}
                   value={version.version}

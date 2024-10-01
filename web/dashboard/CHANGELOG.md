@@ -1,5 +1,13 @@
 # @ethereal-nexus/dashboard
 
+## 1.0.1
+
+### Patch Changes
+
+- 7807ade: fix: [83] use projectInputSchema to validate project creation form
+- b6b0876: fix: [80] remove version sorting and improve version picker sort order
+- d3824ca: fix: remove usage of custom jsonb after the upgrage of drizzle-orm
+
 ## 1.0.0
 
 ### Major Changes

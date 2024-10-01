@@ -59,7 +59,7 @@ export type ProjectComponentConfig = z.infer<
  */
 export const projectWithComponentIdSchema = projectSchema.extend({
   components: projectComponentConfigSchema.pick({ component_id: true }).array(),
-  environments: environmentsSchema.pick({id: true, name: true}).array()
+  environments: environmentsSchema.pick({ id: true, name: true }).array()
 });
 export type ProjectWithComponentId = z.infer<
   typeof projectWithComponentIdSchema
@@ -148,7 +148,7 @@ export const projectInputSchema = createInsertSchema(projects, {
   name: (schema) =>
     schema.name.min(4, 'Name must be longer than 4 characters.')
 })
-  .required({ name: true });
+  .required({ name: true, description: true });
 export type ProjectInput = z.infer<typeof projectInputSchema>;
 
 export const projectComponentConfigInputSchema = createInsertSchema(
@@ -169,11 +169,11 @@ export const environmentWithComponentsSchema = environmentsSchema.extend({
   components: componentsSchema.pick({
     id: true,
     name: true,
-    title: true,
+    title: true
   }).extend({
     config_id: projectComponentConfigSchema.shape.id,
     is_active: projectComponentConfigSchema.shape.is_active,
-    version: componentVersionsSchema.shape.version.nullable(),
+    version: componentVersionsSchema.shape.version.nullable()
   }).array()
 });
 export type EnvironmentWithComponents = z.infer<typeof environmentWithComponentsSchema>;

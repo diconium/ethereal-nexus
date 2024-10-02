@@ -92,6 +92,7 @@ const dialogSchema = dialog({
       eq('title', 'bar'),
     ),
     banners: {
+      $this: ({ eq }) => eq('checkbox', true),
       link: ({ eq, and, exists }) => and(
         eq('checkbox', true),
         exists('banners'),

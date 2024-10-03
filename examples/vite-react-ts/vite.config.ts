@@ -12,6 +12,7 @@ export default defineConfig({
         SimpleReactHelloWorld: './src/components/SimpleReactHelloWorld/SimpleReactHelloWorld.tsx',
         EventExample: './src/components/EventExample/EventExample.tsx',
         DropdownExample: './src/components/DropdownExample/DropdownExample.tsx',
+        NavigationExample: './src/components/NavigationExample/NavigationExample.tsx',
       },
       server: true,
     })

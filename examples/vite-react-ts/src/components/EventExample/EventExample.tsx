@@ -12,16 +12,12 @@ import {
   text,
   group,
   pathbrowser,
-  rte,
   datamodel,
   type Output,
 } from '@ethereal-nexus/core';
 
 const dialogSchema = dialog({
 
-  image: image({
-    label: 'Image',
-  }),
   person: datamodel({
     placeholder: 'Select a person',
     label: 'Person',
@@ -55,10 +51,7 @@ const dialogSchema = dialog({
     toggle: false,
     tooltip: 'This is a tooltip for the whole group',
     children: object({
-      rte: rte({
-        label: 'This is a RTE',
-        placeholder: 'Place any text here',
-      }),
+
       image: image({
         label: 'Image',
       }),
@@ -198,31 +191,10 @@ const dialogSchema = dialog({
     anotherevent: true,
     anothermultifield: true,
     contributors: true,
-    image: true,
   },
-}).conditions({
-    anotherevent: ({exists})  => exists('person'),
-    anothermultifield: ({exists})  => exists('anotherevent'),
-    contributors: ({exists})  => exists('anothermultifield'),
-    image: ({exists})  => exists('anotherevent'),
-    group: {
-      image: ({exists})  => exists('group.rte'),
-      grouptitle: ({exists})  => exists('group.image'),
-      isadvanced: ({exists})  => exists('group.grouptitle'),
-      event: ({exists})  => exists('group.isadvanced'),
-      staticdropdownsingle: ({exists})  => exists('group.event'),
-      staticdropdownmultiple: ({exists})  => exists('group.staticdropdownsingle'),
-      datasourcevalue: ({exists})  => exists('group.staticdropdownmultiple'),
-      link: ({eq})  => eq('group.staticdropdownmultiple','one'),
-      banners: ({exists})  => exists('group.link'),
+});
 
-
-    }
-  }
-
-)
-
-const schema = component({ version: '0.0.34' }, dialogSchema, {  });
+const schema = component({ version: '0.0.30' }, dialogSchema, {});
 
 type Props = Output<typeof schema>
 
@@ -232,7 +204,6 @@ export const EventExample: React.FC<Props> = ({
                                                 anotherevent,
                                                 anothermultifield,
                                                 contributors,
-                                                image
                                               }) => {
   return (
     <div>
@@ -240,8 +211,7 @@ export const EventExample: React.FC<Props> = ({
         <p>person: {person.firstName} {person.lastName}</p>
       )}
       <p>group.active: {group.active ? 'true' : 'false'}</p>
-      <h3>image from the tab</h3>
-      <p>{image}</p>
+
       <h2>Group</h2>
       <ul>
         <li>image: {group.image}</li>

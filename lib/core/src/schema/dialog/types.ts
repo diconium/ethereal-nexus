@@ -27,6 +27,7 @@ export interface ConditionOperators<TEntries extends ObjectEntries = any> {
 
 export type ConditionFn<TEntries extends ObjectEntries> = (ops: ConditionOperators<TEntries>) => Conditions;
 
-export type ConditionsArgument<TEntries extends ObjectEntries> = AddType<UnArray<DeepPartial<ObjectOutput<TEntries>>>, ConditionFn<TEntries>>
+type ThisPlaceholder = symbol
+export type ConditionsArgument<TEntries extends ObjectEntries> = AddType<UnArray<DeepPartial<AddType<ObjectOutput<TEntries>, {$this: ThisPlaceholder}>>>, ConditionFn<TEntries>>
 
 export type Field = { id: string, condition?: Conditions, children?: Field[] }

@@ -20,6 +20,12 @@ function addConditionToField(fields: Field[], path: string, condition: Condition
       if (!field.children) {
         throw new Error(`Field with id "${key}" has no children`);
       }
+
+      const nextKey = keys[i + 1];
+      if(nextKey === '$this') {
+        field.condition = condition;
+        break;
+      }
       currentFields = field.children;
     }
   }

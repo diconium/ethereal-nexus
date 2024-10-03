@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.0.1
+
+### Patch Changes
+
+- aa5a9c3: fix: added possibility to add conditions on groups and groups childrens at the same time
+
 ## 1.0.0
 
 ### Major Changes

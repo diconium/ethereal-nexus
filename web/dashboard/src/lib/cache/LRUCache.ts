@@ -26,8 +26,10 @@ export class LRUCache<K, V> {
         } else if (this.cache.size >= this.capacity) {
             // Remove the least recently used (LRU) item
             const lruKey = this.order.keys().next().value;
-            this.cache.delete(lruKey);
-            this.order.delete(lruKey);
+            if(lruKey) {
+                this.cache.delete(lruKey);
+                this.order.delete(lruKey);
+            }
         }
         // Insert the new key-value pair
         this.cache.set(key, value);

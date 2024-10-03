@@ -81,7 +81,7 @@ export async function getResourceEvents(
     if (!safe.success) {
       console.error(safe.error);
       return actionZodError(
-        'There\'s an issue with the project records.',
+        'There\'s an issue with the events records.',
         safe.error,
       );
     }
@@ -89,6 +89,6 @@ export async function getResourceEvents(
     return actionSuccess(safe.data);
   } catch (error) {
     console.error(error);
-    return actionError('Failed to fetch project from database.');
+    return actionError('Failed to fetch events from database.');
   }
 }

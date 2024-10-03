@@ -11,16 +11,17 @@ type ActiveSwitchProps = {
   componentId: string,
   disabled: boolean,
   projectId: string,
+  environmentId: string,
   active: boolean,
 }
-export function ActiveSwitch({componentId, disabled, projectId, active}:ActiveSwitchProps) {
+export function ActiveSwitch({componentId, disabled, projectId, environmentId, active}:ActiveSwitchProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const form = useForm({defaultValues: {is_active: active}});
 
   const onSubmit = async (data) => {
     const update = await upsertComponentConfig(
-      {project_id: projectId, component_id: componentId, is_active: data.is_active}, session?.user?.id, data.is_active ? 'project_component_activated' : 'project_component_deactivated')
+      {environment_id: environmentId, component_id: componentId, is_active: data.is_active}, projectId, session?.user?.id, data.is_active ? 'project_component_activated' : 'project_component_deactivated')
     if(!update.success){
       toast({
         title: "Failed to activate component.",

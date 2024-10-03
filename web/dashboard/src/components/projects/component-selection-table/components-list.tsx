@@ -1,17 +1,27 @@
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { columns } from './columns';
 import React from 'react';
-import { getComponentsNotInProject, getProjectComponents } from '@/data/projects/actions';
+import {
+  getComponentsNotInEnvironment,
+  getEnvironmentComponents,
+  getEnvironmentsByProject
+} from '@/data/projects/actions';
 import { auth } from '@/auth';
 import { ComponentsDialog } from '@/components/projects/component-selection-table/components-dialog';
 
-export async function ProjectComponentsList({id}: {id: string}) {
-  const session = await auth()
-  const project = await getProjectComponents(id, session?.user?.id);
-  const components = await getComponentsNotInProject(id, session?.user?.id);
+export async function ProjectComponentsList({ id, environment }: { id: string, environment: string }) {
+  const session = await auth();
 
-  if(!project.success) {
-    throw new Error(project.error.message)
+  const environments = await getEnvironmentsByProject(id, session?.user?.id);
+  if (!environments.success) {
+    throw new Error(environments.error.message);
+  }
+  const selected = environment || environments.data[0].id;
+
+  const components = await getComponentsNotInEnvironment(selected, session?.user?.id);
+  const project = await getEnvironmentComponents(selected, session?.user?.id);
+  if (!project.success) {
+    throw new Error(project.error.message);
   }
 
   return <DataTable
@@ -19,11 +29,17 @@ export async function ProjectComponentsList({id}: {id: string}) {
     data={project.data}
     meta={{
       projectId: id,
+      environmentId: selected,
       permissions: session?.permissions[id]
     }}
     entity={'components'}
     createSlot={
-      <ComponentsDialog components={components} projectId={id}/>
+      <ComponentsDialog
+        components={components}
+        environment={selected}
+        project={id}
+        environments={environments.data}
+      />
     }
-  />
+  />;
 }

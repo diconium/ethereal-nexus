@@ -37,6 +37,19 @@ export const columns = [
     enableHiding: true,
   },
   {
+    accessorKey: "environments",
+    header: ({ column }) => (
+      <DataTableColumnHeader className="font-bold" column={column} title="Environments" />
+    ),
+    cell: ({ row }) => (
+      <div className="inline-flex">
+        <div className="text-orange-500 text-base"> { row.getValue("environments")?.length || 0 } </div>
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: true,
+  },
+  {
     id: "actions",
     cell: ({ table, row }) => (
       <div className="flex justify-end" >

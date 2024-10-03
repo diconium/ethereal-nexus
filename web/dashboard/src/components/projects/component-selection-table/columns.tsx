@@ -36,12 +36,13 @@ export const columns = [
     ),
     cell: ({ row, table }) => {
       const {id, version, versions} = row.original;
-      const {projectId, permissions} = table.options.meta;
+      const {environmentId ,projectId, permissions} = table.options.meta;
 
       return <VersionPicker
         disabled={permissions !== 'write'}
         key={id}
         projectId={projectId}
+        environmentId={environmentId}
         componentId={id}
         version={version}
         versions={versions}
@@ -58,12 +59,13 @@ export const columns = [
     ),
     cell: ({ row, table }) => {
       const {id} = row.original;
-      const {projectId, permissions} = table.options.meta;
+      const {projectId, environmentId, permissions} = table.options.meta;
 
       return <ActiveSwitch
         disabled={permissions !== 'write'}
         key={id}
         projectId={projectId}
+        environmentId={environmentId}
         componentId={id}
         active={row.getValue("active")}
       />

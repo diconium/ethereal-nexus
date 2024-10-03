@@ -2,12 +2,12 @@
 import type { HTMLAttributes } from 'astro/types';
 
 interface Props {
-  variant: 'primary' | 'secondary' | 'minimal';
-  link: string;
+  variant?: 'primary' | 'secondary' | 'minimal';
+  link?: string;
   attrs?: Omit<HTMLAttributes<'a'>, 'href'> | undefined;
 }
 
-const { link, variant } = Astro.props;
+const { link, variant = 'primary' } = Astro.props;
 const { class: customClass, ...attrs } = Astro.props.attrs || {};
 ---
 

@@ -2,9 +2,12 @@
   "name": "@ethereal-nexus/root",
   "private": "true",
   "scripts": {
-    "postinstall": "turbo run build --filter='./lib/*'"
+    "postinstall": "turbo run build --filter='./lib/*'",
+    "build": "turbo run build",
+    "release": "pnpm --filter \"...{lib/**}\" publish --access public"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.27.8",
     "prettier": "^3.2.5",
     "turbo": "^1.13.3"
   },

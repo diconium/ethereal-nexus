@@ -3,15 +3,15 @@ import { ObjectEntries, ObjectOutput, SlotEntries } from '../../types/object';
 import { DialogSchema } from '../../schema/dialog';
 import { WebcomponentPropTypes } from '../../types/webcomponent';
 
-export interface ComponentSchema<TEntries extends ObjectEntries, TSlots extends SlotEntries, TOutput = ObjectOutput<TEntries & TSlots>> extends BaseSchema<TOutput>, Partial<ComponentModel> {
+export interface ComponentSchema<TEntries extends ObjectEntries, TSlots extends SlotEntries | undefined> extends BaseSchema<ObjectOutput<TEntries & TSlots>>, Partial<ComponentModel> {
   type: 'component';
-  dialog: Omit<DialogSchema<TEntries>, 'tabs'>;
+  dialog: DialogSchema<TEntries>;
   slots?: TSlots,
 }
 
-export function component<TEntries extends ObjectEntries, TSlots extends SlotEntries>(
+export function component<TEntries extends ObjectEntries, TSlots extends SlotEntries | undefined>(
   config: Partial<ComponentModel>,
-  dialog: Omit<DialogSchema<TEntries>, 'tabs'>,
+  dialog: DialogSchema<TEntries>,
   slots?: TSlots,
 ): ComponentSchema<TEntries, TSlots> {
 

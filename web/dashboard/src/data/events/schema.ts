@@ -1,6 +1,5 @@
-import { pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { jsonb, pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 import {users} from "@/data/users/schema";
-import { customJsonb } from '@/db/custom-types';
 
 export const eventsTypeEnum = pgEnum('event_type', [
   'component_deactivated',
@@ -23,5 +22,5 @@ export const events = pgTable("event", {
   resource_id: uuid('resource_id').notNull(),
   user_id: uuid('user_id').notNull().references(() => users.id),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
-  data: customJsonb('data'),
+  data: jsonb('data'),
 })

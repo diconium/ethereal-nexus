@@ -20,13 +20,14 @@ export function ProjectsComponentsRowActions({ table, row }) {
   const component = row.original;
   const projectId = table.options.meta.projectId
   const {data: session} = useSession()
+  const isDisabled = session?.permissions[projectId] !== 'write';
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleDeleteOk = async () => {
     setDeleteDialogOpen(false)
 
     if (component) {
-      const deleted = await deleteComponentConfig(component.config_id, session?.user?.id)
+      const deleted = await deleteComponentConfig(component.config_id, projectId, session?.user?.id)
 
       if(deleted.success) {
         toast({
@@ -80,6 +81,7 @@ export function ProjectsComponentsRowActions({ table, row }) {
                   Cancel
                 </Button>
                 <Button
+                  disabled={isDisabled}
                   variant="destructive"
                   onClick={() => handleDeleteOk()}
                 >

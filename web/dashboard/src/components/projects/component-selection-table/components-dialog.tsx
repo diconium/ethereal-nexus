@@ -1,65 +1,200 @@
 'use client';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import React, { useState } from 'react';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import React, { MouseEventHandler, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { upsertComponentConfig } from '@/data/projects/actions';
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
-import { cn } from '@/lib/utils';
-import { Plus } from 'lucide-react';
+import { Check, ChevronDownIcon, ClipboardCopy, Plus, Rocket } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { type Environment } from '@/data/projects/dto';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 type ComponentsDialogProps = {
   components: any,
-  projectId: string,
+  project: string,
+  environment: string,
+  environments: Environment[],
 }
 
-export function ComponentsDialog({ components, projectId }: ComponentsDialogProps) {
+export function ComponentsDialog({ components, environment, project, environments }: ComponentsDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
-  const { data: session } = useSession();
-  const isDisabled = session?.permissions[projectId] !== 'write';
+  const [isEnvironmentOpen, setEnvironmentOpen] = useState(false);
+  const [isLaunchOpen, setLaunchOpen] = useState(false);
 
-  if(!components.success) {
-    throw new Error(components.error.message)
+  const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
+
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
+
+  const { data: session } = useSession();
+  const isDisabled = session?.permissions[project] !== 'write';
+
+  const selected = environments.find(env => env.id === environment);
+  if (!components.success) {
+    throw new Error(components.error.message);
   }
 
   const handleSubmit = async () => {
     const updateResult = await Promise.all(
-      selectedComponents.map( async (component) => (
-        await upsertComponentConfig({project_id: projectId, component_id: component, is_active:true}, session?.user?.id, 'project_component_added')
+      selectedComponents.map(async (component) => (
+        await upsertComponentConfig({
+          environment_id: environment,
+          component_id: component,
+          is_active: true
+        }, project, session?.user?.id, 'project_component_added')
       ))
     );
 
-    if(updateResult.some((result) => !result.success)){
+    if (updateResult.some((result) => !result.success)) {
       toast({
-        title: "Failed to add components.",
+        title: 'Failed to add components.'
       });
     } else {
       toast({
-        title: `Components added successfully!`,
+        title: `Components added successfully!`
       });
       setIsOpen(false);
       setSelectedComponents([]);
     }
   };
 
+  function handleEnvironment(environmentId: string | null) {
+    return () => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (environmentId) {
+        params.set('env', environmentId);
+      }
+      replace(`${pathname}?${params.toString()}`);
+
+      setEnvironmentOpen(false);
+    };
+  }
+
+  function handleLaunch(environmentId: string | null) {
+    return () => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (environmentId) {
+        params.set('env', environmentId);
+      }
+      replace(`/projects/launch/new/${environment}...${environmentId}`);
+
+      setEnvironmentOpen(false);
+    };
+  }
+
+
+  const copyProjectUrl: MouseEventHandler = () => {
+    navigator.clipboard.writeText(
+      window.location.origin +
+      `/api/v1/environments/${environment}/components`
+    ).then(() => {
+      toast({
+        title: 'Environment URL copied to clipboard'
+      });
+    });
+  };
+
+
   return (
-    <>
+    <div className="flex justify-between">
+      <div className="flex gap-2">
+        <Popover open={isEnvironmentOpen} onOpenChange={setEnvironmentOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="secondary" className="flex justify-between min-w-[125px]">
+              {selected!.name}
+              <ChevronDownIcon className="ml-2 h-4 w-4 text-muted-foreground" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Select environment..." />
+              <CommandList>
+                <CommandGroup>
+                  {
+                    environments
+                      .map(env => (
+                          <CommandItem
+                            key={env.id}
+                            value={env.name}
+                            onSelect={handleEnvironment(env.id)}
+                            className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
+                          >
+                      <span
+                        className="flex items-center">
+                          {
+                            environment === env.id ?
+                              <Check className="mr-2 h-4 w-4 text-muted-foreground" /> :
+                              null
+                          }
+                        <p>{env.name}</p>
+                      </span>
+                          </CommandItem>
+                        )
+                      )
+                  }
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+        <Popover open={isLaunchOpen} onOpenChange={setLaunchOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              size="sm"
+              variant="primary"
+            >
+              <Rocket className="mr-2 h-4 w-4" />
+              <span>Launch</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Select environment..." />
+              <CommandList>
+                <CommandGroup>
+                  {environments
+                    .filter(env => env.id !== environment)
+                    .map(env => (
+                        <CommandItem
+                          key={env.id}
+                          value={env.name}
+                          onSelect={handleLaunch(env.id)}
+                          className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
+                        >
+                          <span className="flex items-center">
+                            {environment === env.id ?
+                              <Check className="mr-2 h-4 w-4 text-muted-foreground" /> :
+                              null
+                            }
+                            <span>{selected?.name}...{env.name}</span>
+                          </span>
+                        </CommandItem>
+                      )
+                    )
+                  }
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={copyProjectUrl}>
+          <ClipboardCopy className="mr-2 h-4 w-4" />
+          <span>Copy URL</span>
+        </Button>
+      </div>
       <Button
         size="base"
-        variant='primary'
+        variant="primary"
         onClick={() => setIsOpen(true)}
-        className="ml-auto flex"
         disabled={isDisabled}
       >
         <Plus />
@@ -108,14 +243,14 @@ export function ComponentsDialog({ components, projectId }: ComponentsDialogProp
                         <CheckIcon className="ml-auto flex h-5 w-5" />
                       ) : null}
                     </CommandItem>
-                  )
+                  );
                 })}
               </CommandGroup>
             </CommandList>
           </Command>
           <div className="flex flex-wrap flex-col justify-start gap-1 w-fit">
             <p className="text-sm text-muted-foreground text-center">
-              { `Selected components: ${selectedComponents.length}`}
+              {`Selected components: ${selectedComponents.length}`}
             </p>
             <Button
               disabled={selectedComponents.length < 1}
@@ -129,6 +264,6 @@ export function ComponentsDialog({ components, projectId }: ComponentsDialogProp
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

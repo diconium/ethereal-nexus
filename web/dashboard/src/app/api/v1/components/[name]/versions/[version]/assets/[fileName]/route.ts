@@ -178,11 +178,11 @@ const uploadToStorage = async (
   const jsonData = request.body;
   let reader = jsonData.getReader();
   let readResult = await reader.read();
-  let buffers: Buffer[] = [];
+  let buffers: Uint8Array[] = [];
   try {
     while (!readResult.done) {
       if (readResult?.value) {
-        buffers.push(Buffer.from(readResult.value));
+        buffers.push(readResult.value);
       }
 
       readResult = await reader.read();
@@ -190,6 +190,8 @@ const uploadToStorage = async (
   } catch (e) {
     console.error(e);
   }
+
+// Convert Uint8Array[] to Buffer[] before concatenating
   const completeBuffer = Buffer.concat(buffers).toString();
 
   return storage.uploadToStorage(completeBuffer, filePath, contentType);

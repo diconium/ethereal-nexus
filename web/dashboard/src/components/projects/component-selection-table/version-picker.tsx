@@ -8,17 +8,19 @@ import { componentVersionsSchema } from '@/data/components/dto';
 import { z } from 'zod';
 import { upsertComponentConfig } from '@/data/projects/actions';
 import { useRouter } from 'next/navigation';
+import {compare} from 'semver';
 
 const versions = componentVersionsSchema.pick({id: true, version: true})
 
 type VersionPickerProps = {
   projectId: string,
+  environmentId: string,
   componentId: string,
   disabled: boolean,
   version?: string,
   versions: z.infer<typeof versions>[]
 }
-export function VersionPicker({version: selected, disabled, versions, projectId, componentId}: VersionPickerProps) {
+export function VersionPicker({version: selected, disabled, versions, environmentId, projectId, componentId}: VersionPickerProps) {
   const router = useRouter();
 
   const [open, setOpen] = useState(false)
@@ -27,11 +29,11 @@ export function VersionPicker({version: selected, disabled, versions, projectId,
   function handler(versionId: string | null) {
     return async () => {
       await upsertComponentConfig({
-        project_id: projectId,
+        environment_id: environmentId,
         component_id: componentId,
         component_version: versionId,
         is_active: true
-      }, session?.user?.id,'project_component_version_updated');
+      }, projectId, session?.user?.id,'project_component_version_updated');
       setOpen(false);
       router.refresh()
     };
@@ -64,7 +66,7 @@ export function VersionPicker({version: selected, disabled, versions, projectId,
               </span>
             </CommandItem>
             {
-              versions.map(version => (
+              versions.sort((a, b) => compare(a.version, b.version)).map(version => (
                 <CommandItem
                   key={version.id}
                   value={version.version}

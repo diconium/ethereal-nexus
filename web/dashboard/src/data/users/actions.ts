@@ -341,7 +341,7 @@ export async function getApiKeyByKey(
     }
     return actionSuccess(safe.data[0]);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return actionError('Failed to fetch user from database.');
   }
 }
@@ -359,13 +359,12 @@ export async function upsertApiKey(
       .insert(apiKeys)
       .values({
         ...input.data,
-        permission: sql`${input.data.permissions}::jsonb`,
       })
       .onConflictDoUpdate({
         target: apiKeys.id,
         set: {
           alias: input.data.alias,
-          permissions: sql`${input.data.permissions}::jsonb`,
+          permissions: input.data.permissions,
         },
       })
       .returning();
@@ -412,7 +411,7 @@ export async function getApiKeys(
 
     return actionSuccess(safe.data);
   } catch (error) {
-    console.log('error', error);
+    console.error(error);
     return actionError('Failed to fetch users from database.');
   }
 }

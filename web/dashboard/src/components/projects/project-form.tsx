@@ -10,16 +10,9 @@ import {TextArea} from '@/components/ui/text-area';
 import {zodResolver} from "@hookform/resolvers/zod";
 import React from "react";
 import { useToast } from '@/components/ui/use-toast';
-import { ProjectInput } from '@/data/projects/dto';
+import { ProjectInput, projectInputSchema } from '@/data/projects/dto';
 import { upsertProject } from '@/data/projects/actions';
 import { useSession } from 'next-auth/react';
-
-const projectsFormSchema = z.object({
-  name: z.string().min(3, {
-    message: "Name must be at least 3 characters.",
-  }),
-  description: z.string(),
-});
 
 type ProjectsFormProps = {
   project?: ProjectInput,
@@ -31,7 +24,7 @@ export default function ProjectsForm({project, onComplete, onCancel}: ProjectsFo
   const {data: session} = useSession();
   const { toast } = useToast()
   const form: any = useForm<ProjectInput>({
-    resolver: zodResolver(projectsFormSchema),
+    resolver: zodResolver(projectInputSchema),
     defaultValues: project ?? {},
   });
   const onSubmit = async (data: ProjectInput) => {

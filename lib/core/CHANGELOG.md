@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.1.0
+
+### Minor Changes
+
+- b923c38: feat: adds navigation and navigation example. r2wc now has shadow: 'open' (uses shadow DOM instead of light DOM)
+
 ## 1.0.1
 
 ### Patch Changes

@@ -20,6 +20,7 @@ export function webcomponent<T extends ObjectEntries>(schema?: DialogSchema<T>, 
       customElements.define(
         name,
         r2wc(component, {
+          shadow: 'open',
           props,
         }),
       );

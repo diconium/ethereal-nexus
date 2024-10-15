@@ -3,7 +3,7 @@
   "version": "1.0.1",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS=' --experimental-vm-modules --inspect' next dev",
+    "dev": "NODE_OPTIONS='' next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -13,6 +13,7 @@
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^0.0.40",
     "@astrojs/mdx": "^2.2.0",
     "@azure/storage-blob": "^12.15.0",
     "@epic-web/remember": "^1.0.2",
@@ -35,6 +36,7 @@
     "@radix-ui/react-tabs": "^1.0.4",
     "@radix-ui/react-toast": "^1.1.4",
     "@tanstack/react-table": "^8.9.7",
+    "ai": "^3.2.39",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
@@ -44,6 +46,7 @@
     "encoding": "^0.1.13",
     "formidable": "^3.5.1",
     "gunzip-maybe": "^1.4.2",
+    "http-server": "^14.1.1",
     "lucide-react": "^0.274.0",
     "newrelic": "^11.10.4",
     "next": "^14.2.13",

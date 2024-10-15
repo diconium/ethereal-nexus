@@ -1,7 +1,6 @@
 import { OptionalSchema } from '../schema/optional';
 import { BaseSchema, Output } from './schema';
 import { ResolveObject } from './utils';
-import { DynamicZoneSchema } from '../schema/dynamic';
 
 
 /**
@@ -45,13 +44,6 @@ type WithQuestionMarks<
  * Object entries type.
  */
 export interface ObjectEntries {
-  [key: string]: BaseSchema;
-}
-
-/**
- * Object entries type.
- */
-export interface SlotEntries {
   [key: string]: BaseSchema;
 }
 

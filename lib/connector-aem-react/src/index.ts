@@ -1,1 +1,0 @@
-export { default as Parsys } from './Parsys';

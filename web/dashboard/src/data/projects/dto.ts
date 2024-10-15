@@ -92,7 +92,6 @@ export const projectWithComponentAssetsSchema = componentsSchema
   .extend({
     version: componentVersionsSchema.shape.version,
     dialog: componentVersionsSchema.shape.dialog,
-    dynamiczones: componentVersionsSchema.shape.dynamiczones,
     assets: z.array(
       componentAssetsSchema
         .pick({ url: true, id: true, type: true })

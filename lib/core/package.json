@@ -1,6 +1,6 @@
 {
   "name": "@ethereal-nexus/core",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "",
   "keywords": [],
   "author": "",
@@ -29,7 +29,8 @@
     "@types/react": "^18.3.0",
     "react": "^18.3.1",
     "tsup": "^8.0.2",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "vite-plugin-css-injected-by-js": "^3.5.2"
   },
   "dependencies": {
     "@r2wc/react-to-web-component": "^2.0.3"

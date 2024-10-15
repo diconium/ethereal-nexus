@@ -12,10 +12,9 @@ import {
 } from '@ethereal-nexus/core';
 
 import { Item } from '@/patterns';
-import { Parsys } from '@ethereal-nexus/conector-aem-react';
 import { titles } from '@/dialogs/titles.ts';
 
-import styles from './ReactHelloWorld.module.css';
+import './ReactHelloWorld.css';
 
 const images = {
   image: image({
@@ -70,12 +69,16 @@ const dialogSchema = dialog({
         placeholder: 'Link'
       })
     })
-  })
+  }),
+  dynamiczoneone: dynamic({}),
+  dynamiczonetwo: dynamic({}),
 })
   .tabs({
     tab1: {
       subtitle: true,
       banners: true,
+      dynamiczoneone: true,
+      dynamiczonetwo: true
     },
     tab2: {
       rich: true,
@@ -100,12 +103,7 @@ const dialogSchema = dialog({
     }
   });
 
-const dynamicSlots = {
-  dynamiczoneone: dynamic({}),
-  dynamiczonetwo: dynamic({}),
-};
-
-const schema = component({ name: 'TestReactHelloWorld', version: '0.0.86' }, dialogSchema, dynamicSlots);
+const schema = component({ name: 'TestReactHelloWorld', version: '3.0.29' }, dialogSchema);
 
 type Props = Output<typeof schema>
 
@@ -121,7 +119,7 @@ export const ReactHelloWorld: React.FC<Props> = ({
                                                  }) => {
 
   return (
-    <div className={styles.error}>
+    <div className={'error'}>
       My new text Hello World from react! v.1.0.9
       <div dangerouslySetInnerHTML={{ __html: rich }} />
       <div>Props:
@@ -132,21 +130,21 @@ export const ReactHelloWorld: React.FC<Props> = ({
         </ul>
       </div>
 
-      <div className={styles.columnsContainer}>
-        <div className={styles.column}>
+      <div className={'columnsContainer'}>
+        <div className={'column'}>
           <img src={image} alt="image" />
         </div>
-        <div className={styles.column}>
+        <div className={'column'}>
           <img src={imagetwo} alt="image 2" />
         </div>
       </div>
 
-      <div className={styles.columnsContainer}>
-        <div className={styles.column}>
-          <Parsys slot={dynamiczoneone} />
+      <div className={'columnsContainer'}>
+        <div className={'column'}>
+          <slot name={dynamiczoneone} />
         </div>
-        <div className={styles.column}>
-          <Parsys slot={dynamiczonetwo} />
+        <div className={'column'}>
+          <slot name={dynamiczonetwo} />
         </div>
       </div>
 

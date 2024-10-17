@@ -489,8 +489,6 @@ export async function getProjectComponentConfig(
             (${componentVersions.version}, ${latest_version.version})`,
         dialog: sql`coalesce
             (${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
-        dynamiczones: sql`coalesce
-            (${componentVersions.dynamiczones}::jsonb, ${latest_version.dynamiczones}::jsonb)`,
         assets
       })
       .from(projectComponentConfig)
@@ -520,9 +518,7 @@ export async function getProjectComponentConfig(
         components.name,
         componentVersions.version,
         sql`${componentVersions.dialog}::jsonb`,
-        sql`${componentVersions.dynamiczones}::jsonb`,
         sql`${latest_version.dialog}::jsonb`,
-        sql`${latest_version.dynamiczones}::jsonb`,
         latest_version.version,
         latest_version.id
       );
@@ -582,8 +578,6 @@ export async function getEnvironmentComponentConfig(
             (${componentVersions.version}, ${latest_version.version})`,
         dialog: sql`coalesce
             (${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
-        dynamiczones: sql`coalesce
-            (${componentVersions.dynamiczones}::jsonb, ${latest_version.dynamiczones}::jsonb)`,
         assets
       })
       .from(projectComponentConfig)
@@ -608,9 +602,7 @@ export async function getEnvironmentComponentConfig(
         components.name,
         componentVersions.version,
         sql`${componentVersions.dialog}::jsonb`,
-        sql`${componentVersions.dynamiczones}::jsonb`,
         sql`${latest_version.dialog}::jsonb`,
-        sql`${latest_version.dynamiczones}::jsonb`,
         latest_version.version,
         latest_version.id
       );

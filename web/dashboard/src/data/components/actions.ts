@@ -50,7 +50,6 @@ async function upsertComponentVersion(version: NewComponentVersion) {
       ],
       set: {
         dialog: safeVersion.data.dialog,
-        dynamiczones: safeVersion.data.dynamiczones,
         readme: safeVersion.data.readme,
         changelog: safeVersion.data.changelog
       }

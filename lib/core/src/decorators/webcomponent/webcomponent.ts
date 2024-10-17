@@ -14,16 +14,41 @@ export function webcomponent<T extends ObjectEntries>(schema?: DialogSchema<T>, 
   } : undefined;
 
   return <P extends {} = {}>(component: React.ComponentType<P>) => {
-    const name = pascalToKebab(component.displayName!)
+    const name = pascalToKebab(component.displayName!);
+
+    class StyledWebComponent extends r2wc(component, {
+      shadow: 'open',
+      props,
+    }) {
+      connectedCallback() {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        super.connectedCallback();
+        queueMicrotask(() => {
+
+          const cssUrlsAttr = this.getAttribute('data-css-urls');
+          if (cssUrlsAttr) {
+            const cssUrlsArray: string[] = JSON.parse(cssUrlsAttr.replace(/'/g, '"'));
+            const slotTemplate = document.createElement('template');
+            const getImportsFromUrlsArray = (urls: string[]) => urls.map((url) => `<link rel="preload" as="style" onload="this.rel='stylesheet'" type="text/css" href="${url}">`).join('\n');
+            slotTemplate.innerHTML = `<style>
+                ::slotted(*) {
+                  display: block !important;
+                }
+              </style>
+                ${getImportsFromUrlsArray(cssUrlsArray)}
+`;
+            this.shadowRoot?.appendChild(slotTemplate.content.cloneNode(true));
+          }
+        });
+      }
+    }
+
 
     if (!window.customElements.get(name)) {
       customElements.define(
-        name,
-        r2wc(component, {
-          shadow: 'open',
-          props,
-        }),
+        name, StyledWebComponent,
       );
     }
-  }
+  };
 }

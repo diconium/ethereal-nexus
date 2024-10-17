@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 1.1.0
+
+### Minor Changes
+
+- 8b65bb6: adds support for slots (like in the webcomponents). removed old dynamicslots and old parsys library since it's not needed anymore.
+
 ## 1.0.1
 
 ### Patch Changes

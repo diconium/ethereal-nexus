@@ -1,5 +1,16 @@
 # remote-components-vite-react-ts
 
+## 0.1.0
+
+### Minor Changes
+
+- 8b65bb6: adds support for slots (like in the webcomponents). removed old dynamicslots and old parsys library since it's not needed anymore.
+
+### Patch Changes
+
+- Updated dependencies [8b65bb6]
+  - @ethereal-nexus/core@1.2.0
+
 ## 0.0.3
 
 ### Patch Changes

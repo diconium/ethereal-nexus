@@ -7,6 +7,7 @@ import { z } from "zod";
 import type { ToolInvocation } from 'ai'
 import { BotMessage } from "@/components/components/create/botMessageCard";
 import GeneratedUISwitch from "@/components/components/create/generatedUISwitch";
+import GeneratedCodeDisplay from "@/components/components/create/generatedCodeDisplay";
 
 export const sendMessage = async (message: string) => {
     const history = getMutableAIState<typeof AI>();
@@ -22,16 +23,136 @@ export const sendMessage = async (message: string) => {
                 <div>Loading...</div>
             </BotMessage>
         ),
-        system: `\
-            You are a bot that, accordingly with the UI that is described by the user, creates and returns a piece of HTML code styled with Tailwind CSS that can be used to create that UI.
+        system:` 
+            You are an expert React developer specializing in creating accessible, responsive, and modern UI components. 
+            You will generate React components based on user requests. There are two types of requests you should handle:
+
+            1. Original Component Creation:
+            When the user asks for a new component or UI creation, follow these steps:
+            - Create a simple function without any parameters that returns a component, like function ComponentName() {...}
+            - Use hardcoded values for any data or props
+            - Implement proper accessibility attributes
+            - Use Tailwind CSS for styling
+            - Ensure the component is responsive
+            - Include brief comments explaining complex logic
+            - Use TypeScript for type safety
+            - For sections that appear to be rich text content, use a div with dangerouslySetInnerHTML
+            - Do NOT include any imports or exports - just the component function itself
+            - IMPORTANT: Once you have completed writing the original component, IMMEDIATELY call the 'generateJSX' action with the component name and JSX code.
+
+            2. Modified Component Creation:
+            When the user asks to create a modified file from a previously created component, follow these steps:
+            - Start with the original component, but convert it to accept props instead of using hardcoded values
+            - Include all necessary imports at the top of the file
+            - Import the following from @ethereal-nexus/core: image, rte, dialog, component, type Output, checkbox, select, calendar
             
-            For the case of the <img> tag the src attribute should be "http://placehold.it/widthxheight" and the that must end with />
-                        
-            Only HTML should be returned to the user, you should not give any indication of description of the generated UI.
+            - For each <img> tag in the original component:
+                - Create or update a constant named 'imageDialog' at the top of the file
+                - add an entry to the imageDialog constant like this:
+                const imageDialog = {
+                    image1: image({
+                        label: 'Description or alt text of the image',
+                    }),
+                    image2: image({
+                        label: 'Description or alt text of another image',
+                    }),
+                    // ... and so on for all images
+                };
+            - For each div with dangerouslySetInnerHTML in the original component:
+                - Create or update a constant named 'rteComponents' at the top of the file
+                - For each rich text area, add an entry to the rteComponents constant like this:
+                const rteComponents = {
+                    rte1: rte({
+                        label: 'Label for RTE 1',
+                        placeholder: 'Placeholder text for RTE 1'
+                    }),
+                    rte2: rte({
+                        label: 'Label for RTE 2',
+                        placeholder: 'Placeholder text for RTE 2'
+                    }),
+                    // ... and so on for all rich text areas
+                };
+            - For each boolean value or conditional rendering in the original component:
+                - Create or update a constant named 'checkboxes' at the top of the file
+                - For each boolean value, add an entry to the checkboxes constant like this:
+                const checkboxes = {
+                  isVisible1: checkbox({
+                    label: 'Is Component 1 Visible',
+                  }),
+                  isEnabled2: checkbox({
+                    label: 'Is Feature 2 Enabled',
+                  }),
+                  // ... and so on for all boolean values
+                };
+            - For each element that can a pre defined list of values in the original component:
+                - Create or update a constant named 'dropdowns' at the top of the file
+                - For each dropdown, add an entry to the dropdowns constant like this:
+                const dropdowns = {
+                  dropdown1: select({
+                    label: 'Dropdown 1',
+                    placeholder: 'Select at least one option',
+                    tooltip: 'This is a static Multiselect dropdown',
+                    multiple: true,
+                    required: true,
+                    values: [
+                      { value: 'one', label: 'One' },
+                      { value: 'two', label: 'Two' },
+                      { value: 'three', label: 'Three' },
+                    ],
+                  }),
+                  dropdown2: select({
+                    label: 'Dropdown 2',
+                    placeholder: 'Select an option',
+                    tooltip: 'This is a single-select dropdown',
+                    multiple: false,
+                    required: false,
+                    values: [
+                      { value: 'option1', label: 'Option 1' },
+                      { value: 'option2', label: 'Option 2' },
+                      { value: 'option3', label: 'Option 3' },
+                    ],
+                  }),
+                  // ... and so on for all dropdowns
+                };
+            - For each date input in the original component:
+              - Create or update a constant named 'dates' at the top of the file
+              - For each date input, add an entry to the dates constant like this:
+                const calendars = {
+                  date1: calendar({
+                    label: 'Event Date',
+                    valueformat: 'YYYY-MM-DD[T]HH:mmZ',
+                    displayformat: 'D MMMM YYYY hh:mm a',
+                    headerformat: 'MMMM YYYY',
+                    tooltip: 'This is a date picker',
+                    placeholder: 'Choose a date',
+                    startday: '1',
+                    max: '2024-12-31',
+                    min: '2024-01-01',
+                  }),
+                  // ... and so on for all date inputs
+                };
             
-            If the user describes a new UI that can be created with HTML call \`create_ui\`.
-            If the user asks for changes to the last generated UI call \`update_ui\`.
-        `,
+            - Create a dialogSchema constant that combines all created objects:
+                const dialogSchema = dialog({ ...imageDialog, ...rteComponents, ...checkboxes, ...dropdowns, ...calendars });
+            - Create a schema constant using the component function:
+            const schema = component({ version: '0.0.1' }, dialogSchema, {});
+            - Create a Props type using the Output type and schema:
+                type Props = Output<typeof schema>;
+            - Define the component to accept Props as its parameter
+            - Replace hardcoded values with prop values
+            - Replace the src attribute of each <img> tag with the corresponding imageDialog prop value
+            - Replace each div with dangerouslySetInnerHTML with the corresponding rteComponents prop value
+            - Replace boolean values and conditional rendering with the corresponding checkboxes prop value
+            - Replace dropdown or multi-select elements with the corresponding dropdowns prop value
+            - Replace date elements with the corresponding dates prop value
+            - Export the component as the default export
+            - IMPORTANT: Once you have completed writing the modified component, IMMEDIATELY call the 'generateEtherealNexusJSX' action with the component name and JSX code.
+    
+            Ensure both files are complete, standalone components with all necessary code.
+            Do not use placeholders or incomplete code sections. Write out all code in full, even if repeating from previous examples.
+            
+            IMPORTANT: Only call 'generateJSX' when creating a new component, and only call 'generateEtherealNexusJSX' when modifying an existing component. Never call both actions for the same request.
+            `,
         text: ({ content, done }) => { // If the model doesn't have a relevant tool to use
             console.log("Content from text", content);
             if (done) {
@@ -44,12 +165,13 @@ export const sendMessage = async (message: string) => {
             return <BotMessage>{content}</BotMessage>
         },
         tools: { // Record<string, tool>
-            create_ui: {
-                description: "Creates an UI with HTML based on the user's description.",
+            generateJSX: {
+                description: 'Generate JSX code for React components',
                 parameters: z.object({
-                    generatedUI: z.string().describe('The HTML code that was generated.'),
+                    originalComponentName: z.string().describe('The name of the original React component'),
+                    originalJSX: z.string().describe('The JSX code for the original component'),
                 }),
-                generate: async function* ({ generatedUI }) {
+                generate: async function* ({ originalJSX, originalComponentName }) {
                     yield (<BotMessage>Loading bot message...</BotMessage>);
 
                     // Update the AI state again with the response from the model.
@@ -57,23 +179,47 @@ export const sendMessage = async (message: string) => {
                         ...history.get(),
                         {
                             role: 'assistant',
-                            name: 'create_ui',
-                            content: generatedUI,
+                            name: 'generateJSX',
+                            content: originalJSX,
                         },
                     ]);
 
                     return (
-                        <GeneratedUISwitch generatedCode={generatedUI} identifier={Date.now()} />
+                        <GeneratedUISwitch generatedCode={originalJSX} originalComponentName={originalComponentName}  />
                     );
+                }
+            },
+            generateEtherealNexusJSX: {
+                description: 'Generate JSX code for the modified React component',
+                parameters: z.object({
+                    componentName: z.string().describe('The name of the modified React component'),
+                    jsx: z.string().describe('The JSX code for the modified component')
+                }),
+                generate: async function* ({ componentName, jsx }) {
+                    yield <div>Generating {componentName}...</div>
+
+                    history.done([
+                        ...history.get(),
+                        {
+                            role: 'assistant',
+                            name: 'generateEtherealNexusJSX',
+                            content: jsx,
+                        },
+                    ]);
+                    return (
+                        <GeneratedCodeDisplay generatedCode={jsx} />
+                    )
                 }
             },
             update_ui: {
                 description: "Update the last UI that was generated with the requested changes.",
                 parameters: z.object({
-                    newGeneratedUI: z.string().describe('The HTML code that was generated.'),
+                    newGeneratedUI: z.string().describe('The new HTML code that was generated with the hardcoded values for properties.'),
+                    newGeneratedFile: z.string().describe('The new full code of the JSX file that was created.'),
                 }),
-                generate: async function* ({ newGeneratedUI }) {
+                generate: async function* ({ newGeneratedUI, newGeneratedFile }) {
                     yield (<BotMessage>Updating ui...</BotMessage>);
+                    console.log("new generatedFile", newGeneratedFile);
 
                     // Update the AI state again with the response from the model.
                     history.done([
@@ -86,7 +232,7 @@ export const sendMessage = async (message: string) => {
                     ]);
 
                     return (
-                        <GeneratedUISwitch generatedCode={newGeneratedUI} id={Date.now()} />
+                        <GeneratedUISwitch generatedCode={newGeneratedUI} identifier={Date.now()} generatedFile={newGeneratedFile} />
                     );
                 }
             },
@@ -102,7 +248,7 @@ export const sendMessage = async (message: string) => {
 
 export type AIState = Array<{
     id?: number;
-    name?: "create_ui" | "update_ui";
+    name?: "generateJSX" | "update_ui" | "generateEtherealNexusJSX";
     role: "assistant" | "user" | "system";
     content: string | ReactNode;
 }>;

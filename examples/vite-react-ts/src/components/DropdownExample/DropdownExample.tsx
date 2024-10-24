@@ -13,6 +13,7 @@ const dialogSchema = dialog({
       placeholder: 'Select an option',
       tooltip: 'This is a static dropdown',
       required: true,
+      defaultValue: 'two',
       values: [
         { value: 'one', label: 'One' },
         { value: 'two', label: 'Two' },
@@ -25,7 +26,8 @@ const dialogSchema = dialog({
       placeholder: 'Select at least one option',
       tooltip: 'This is a static Multiselect dropdown',
       multiple: true,
-      required:true,
+      required: true,
+      defaultValue: ['three', 'two'],
       values: [
         { value: 'one', label: 'One' },
         { value: 'two', label: 'Two' },
@@ -35,7 +37,6 @@ const dialogSchema = dialog({
   ),
   datasourcevalue: datasource({
     multiple: true,
-    required: true,
     label: 'My Datasource label',
     placeholder: 'My Datasource placeholder',
     url: 'http://localhost:8080/datasource-example.json',

@@ -36,15 +36,16 @@ export const sendMessage = async (message: string) => {
             - Ensure the component is responsive
             - Include brief comments explaining complex logic
             - Use TypeScript for type safety
-            - For sections that appear to be rich text content, use a div with dangerouslySetInnerHTML
+            - For sections that render HTML content, use a div with dangerouslySetInnerHTML
             - Do NOT include any imports or exports - just the component function itself
             - IMPORTANT: Once you have completed writing the original component, IMMEDIATELY call the 'generateJSX' action with the component name and JSX code.
 
             2. Modified Component Creation:
             When the user asks to create a modified file from a previously created component, follow these steps:
-            - Start with the original component, but convert it to accept props instead of using hardcoded values
+            - Start with the original component
             - Include all necessary imports at the top of the file
-            - Import the following from @ethereal-nexus/core: image, rte, dialog, component, type Output, checkbox, select, calendar
+            - ONLY convert values to props if they are EXPLICITLY identified as updatable or customizable. Static values should remain hardcoded.
+            - Import the following from @ethereal-nexus/core: image, rte, dialog, component, checkbox, select, calendar, pathbrowser, text and type Output
             
             - For each <img> tag in the original component:
                 - Create or update a constant named 'imageDialog' at the top of the file
@@ -65,10 +66,6 @@ export const sendMessage = async (message: string) => {
                     rte1: rte({
                         label: 'Label for RTE 1',
                         placeholder: 'Placeholder text for RTE 1'
-                    }),
-                    rte2: rte({
-                        label: 'Label for RTE 2',
-                        placeholder: 'Placeholder text for RTE 2'
                     }),
                     // ... and so on for all rich text areas
                 };
@@ -100,18 +97,6 @@ export const sendMessage = async (message: string) => {
                       { value: 'three', label: 'Three' },
                     ],
                   }),
-                  dropdown2: select({
-                    label: 'Dropdown 2',
-                    placeholder: 'Select an option',
-                    tooltip: 'This is a single-select dropdown',
-                    multiple: false,
-                    required: false,
-                    values: [
-                      { value: 'option1', label: 'Option 1' },
-                      { value: 'option2', label: 'Option 2' },
-                      { value: 'option3', label: 'Option 3' },
-                    ],
-                  }),
                   // ... and so on for all dropdowns
                 };
             - For each date input in the original component:
@@ -131,9 +116,27 @@ export const sendMessage = async (message: string) => {
                   }),
                   // ... and so on for all date inputs
                 };
-            
+            - For each changeable link in the original component:
+              - Create or update a constant named 'links' at the top of the file
+              - For each changeable link, add an entry to the links constant like this:
+                const links = {
+                  link1: pathbrowser({
+                    label: 'Website Link',
+                    placeholder: 'Enter website URL',
+                  })};
+                  // ... and so on for all changeable links
+              - For each updatable text field in the original component:
+                  - Create or update a constant named 'textFields' at the top of the file
+                  - For each updatable text field, add an entry to the textFields constant like this:
+                    const textFields = {
+                      field1: text({
+                        label: 'Field Label',
+                        placeholder: 'Enter text here',
+                      }),
+                      // ... and so on for all updatable text fields
+                    };        
             - Create a dialogSchema constant that combines all created objects:
-                const dialogSchema = dialog({ ...imageDialog, ...rteComponents, ...checkboxes, ...dropdowns, ...calendars });
+                const dialogSchema = dialog({ ...imageDialog, ...rteComponents, ...checkboxes, ...dropdowns, ...calendars, ...links, ...textFields });
             - Create a schema constant using the component function:
             const schema = component({ version: '0.0.1' }, dialogSchema, {});
             - Create a Props type using the Output type and schema:
@@ -141,10 +144,12 @@ export const sendMessage = async (message: string) => {
             - Define the component to accept Props as its parameter
             - Replace hardcoded values with prop values
             - Replace the src attribute of each <img> tag with the corresponding imageDialog prop value
-            - Replace each div with dangerouslySetInnerHTML with the corresponding rteComponents prop value
+            - For HTML-rendering elements, use the rte prop value within dangerouslySetInnerHTML
             - Replace boolean values and conditional rendering with the corresponding checkboxes prop value
             - Replace dropdown or multi-select elements with the corresponding dropdowns prop value
             - Replace date elements with the corresponding dates prop value
+            - Replace changeable link elements with the corresponding links prop value
+            - Replace customizable text elements with the corresponding textFields prop value
             - Export the component as the default export
             - IMPORTANT: Once you have completed writing the modified component, IMMEDIATELY call the 'generateEtherealNexusJSX' action with the component name and JSX code.
     

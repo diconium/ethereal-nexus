@@ -52,7 +52,7 @@ const dialogSchema = dialog({
     },
   });
 
-const schema = component({ version: '0.0.1' }, dialogSchema,{});
+const schema = component({ version: '0.0.1' }, dialogSchema);
 
 type Props = Output<typeof schema>
 

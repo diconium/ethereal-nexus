@@ -28,7 +28,8 @@ const images = {
 
 const rteComponent = rte({
   label: 'This is a RTE',
-  placeholder: 'Place any text here'
+  placeholder: 'Place any text here',
+  defaultValue: "this is the rte default value"
 })
 
 const dialogSchema = dialog({
@@ -40,12 +41,14 @@ const dialogSchema = dialog({
     })
   ),
   checkbox: checkbox({
-    label: 'Show Links'
+    label: 'Show Links',
+    defaultValue: false
   }),
   rich: rteComponent,
   select: select({
     label: 'Select',
     multiple: true,
+    defaultValue: ['foo'],
     values: [
       {
         value: 'foo',
@@ -66,7 +69,8 @@ const dialogSchema = dialog({
       }),
       link: pathbrowser({
         label: 'Link',
-        placeholder: 'Link'
+        placeholder: 'Link',
+        defaultValue: "/content/default-value"
       })
     })
   }),
@@ -75,6 +79,8 @@ const dialogSchema = dialog({
 })
   .tabs({
     tab1: {
+      checkbox: true,
+      select: true,
       subtitle: true,
       banners: true,
       dynamiczoneone: true,
@@ -113,7 +119,6 @@ export const ReactHelloWorld: React.FC<Props> = ({
                                                    datetime,
                                                    rich,
                                                    image,
-                                                   imagetwo,
                                                    dynamiczoneone,
                                                    dynamiczonetwo,
                                                  }) => {
@@ -132,10 +137,10 @@ export const ReactHelloWorld: React.FC<Props> = ({
 
       <div className={'columnsContainer'}>
         <div className={'column'}>
-          <img src={image} alt="image" />
+          <img src={image.url} alt={image.alt} />
         </div>
         <div className={'column'}>
-          <img src={imagetwo} alt="image 2" />
+          <img src={image.url} alt={image.alt} />
         </div>
       </div>
 

@@ -1,6 +1,12 @@
 import { BaseFieldInput, type BaseSchema } from '../../types';
 
-export interface ImageSchema<TOutput extends string = string> extends BaseSchema<TOutput> {
+type ImageOutputType = {
+  alt: string;
+  url: string;
+  renditions: string[];
+};
+
+export interface ImageSchema<TOutput extends string = string> extends BaseSchema<ImageOutputType> {
   /**
    * The schema type.
    */
@@ -26,7 +32,7 @@ export function image(input: ImageInput): ImageSchema {
       }
     },
     _primitive() {
-      return 'string'
+      return 'json'
     },
     ...input,
   }

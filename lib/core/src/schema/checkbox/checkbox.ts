@@ -9,7 +9,7 @@ export interface CheckBoxSchema<TOutput extends boolean = boolean> extends BaseS
 
 interface CheckBoxInput extends BaseFieldInput {
   showastoggle?: boolean
-  defaultValue?: string;
+  defaultValue?: boolean;
 }
 
 export function checkbox(input: CheckBoxInput): CheckBoxSchema {

@@ -1,5 +1,15 @@
 # @ethereal-nexus/core
 
+## 1.3.0
+
+### Minor Changes
+
+- d08e3bf: deprecates the support of dynamic zones in favour of webcomponent slots
+
+### Patch Changes
+
+- d08e3bf: adds support to default values on dialog items.
+
 ## 1.2.0
 
 ### Minor Changes

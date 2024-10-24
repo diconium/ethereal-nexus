@@ -9,23 +9,27 @@ export interface SelectSchema<T, TMultiple extends boolean = false> extends Base
    * The schema type.
    */
   type: 'select';
-  multiple: TMultiple
+  multiple: TMultiple;
 }
 
-interface SelectInput extends BaseFieldInput {
+interface SelectInput<TMultiple extends boolean = false> extends BaseFieldInput {
   placeholder?: string;
-  multiple?: boolean;
+  multiple?: TMultiple;
   values: {
     value: string;
     label: string;
   }[];
+  defaultValue?: TMultiple extends true ? string[] : string;
 }
-
 
 type ValuesType<T extends { values: readonly { value: string }[] }> = T['values'][number]['value'];
 
-export function select<const T extends SelectInput, TMultiple extends boolean= T['multiple'] extends true ? true : false>(input: T): SelectSchema<ValuesType<ReadonlyObject<T>>, TMultiple>{
-  const { label, values, tooltip, placeholder, multiple = false, required } = input;
+export function select<const T extends SelectInput<TMultiple>, TMultiple extends boolean = T['multiple'] extends true ? true : false>(input: T): SelectSchema<ValuesType<ReadonlyObject<T>>, TMultiple> {
+  const { label, values, tooltip, placeholder, multiple = false, required, defaultValue } = input;
+
+  if (!multiple && Array.isArray(defaultValue)) {
+    throw new Error('defaultValue should be a string when multiple is false');
+  }
 
   return {
     type: 'select',
@@ -37,7 +41,8 @@ export function select<const T extends SelectInput, TMultiple extends boolean= T
         values,
         tooltip,
         placeholder,
-        required
+        required,
+        defaultValue
       };
     },
     _primitive() {

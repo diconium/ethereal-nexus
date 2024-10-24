@@ -8,10 +8,11 @@ export interface ImageSchema<TOutput extends string = string> extends BaseSchema
 }
 
 interface ImageInput extends BaseFieldInput {
+  defaultValue?: string;
 }
 
 export function image(input: ImageInput): ImageSchema {
-  const {label, tooltip, required} = input;
+  const {label, tooltip, required, defaultValue} = input;
 
   return {
     type: 'image',
@@ -20,7 +21,8 @@ export function image(input: ImageInput): ImageSchema {
         type: 'image',
         label,
         tooltip,
-        required
+        required,
+        defaultValue
       }
     },
     _primitive() {

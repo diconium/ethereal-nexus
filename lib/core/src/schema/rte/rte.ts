@@ -9,10 +9,11 @@ export interface RichTextEditorSchema<TOutput extends string = string> extends B
 
 interface RichTextEditorInput extends BaseFieldInput {
   placeholder?: string;
+  defaultValue?: string;
 }
 
 export function rte(input: RichTextEditorInput): RichTextEditorSchema {
-  const {placeholder, label, tooltip, required} = input;
+  const {placeholder, label, tooltip, required, defaultValue} = input;
 
   return {
     type: 'richtexteditor',
@@ -22,7 +23,8 @@ export function rte(input: RichTextEditorInput): RichTextEditorSchema {
         label,
         placeholder,
         tooltip,
-        required
+        required,
+        defaultValue
       }
     },
     _primitive() {

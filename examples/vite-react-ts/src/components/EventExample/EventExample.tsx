@@ -78,6 +78,7 @@ const dialogSchema = dialog({
           label: 'Static Dropdown',
           placeholder: 'Select an option',
           tooltip: 'This is a static dropdown',
+          defaultValue: 'one',
           values: [
             { value: 'one', label: 'One' },
             { value: 'two', label: 'Two' },
@@ -90,6 +91,7 @@ const dialogSchema = dialog({
           placeholder: 'Select at least one option',
           tooltip: 'This is a static Multiselect dropdown',
           multiple: true,
+          defaultValue: ['one', 'two'],
           values: [
             { value: 'one', label: 'One' },
             { value: 'two', label: 'Two' },
@@ -194,7 +196,7 @@ const dialogSchema = dialog({
   },
 });
 
-const schema = component({ version: '0.0.30' }, dialogSchema, {});
+const schema = component({ version: '0.0.30' }, dialogSchema);
 
 type Props = Output<typeof schema>
 

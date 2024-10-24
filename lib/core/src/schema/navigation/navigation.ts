@@ -19,10 +19,11 @@ interface DataModelInput extends BaseFieldInput {
   placeholder?: string;
   showChildrenCheckbox?: boolean;
   showRootLevel?: boolean;
+  defaultValue?: string;
 }
 
 export function navigation(input: DataModelInput): NavigationSchema {
-  const {placeholder, label,tooltip, required, showChildrenCheckbox, showRootLevel} = input;
+  const {placeholder, label,tooltip, required, showChildrenCheckbox, showRootLevel, defaultValue} = input;
 
   return {
     type: 'navigation',
@@ -35,6 +36,7 @@ export function navigation(input: DataModelInput): NavigationSchema {
         required,
         showChildrenCheckbox,
         showRootLevel,
+        defaultValue,
       }
     },
     _primitive() {

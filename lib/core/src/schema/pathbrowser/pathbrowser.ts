@@ -9,10 +9,11 @@ export interface PathBrowserSchema<TOutput extends string = string> extends Base
 
 interface PathBrowserInput extends BaseFieldInput {
   placeholder: string;
+  defaultValue?: string;
 }
 
 export function pathbrowser(input: PathBrowserInput): PathBrowserSchema {
-  const {placeholder, label, tooltip, required} = input;
+  const {placeholder, label, tooltip, required, defaultValue} = input;
 
   return {
     type: 'pathbrowser',
@@ -22,7 +23,8 @@ export function pathbrowser(input: PathBrowserInput): PathBrowserSchema {
         label,
         placeholder,
         tooltip,
-        required
+        required,
+        defaultValue
       }
     },
     _primitive() {

@@ -15,10 +15,11 @@ interface CalendarInput extends BaseFieldInput {
   startday?: string;
   min?: string;
   max?: string;
+  defaultValue?: string;
 }
 
 export function calendar(input: CalendarInput): CalendarSchema {
-  const {valueformat,startday=0,min,max, placeholder, label,tooltip,required} = input;
+  const {valueformat,startday=0,min,max, placeholder, label,tooltip,required, defaultValue} = input;
 
   return {
     type: 'calendar',
@@ -32,7 +33,8 @@ export function calendar(input: CalendarInput): CalendarSchema {
         tooltip,
         min,
         max,
-        required
+        required,
+        defaultValue
       }
     },
     _primitive() {

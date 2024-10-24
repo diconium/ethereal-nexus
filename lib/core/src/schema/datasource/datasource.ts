@@ -17,10 +17,12 @@ interface DataSourceInput extends BaseFieldInput {
   url: string;
   multiple?: boolean;
   body: DataSourceBody;
+  defaultValue?: string;
+  method?: 'GET' | 'POST';
 }
 
 export function datasource<Multiple extends boolean = false>(input: DataSourceInput & { multiple?: Multiple }): DataSourceSchema<Multiple> {
-  const {label, body, url, tooltip,placeholder, multiple = false as Multiple, required } = input;
+  const {label, body, url, tooltip,placeholder, multiple = false as Multiple, required, defaultValue, method = 'POST' } = input;
 
   return {
     type: 'datasource',
@@ -34,6 +36,8 @@ export function datasource<Multiple extends boolean = false>(input: DataSourceIn
         tooltip,
         placeholder,
         required,
+        defaultValue,
+        method
       }
     },
     _primitive() {

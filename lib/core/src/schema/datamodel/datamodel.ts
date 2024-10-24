@@ -8,10 +8,11 @@ export interface DataModelSchema<TOutput extends Record<string, any> = Record<st
 
 interface DataModelInput extends BaseFieldInput {
   placeholder?: string;
+  defaultValue?: string;
 }
 
 export function datamodel(input: DataModelInput): DataModelSchema {
-  const {placeholder, label,tooltip, required} = input;
+  const {placeholder, label,tooltip, required, defaultValue} = input;
 
   return {
     type: 'datamodel',
@@ -21,7 +22,8 @@ export function datamodel(input: DataModelInput): DataModelSchema {
         label,
         placeholder,
         tooltip,
-        required
+        required,
+        defaultValue
       }
     },
     _primitive() {

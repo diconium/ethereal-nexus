@@ -11,6 +11,7 @@ const dialogSchema = dialog({
     label: 'Title',
     placeholder: 'Any title',
     tooltip: 'The title of the component',
+    defaultValue: 'Hello World',
   }),
 });
 

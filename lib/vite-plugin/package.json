@@ -1,6 +1,6 @@
 {
   "name": "@ethereal-nexus/vite-plugin-ethereal-nexus",
-  "version": "3.0.0",
+  "version": "1.0.2",
   "description": "",
   "keywords": [
     "rollup-plugin"
@@ -28,7 +28,6 @@
     "README.md"
   ],
   "devDependencies": {
-    "@ethereal-nexus/core": "workspace:*",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.12.8",
     "rollup": "^4.17.2",
@@ -38,6 +37,7 @@
     "vite": "^5.4.4"
   },
   "dependencies": {
+    "@ethereal-nexus/core": "workspace:*",
     "@swc/core": "^1.5.5",
     "acorn": "^8.11.3",
     "acorn-walk": "^8.3.2",
@@ -47,7 +47,6 @@
     "magic-string": "^0.30.10"
   },
   "peerDependencies": {
-    "@ethereal-nexus/core": "workspace:*",
     "vite": "^5.0.0"
   }
 }

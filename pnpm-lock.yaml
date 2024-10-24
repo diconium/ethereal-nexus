@@ -23,12 +23,6 @@ importers:
       '@ethereal-nexus/core':
         specifier: workspace:*
         version: link:../../lib/core
-      '@r2wc/react-to-web-component':
-        specifier: ^2.0.3
-        version: 2.0.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@szhsin/react-accordion':
-        specifier: ^1.2.3
-        version: 1.2.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react:
         specifier: ^18.3.0
         version: 18.3.1
@@ -128,6 +122,9 @@ importers:
 
   lib/vite-plugin:
     dependencies:
+      '@ethereal-nexus/core':
+        specifier: workspace:*
+        version: link:../core
       '@swc/core':
         specifier: ^1.5.5
         version: 1.7.26(@swc/helpers@0.5.13)
@@ -150,9 +147,6 @@ importers:
         specifier: ^0.30.10
         version: 0.30.11
     devDependencies:
-      '@ethereal-nexus/core':
-        specifier: workspace:*
-        version: link:../core
       '@types/fs-extra':
         specifier: ^11.0.4
         version: 11.0.4
@@ -3146,12 +3140,6 @@ packages:
 
   '@swc/types@0.1.12':
     resolution: {integrity: sha512-wBJA+SdtkbFhHjTMYH+dEH1y4VpfGdAc2Kw/LK09i9bXd/K6j6PkDcFCEzb6iVfZMkPRrl/q0e3toqTAJdkIVA==}
-
-  '@szhsin/react-accordion@1.2.5':
-    resolution: {integrity: sha512-W38xcQHIoJm0ApRbL9lS5swyllEHzkwsl8qV+7uyT0bVPbqyxDQlcRODXaPN3fF8bQ4WcC+PPd5McKpZuJ81MA==}
-    peerDependencies:
-      react: ^16.14 || ^17.0 || ^18.0
-      react-dom: ^16.14 || ^17.0 || ^18.0
 
   '@tanstack/react-table@8.20.5':
     resolution: {integrity: sha512-WEHopKw3znbUZ61s9i0+i9g8drmDo6asTWbrQh8Us63DAk/M0FkmIqERew6P71HI75ksZ2Pxyuf4vvKh9rAkiA==}
@@ -7151,12 +7139,6 @@ packages:
     resolution: {integrity: sha512-+zq2myprEnQmH5yw6Gqc8lD55QHnpKaU8TOcFeC/Lg/MQSs8UknEA0JC4nTZGFAXC2J2Hyj/ijJ7NlabyPi2gg==}
     peerDependencies:
       react: '>= 0.14.0'
-
-  react-transition-state@2.1.1:
-    resolution: {integrity: sha512-kQx5g1FVu9knoz1T1WkapjUgFz08qQ/g1OmuWGi3/AoEFfS0kStxrPlZx81urjCXdz2d+1DqLpU6TyLW/Ro04Q==}
-    peerDependencies:
-      react: '>=16.8.0'
-      react-dom: '>=16.8.0'
 
   react@18.2.0:
     resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
@@ -11795,12 +11777,6 @@ snapshots:
   '@swc/types@0.1.12':
     dependencies:
       '@swc/counter': 0.1.3
-
-  '@szhsin/react-accordion@1.2.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-      react-transition-state: 2.1.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
 
   '@tanstack/react-table@8.20.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
@@ -17030,11 +17006,6 @@ snapshots:
       prismjs: 1.29.0
       react: 18.2.0
       refractor: 3.6.0
-
-  react-transition-state@2.1.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
-    dependencies:
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
 
   react@18.2.0:
     dependencies:

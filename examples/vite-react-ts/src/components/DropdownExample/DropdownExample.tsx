@@ -39,6 +39,7 @@ const dialogSchema = dialog({
     label: 'My Datasource label',
     placeholder: 'My Datasource placeholder',
     url: 'http://localhost:8080/datasource-example.json',
+    method: 'POST',
     body: { param1: 'Hello', param2: 'World' },
     tooltip: 'This is the datasource and the data is coming from an external source',
   }),

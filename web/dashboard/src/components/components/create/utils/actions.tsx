@@ -45,7 +45,7 @@ export const sendMessage = async (message: string) => {
             - Start with the original component
             - Include all necessary imports at the top of the file
             - ONLY convert values to props if they are EXPLICITLY identified as updatable or customizable. Static values should remain hardcoded.
-            - Import the following from @ethereal-nexus/core: image, rte, dialog, component, checkbox, select, calendar, pathbrowser, text and type Output
+            - Import the following from @ethereal-nexus/core: image, rte, dialog, component, checkbox, select, calendar, pathbrowser, text, datasource, mutifield and object. Output should be imported as type.
             
             - For each <img> tag in the original component:
                 - Create or update a constant named 'imageDialog' at the top of the file
@@ -125,18 +125,52 @@ export const sendMessage = async (message: string) => {
                     placeholder: 'Enter website URL',
                   })};
                   // ... and so on for all changeable links
-              - For each updatable text field in the original component:
-                  - Create or update a constant named 'textFields' at the top of the file
-                  - For each updatable text field, add an entry to the textFields constant like this:
-                    const textFields = {
-                      field1: text({
-                        label: 'Field Label',
-                        placeholder: 'Enter text here',
+            - For each updatable text field in the original component:
+              - Create or update a constant named 'textFields' at the top of the file
+              - For each updatable text field, add an entry to the textFields constant like this:
+                const textFields = {
+                  field1: text({
+                    label: 'Field Label',
+                    placeholder: 'Enter text here',
+                  }),
+                  // ... and so on for all updatable text fields
+                };
+                - For each field that should get information from an external source:
+                  - Create or update a constant named 'dataSources' at the top of the file
+                  - For each external data source, add an entry to the dataSources constant using the datasource function
+                  - Example structure for a data source:
+                    const dataSources = {
+                      datasourcevalue: datasource({
+                        multiple: true,
+                        label: 'My Datasource label',
+                        placeholder: 'My Datasource placeholder',
+                        url: 'http://localhost:8080/datasource-example.json',
+                        body: { param1: 'Hello', param2: 'World' },
+                        tooltip: 'This is the datasource and the data is coming from an external source',
                       }),
-                      // ... and so on for all updatable text fields
-                    };        
+                    };
+              - For each collection of multiple items, most likely lists, (like multiple authors for a book) in the original component:
+                  - Create or update a constant named 'multiFields' at the top of the file
+                  - For each collection, add an entry to the multiFields constant using the multifield and object functions
+                  - Multifields can have children of types: image, rte, checkbox, select, calendar, pathbrowser, text, datasource, or even another multifield
+                  - Example structure for a book with authors:
+                    const multifields = {
+                        authors: multifield({
+                            label: 'Authors',
+                            children: object({
+                                name: text({
+                                    label: 'Author Name',
+                                    placeholder: 'Enter author name',
+                                }),
+                                isadvanced: checkbox({
+                                    label: 'Advanced',
+                                    tooltip: 'Check this box to show advanced options',
+                                }),
+                            }),
+                        }),
+                    }; 
             - Create a dialogSchema constant that combines all created objects:
-                const dialogSchema = dialog({ ...imageDialog, ...rteComponents, ...checkboxes, ...dropdowns, ...calendars, ...links, ...textFields });
+                const dialogSchema = dialog({ ...imageDialog, ...rteComponents, ...checkboxes, ...dropdowns, ...calendars, ...links, ...textFields, ...dataSources, ...multifields });
             - Create a schema constant using the component function:
             const schema = component({ version: '0.0.1' }, dialogSchema, {});
             - Create a Props type using the Output type and schema:
@@ -150,6 +184,8 @@ export const sendMessage = async (message: string) => {
             - Replace date elements with the corresponding dates prop value
             - Replace changeable link elements with the corresponding links prop value
             - Replace customizable text elements with the corresponding textFields prop value
+            - For fields getting data from external sources, use the dataSources prop values to fetch and display the data
+            - For collections of multiple items, use the multiFields prop values to render the collection
             - Export the component as the default export
             - IMPORTANT: Once you have completed writing the modified component, IMMEDIATELY call the 'generateEtherealNexusJSX' action with the component name and JSX code.
     

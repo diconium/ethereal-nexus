@@ -51,7 +51,7 @@ jobs:
           
           corepack enable pnpm
           pnpm i --frozen-lockfile
-          pnpm --filter "@ethereal-nexus/dashboard" run generate
+          pnpm --filter "@ethereal-nexus/dashboard" run push
 
       - name: Deploy Container App
         uses: azure/container-apps-deploy-action@v1

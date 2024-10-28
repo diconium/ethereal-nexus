@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.4.0
+
+### Minor Changes
+
+- 87f6881: feat: image now comes as an object to support url, alt and multiple renditions.
+
 ## 1.3.0
 
 ### Minor Changes

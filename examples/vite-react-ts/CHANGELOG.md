@@ -1,5 +1,16 @@
 # remote-components-vite-react-ts
 
+## 0.2.0
+
+### Minor Changes
+
+- 87f6881: feat: image now comes as an object to support url, alt and multiple renditions.
+
+### Patch Changes
+
+- Updated dependencies [87f6881]
+  - @ethereal-nexus/core@1.4.0
+
 ## 0.1.1
 
 ### Patch Changes

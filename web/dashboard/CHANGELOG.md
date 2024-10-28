@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 1.3.0
+
+### Minor Changes
+
+- ba25b7e: feat: enable role change for users with admin roles
+
 ## 1.2.0
 
 ### Minor Changes

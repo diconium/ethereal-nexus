@@ -40,6 +40,10 @@ export const updatePasswordSchema = userSchema
   })
 export type UpdatePassword = z.infer<typeof updatePasswordSchema>
 
+export const updateRoleSchema = userSchema
+  .pick({id: true, role: true})
+export type UpdateRole = z.infer<typeof updateRoleSchema>
+
 export const userLoginSchema = newUserSchema.pick({
   password: true,
   email: true

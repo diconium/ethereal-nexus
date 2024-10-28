@@ -19,13 +19,13 @@ import {
   newUserSchema,
   PublicApiKey,
   PublicUser,
-  UpdatePassword,
+  UpdatePassword, UpdateRole,
   User,
   userEmailSchema,
   userIdSchema,
   UserLogin,
   userPublicSchema,
-  userSchema,
+  userSchema
 } from '@/data/users/dto';
 import { z } from 'zod';
 import { and, eq, getTableColumns, isNotNull, sql } from 'drizzle-orm';
@@ -33,7 +33,7 @@ import { ActionResponse } from '@/data/action';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import { members } from '@/data/member/schema';
 import { lowestPermission } from '@/data/users/permission-utils';
-import { signIn, signOut } from '@/auth';
+import { auth, signIn, signOut } from '@/auth';
 
 type Providers = 'credentials' | 'github' | 'azure-ad';
 export async function login(provider: Providers, login?: UserLogin) {
@@ -160,8 +160,12 @@ export async function insertInvitedSsoUser(
   return insertUser(safeUser.data);
 }
 
-export async function getUserById(userId: string): ActionResponse<User> {
+export async function getUserById(userId?: string): ActionResponse<User> {
   try {
+    if(!userId) {
+      return actionError('No user id provided.');
+    }
+
     const userSelect = await db.query.users.findFirst({
       where: eq(users.id, userId),
     });
@@ -581,5 +585,36 @@ export async function updateUserPassword(
   } catch (error) {
     console.error(error);
     return actionError('Failed to update user password on the database.');
+  }
+}
+
+export async function updateUserRole(
+  user: UpdateRole,
+): ActionResponse<PublicUser> {
+  const session = await auth()
+
+  if (session?.user?.role !== 'admin') {
+    return actionError("Forbidden.");
+  }
+
+  try {
+    const updated = await db
+      .update(users)
+      .set(user)
+      .where(eq(users.id, user.id))
+      .returning();
+
+    const safeUpdated = userPublicSchema.safeParse(updated[0]);
+    if (!safeUpdated.success) {
+      return actionZodError(
+        "There's an issue with the user record.",
+        safeUpdated.error,
+      );
+    }
+
+    return actionSuccess(safeUpdated.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to update user role on the database.');
   }
 }

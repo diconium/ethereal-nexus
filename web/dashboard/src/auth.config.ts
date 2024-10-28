@@ -4,7 +4,7 @@ import Credential from 'next-auth/providers/credentials';
 import AzureADProvider from 'next-auth/providers/azure-ad';
 import GitHubProvider from 'next-auth/providers/github';
 import { userLoginSchema } from '@/data/users/dto';
-import { getUserByEmail, insertInvitedSsoUser } from '@/data/users/actions';
+import { getUserByEmail, getUserById, insertInvitedSsoUser } from '@/data/users/actions';
 import { getMembersByUser } from '@/data/member/actions';
 import { NextAuthConfig } from 'next-auth';
 import { Permissions } from '@/data/users/permission-utils';
@@ -33,7 +33,12 @@ declare module "next-auth" {
 
 export const authConfig = {
   trustHost: true,
-  session: { strategy: 'jwt' },
+  session: {
+    strategy: 'jwt',
+  },
+  jwt: {
+    maxAge: 60 * 60 * 24 * 7,
+  },
   secret: process.env.NEXT_AUTH_SECRET,
   pages: {
     signIn: '/auth/signin'
@@ -97,13 +102,13 @@ export const authConfig = {
     async jwt({ token, user }) {
       const dbUser = await getUserByEmail(token.email);
       if (user && dbUser.success) {
-        token.role = user.role;
         token.sub = dbUser.data.id;
       }
       return token
     },
     async session({ session, token }) {
       const members = await getMembersByUser(token.sub)
+      const user = await getUserById(token.sub)
 
       if(members.success && members.data.length > 0) {
         session.permissions = members.data.reduce((acc,member) => {
@@ -112,9 +117,9 @@ export const authConfig = {
         }, {})
       }
 
-      if(token.sub && session.user) {
+      if(token.sub && session.user && user.success) {
         session.user.id = token.sub;
-        session.user.role = token.role;
+        session.user.role = user.data.role;
       }
 
       return session

@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
 import { Badge } from '@/components/ui/badge';
+import { UserRoleSelect } from './user-role-select';
 
 export const columns = [
   {
@@ -24,9 +24,9 @@ export const columns = [
   {
     accessorKey: 'role',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Role" />
+      <DataTableColumnHeader className="font-bold" column={column} title="Role" />
     ),
-    cell: ({ row }) => <Badge variant="outline">{row.original.role}</Badge>,
-    enableSorting: true
+    cell: ({ row }) => <UserRoleSelect value={row.original.role} userId={row.original.id} />,
+    enableSorting: false
   },
 ];

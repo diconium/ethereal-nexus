@@ -1,5 +1,12 @@
 # @ethereal-nexus/vite-plugin-ethereal-nexus
 
+## 1.0.4
+
+### Patch Changes
+
+- Updated dependencies [87f6881]
+  - @ethereal-nexus/core@1.4.0
+
 ## 1.0.3
 
 ### Patch Changes

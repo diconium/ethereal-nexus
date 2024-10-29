@@ -1,10 +1,21 @@
 "use client";
-// TODO ADD MESSAGES TYPES
+
 import React, { createContext, useState } from 'react';
 
-export const MessageContext = createContext({
-    currentMessage: {},
-    setCurrentMessage: (message: any) => message,
+export type Message = {
+    componentName: string;
+    fileName: string;
+    generatedCode: string;
+};
+
+type MessageContextType = {
+    currentMessage?: Message;
+    setCurrentMessage: (message: Message) => void;
+};
+
+export const MessageContext = createContext<MessageContextType>({
+    currentMessage: undefined,
+    setCurrentMessage: (message: Message) => message,
 });
 
 export const MessagesProvider = ({ children }) => {

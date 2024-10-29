@@ -1,21 +1,28 @@
 "use client";
 
 import { useContext } from "react";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { FileIcon } from "lucide-react"
+import { FileIcon } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { MessageContext } from "@/components/components/create/utils/messageContext";
 
-export function ComponentCard({ componentName = "ExampleComponent", fileName = "ExampleComponent.tsx", generatedCode }: {
-    componentName?: string
-    fileName?: string
-}) {
+type ComponentCardProps = {
+    componentName: string;
+    fileName: string;
+    generatedCode: string;
+};
 
-    const { currentMessage, setCurrentMessage } = useContext(MessageContext);
+export function ComponentCard({ componentName, fileName, generatedCode }: ComponentCardProps) {
+
+    const { setCurrentMessage } = useContext(MessageContext);
+
     const handleClick = () => {
-        console.log(`Clicked on ${componentName}`)
-        // You can add more functionality here, like opening the file
-    }
+        setCurrentMessage({
+            componentName,
+            fileName,
+            generatedCode,
+        })
+    };
 
     return (
         <Card className="w-full max-w-md hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={handleClick}>
@@ -29,5 +36,5 @@ export function ComponentCard({ componentName = "ExampleComponent", fileName = "
                 </CardHeader>
             </Button>
         </Card>
-    )
-}
+    );
+};

@@ -254,31 +254,6 @@ export const sendMessage = async (message: string) => {
                     )
                 }
             },
-            update_ui: {
-                description: "Update the last UI that was generated with the requested changes.",
-                parameters: z.object({
-                    newGeneratedUI: z.string().describe('The new HTML code that was generated with the hardcoded values for properties.'),
-                    newGeneratedFile: z.string().describe('The new full code of the JSX file that was created.'),
-                }),
-                generate: async function* ({ newGeneratedUI, newGeneratedFile }) {
-                    yield (<BotMessage>Updating ui...</BotMessage>);
-                    console.log("new generatedFile", newGeneratedFile);
-
-                    // Update the AI state again with the response from the model.
-                    history.done([
-                        ...history.get(),
-                        {
-                            role: 'assistant',
-                            name: 'update_ui',
-                            content: newGeneratedUI,
-                        },
-                    ]);
-
-                    return (
-                        <GeneratedUISwitch generatedCode={newGeneratedUI} identifier={Date.now()} generatedFile={newGeneratedFile} />
-                    );
-                }
-            },
         },
     });
 
@@ -291,7 +266,7 @@ export const sendMessage = async (message: string) => {
 
 export type AIState = Array<{
     id?: number;
-    name?: "generateJSX" | "update_ui" | "generateEtherealNexusJSX";
+    name?: "generateJSX" | "generateEtherealNexusJSX";
     role: "assistant" | "user" | "system";
     content: string | ReactNode;
 }>;

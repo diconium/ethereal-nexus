@@ -73,14 +73,6 @@ export const ComponentPreview = () => {
                             Code
                         </Tabs.Trigger>
                     </Tabs.List>
-                    <div className="flex items-center space-x-2">
-                        <button className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            Copy
-                        </button>
-                        <button className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            View
-                        </button>
-                    </div>
                 </div>
                 <Tabs.Content value="preview" className="p-0 flex-1">
                     <div className="w-full h-full bg-white">

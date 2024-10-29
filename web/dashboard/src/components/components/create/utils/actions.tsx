@@ -8,6 +8,7 @@ import type { ToolInvocation } from 'ai'
 import { BotMessage } from "@/components/components/create/botMessageCard";
 import GeneratedUISwitch from "@/components/components/create/generatedUISwitch";
 import GeneratedCodeDisplay from "@/components/components/create/generatedCodeDisplay";
+import {ComponentCard} from "@/components/components/create/ComponentCard";
 
 export const sendMessage = async (message: string) => {
     const history = getMutableAIState<typeof AI>();
@@ -38,7 +39,7 @@ export const sendMessage = async (message: string) => {
             - Use TypeScript for type safety
             - For sections that render HTML content, use a div with dangerouslySetInnerHTML
             - Do NOT include any imports or exports - just the component function itself
-            - IMPORTANT: Once you have completed writing the original component, IMMEDIATELY call the 'generateJSX' action with the component name and JSX code.
+            - IMPORTANT: Once you have completed writing the original component, IMMEDIATELY call the 'generateJSX' action with the component name the JSX code and the file name.
 
             2. Modified Component Creation:
             When the user asks to create a modified file from a previously created component, follow these steps:
@@ -135,40 +136,40 @@ export const sendMessage = async (message: string) => {
                   }),
                   // ... and so on for all updatable text fields
                 };
-                - For each field that should get information from an external source:
-                  - Create or update a constant named 'dataSources' at the top of the file
-                  - For each external data source, add an entry to the dataSources constant using the datasource function
-                  - Example structure for a data source:
-                    const dataSources = {
-                      datasourcevalue: datasource({
-                        multiple: true,
-                        label: 'My Datasource label',
-                        placeholder: 'My Datasource placeholder',
-                        url: 'http://localhost:8080/datasource-example.json',
-                        body: { param1: 'Hello', param2: 'World' },
-                        tooltip: 'This is the datasource and the data is coming from an external source',
-                      }),
-                    };
-              - For each collection of multiple items, most likely lists, (like multiple authors for a book) in the original component:
-                  - Create or update a constant named 'multiFields' at the top of the file
-                  - For each collection, add an entry to the multiFields constant using the multifield and object functions
-                  - Multifields can have children of types: image, rte, checkbox, select, calendar, pathbrowser, text, datasource, or even another multifield
-                  - Example structure for a book with authors:
-                    const multifields = {
-                        authors: multifield({
-                            label: 'Authors',
-                            children: object({
-                                name: text({
-                                    label: 'Author Name',
-                                    placeholder: 'Enter author name',
-                                }),
-                                isadvanced: checkbox({
-                                    label: 'Advanced',
-                                    tooltip: 'Check this box to show advanced options',
-                                }),
+            - For each field that should get information from an external source:
+              - Create or update a constant named 'dataSources' at the top of the file
+              - For each external data source, add an entry to the dataSources constant using the datasource function
+              - Example structure for a data source:
+                const dataSources = {
+                  datasourcevalue: datasource({
+                    multiple: true,
+                    label: 'My Datasource label',
+                    placeholder: 'My Datasource placeholder',
+                    url: 'http://localhost:8080/datasource-example.json',
+                    body: { param1: 'Hello', param2: 'World' },
+                    tooltip: 'This is the datasource and the data is coming from an external source',
+                  }),
+                };
+            - For each collection of multiple items, most likely lists, (like multiple authors for a book) in the original component:
+              - Create or update a constant named 'multiFields' at the top of the file
+              - For each collection, add an entry to the multiFields constant using the multifield and object functions
+              - Multifields can have children of types: image, rte, checkbox, select, calendar, pathbrowser, text, datasource, or even another multifield
+              - Example structure for a book with authors:
+                const multifields = {s
+                    authors: multifield({
+                        label: 'Authors',
+                        children: object({
+                            name: text({
+                                label: 'Author Name',
+                                placeholder: 'Enter author name',
+                            }),
+                            isadvanced: checkbox({
+                                label: 'Advanced',
+                                tooltip: 'Check this box to show advanced options',
                             }),
                         }),
-                    }; 
+                    }),
+                }; 
             - Create a dialogSchema constant that combines all created objects:
                 const dialogSchema = dialog({ ...imageDialog, ...rteComponents, ...checkboxes, ...dropdowns, ...calendars, ...links, ...textFields, ...dataSources, ...multifields });
             - Create a schema constant using the component function:
@@ -210,9 +211,10 @@ export const sendMessage = async (message: string) => {
                 description: 'Generate JSX code for React components',
                 parameters: z.object({
                     originalComponentName: z.string().describe('The name of the original React component'),
+                    fileName: z.string().describe('The name of the file where the component will be saved'),
                     originalJSX: z.string().describe('The JSX code for the original component'),
                 }),
-                generate: async function* ({ originalJSX, originalComponentName }) {
+                generate: async function* ({ originalJSX, originalComponentName, fileName }) {
                     yield (<BotMessage>Loading bot message...</BotMessage>);
 
                     // Update the AI state again with the response from the model.
@@ -226,7 +228,7 @@ export const sendMessage = async (message: string) => {
                     ]);
 
                     return (
-                        <GeneratedUISwitch generatedCode={originalJSX} originalComponentName={originalComponentName}  />
+                        <ComponentCard generatedCode={originalJSX} componentName={originalComponentName} fileName={fileName} />
                     );
                 }
             },

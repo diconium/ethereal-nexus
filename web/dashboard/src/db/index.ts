@@ -1,5 +1,5 @@
-import { drizzle as drizzlePg } from 'drizzle-orm/postgres-js';
-import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
+import { drizzle as drizzlePg, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import postgres from 'postgres';
 import { neon } from '@neondatabase/serverless';
 import { remember } from '@epic-web/remember';
@@ -9,6 +9,14 @@ import * as projects from '@/data/projects/schema';
 import * as member from '@/data/member/schema';
 import * as components from '@/data/components/schema';
 import * as events from "@/data/events/schema";
+
+const schema = {
+  ...users,
+  ...projects,
+  ...member,
+  ...components,
+  ...events,
+}
 
 function clientFactory() {
   let drizzle, client;
@@ -31,13 +39,7 @@ function clientFactory() {
   }
 
   return drizzle(client, {
-    schema: {
-      ...users,
-      ...projects,
-      ...member,
-      ...components,
-      ...events,
-    }
+    schema
   })
 }
 

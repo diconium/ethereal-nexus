@@ -17,7 +17,7 @@ import { Microsoft } from '@/components/ui/icons/Microsoft';
 
 type UserFormProps = {
   onComplete?: () => void;
-  providers:  ('github' | 'azure-ad')[]
+  providers:  ('github' | 'microsoft-entra-id')[]
 }
 
 export default function UserForm({ onComplete, providers }: UserFormProps) {
@@ -132,11 +132,11 @@ export default function UserForm({ onComplete, providers }: UserFormProps) {
         </span>
         </Button>
         <Button
-          disabled={!providers.includes('azure-ad')}
+          disabled={!providers.includes('microsoft-entra-id')}
           variant="outline"
           className="flex space-x-2 items-center justify-start"
           type="submit"
-          onClick={() => login('azure-ad')}
+          onClick={() => login('microsoft-entra-id')}
         >
           <Microsoft className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
           <span className="text-neutral-700 dark:text-neutral-300 text-sm">

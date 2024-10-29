@@ -1,13 +1,17 @@
 import "next-auth/jwt"
 import * as bcrypt from 'bcryptjs';
 import Credential from 'next-auth/providers/credentials';
-import AzureADProvider from 'next-auth/providers/azure-ad';
+import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 import GitHubProvider from 'next-auth/providers/github';
 import { userLoginSchema } from '@/data/users/dto';
 import { getUserByEmail, getUserById, insertInvitedSsoUser } from '@/data/users/actions';
 import { getMembersByUser } from '@/data/member/actions';
 import { NextAuthConfig } from 'next-auth';
 import { Permissions } from '@/data/users/permission-utils';
+import { DrizzleAdapter } from "@auth/drizzle-adapter"
+import { db } from '@/db';
+import Azure from '@/utils/providers/azure';
+import { accounts, users, verificationTokens } from '@/data/users/schema';
 
 declare module "next-auth/jwt" {
   /** Returned by the `jwt` callback and `auth`, when using JWT sessions */
@@ -41,8 +45,14 @@ export const authConfig = {
   },
   secret: process.env.NEXT_AUTH_SECRET,
   pages: {
-    signIn: '/auth/signin'
+    signIn: '/auth/signin',
+    verifyRequest: '/auth/email'
   },
+  adapter: DrizzleAdapter(db, {
+    usersTable: users,
+    accountsTable: accounts,
+    verificationTokensTable: verificationTokens
+  }),
   providers: [
     Credential({
       name: "Credentials",
@@ -73,10 +83,14 @@ export const authConfig = {
       clientId: process.env.GITHUB_ID,
       clientSecret: process.env.GITHUB_SECRET,
     }),
-    AzureADProvider({
-      clientId: process.env.AZURE_AD_CLIENT_ID!,
-      clientSecret: process.env.AZURE_AD_CLIENT_SECRET!,
-      tenantId: process.env.AZURE_AD_TENANT_ID!,
+    MicrosoftEntraID({
+      allowDangerousEmailAccountLinking: true,
+      clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID,
+      clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET,
+      issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER,
+    }),
+    Azure({
+      from: process.env.EMAIL_FROM,
     }),
   ],
   callbacks: {
@@ -84,7 +98,10 @@ export const authConfig = {
       if (account?.provider == "credentials") {
         return true;
       }
-      if (account?.provider == "github") {
+      if (account?.provider == "azure-communication-service") {
+        return true;
+      }
+      if (account?.provider == "github" || account?.provider == "microsoft-entra-id") {
         const existingUser = await getUserByEmail(profile?.email);
         if(!existingUser.success && profile) {
           const insert = await insertInvitedSsoUser({

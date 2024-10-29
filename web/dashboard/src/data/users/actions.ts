@@ -34,13 +34,15 @@ import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import { members } from '@/data/member/schema';
 import { lowestPermission } from '@/data/users/permission-utils';
 import { auth, signIn, signOut } from '@/auth';
+import process from 'node:process';
 
-type Providers = 'credentials' | 'github' | 'azure-ad';
+type Providers = 'credentials' | 'github' | 'microsoft-entra-id' | 'azure-communication-service';
 export async function login(provider: Providers, login?: UserLogin) {
   return await signIn(
     provider,
     {
       email: login?.email,
+      identifier: login?.email,
       password: login?.password,
       redirectTo: '/',
     },
@@ -49,6 +51,7 @@ export async function login(provider: Providers, login?: UserLogin) {
     },
   );
 }
+
 
 export async function logout() {
   return await signOut();
@@ -134,6 +137,10 @@ export async function insertInvitedCredentialsUser(
 
   if(result.success){
     await deleteInvite(key);
+
+    if(process.env.COMMUNICATION_SERVICES_CONNECTION_STRING) {
+      await login('azure-communication-service', result.data);
+    }
   }
   
   return result;

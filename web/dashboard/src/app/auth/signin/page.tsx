@@ -7,9 +7,10 @@ export default async function AuthenticationPage() {
   noStore()
   const providers = [
     process.env.GITHUB_SECRET ? 'github' : false,
-    process.env.AZURE_AD_CLIENT_SECRET ? 'azure-ad' : false,
+    process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET ? 'microsoft-entra-id' : false,
+    process.env.COMMUNICATION_SERVICES_CONNECTION_STRING ? 'azure-communication-service' : false,
   ]
-    .filter(Boolean) as ('github' | 'azure-ad')[]
+    .filter(Boolean) as ('github' | 'microsoft-entra-id' | 'azure-communication-service')[]
 
   return <>
     <LoginForm providers={providers} />

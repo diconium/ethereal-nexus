@@ -10,9 +10,9 @@ export default function AuthenticationPage() {
   noStore()
   const providers = [
     process.env.GITHUB_SECRET ? 'github' : false,
-    process.env.AZURE_AD_CLIENT_SECRET ? 'azure-ad' : false,
+    process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET ? 'microsoft-entra-id' : false,
   ]
-    .filter(Boolean) as ('github' | 'azure-ad')[]
+    .filter(Boolean) as ('github' | 'microsoft-entra-id')[]
 
   return <>
     <Link

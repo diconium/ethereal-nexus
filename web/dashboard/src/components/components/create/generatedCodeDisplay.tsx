@@ -6,7 +6,7 @@ interface GeneratedCodeDisplayProps {
     generatedCode: string;
 };
 
-const GeneratedCodeDisplay = ({ generatedCode }: GeneratedCodeDisplayProps) => {
+export const GeneratedCodeDisplay = ({ generatedCode }: GeneratedCodeDisplayProps) => {
     const lines = generatedCode?.trim().split('\n');
 
     return (
@@ -28,5 +28,3 @@ const GeneratedCodeDisplay = ({ generatedCode }: GeneratedCodeDisplayProps) => {
         </section>
     );
 }
-
-export default GeneratedCodeDisplay;

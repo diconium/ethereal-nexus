@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/ca
 import { Button } from "@/components/ui/button";
 import { MessageContext } from "@/components/components/create/utils/messageContext";
 
-type ComponentCardProps = {
+interface ComponentCardProps {
     componentName: string;
     fileName: string;
     generatedCode: string;

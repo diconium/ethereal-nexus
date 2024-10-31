@@ -1,6 +1,6 @@
 import React from "react";
 
-export function BotMessage({ children } : { children: React.ReactNode }) {
+export function AssistantMessage({ children } : { children: React.ReactNode }) {
     return (
         <div className="border border-gray-300 rounded-lg p-4 flex items-start gap-4 text-sm">
             <div className="grid gap-1">

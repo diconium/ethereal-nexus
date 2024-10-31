@@ -1,14 +1,13 @@
 "use server";
 
 import { ReactNode } from "react";
-import { getMutableAIState, streamUI, createAI } from "ai/rsc";
-import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
+import { openai } from "@ai-sdk/openai";
 import type { ToolInvocation } from 'ai'
-import { BotMessage } from "@/components/components/create/botMessageCard";
-import GeneratedUISwitch from "@/components/components/create/generatedUISwitch";
-import GeneratedCodeDisplay from "@/components/components/create/generatedCodeDisplay";
-import {ComponentCard} from "@/components/components/create/ComponentCard";
+import { getMutableAIState, streamUI, createAI } from "ai/rsc";
+import { AssistantMessage } from "@/components/components/create/AssistantMessage";
+import { GeneratedCodeDisplay } from "@/components/components/create/generatedCodeDisplay";
+import { GeneratedJsxMessage } from "@/components/components/create/GeneratedJsxMessage";
 
 export const sendMessage = async (message: string) => {
     const history = getMutableAIState<typeof AI>();
@@ -20,9 +19,9 @@ export const sendMessage = async (message: string) => {
         model: openai("gpt-4"),
         messages: [ ...history.get(), { role: "user", content: message }],
         initial: (
-            <BotMessage>
+            <AssistantMessage>
                 <div>Loading...</div>
-            </BotMessage>
+            </AssistantMessage>
         ),
         system:` 
             You are an expert React developer specializing in creating accessible, responsive, and modern UI components. 
@@ -204,7 +203,7 @@ export const sendMessage = async (message: string) => {
                     { role: 'assistant', content },
                 ]);
             }
-            return <BotMessage>{content}</BotMessage>
+            return <AssistantMessage>{content}</AssistantMessage>
         },
         tools: { // Record<string, tool>
             generateJSX: {
@@ -213,9 +212,10 @@ export const sendMessage = async (message: string) => {
                     originalComponentName: z.string().describe('The name of the original React component'),
                     fileName: z.string().describe('The name of the file where the component will be saved'),
                     originalJSX: z.string().describe('The JSX code for the original component'),
+                    componentDescription: z.string().describe('A brief description of the component'),
                 }),
-                generate: async function* ({ originalJSX, originalComponentName, fileName }) {
-                    yield (<BotMessage>Loading bot message...</BotMessage>);
+                generate: async function* ({ originalJSX, originalComponentName, fileName, componentDescription }) {
+                    yield (<AssistantMessage>Loading bot message...</AssistantMessage>);
 
                     // Update the AI state again with the response from the model.
                     history.done([
@@ -228,7 +228,7 @@ export const sendMessage = async (message: string) => {
                     ]);
 
                     return (
-                        <ComponentCard generatedCode={originalJSX} componentName={originalComponentName} fileName={fileName} />
+                        <GeneratedJsxMessage generatedCode={originalJSX} componentName={originalComponentName} fileName={fileName} componentDescription={componentDescription} />
                     );
                 }
             },

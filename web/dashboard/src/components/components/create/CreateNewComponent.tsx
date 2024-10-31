@@ -10,7 +10,7 @@ import { ChatInputs } from "@/components/components/create/utils/chat-schema";
 import { useEnterSubmit } from "@/components/components/create/utils/use-enter-submit";
 import { useActions, useUIState } from "ai/rsc";
 import type { SubmitHandler } from "react-hook-form";
-import { UserMessage } from "./userMessageCard";
+import { UserMessage } from "./UserMessage";
 
 export function NewComponent() {
     const [messages, setMessages] = useUIState<typeof AI>([]);

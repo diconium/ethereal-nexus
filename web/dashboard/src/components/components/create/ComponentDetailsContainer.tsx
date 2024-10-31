@@ -5,15 +5,10 @@ import * as Tabs from "@radix-ui/react-tabs";
 import { LivePreview, LiveProvider } from "react-live";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import { MessageContext } from "@/components/components/create/utils/messageContext";
-import GeneratedCodeDisplay from "@/components/components/create/generatedCodeDisplay";
+import { GeneratedCodeDisplay } from "@/components/components/create/generatedCodeDisplay";
 
 export const ComponentDetailsContainer = () => {
     const [activeTab, setActiveTab] = useState("preview");
-    /** const currentMessage = {
-        componentName: "AvatarCard",
-        fileName: "AvatarCard.jsx",
-        generatedCode: "function AvatarCard() {\n  return (\n    <div className=\"max-w-sm mx-auto bg-white shadow-lg rounded-lg overflow-hidden border-2 border-gray-200\">\n      <div className=\"sm:flex sm:items-center px-6 py-4\">\n        <img className=\"block mx-auto sm:mx-0 sm:flex-shrink-0 h-16 sm:h-24 rounded-full\" src=\"https://placekitten.com/200/200\" alt=\"avatar\" />\n        <div className=\"mt-4 sm:mt-0 sm:ml-4 text-center sm:text-left\">\n          <p className=\"text-xl leading-tight\">Cat Lover</p>\n          <p className=\"text-sm leading-tight text-gray-600\">Loves all cats in the world.</p>\n          <div className=\"mt-4\">\n            <button className=\"text-purple-500 hover:text-white hover:bg-purple-500 border border-purple-500 text-xs font-semibold rounded-full px-4 py-1 leading-normal\">Follow</button>\n          </div>\n        </div>\n      </div>\n    </div>\n  );\n}"
-    }**/
     const { currentMessage } = useContext(MessageContext);
 
     return (

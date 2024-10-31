@@ -6,7 +6,7 @@ import { generateId } from "ai";
 import { useActions, useUIState } from "ai/rsc";
 import { SubmitHandler } from "react-hook-form";
 import { ChatInputs } from "@/components/components/create/utils/chat-schema";
-import { UserMessage } from "@/components/components/create/userMessageCard";
+import { UserMessage } from "@/components/components/create/UserMessage";
 import { Input } from "@/components/ui/input";
 import { useEnterSubmit } from "@/components/components/create/utils/use-enter-submit";
 import { useForm } from "@/components/components/create/utils/use-form";
@@ -52,9 +52,9 @@ export default function Chat() {
                 <div className="flex-1 p-4 overflow-auto">
                     {messages.map((message, index) => {
                         return (
-                            <React.Fragment key={index}>
+                            <div key={index} className="mb-4">
                                 {message?.display}
-                            </React.Fragment>
+                            </div>
                         )
                     })}
                 </div>

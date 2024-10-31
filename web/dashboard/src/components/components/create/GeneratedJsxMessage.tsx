@@ -18,12 +18,6 @@ interface GeneratedJsxMessageProps {
 export function GeneratedJsxMessage({ componentName, fileName, componentDescription, generatedCode }: GeneratedJsxMessageProps) {
     const [_, setMessages] = useUIState<typeof AI>([]);
     const { sendMessage } = useActions<typeof AI>();
-    console.log({
-        componentName,
-        fileName,
-        componentDescription,
-        generatedCode,
-    });
 
     const handleGenerateEtherealNexusStructuredFile = async () => {
         setMessages(currentMessages => [

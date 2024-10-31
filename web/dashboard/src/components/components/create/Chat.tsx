@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState }  from 'react';
+import React, { useContext }  from 'react';
 import { X } from 'lucide-react';
 import { generateId } from "ai";
 import { useActions, useUIState } from "ai/rsc";
@@ -12,11 +12,13 @@ import { useEnterSubmit } from "@/components/components/create/utils/use-enter-s
 import { useForm } from "@/components/components/create/utils/use-form";
 import { ComponentDetailsContainer } from "@/components/components/create/ComponentDetailsContainer";
 import { AI } from "@/components/components/create/utils/actions";
+import { ChatContext } from "@/components/components/create/utils/chatContext";
 
 export default function Chat() {
     const [messages, setMessages] = useUIState<typeof AI>([]);
 
-    const [showPreview, setShowPreview] = useState(false);
+    const { isComponentDetailsContainerOpen, setIsComponentDetailsContainerOpen } = useContext(ChatContext);
+
     const { sendMessage } = useActions<typeof AI>();
 
     const { formRef, onKeyDown } = useEnterSubmit();
@@ -48,7 +50,7 @@ export default function Chat() {
     return (
         <div className="flex h-full bg-gray-100">
             {/* Chat section */}
-            <div className={`flex flex-col ${showPreview ? 'w-1/2' : 'w-full'} transition-all duration-300 ease-in-out`}>
+            <div className={`flex flex-col ${isComponentDetailsContainerOpen ? 'w-1/2' : 'w-full'} transition-all duration-300 ease-in-out`}>
                 <div className="flex-1 p-4 overflow-auto">
                     {messages.map((message, index) => {
                         return (
@@ -72,26 +74,16 @@ export default function Chat() {
             </div>
 
             {/* Preview section */}
-            {showPreview && (
+            {isComponentDetailsContainerOpen && (
                 <div className="w-1/2 border-l relative">
                     <button
                         className="absolute top-2 right-2 z-10 p-1 rounded-full bg-white shadow-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        onClick={() => setShowPreview(false)}
+                        onClick={() => setIsComponentDetailsContainerOpen(false)}
                     >
                         <X className="h-4 w-4" />
                     </button>
                     <ComponentDetailsContainer />
                 </div>
-            )}
-
-            {/* Button to show preview when it's hidden */}
-            {!showPreview && (
-                <button
-                    className="fixed bottom-4 right-4 px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                    onClick={() => setShowPreview(true)}
-                >
-                    Show Preview
-                </button>
             )}
         </div>
     )

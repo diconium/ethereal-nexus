@@ -4,7 +4,7 @@ import { useContext } from "react";
 import { FileIcon } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageContext } from "@/components/components/create/utils/messageContext";
+import { ChatContext } from "@/components/components/create/utils/chatContext";
 
 interface ComponentCardProps {
     componentName: string;
@@ -14,14 +14,15 @@ interface ComponentCardProps {
 
 export function ComponentCard({ componentName, fileName, generatedCode }: ComponentCardProps) {
 
-    const { setCurrentMessage } = useContext(MessageContext);
+    const { setCurrentMessage, setIsComponentDetailsContainerOpen } = useContext(ChatContext);
 
     const handleClick = () => {
         setCurrentMessage({
             componentName,
             fileName,
             generatedCode,
-        })
+        });
+        setIsComponentDetailsContainerOpen(true);
     };
 
     return (

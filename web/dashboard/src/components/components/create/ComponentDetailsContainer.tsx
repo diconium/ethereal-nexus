@@ -4,12 +4,12 @@ import React, {useContext, useState} from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import { LivePreview, LiveProvider } from "react-live";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
-import { MessageContext } from "@/components/components/create/utils/messageContext";
+import { ChatContext } from "@/components/components/create/utils/chatContext";
 import { GeneratedCodeDisplay } from "@/components/components/create/generatedCodeDisplay";
 
 export const ComponentDetailsContainer = () => {
     const [activeTab, setActiveTab] = useState("preview");
-    const { currentMessage } = useContext(MessageContext);
+    const { currentMessage } = useContext(ChatContext);
 
     return (
         <div className="border rounded-lg overflow-hidden h-full flex flex-col">

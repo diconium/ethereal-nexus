@@ -34,6 +34,7 @@ export const sendMessage = async (message: string) => {
             - Implement proper accessibility attributes
             - Use Tailwind CSS for styling
             - Ensure the component is responsive
+            - Use https://picsum.photos to generate dummy placeholder images
             - Include brief comments explaining complex logic
             - Use TypeScript for type safety
             - For sections that render HTML content, use a div with dangerouslySetInnerHTML

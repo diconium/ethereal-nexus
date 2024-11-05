@@ -28,33 +28,30 @@ import {
   projectWithComponentIdSchema
 } from './dto';
 import * as console from 'console';
-import { and, desc, eq, getTableColumns, isNull, sql } from 'drizzle-orm';
+import { and, countDistinct, desc, eq, getTableColumns, isNull, sql } from 'drizzle-orm';
 import { environments, projectComponentConfig, projects } from './schema';
 import { insertMembers, userIsMember } from '@/data/member/actions';
 import { componentAssets, components, componentVersions } from '@/data/components/schema';
 import { revalidatePath } from 'next/cache';
 import { Component, componentsSchema } from '@/data/components/dto';
 import { logEvent } from '@/lib/events/event-middleware';
+import { auth } from '@/auth';
+import { members } from '@/data/member/schema';
 
-export async function getProjects(
-  userId: string | undefined | null
-): ActionResponse<ProjectWithComponentId[]> {
-  if (!userId) {
+export async function getProjects(): ActionResponse<ProjectWithComponentId[]> {
+  const session = await auth()
+  if (!session?.user?.id) {
     return actionError('No user provided.');
   }
+  const role = session.user.role;
 
   try {
     const select = await db
       .select({
         ...getTableColumns(projects),
-        environments: sql`ARRAY_AGG
-            (jsonb_build_object('id', ${environments.id}, 'name', ${environments.name}))`,
-        components: sql`COALESCE
-        ( JSONB_AGG(
-            DISTINCT jsonb_build_object(
-            'component_id', ${projectComponentConfig.component_id}
-            )
-            ) FILTER (WHERE ${projectComponentConfig.is_active} = true), '[]')`
+        environments: sql`array_agg(distinct jsonb_build_object('id', ${environments.id}, 'name', ${environments.name}))`,
+        components: sql`coalesce(jsonb_agg(distinct jsonb_build_object('component_id', ${projectComponentConfig.component_id})) filter(where ${projectComponentConfig.is_active} = true), '[]')`,
+        members: countDistinct(members.user_id)
       })
       .from(projects)
       .leftJoin(
@@ -65,9 +62,18 @@ export async function getProjects(
         projectComponentConfig,
         eq(environments.id, projectComponentConfig.environment_id)
       )
-      .where(await userIsMember(userId))
-      .groupBy(projects.id);
+      .leftJoin(
+        members,
+        eq(members.resource, projects.id)
+      )
+      .where(
+        role !== 'admin' ? await userIsMember(session.user.id) : undefined
+      )
+      .groupBy(
+        projects.id,
+      );
 
+    console.log(JSON.stringify(select, null, 2));
     const safe = z.array(projectWithComponentIdSchema).safeParse(select);
     if (!safe.success) {
       return actionZodError(
@@ -165,7 +171,7 @@ export async function getEnvironmentsById(
           await userIsMember(userId, environments.project_id)
         )
       )
-    
+
     const safe = environmentWithComponentsSchema.safeParse(select[0]);
     if (!safe.success) {
       return actionZodError(

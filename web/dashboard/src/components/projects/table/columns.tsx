@@ -24,6 +24,19 @@ export const columns = [
     enableHiding: true,
   },
   {
+    accessorKey: "environments",
+    header: ({ column }) => (
+      <DataTableColumnHeader className="font-bold" column={column} title="Environments" />
+    ),
+    cell: ({ row }) => (
+      <div className="inline-flex">
+        <div className="text-orange-500 text-base"> { row.getValue("environments")?.length || 0 } </div>
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: true,
+  },
+  {
     accessorKey: "components",
     header: ({ column }) => (
       <DataTableColumnHeader className="font-bold" column={column} title="Components" />
@@ -37,13 +50,13 @@ export const columns = [
     enableHiding: true,
   },
   {
-    accessorKey: "environments",
+    accessorKey: "members",
     header: ({ column }) => (
-      <DataTableColumnHeader className="font-bold" column={column} title="Environments" />
+      <DataTableColumnHeader className="font-bold" column={column} title="Members" />
     ),
     cell: ({ row }) => (
       <div className="inline-flex">
-        <div className="text-orange-500 text-base"> { row.getValue("environments")?.length || 0 } </div>
+        <div className="text-orange-500 text-base"> { row.getValue("members") } </div>
       </div>
     ),
     enableSorting: false,

@@ -12,7 +12,6 @@ export default function Azure(config: EmailUserConfig): EmailConfig {
     name: "Azure",
     maxAge: 24 * 60 * 60,
     async sendVerificationRequest(params) {
-      console.log("Azure sendVerificationRequest", params)
       const { identifier: to, provider, url, theme } = params
       const { host } = new URL(url)
 

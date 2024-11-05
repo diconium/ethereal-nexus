@@ -3,15 +3,17 @@ import * as bcrypt from 'bcryptjs';
 import Credential from 'next-auth/providers/credentials';
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 import GitHubProvider from 'next-auth/providers/github';
-import { userLoginSchema } from '@/data/users/dto';
+import { User, userLoginSchema } from '@/data/users/dto';
 import { getUserByEmail, getUserById, insertInvitedSsoUser } from '@/data/users/actions';
 import { getMembersByUser } from '@/data/member/actions';
-import { NextAuthConfig } from 'next-auth';
+import { AuthError, NextAuthConfig, Profile } from 'next-auth';
 import { Permissions } from '@/data/users/permission-utils';
 import { DrizzleAdapter } from "@auth/drizzle-adapter"
 import { db } from '@/db';
 import Azure from '@/utils/providers/azure';
 import { accounts, users, verificationTokens } from '@/data/users/schema';
+import process from 'node:process';
+import { AdapterUser } from "next-auth/adapters";
 
 declare module "next-auth/jwt" {
   /** Returned by the `jwt` callback and `auth`, when using JWT sessions */
@@ -33,6 +35,30 @@ declare module "next-auth" {
       [key: string]: Permissions | undefined
     }
   }
+}
+
+async function handleSSOLogin(user: AdapterUser, profile?: Profile) {
+  if (!user && profile) {
+    const insert = await insertInvitedSsoUser({
+      email: profile.email,
+      name: profile.name,
+      image: profile.avatar_url,
+      email_verified: new Date()
+    });
+    return insert.success;
+  }
+  return true;
+}
+
+function handleCredentialsLogin(user: AdapterUser) {
+  if(!user) {
+    return false;
+  }
+  if(process.env.AUTH_ENFORCE_EMAIL_VERIFICATION === "true" && !user.emailVerified) {
+    throw new AuthError("Email not verified", { type: "Verification"});
+  }
+
+  return true;
 }
 
 export const authConfig = {
@@ -80,8 +106,8 @@ export const authConfig = {
       }
     }),
     GitHubProvider({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET,
+      clientId: process.env.AUTH_GITHUB_ID,
+      clientSecret: process.env.AUTH_GITHUB_SECRET,
     }),
     MicrosoftEntraID({
       allowDangerousEmailAccountLinking: true,
@@ -94,27 +120,18 @@ export const authConfig = {
     }),
   ],
   callbacks: {
-    async signIn({profile, account}) {
-      if (account?.provider == "credentials") {
-        return true;
+    async signIn({user, profile, account}) {
+      switch (account?.provider) {
+        case "azure-communication-service":
+          return true;
+        case "credentials":
+          return handleCredentialsLogin(user as AdapterUser);
+        case "github":
+        case "microsoft-entra-id":
+          return await handleSSOLogin(user as AdapterUser, profile);
+        default:
+          return false;
       }
-      if (account?.provider == "azure-communication-service") {
-        return true;
-      }
-      if (account?.provider == "github" || account?.provider == "microsoft-entra-id") {
-        const existingUser = await getUserByEmail(profile?.email);
-        if(!existingUser.success && profile) {
-          const insert = await insertInvitedSsoUser({
-            email: profile.email,
-            name: profile.name,
-            image: profile.avatar_url,
-            email_verified: new Date()
-          })
-          return insert.success
-        }
-        return true
-      }
-      return false
     },
     async jwt({ token, user }) {
       const dbUser = await getUserByEmail(token.email);

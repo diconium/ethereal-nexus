@@ -35,21 +35,29 @@ import { members } from '@/data/member/schema';
 import { lowestPermission } from '@/data/users/permission-utils';
 import { auth, signIn, signOut } from '@/auth';
 import process from 'node:process';
+import { AuthError } from 'next-auth';
 
 type Providers = 'credentials' | 'github' | 'microsoft-entra-id' | 'azure-communication-service';
 export async function login(provider: Providers, login?: UserLogin) {
-  return await signIn(
-    provider,
-    {
-      email: login?.email,
-      identifier: login?.email,
-      password: login?.password,
-      redirectTo: '/',
-    },
-    {
-      signin_type: 'login',
-    },
-  );
+  try {
+    await signIn(
+      provider,
+      {
+        email: login?.email,
+        identifier: login?.email,
+        password: login?.password,
+        redirectTo: '/',
+      },
+      {
+        signin_type: 'login',
+      },
+    );
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return actionError(error.message);
+    }
+    throw error;
+  }
 }
 
 
@@ -220,7 +228,7 @@ export async function getPublicUserById(
 
 export async function getUserByEmail(
   unsafeEmail: string | undefined | null,
-): ActionResponse<z.infer<typeof userSchema>> {
+): ActionResponse<User> {
   const safeEmail = userEmailSchema.safeParse({ email: unsafeEmail });
   if (!safeEmail.success) {
     return actionZodError('The email input is not valid.', safeEmail.error);

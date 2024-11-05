@@ -6,7 +6,7 @@ import { unstable_noStore as noStore } from 'next/cache';
 export default async function AuthenticationPage() {
   noStore()
   const providers = [
-    process.env.GITHUB_SECRET ? 'github' : false,
+    process.env.AUTH_GITHUB_SECRET ? 'github' : false,
     process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET ? 'microsoft-entra-id' : false,
     process.env.COMMUNICATION_SERVICES_CONNECTION_STRING ? 'azure-communication-service' : false,
   ]

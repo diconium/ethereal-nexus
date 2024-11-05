@@ -28,11 +28,20 @@ export default function LoginForm({ onComplete, providers }: UserFormProps) {
   });
 
   async function credentialsHandler(formdata) {
-    await login('credentials', formdata);
+    const result = await login('credentials', formdata);
+
+    if (!result?.success) {
+      switch(true) {
+        case result?.error.message.includes('Email not verified.'):
+          credentialsForm.setError('email', {
+            type: "manual",
+            message: 'Email not verified. Please use the magic link options.',
+          });
+      }
+    }
   }
 
   async function emailHandler(formdata) {
-    console.log('emailHandler', formdata);
     await login('azure-communication-service', formdata);
   }
 

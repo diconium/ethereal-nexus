@@ -5,54 +5,35 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { ClipboardCopy, Pencil, Trash } from 'lucide-react';
-import { MouseEventHandler, useState } from 'react';
+import { Trash } from 'lucide-react';
+import { useState } from 'react';
 import { Dialog, DialogTrigger } from '@radix-ui/react-dialog';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
-import Link from 'next/link';
-import { deleteProject } from '@/data/projects/actions';
 import DotsIcon from '@/components/ui/icons/DotsIcon';
-import { useSession } from 'next-auth/react';
+import { deleteUser } from '@/data/users/actions';
 
-export function ProjectsDataTableRowActions({ table, row }) {
-  const project = row.original;
+export function UsersDataTableRowActions({ user }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const { data: session } = useSession();
 
   const handleDeleteOk = async () => {
     setDeleteDialogOpen(false);
-    if (project) {
-      const deleted = await deleteProject(project.id, session?.user?.id);
+    if (user) {
+      const deleted = await deleteUser(user.id);
 
       if (deleted.success) {
         toast({
-          title: `Project ${project.name} was deleted successfully`
+          title: `User was deleted successfully`
         });
       } else {
         toast({
-          title: `Project ${project.name} could not be deleted`
+          title: `User could not be deleted`
         });
       }
-    }
-  };
 
-  const copyProjectUrl: (id: string) => MouseEventHandler = (id) => () => {
-    navigator.clipboard.writeText(
-      window.location.origin +
-      `/api/v1/environments/${id}/components`
-    ).then(() => {
-      toast({
-        title: 'Project URL copied to clipboard'
-      });
-    });
+    }
   };
 
   return (
@@ -68,29 +49,6 @@ export function ProjectsDataTableRowActions({ table, row }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <ClipboardCopy className="mr-2 h-4 w-4" />
-              <span>Copy URL</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                {
-                  project.environments.map(e =>
-                    <DropdownMenuItem key={e.id} onClick={copyProjectUrl(e.id)}>
-                      <span>{e.name}</span>
-                    </DropdownMenuItem>)
-                }
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-          <Link href={`/projects/${project.id}`}>
-            <DropdownMenuItem>
-              <Pencil className="mr-2 h-4 w-4" /> Edit
-            </DropdownMenuItem>
-          </Link>
-          <DropdownMenuSeparator />
-          {/* TODO: ideally we'd have only one dialog */}
           <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <DialogTrigger asChild>
               <DropdownMenuItem
@@ -105,8 +63,7 @@ export function ProjectsDataTableRowActions({ table, row }) {
               <DialogHeader>
                 <DialogTitle>Are you sure?</DialogTitle>
                 <DialogDescription>
-                  This action cannot be undone. This will permanently delete the
-                  project {row.original.name}.
+                  This action cannot be undone. This will permanently delete {user.name} user.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>

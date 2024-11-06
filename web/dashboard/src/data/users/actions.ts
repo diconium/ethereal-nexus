@@ -198,6 +198,7 @@ export async function getUserById(userId?: string): ActionResponse<User> {
     return actionError('Failed to fetch user from database.');
   }
 }
+
 export async function getPublicUserById(
   userId?: string,
 ): ActionResponse<PublicUser> {
@@ -253,6 +254,41 @@ export async function getUserByEmail(
     return actionSuccess(safeUser.data);
   } catch {
     return actionError('Failed to fetch user from database.');
+  }
+}
+
+export async function deleteUser(
+  id: string,
+): ActionResponse<PublicUser> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
+  }
+  const role = session.user.role;
+
+  if (role !== 'admin') {
+    return actionError('Forbidden.');
+  }
+
+  try {
+    const deleted = await db
+      .delete(users)
+      .where(
+        eq(users.id, id)
+      )
+      .returning();
+
+    const safeDeleted = userPublicSchema.safeParse(deleted[0]);
+    if (!safeDeleted.success) {
+      return actionZodError(
+        "There's an issue with the API key record.",
+        safeDeleted.error,
+      );
+    }
+
+    return actionSuccess(safeDeleted.data);
+  } catch {
+    return actionError('Failed to delete user from database.');
   }
 }
 

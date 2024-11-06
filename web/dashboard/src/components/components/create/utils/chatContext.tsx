@@ -3,6 +3,7 @@
 import React, { createContext, useState } from 'react';
 
 export interface GeneratedComponentMessage {
+    id: string;
     componentName: string;
     fileName: string;
     generatedCode: string;
@@ -11,7 +12,7 @@ export interface GeneratedComponentMessage {
 
 interface ChatContextType {
     currentMessage?: GeneratedComponentMessage;
-    setCurrentMessage: (message: GeneratedComponentMessage) => void;
+    setCurrentMessage: (message?: GeneratedComponentMessage) => void;
     isComponentDetailsContainerOpen: boolean;
     setIsComponentDetailsContainerOpen: (isOpen: boolean) => void;
 };

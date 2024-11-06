@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ComponentCard } from "@/components/components/create/ComponentCard";
 
 interface GeneratedJsxMessageProps {
+    messageId: string;
     componentDescription: string;
     componentName: string;
     fileName: string;
@@ -14,7 +15,7 @@ interface GeneratedJsxMessageProps {
     chatId: string;
 };
 
-export function GeneratedJsxMessage({ componentName, fileName, componentDescription, generatedCode, chatId }: GeneratedJsxMessageProps) {
+export function GeneratedJsxMessage({ messageId, componentName, fileName, componentDescription, generatedCode, chatId }: GeneratedJsxMessageProps) {
     const { append } = useChat({
         id: chatId,
         body: { id: chatId },
@@ -32,7 +33,7 @@ export function GeneratedJsxMessage({ componentName, fileName, componentDescript
         <Card className="w-full max-w-2xl">
             <CardContent className="p-6 space-y-4">
                 <p className="text-sm text-muted-foreground">{componentDescription}</p>
-                <ComponentCard componentName={componentName} fileName={fileName} generatedCode={generatedCode} />
+                <ComponentCard id={messageId} componentName={componentName} fileName={fileName} generatedCode={generatedCode} />
             </CardContent>
             <CardFooter className="justify-between items-center">
                 <Button onClick={handleGenerateEtherealNexusStructuredFile}>

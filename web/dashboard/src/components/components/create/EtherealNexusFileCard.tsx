@@ -8,17 +8,25 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/ca
 import { ChatContext } from "@/components/components/create/utils/chatContext";
 
 interface EtherealNexusFileCardProps {
+    id: string,
     componentName: string,
     fileName: string,
     fileCode: string,
 }
 
-export function EtherealNexusFileCard({ fileName, componentName, fileCode }: EtherealNexusFileCardProps) {
+export function EtherealNexusFileCard({ id, fileName, componentName, fileCode }: EtherealNexusFileCardProps) {
 
-    const { setCurrentMessage, setIsComponentDetailsContainerOpen } = useContext(ChatContext);
+    const { currentMessage, setCurrentMessage, setIsComponentDetailsContainerOpen } = useContext(ChatContext);
 
     const handleClick = () => {
+        if (currentMessage?.id === id) {
+            setCurrentMessage(undefined);
+            setIsComponentDetailsContainerOpen(false);
+            return;
+        }
+
         setCurrentMessage({
+            id,
             componentName,
             fileName,
             generatedCode: fileCode,

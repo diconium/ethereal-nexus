@@ -19,7 +19,9 @@ export function ChatMessagesDisplayer({ messages, chatId } : ChatMessagesDisplay
                         message.role === 'user' && <UserMessage>{message.content}</UserMessage>
                     }
                     {message.toolInvocations?.map(toolInvocation => {
+                        const { id } = message;
                         const { toolName, toolCallId, state } = toolInvocation;
+
                         if (state === 'result') {
                             const { result } = toolInvocation;
 
@@ -27,11 +29,11 @@ export function ChatMessagesDisplayer({ messages, chatId } : ChatMessagesDisplay
                                 <div key={toolCallId}>
                                     {
                                         toolName === 'generateJSX' &&
-                                        <GeneratedJsxMessage chatId={chatId} componentDescription={result.componentDescription} generatedCode={result.originalJSX} componentName={result.originalComponentName} fileName={result.fileName} />
+                                        <GeneratedJsxMessage messageId={id} chatId={chatId} componentDescription={result.componentDescription} generatedCode={result.originalJSX} componentName={result.originalComponentName} fileName={result.fileName} />
                                     }
                                     {
                                         toolName === 'generateEtherealNexusJSX' &&
-                                        <EtherealNexusFileCard fileName={result.fileName} fileCode={result.etherealNexusStructuredFile} componentName={result.componentName} />
+                                        <EtherealNexusFileCard id={id} fileName={result.fileName} fileCode={result.etherealNexusStructuredFile} componentName={result.componentName} />
                                     }
                                 </div>
                             );

@@ -7,17 +7,26 @@ import { Button } from "@/components/ui/button";
 import { ChatContext } from "@/components/components/create/utils/chatContext";
 
 interface ComponentCardProps {
+    id: string;
     componentName: string;
     fileName: string;
     generatedCode: string;
 };
 
-export function ComponentCard({ componentName, fileName, generatedCode }: ComponentCardProps) {
+export function ComponentCard({ id, componentName, fileName, generatedCode }: ComponentCardProps) {
 
-    const { setCurrentMessage, setIsComponentDetailsContainerOpen } = useContext(ChatContext);
+    const { currentMessage, setCurrentMessage, setIsComponentDetailsContainerOpen } = useContext(ChatContext);
 
     const handleClick = () => {
+
+        if (currentMessage?.id === id) {
+            setCurrentMessage(undefined);
+            setIsComponentDetailsContainerOpen(false);
+            return;
+        }
+
         setCurrentMessage({
+            id,
             componentName,
             fileName,
             generatedCode,

@@ -59,7 +59,7 @@ export default async function NewLaunch({ params: { id } }: any) {
     notFound();
   }
 
-  const environments = await getEnvironmentsByProject(from.data.project_id, session?.user?.id)
+  const environments = await getEnvironmentsByProject(from.data.project_id)
   const comparison = compareEnvironments(from.data, to.data);
 
   return (

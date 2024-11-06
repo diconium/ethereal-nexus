@@ -9,7 +9,7 @@ import { getProjects } from '@/data/projects/actions';
 export async function ApiKeyList() {
   const session = await auth()
   const keys = await getApiKeys(session?.user?.id)
-  const projects = await getProjects(session?.user?.id)
+  const projects = await getProjects()
 
   if(!keys.success) {
     throw new Error('Keys are not available.')

@@ -27,7 +27,7 @@ export function EnvironmentsRowActions({ row }) {
     setDeleteDialogOpen(false);
 
     if (environment) {
-      const deleted = await deleteEnvironment(environment.id, session?.user?.id);
+      const deleted = await deleteEnvironment(environment.id);
 
       if (deleted.success) {
         toast({

@@ -2,11 +2,11 @@
 
 import React  from 'react';
 
-interface GeneratedCodeDisplayProps {
+interface GeneratedFileDisplayProps {
     generatedCode: string;
 };
 
-export const GeneratedCodeDisplay = ({ generatedCode }: GeneratedCodeDisplayProps) => {
+export const GeneratedFileDisplay = ({ generatedCode }: GeneratedFileDisplayProps) => {
     const lines = generatedCode?.trim().split('\n');
 
     return (

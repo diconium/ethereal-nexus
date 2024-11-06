@@ -2,47 +2,37 @@
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { SendIcon } from "lucide-react";
-import { useActions, useUIState } from "ai/rsc";
+import { useChat } from "ai/react";
 import { Button } from "@/components/ui/button";
 import { ComponentCard } from "@/components/components/create/ComponentCard";
-import { AI } from "@/components/components/create/utils/actions";
-import { UserMessage } from "@/components/components/create/UserMessage";
 
 interface GeneratedJsxMessageProps {
     componentDescription: string;
     componentName: string;
     fileName: string;
     generatedCode: string;
+    chatId: string;
 };
 
-export function GeneratedJsxMessage({ componentName, fileName, componentDescription, generatedCode }: GeneratedJsxMessageProps) {
-    const [_, setMessages] = useUIState<typeof AI>([]);
-    const { sendMessage } = useActions<typeof AI>();
+export function GeneratedJsxMessage({ componentName, fileName, componentDescription, generatedCode, chatId }: GeneratedJsxMessageProps) {
+    const { append } = useChat({
+        id: chatId,
+        body: { id: chatId },
+        maxSteps: 1,
+    });
 
     const handleGenerateEtherealNexusStructuredFile = async () => {
-        setMessages(currentMessages => [
-            ...currentMessages,
-            {
-                id: Date.now(),
-                role: "user",
-                display: <UserMessage>Generate me a ethereal-nexus structured file for the UI defined before</UserMessage>,
-            },
-        ]);
-
-        try {
-            const message = `Generate me the Modified Component file for this code: ${generatedCode}. The file can be called ${fileName}Modified.tsx`;
-            const responseMessage = await sendMessage(message);
-            setMessages(currentMessages => [...currentMessages, responseMessage]);
-        } catch (error) {
-            console.error('Error', error);
-        }
+        await append({
+            role: 'user',
+            content: `Generate me the Modified Component file for this code: ${generatedCode}. The file can be called ${fileName}Modified.tsx`
+        });
     }
 
     return (
         <Card className="w-full max-w-2xl">
             <CardContent className="p-6 space-y-4">
                 <p className="text-sm text-muted-foreground">{componentDescription}</p>
-                <ComponentCard componentName={componentName} fileName={fileName} generatedCode={generatedCode}/>
+                <ComponentCard componentName={componentName} fileName={fileName} generatedCode={generatedCode} />
             </CardContent>
             <CardFooter className="justify-between items-center">
                 <Button onClick={handleGenerateEtherealNexusStructuredFile}>

@@ -1,31 +1,19 @@
-"use server";
-
-import { ReactNode } from "react";
-import { z } from "zod";
+import { streamText } from "ai";
 import { openai } from "@ai-sdk/openai";
-import type { ToolInvocation } from 'ai'
-import { getMutableAIState, streamUI, createAI } from "ai/rsc";
-import { AssistantMessage } from "@/components/components/create/AssistantMessage";
-import { GeneratedCodeDisplay } from "@/components/components/create/generatedCodeDisplay";
-import { GeneratedJsxMessage } from "@/components/components/create/GeneratedJsxMessage";
+import { z } from "zod";
 
-export const sendMessage = async (message: string) => {
-    const history = getMutableAIState<typeof AI>();
+export async function POST(request) {
+    const { messages } = await request.json();
 
-    // Update the AI state with the new user message.
-    // history.update([ ...history.get(), { role: "user", content: message }]);
-
-    const reply = await streamUI({
+    const response = await streamText({
         model: openai("gpt-4"),
-        messages: [ ...history.get(), { role: "user", content: message }],
-        initial: (
-            <AssistantMessage>
-                <div>Loading...</div>
-            </AssistantMessage>
-        ),
+        messages,
         system:` 
             You are an expert React developer specializing in creating accessible, responsive, and modern UI components. 
-            You will generate React components based on user requests. There are two types of requests you should handle:
+            You will get descriptions of components by the user and you will generate React components based on the user descriptions/requests.
+            You should handle two types of requests:
+                - The first one is generatation of JSX based on the user description, for that you should call the 'generateJSX' action that is described on the Original Component Creation step. 
+                - The other one is the generation of a modified version of the created JSX, for that you should call the 'generateEtherealNexusJSX' action that is described on the Modified Component Creation step.
 
             1. Original Component Creation:
             When the user asks for a new component or UI creation, follow these steps:
@@ -150,7 +138,7 @@ export const sendMessage = async (message: string) => {
                     tooltip: 'This is the datasource and the data is coming from an external source',
                   }),
                 };
-            - For each collection of multiple items, most likely lists, (like multiple authors for a book) in the original component:
+            - For each collection of multiple items, most likely lists, (like multiple authors for a book or a list of podcasts) in the original component:
               - Create or update a constant named 'multiFields' at the top of the file
               - For each collection, add an entry to the multiFields constant using the multifield and object functions
               - Multifields can have children of types: image, rte, checkbox, select, calendar, pathbrowser, text, datasource, or even another multifield
@@ -195,17 +183,6 @@ export const sendMessage = async (message: string) => {
             
             IMPORTANT: Only call 'generateJSX' when creating a new component, and only call 'generateEtherealNexusJSX' when modifying an existing component. Never call both actions for the same request.
             `,
-        text: ({ content, done }) => { // If the model doesn't have a relevant tool to use
-            console.log("Content from text", content);
-            if (done) {
-                // Update the AI state again with the response from the model.
-                history.done((messages) => [
-                    ...messages,
-                    { role: 'assistant', content },
-                ]);
-            }
-            return <AssistantMessage>{content}</AssistantMessage>
-        },
         tools: { // Record<string, tool>
             generateJSX: {
                 description: 'Generate JSX code for React components',
@@ -215,77 +192,23 @@ export const sendMessage = async (message: string) => {
                     originalJSX: z.string().describe('The JSX code for the original component'),
                     componentDescription: z.string().describe('A brief description of the component'),
                 }),
-                generate: async function* ({ originalJSX, originalComponentName, fileName, componentDescription }) {
-                    yield (<AssistantMessage>Loading bot message...</AssistantMessage>);
-
-                    // Update the AI state again with the response from the model.
-                    history.done([
-                        ...history.get(),
-                        {
-                            role: 'assistant',
-                            name: 'generateJSX',
-                            content: originalJSX,
-                        },
-                    ]);
-
-                    return (
-                        <GeneratedJsxMessage generatedCode={originalJSX} componentName={originalComponentName} fileName={fileName} componentDescription={componentDescription} />
-                    );
-                }
+                execute: async function ({ originalJSX, originalComponentName, fileName, componentDescription }) {
+                    return { originalJSX, originalComponentName, fileName, componentDescription };
+                },
             },
             generateEtherealNexusJSX: {
                 description: 'Generate JSX code for the modified React component',
                 parameters: z.object({
-                    componentName: z.string().describe('The name of the modified React component'),
-                    jsx: z.string().describe('The JSX code for the modified component')
+                    componentName: z.string().describe('The name of the original React component'),
+                    fileName: z.string().describe('The name of the file where the component will be saved'),
+                    etherealNexusStructuredFile: z.string().describe('The JSX code for the modified component')
                 }),
-                generate: async function* ({ componentName, jsx }) {
-                    yield <div>Generating {componentName}...</div>
-
-                    history.done([
-                        ...history.get(),
-                        {
-                            role: 'assistant',
-                            name: 'generateEtherealNexusJSX',
-                            content: jsx,
-                        },
-                    ]);
-                    return (
-                        <GeneratedCodeDisplay generatedCode={jsx} />
-                    )
-                }
+                execute: async function ({ fileName, etherealNexusStructuredFile, componentName }) {
+                    return { fileName, etherealNexusStructuredFile, componentName };
+                },
             },
         },
     });
 
-    return {
-        id: Date.now(),
-        role: "assistant",
-        display: reply.value,
-    };
+    return response.toDataStreamResponse();
 };
-
-export type AIState = Array<{
-    id?: number;
-    name?: "generateJSX" | "generateEtherealNexusJSX";
-    role: "assistant" | "user" | "system";
-    content: string | ReactNode;
-}>;
-
-export type UIState = Array<{
-    id: number;
-    role: "assistant" | "user"
-    display: ReactNode; // the react component that we are going to display to the user
-    toolInvocations?: ToolInvocation[]; // history of the tool invocations
-}>;
-
-export const AI = createAI({
-    initialAIState: [] as AIState,
-    initialUIState: [] as UIState,
-    actions: { sendMessage },
-});
-
-
-
-
-

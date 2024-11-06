@@ -1,14 +1,14 @@
 "use client";
 
-import React, {useContext, useState} from "react";
+import React, { useContext, useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import { LivePreview, LiveProvider } from "react-live";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import { ChatContext } from "@/components/components/create/utils/chatContext";
-import { GeneratedCodeDisplay } from "@/components/components/create/generatedCodeDisplay";
+import { GeneratedFileDisplay } from "@/components/components/create/GeneratedFileDisplay";
 
 export const ComponentDetailsContainer = () => {
-    const [activeTab, setActiveTab] = useState("preview");
+    const [activeTab, setActiveTab] = useState("code");
     const { currentMessage } = useContext(ChatContext);
 
     return (
@@ -16,12 +16,15 @@ export const ComponentDetailsContainer = () => {
             <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
                 <div className="flex items-center justify-between px-4 py-2 border-b bg-gray-50">
                     <Tabs.List className="flex space-x-2">
-                        <Tabs.Trigger
-                            value="preview"
-                            className="px-3 py-1.5 text-sm font-medium text-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-                        >
-                            Preview
-                        </Tabs.Trigger>
+                        {
+                            currentMessage?.type === "generateJSX" &&
+                            <Tabs.Trigger
+                                value="preview"
+                                className="px-3 py-1.5 text-sm font-medium text-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                            >
+                                Preview
+                            </Tabs.Trigger>
+                        }
                         <Tabs.Trigger
                             value="code"
                             className="px-3 py-1.5 text-sm font-medium text-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 data-[state=active]:bg-white data-[state=active]:shadow-sm"
@@ -58,7 +61,7 @@ export const ComponentDetailsContainer = () => {
                     <Tabs.Content value="code" className="p-0 flex-1">
                         <ScrollArea.Root className="h-full">
                             <ScrollArea.Viewport className="w-full h-full">
-                                <GeneratedCodeDisplay generatedCode={currentMessage?.generatedCode || ""} />
+                                <GeneratedFileDisplay generatedCode={currentMessage?.generatedCode || ""} />
                                 {/**<LiveEditor className="rounded border" />
                                 <LiveError className="text-red-500 mt-2" /> **/}
                             </ScrollArea.Viewport>

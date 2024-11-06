@@ -21,6 +21,7 @@ export function ComponentCard({ componentName, fileName, generatedCode }: Compon
             componentName,
             fileName,
             generatedCode,
+            type: 'generateJSX',
         });
         setIsComponentDetailsContainerOpen(true);
     };

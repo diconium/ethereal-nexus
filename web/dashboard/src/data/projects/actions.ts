@@ -38,7 +38,9 @@ import { logEvent } from '@/lib/events/event-middleware';
 import { auth } from '@/auth';
 import { members } from '@/data/member/schema';
 
-export async function getProjects(): ActionResponse<ProjectWithComponentId[]> {
+export async function getProjects(options?: { forceMember: boolean}): ActionResponse<ProjectWithComponentId[]> {
+  const { forceMember } = options || {};
+
   const session = await auth()
   if (!session?.user?.id) {
     return actionError('No user provided.');
@@ -67,7 +69,7 @@ export async function getProjects(): ActionResponse<ProjectWithComponentId[]> {
         eq(members.resource, projects.id)
       )
       .where(
-        role !== 'admin' ? await userIsMember(session.user.id) : undefined
+        forceMember || role !== 'admin' ? await userIsMember(session.user.id) : undefined
       )
       .groupBy(
         projects.id,

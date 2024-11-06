@@ -144,6 +144,7 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
           <FormLabel className="text-base">Projects</FormLabel>
           <FormDescription>
             Select the projects you want to give permissions in the API key.
+            If you are an admin beware that only projects that you are a member of are selectable.
           </FormDescription>
         </div>
         {availableProjects.map((item) => (

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getProjectById } from '@/data/projects/actions';
-import { auth } from '@/auth';
 import { notFound } from 'next/navigation';
 import { ProjectMemberList } from '@/components/projects/members-table/member-list';
 import { ProjectComponentsList } from '@/components/projects/component-selection-table/components-list';
@@ -12,8 +11,7 @@ import { ProjectEvents } from '@/components/projects/project-events/project-even
 import { EnvironmentsList } from '@/components/projects/environments-table/environment-list';
 
 export default async function EditProject({ params: { id }, searchParams: { tab, env } }: any) {
-  const session = await auth();
-  const project = await getProjectById(id, session?.user?.id);
+  const project = await getProjectById(id);
   const events = await getResourceEvents(id);
 
   if (!project.success) {

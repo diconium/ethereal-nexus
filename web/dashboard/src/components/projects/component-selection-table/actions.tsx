@@ -18,16 +18,18 @@ import { useSession } from 'next-auth/react';
 
 export function ProjectsComponentsRowActions({ table, row }) {
   const component = row.original;
-  const projectId = table.options.meta.projectId
+  const project = table.options.meta.projectId
   const {data: session} = useSession()
-  const isDisabled = session?.permissions[projectId] !== 'write';
+
+  const hasWritePermissions = session?.user?.role === 'admin' || session?.permissions[project] === 'write';
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleDeleteOk = async () => {
     setDeleteDialogOpen(false)
 
     if (component) {
-      const deleted = await deleteComponentConfig(component.config_id, projectId, session?.user?.id)
+      const deleted = await deleteComponentConfig(component.config_id, project)
 
       if(deleted.success) {
         toast({
@@ -57,7 +59,7 @@ export function ProjectsComponentsRowActions({ table, row }) {
           <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <DialogTrigger asChild>
               <DropdownMenuItem
-                disabled={session?.permissions[projectId] === 'read'}
+                disabled={!hasWritePermissions}
                 className="text-red-600"
                 onSelect={(e) => e.preventDefault()}
               >
@@ -81,7 +83,7 @@ export function ProjectsComponentsRowActions({ table, row }) {
                   Cancel
                 </Button>
                 <Button
-                  disabled={isDisabled}
+                  disabled={!hasWritePermissions}
                   variant="destructive"
                   onClick={() => handleDeleteOk()}
                 >

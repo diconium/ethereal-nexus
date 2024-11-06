@@ -14,13 +14,15 @@ type AddEnvironmentProps = {
 
 export function EnvironmentDialog({ resource }: AddEnvironmentProps) {
   const { data: session } = useSession();
+  const hasWritePermissions = session?.user?.role === 'admin' || session?.permissions[resource] === 'write';
+
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <Button
-        disabled={session?.permissions[resource] !== 'write'}
+        disabled={!hasWritePermissions}
         size="base"
         variant="primary"
         onClick={() => setOpen(true)}

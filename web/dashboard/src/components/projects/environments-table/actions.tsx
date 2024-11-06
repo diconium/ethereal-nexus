@@ -19,7 +19,8 @@ import { useSession } from 'next-auth/react';
 export function EnvironmentsRowActions({ row }) {
   const environment = row.original;
   const { data: session } = useSession();
-  const isDisabled = session?.permissions[environment.project_id] !== 'write';
+  const hasWritePermissions = session?.user?.role === 'admin' || session?.permissions[environment.project_id] === 'write';
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleDeleteOk = async () => {
@@ -56,7 +57,7 @@ export function EnvironmentsRowActions({ row }) {
           <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <DialogTrigger asChild>
               <DropdownMenuItem
-                disabled={session?.permissions[environment.project_id] === 'read'}
+                disabled={!hasWritePermissions}
                 className="text-red-600"
                 onSelect={(e) => e.preventDefault()}
               >
@@ -80,7 +81,7 @@ export function EnvironmentsRowActions({ row }) {
                   Cancel
                 </Button>
                 <Button
-                  disabled={isDisabled}
+                  disabled={!hasWritePermissions}
                   variant="destructive"
                   onClick={() => handleDeleteOk()}
                 >

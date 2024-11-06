@@ -17,6 +17,7 @@ import {
 import { projects } from '@/data/projects/schema';
 import { PgColumn } from 'drizzle-orm/pg-core';
 import { logEvent } from '@/lib/events/event-middleware';
+import { auth } from '@/auth';
 
 export async function getMembersByResourceId(id: string, userId: string | undefined | null): ActionResponse<MemberWithPublicUser[]> {
   if (!userId) {
@@ -72,7 +73,12 @@ export async function getMembersByUser(userId: string | undefined | null): Actio
 }
 
 
-export async function insertMembers(members: z.infer<typeof newMemberSchema>[], userId): ActionResponse<z.infer<typeof memberSchema>[]> {
+export async function insertMembers(members: z.infer<typeof newMemberSchema>[]): ActionResponse<z.infer<typeof memberSchema>[]> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
+  }
+
   const input = z.array(newMemberSchema).safeParse(members);
   if (!input.success) {
     return actionZodError('Failed to parse member input.', input.error);
@@ -92,7 +98,7 @@ export async function insertMembers(members: z.infer<typeof newMemberSchema>[], 
       const logData = { member_id: member.user_id};
       logEvent({
         type: 'project_member_added',
-        user_id: userId,
+        user_id: session?.user?.id!,
         data: logData,
         resource_id: member.resource,
       });
@@ -104,7 +110,12 @@ export async function insertMembers(members: z.infer<typeof newMemberSchema>[], 
   }
 }
 
-export async function updateMemberPermissions(member: UpdateMemberPermissions, userId, resourceId: string) {
+export async function updateMemberPermissions(member: UpdateMemberPermissions, resourceId: string) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
+  }
+
   const input = updateMemberPermissionsSchema.safeParse(member);
   if (!input.success) {
     return actionZodError('Failed to parse member input.', input.error);
@@ -126,7 +137,7 @@ export async function updateMemberPermissions(member: UpdateMemberPermissions, u
       const logData = { member_id: result.data.user_id, permissions: member.permissions || {}};
       await logEvent({
         type: 'project_member_permissions_updated',
-        user_id: userId,
+        user_id: session.user.id,
         data: logData,
         resource_id: resourceId,
       });

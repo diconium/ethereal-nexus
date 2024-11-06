@@ -33,7 +33,7 @@ export function ComponentsDialog({ components, environment, project, environment
   const { replace } = useRouter();
 
   const { data: session } = useSession();
-  const isDisabled = session?.permissions[project] !== 'write';
+  const hasWritePermissions = session?.user?.role === 'admin' || session?.permissions[project] === 'write';
 
   const selected = environments.find(env => env.id === environment);
   if (!components.success) {
@@ -195,7 +195,7 @@ export function ComponentsDialog({ components, environment, project, environment
         size="base"
         variant="primary"
         onClick={() => setIsOpen(true)}
-        disabled={isDisabled}
+        disabled={!hasWritePermissions}
       >
         <Plus />
         Add components

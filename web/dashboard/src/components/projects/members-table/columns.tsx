@@ -1,12 +1,11 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
 import { MemberPermissionsSelect } from '@/components/projects/members-table/member-permissions-select';
 import { MemberWithPublicUser } from '@/data/member/dto';
 import { Badge } from '@/components/ui/badge';
-import { ProjectsDataTableRowActions } from '@/components/projects/table/data-table-row-actions';
+import { MemberDataTableRowActions } from '@/components/projects/members-table/actions';
 
 export const columns: ColumnDef<MemberWithPublicUser>[] = [
   {
@@ -46,5 +45,13 @@ export const columns: ColumnDef<MemberWithPublicUser>[] = [
     ),
     cell: ({ row }) => <MemberPermissionsSelect value={row.original.permissions} memberId={row.original.id} role={row.original.role} resource={row.original.resource}/>,
     enableSorting: false
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => (
+      <div className="flex justify-end" >
+        <MemberDataTableRowActions member={row.original} />
+      </div>
+    ),
   },
 ];

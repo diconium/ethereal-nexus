@@ -2,53 +2,39 @@ import React from "react";
 import { Message } from "ai";
 import { UserMessage } from "@/components/components/create/UserMessage";
 import { GeneratedJsxMessage } from "@/components/components/create/GeneratedJsxMessage";
-import { EtherealNexusFileCard } from "@/components/components/create/EtherealNexusFileCard";
+import { LoadingComponentCard } from "@/components/components/create/LoadingComponentCard";
 
 interface ChatMessagesDisplayerProps {
     messages: Message[];
     chatId: string;
+    isLoading: boolean;
 }
 
-export function ChatMessagesDisplayer({ messages, chatId } : ChatMessagesDisplayerProps) {
-
+export function ChatMessagesDisplayer({ messages, chatId, isLoading } : ChatMessagesDisplayerProps) {
     return (
         <div className="flex-1 p-4 overflow-auto">
+            <UserMessage message="An interactive pricing calculator for a SaaS product which takes into account seats, usage, and possible discounts. The calculator should be interactable, the monthly usage should be a slider and the total price should update accordingly" />
+            <UserMessage message={"A card with an avatar a description and a name. Close to the name you should include a badge that indicates if the user is verified. Bellow the description there should be an indication if the user is a male or a female and with his birthdate also add in the end the user will have a list of his favorite podcasts"} />
             {messages?.map(message => (
-                <div key={message.id} className="mb-4">
+                <React.Fragment key={message.id}>
                     {
-                        message.role === 'user' && <UserMessage>{message.content}</UserMessage>
+                        message.role === 'user' && <UserMessage message={message.content} />
                     }
                     {message.toolInvocations?.map(toolInvocation => {
                         const { id } = message;
-                        const { toolName, toolCallId, state } = toolInvocation;
+                        const { toolCallId, state } = toolInvocation;
 
                         if (state === 'result') {
-                            const { result } = toolInvocation;
-
                             return (
-                                <div key={toolCallId}>
-                                    {
-                                        toolName === 'generateJSX' &&
-                                        <GeneratedJsxMessage messageId={id} chatId={chatId} componentDescription={result.componentDescription} generatedCode={result.originalJSX} componentName={result.originalComponentName} fileName={result.fileName} />
-                                    }
-                                    {
-                                        toolName === 'generateEtherealNexusJSX' &&
-                                        <EtherealNexusFileCard id={id} fileName={result.fileName} fileCode={result.etherealNexusStructuredFile} componentName={result.componentName} />
-                                    }
-                                </div>
-                            );
-                        } else {
-                            return (
-                                <div key={toolCallId}>
-                                    {
-                                        toolName === 'generateJSX' && <div>Loading...</div>
-                                    }
-                                </div>
+                                <React.Fragment key={toolCallId}>
+                                    <GeneratedJsxMessage chatId={chatId} messageId={id} toolInvocation={toolInvocation} />
+                                </React.Fragment>
                             );
                         }
                     })}
-                </div>
+                </React.Fragment>
             ))}
+            {isLoading && <LoadingComponentCard />}
         </div>
     );
 };

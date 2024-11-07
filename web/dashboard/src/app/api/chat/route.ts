@@ -8,6 +8,7 @@ export async function POST(request) {
     const response = await streamText({
         model: openai("gpt-4"),
         messages,
+        toolChoice: "required",
         system:` 
             You are an expert React developer specializing in creating accessible, responsive, and modern UI components. 
             You will get descriptions of components by the user and you will generate React components based on the user descriptions/requests.
@@ -187,24 +188,25 @@ export async function POST(request) {
             generateJSX: {
                 description: 'Generate JSX code for React components',
                 parameters: z.object({
-                    originalComponentName: z.string().describe('The name of the original React component'),
+                    componentName: z.string().describe('The name of the original React component'),
                     fileName: z.string().describe('The name of the file where the component will be saved'),
-                    originalJSX: z.string().describe('The JSX code for the original component'),
-                    componentDescription: z.string().describe('A brief description of the component'),
+                    code: z.string().describe('The JSX code for the original component'),
+                    description: z.string().describe('A brief description of the component'),
                 }),
-                execute: async function ({ originalJSX, originalComponentName, fileName, componentDescription }) {
-                    return { originalJSX, originalComponentName, fileName, componentDescription };
+                execute: async function ({ code, componentName, fileName, description }) {
+                    return { code, componentName, fileName, description };
                 },
             },
             generateEtherealNexusJSX: {
                 description: 'Generate JSX code for the modified React component',
                 parameters: z.object({
                     componentName: z.string().describe('The name of the original React component'),
+                    description: z.string().describe('A brief description of the component'),
                     fileName: z.string().describe('The name of the file where the component will be saved'),
-                    etherealNexusStructuredFile: z.string().describe('The JSX code for the modified component')
+                    code: z.string().describe('The JSX code for the modified component')
                 }),
-                execute: async function ({ fileName, etherealNexusStructuredFile, componentName }) {
-                    return { fileName, etherealNexusStructuredFile, componentName };
+                execute: async function ({ code, componentName, fileName, description }) {
+                    return { code, componentName, fileName, description };
                 },
             },
         },

@@ -15,10 +15,10 @@ import { MagicWandIcon } from '@radix-ui/react-icons';
 
 type UserFormProps = {
   onComplete?: () => void
-  providers: ('github' | 'microsoft-entra-id' | 'azure-communication-service')[]
+  providers: ('credentials' | 'github' | 'microsoft-entra-id' | 'azure-communication-service' | false)[]
 }
 
-export default function LoginForm({ onComplete, providers }: UserFormProps) {
+export default function LoginForm({ providers }: UserFormProps) {
   const credentialsForm = useForm<NewUser>({
     resolver: zodResolver(userLoginSchema)
   });
@@ -31,11 +31,11 @@ export default function LoginForm({ onComplete, providers }: UserFormProps) {
     const result = await login('credentials', formdata);
 
     if (!result?.success) {
-      switch(true) {
+      switch (true) {
         case result?.error.message.includes('Email not verified.'):
           credentialsForm.setError('email', {
-            type: "manual",
-            message: 'Email not verified. Please use the magic link options.',
+            type: 'manual',
+            message: 'Email not verified. Please use the magic link options.'
           });
       }
     }
@@ -47,55 +47,55 @@ export default function LoginForm({ onComplete, providers }: UserFormProps) {
 
   return (
     <>
-      <Form {...credentialsForm}>
-        <div className="flex flex-col space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Login
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Enter your email below to login to your account
-          </p>
-        </div>
-        <form onSubmit={credentialsForm.handleSubmit(credentialsHandler)} className="space-y-4">
-          <FormField
-            control={credentialsForm.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input placeholder="johndoe@yourcompany.com" type="email" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={credentialsForm.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <PasswordInput placeholder="****" {...field} value={field.value ?? ''} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button className="w-full" type="submit">Login</Button>
-        </form>
-      </Form>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
-        </div>
+      <div className="flex flex-col space-y-2 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Login
+        </h1>
       </div>
+      {providers.includes('credentials') ?
+        <>
+          <Form {...credentialsForm}>
+            <form onSubmit={credentialsForm.handleSubmit(credentialsHandler)} className="space-y-4">
+              <FormField
+                control={credentialsForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="johndoe@yourcompany.com" type="email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              <FormField
+                control={credentialsForm.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <PasswordInput placeholder="****" {...field} value={field.value ?? ''} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              <Button className="w-full" type="submit">Login</Button>
+            </form>
+          </Form>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-background px-2 text-muted-foreground">
+                              Or continue with
+                          </span>
+            </div>
+          </div>
+        </> :
+        null
+      }
       <div className="flex flex-col space-y-4">
         {providers.includes('azure-communication-service') ?
           <>

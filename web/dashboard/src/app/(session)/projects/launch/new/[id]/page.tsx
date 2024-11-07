@@ -5,6 +5,7 @@ import { auth } from '@/auth';
 import { EnvironmentWithComponents } from '@/data/projects/dto';
 import { notFound } from 'next/navigation';
 import { EnvironmentPicker } from './picker';
+import { useSession } from 'next-auth/react';
 
 function compareEnvironments(from: EnvironmentWithComponents, to: EnvironmentWithComponents): ComparisonResult[] {
   const result: ComparisonResult[] = [];
@@ -50,12 +51,12 @@ function compareEnvironments(from: EnvironmentWithComponents, to: EnvironmentWit
 
 export default async function NewLaunch({ params: { id } }: any) {
   const session = await auth()
-  const [fromId, toId] = id.split('...')
 
+  const [fromId, toId] = id.split('...')
   const from = await getEnvironmentsById(fromId, session?.user?.id)
   const to = await getEnvironmentsById(toId, session?.user?.id)
 
-  if (!from.success || !to.success || from.data.project_id !== to.data.project_id) {
+  if (!from.success || !to.success || from.data.project_id !== to.data.project_id || !(session?.user?.role === 'admin' || session?.permissions[from.data.project_id] === 'write')) {
     notFound();
   }
 

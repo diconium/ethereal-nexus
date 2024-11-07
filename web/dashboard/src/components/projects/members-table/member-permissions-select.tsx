@@ -35,7 +35,8 @@ export function MemberPermissionsSelect({ value, memberId, resource, role }: Mem
                 {...field}
                 disabled={
                   !hasWritePermissions ||
-                  role === 'owner'
+                  role === 'owner' ||
+                  role === 'viewer'
                 }
                 onValueChange={field.onChange}
               >

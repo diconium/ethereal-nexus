@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckIcon, PlusCircledIcon } from '@radix-ui/react-icons';
+import { CheckIcon } from '@radix-ui/react-icons';
 import {
   Dialog,
   DialogContent,
@@ -36,7 +36,8 @@ export function MemberDialog({ users, resource }: AddMemberProps) {
     const newMembers = selectedUsers
       .map(user => ({
         resource,
-        user_id: user.id
+        user_id: user.id,
+        role: user.role === 'admin' ? 'user' : user.role,
       }));
     const members = await insertMembers(newMembers);
     if(members.success) {

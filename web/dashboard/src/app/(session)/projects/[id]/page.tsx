@@ -9,8 +9,12 @@ import ProjectsForm from '@/components/projects/project-form';
 import { getResourceEvents } from '@/data/events/actions';
 import { ProjectEvents } from '@/components/projects/project-events/project-events';
 import { EnvironmentsList } from '@/components/projects/environments-table/environment-list';
+import { auth } from '@/auth';
 
 export default async function EditProject({ params: { id }, searchParams: { tab, env } }: any) {
+  const session = await auth()
+  const role = session?.user?.role;
+
   const project = await getProjectById(id);
   const events = await getResourceEvents(id);
 

@@ -21,13 +21,14 @@ import { logEvent } from '@/lib/events/event-middleware';
 import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
 
-export async function getMembersByResourceId(id: string, userId: string | undefined | null): ActionResponse<MemberWithPublicUser[]> {
-  if (!userId) {
-    return actionError('No user provided.');
-  }
-
+export async function getMembersByResourceId(id: string): ActionResponse<MemberWithPublicUser[]> {
   if (!id) {
     return actionError('No resource identifier provided.');
+  }
+
+  const session = await auth()
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
   }
 
   try {
@@ -87,7 +88,8 @@ export async function insertMembers(members: z.infer<typeof newMemberSchema>[]):
   }
 
   try {
-    const insert = await db.insert(memberTable)
+    const insert = await db
+      .insert(memberTable)
       .values(members)
       .returning();
 

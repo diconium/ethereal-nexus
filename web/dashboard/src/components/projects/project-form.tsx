@@ -1,7 +1,6 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -22,7 +21,6 @@ type ProjectsFormProps = {
 
 export default function ProjectsForm({ project, onComplete, onCancel }: ProjectsFormProps) {
   const { data: session } = useSession();
-  console.log(session?.permissions);
   const hasWritePermissions = session?.user?.role === 'admin' || (project?.id && session?.permissions && session.permissions[project.id] === 'write');
 
   const { toast } = useToast();
@@ -60,7 +58,7 @@ export default function ProjectsForm({ project, onComplete, onCancel }: Projects
             <FormItem>
               <FormLabel className="transition-colors text-muted-foreground font-bold">Name</FormLabel>
               <FormControl>
-                <Input placeholder="Name" {...field} className="bg-white dark:bg-transparent font-bold" />
+                <Input disabled={!hasWritePermissions} placeholder="Name" {...field} className="bg-white dark:bg-transparent font-bold" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -73,7 +71,7 @@ export default function ProjectsForm({ project, onComplete, onCancel }: Projects
             <FormItem>
               <FormLabel className="transition-colors text-muted-foreground font-bold">Description</FormLabel>
               <FormControl>
-                <TextArea placeholder="Description" {...field} rows={5} className="bg-white dark:bg-transparent" />
+                <TextArea disabled={!hasWritePermissions} placeholder="Description" {...field} rows={5} className="bg-white dark:bg-transparent" />
               </FormControl>
               <FormMessage />
             </FormItem>

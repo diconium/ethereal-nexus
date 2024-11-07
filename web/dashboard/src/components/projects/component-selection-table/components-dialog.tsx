@@ -146,6 +146,7 @@ export function ComponentsDialog({ components, environment, project, environment
         <Popover open={isLaunchOpen} onOpenChange={setLaunchOpen}>
           <PopoverTrigger asChild>
             <Button
+              disabled={!hasWritePermissions}
               size="sm"
               variant="primary"
             >

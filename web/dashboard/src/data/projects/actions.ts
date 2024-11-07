@@ -681,7 +681,6 @@ export async function getProjectById(
       )
       .limit(1);
 
-    console.log(JSON.stringify(select, null, 2));
     const safe = projectSchema.safeParse(select[0]);
     if (!safe.success) {
       return actionZodError(

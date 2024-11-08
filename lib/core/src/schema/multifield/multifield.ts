@@ -1,7 +1,7 @@
 import {
   BaseFieldInput,
   BaseSchema,
-  InferOutput
+  InferOutput, Output
 } from '../../types';
 
 export interface MultifieldSchema<
@@ -16,7 +16,7 @@ export interface MultifieldSchema<
 
 interface MultifieldInput<TChildren extends BaseSchema<unknown>> extends BaseFieldInput {
   children: TChildren
-  itemLabelKey?: string
+  itemLabelKey?: keyof Output<TChildren>
 }
 
 export function multifield<const TChildren extends BaseSchema<unknown>>(input: MultifieldInput<TChildren>): MultifieldSchema<TChildren> {

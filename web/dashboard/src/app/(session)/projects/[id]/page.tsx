@@ -12,8 +12,8 @@ import { EnvironmentsList } from '@/components/projects/environments-table/envir
 import { auth } from '@/auth';
 
 export default async function EditProject({ params: { id }, searchParams: { tab, env } }: any) {
-  const session = await auth()
-  const role = session?.user?.role;
+  const session = await auth();
+  const hasWritePermissions = session?.user?.role === 'admin' || session?.permissions[id] === 'write';
 
   const project = await getProjectById(id);
   const events = await getResourceEvents(id);
@@ -47,16 +47,20 @@ export default async function EditProject({ params: { id }, searchParams: { tab,
               Environments
             </Link>
           </TabsTrigger>
-          <TabsTrigger value="settings" asChild>
-            <Link href={`/projects/${id}?tab=settings`}>
-              Settings
-            </Link>
-          </TabsTrigger>
-          <TabsTrigger value="activity" asChild>
-            <Link href={`/projects/${id}?tab=activity`}>
-              Activity
-            </Link>
-          </TabsTrigger>
+          {
+            hasWritePermissions ? <>
+              <TabsTrigger value="settings" asChild>
+                <Link href={`/projects/${id}?tab=settings`}>
+                  Settings
+                </Link>
+              </TabsTrigger>
+              <TabsTrigger value="activity" asChild>
+                <Link href={`/projects/${id}?tab=activity`}>
+                  Activity
+                </Link>
+              </TabsTrigger>
+            </> : null
+          }
         </TabsList>
         <TabsContent value="components" className="space-y-4">
           <ProjectComponentsList
@@ -75,14 +79,18 @@ export default async function EditProject({ params: { id }, searchParams: { tab,
             id={id}
           />
         </TabsContent>
-        <TabsContent value="settings">
-          <ProjectsForm
-            project={project.data}
-          />
-        </TabsContent>
-        <TabsContent value="activity">
-          <ProjectEvents events={events} />
-        </TabsContent>
+        {
+          hasWritePermissions ? <>
+            <TabsContent value="settings">
+              <ProjectsForm
+                project={project.data}
+              />
+            </TabsContent>
+            <TabsContent value="activity">
+              <ProjectEvents events={events} />
+            </TabsContent>
+          </> : null
+        }
       </Tabs>
     </div>
   );

@@ -21,7 +21,7 @@ type ProjectsFormProps = {
 
 export default function ProjectsForm({ project, onComplete, onCancel }: ProjectsFormProps) {
   const { data: session } = useSession();
-  const hasWritePermissions = session?.user?.role === 'admin' || (project?.id && session?.permissions && session.permissions[project.id] === 'write');
+  const hasWritePermissions = session?.user?.role === 'admin' || (project?.id && session?.permissions && ['write', 'manage'].includes(session?.permissions[project.id] || ''));
 
   const { toast } = useToast();
   const form: any = useForm<ProjectInput>({

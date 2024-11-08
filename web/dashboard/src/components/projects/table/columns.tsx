@@ -64,9 +64,9 @@ export const columns = [
   },
   {
     id: "actions",
-    cell: ({ table, row }) => (
+    cell: ({ row }) => (
       <div className="flex justify-end" >
-        <ProjectsDataTableRowActions row={row} table={table} />
+        <ProjectsDataTableRowActions row={row} />
       </div>
     ),
   },

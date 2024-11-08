@@ -14,7 +14,7 @@ type AddEnvironmentProps = {
 
 export function EnvironmentDialog({ resource }: AddEnvironmentProps) {
   const { data: session } = useSession();
-  const hasWritePermissions = session?.user?.role === 'admin' || session?.permissions[resource] === 'write';
+  const hasWritePermissions = session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[resource] || '');
 
   const router = useRouter();
   const [open, setOpen] = useState(false);

@@ -56,7 +56,7 @@ export default async function NewLaunch({ params: { id } }: any) {
   const from = await getEnvironmentsById(fromId, session?.user?.id)
   const to = await getEnvironmentsById(toId, session?.user?.id)
 
-  if (!from.success || !to.success || from.data.project_id !== to.data.project_id || !(session?.user?.role === 'admin' || session?.permissions[from.data.project_id] === 'write')) {
+  if (!from.success || !to.success || from.data.project_id !== to.data.project_id || !(session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[from.data.project_id] || ''))) {
     notFound();
   }
 

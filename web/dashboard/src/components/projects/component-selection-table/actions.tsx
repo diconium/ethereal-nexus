@@ -20,8 +20,7 @@ export function ProjectsComponentsRowActions({ table, row }) {
   const component = row.original;
   const project = table.options.meta.projectId
   const {data: session} = useSession()
-
-  const hasWritePermissions = session?.user?.role === 'admin' || session?.permissions[project] === 'write';
+  const hasWritePermissions = session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[project] || '');
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 

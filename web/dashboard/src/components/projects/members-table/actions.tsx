@@ -18,7 +18,7 @@ import { useSession } from 'next-auth/react';
 
 export function MemberDataTableRowActions({ member }) {
   const {data: session} = useSession()
-  const hasWritePermissions = session?.user?.role === 'admin' || session?.permissions[member.resource] === 'write';
+  const hasWritePermissions = session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[member.resource] || '');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleDeleteOk = async () => {

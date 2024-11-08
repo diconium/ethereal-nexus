@@ -144,9 +144,19 @@ export const authConfig = {
       const members = await getMembersByUser(token.sub)
       const user = await getUserById(token.sub)
 
-      if(members.success && members.data.length > 0) {
+      if(user.success && members.success && members.data.length > 0) {
         session.permissions = members.data.reduce((acc,member) => {
-          acc[member.resource] = member.permissions;
+          switch (user.data.role) {
+            case "admin":
+              acc[member.resource] = "write";
+              break;
+            case "viewer":
+              acc[member.resource] = "read";
+              break;
+            default:
+              acc[member.resource] = member.role !== 'owner' ? member.permissions : 'manage';
+              break;
+          }
           return acc;
         }, {})
       }

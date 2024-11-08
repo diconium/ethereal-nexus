@@ -39,7 +39,7 @@ export const columns = [
       const {environmentId ,projectId, permissions} = table.options.meta;
 
       return <VersionPicker
-        disabled={permissions !== 'write'}
+        disabled={permissions === 'read'}
         key={id}
         projectId={projectId}
         environmentId={environmentId}
@@ -62,7 +62,7 @@ export const columns = [
       const {projectId, environmentId, permissions} = table.options.meta;
 
       return <ActiveSwitch
-        disabled={permissions !== 'write'}
+        disabled={permissions === 'read'}
         key={id}
         projectId={projectId}
         environmentId={environmentId}

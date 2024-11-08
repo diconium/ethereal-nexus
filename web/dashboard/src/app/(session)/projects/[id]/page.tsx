@@ -13,7 +13,7 @@ import { auth } from '@/auth';
 
 export default async function EditProject({ params: { id }, searchParams: { tab, env } }: any) {
   const session = await auth();
-  const hasWritePermissions = session?.user?.role === 'admin' || session?.permissions[id] === 'write';
+  const hasWritePermissions = session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[id] || '');
 
   const project = await getProjectById(id);
   const events = await getResourceEvents(id);

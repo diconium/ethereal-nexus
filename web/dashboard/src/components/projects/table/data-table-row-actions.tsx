@@ -22,10 +22,11 @@ import { deleteProject } from '@/data/projects/actions';
 import DotsIcon from '@/components/ui/icons/DotsIcon';
 import { useSession } from 'next-auth/react';
 
-export function ProjectsDataTableRowActions({ table, row }) {
+export function ProjectsDataTableRowActions({ row }) {
   const project = row.original;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { data: session } = useSession();
+  const hasWritePermissions = session?.user?.role === 'admin' || session?.permissions[project.id] === 'manage';
 
   const handleDeleteOk = async () => {
     setDeleteDialogOpen(false);
@@ -94,6 +95,7 @@ export function ProjectsDataTableRowActions({ table, row }) {
           <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <DialogTrigger asChild>
               <DropdownMenuItem
+                disabled={!hasWritePermissions}
                 className="text-red-600"
                 onSelect={(e) => e.preventDefault()}
               >

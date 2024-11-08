@@ -5,22 +5,23 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { useForm } from 'react-hook-form';
 import { updateMemberPermissions } from '@/data/member/actions';
 import { useSession } from 'next-auth/react';
+import { MemberWithPublicUser } from '@/data/member/dto';
 
 type MemberPermissionsSelectProps = {
-  value: string;
-  memberId: string;
+  member: MemberWithPublicUser;
   resource: string;
-  role: string;
 }
 
-export function MemberPermissionsSelect({ value, memberId, resource, role }: MemberPermissionsSelectProps) {
+export function MemberPermissionsSelect({ member, resource }: MemberPermissionsSelectProps) {
   const { data: session } = useSession()
-  const hasWritePermissions = session?.user?.role === 'admin' || session?.permissions[resource] === 'write';
+  const { id, role, user: { role: userRole } } = member;
+  const hasWritePermissions = session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[resource] || '');
+  const permissions = userRole !== 'viewer' ? member.permissions : 'read';
 
-  const form = useForm({defaultValues: { permissions: value }});
+  const form = useForm({defaultValues: { permissions }});
 
   const onSubmit = async (data) => {
-    await updateMemberPermissions({id: memberId, permissions: data.permissions}, resource);
+    await updateMemberPermissions({id, permissions: data.permissions}, resource);
   }
 
   return <Form {...form}>
@@ -36,7 +37,7 @@ export function MemberPermissionsSelect({ value, memberId, resource, role }: Mem
                 disabled={
                   !hasWritePermissions ||
                   role === 'owner' ||
-                  role === 'viewer'
+                  userRole === 'viewer'
                 }
                 onValueChange={field.onChange}
               >

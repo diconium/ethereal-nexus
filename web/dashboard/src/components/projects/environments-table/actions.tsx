@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { DeleteIcon, Trash2, Undo2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogTrigger } from '@radix-ui/react-dialog';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -19,7 +19,7 @@ import { useSession } from 'next-auth/react';
 export function EnvironmentsRowActions({ row }) {
   const environment = row.original;
   const { data: session } = useSession();
-  const hasWritePermissions = session?.user?.role === 'admin' || session?.permissions[environment.project_id] === 'write';
+  const hasWritePermissions = session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[environment.project_id] || '');
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 

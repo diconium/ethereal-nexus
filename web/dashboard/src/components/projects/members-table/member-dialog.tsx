@@ -29,7 +29,7 @@ export function MemberDialog({ users, resource }: AddMemberProps) {
   const [selectedUsers, setSelectedUsers] = useState<PublicUser[]>([]);
 
   const { data: session } = useSession();
-  const hasWritePermissions = session?.user?.role === 'admin' || session?.permissions[resource] === 'write';
+  const hasWritePermissions = session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[resource] || '');
 
   const handleSubmit: MouseEventHandler = async () => {
     setOpen(false);
@@ -37,7 +37,6 @@ export function MemberDialog({ users, resource }: AddMemberProps) {
       .map(user => ({
         resource,
         user_id: user.id,
-        role: user.role === 'admin' ? 'user' : user.role,
       }));
     const members = await insertMembers(newMembers);
     if(members.success) {

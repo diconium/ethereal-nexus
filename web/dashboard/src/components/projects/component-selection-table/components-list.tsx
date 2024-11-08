@@ -11,7 +11,6 @@ import { ComponentsDialog } from '@/components/projects/component-selection-tabl
 
 export async function ProjectComponentsList({ id, environment }: { id: string, environment: string }) {
   const session = await auth();
-  const role = session?.user?.role;
 
   const environments = await getEnvironmentsByProject(id);
   if (!environments.success) {
@@ -31,7 +30,7 @@ export async function ProjectComponentsList({ id, environment }: { id: string, e
     meta={{
       projectId: id,
       environmentId: selected,
-      permissions: role !== 'admin' ? session?.permissions[id] : 'write',
+      permissions: session?.permissions[id],
     }}
     entity={'components'}
     createSlot={

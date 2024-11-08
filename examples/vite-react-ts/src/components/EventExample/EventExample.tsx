@@ -25,8 +25,13 @@ const dialogSchema = dialog({
     tooltip: 'This is a person',
   }),
   anothermultifield: multifield({
+    itemLabelKey: 'title',
     label: 'Nested',
     children: object({
+      title: text({
+        label: 'Title',
+        placeholder: 'Title',
+      }),
       isadvanced: checkbox({
         label: 'Advanced',
         tooltip: 'Check this box to show advanced options',

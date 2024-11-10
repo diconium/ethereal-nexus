@@ -24,6 +24,10 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: Log in to Azure
         uses: azure/login@v1
         with:

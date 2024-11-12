@@ -162,7 +162,7 @@ export async function POST(request) {
             - Create a dialogSchema constant that combines all created objects:
                 const dialogSchema = dialog({ ...imageDialog, ...rteComponents, ...checkboxes, ...dropdowns, ...calendars, ...links, ...textFields, ...dataSources, ...multifields });
             - Create a schema constant using the component function:
-            const schema = component({ version: '0.0.1' }, dialogSchema, {});
+            const schema = component({ version: '0.0.1' }, dialogSchema);
             - Create a Props type using the Output type and schema:
                 type Props = Output<typeof schema>;
             - Define the component to accept Props as its parameter

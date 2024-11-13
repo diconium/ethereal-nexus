@@ -24,7 +24,7 @@ function clientFactory() {
       client = postgres(
         process.env.DRIZZLE_DATABASE_URL!,
         {
-          max: 30,
+          max: process.env.DRIZZLE_DATABASE_MAX_CONNECTIONS ? parseInt(process.env.DRIZZLE_DATABASE_MAX_CONNECTIONS) : 25,
           idle_timeout: 20,
         }
       );

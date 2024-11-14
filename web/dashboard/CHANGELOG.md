@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 1.3.1
+
+### Patch Changes
+
+- 27ba2c2: fix: adds max_connections setting from env. DRIZZLE_DATABASE_MAX_CONNECTIONS
+
 ## 1.3.0
 
 ### Minor Changes

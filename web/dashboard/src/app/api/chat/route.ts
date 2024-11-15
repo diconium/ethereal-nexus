@@ -23,11 +23,11 @@ export async function POST(request) {
             - Implement proper accessibility attributes
             - Use Tailwind CSS for styling
             - Ensure the component is responsive
-            - Use https://picsum.photos to generate dummy placeholder images
+            - Use 'https://picsum.photos' to generate dummy placeholder images and each <img> tag should have an crossOrigin="anonymous" attribute
             - Include brief comments explaining complex logic
             - Use TypeScript for type safety
             - For sections that render HTML content, use a div with dangerouslySetInnerHTML
-            - Do NOT include any imports or exports - just the component function itself
+            - Provide an export named 'default'
             - IMPORTANT: Once you have completed writing the original component, IMMEDIATELY call the 'generateJSX' action with the component name the JSX code and the file name.
 
             2. Modified Component Creation:

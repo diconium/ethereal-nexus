@@ -6,11 +6,13 @@ import { LoadingComponentCard } from "@/components/components/create/LoadingComp
 
 interface ChatMessagesDisplayerProps {
     messages: Message[];
-    chatId: string;
     isLoading: boolean;
+    handleGenerateEtherealNexusStructuredFile: (result: unknown) => Promise<void>;
+    downloadEtherealNexusFile: (result: unknown) => Promise<void>;
+    handleOnComponentCardClick: (messageId: string, result: unknown, toolName: "generateJSX" | "generateEtherealNexusJSX") => void;
 }
 
-export function ChatMessagesDisplayer({ messages, chatId, isLoading } : ChatMessagesDisplayerProps) {
+export function ChatMessagesDisplayer({ messages, isLoading, handleGenerateEtherealNexusStructuredFile, downloadEtherealNexusFile, handleOnComponentCardClick } : ChatMessagesDisplayerProps) {
     return (
         <div className="flex-1 p-4 overflow-auto">
             <UserMessage message="An interactive pricing calculator for a SaaS product which takes into account seats, usage, and possible discounts. The calculator should be interactable, the monthly usage should be a slider and the total price should update accordingly" />
@@ -27,7 +29,13 @@ export function ChatMessagesDisplayer({ messages, chatId, isLoading } : ChatMess
                         if (state === 'result') {
                             return (
                                 <React.Fragment key={toolCallId}>
-                                    <GeneratedJsxMessage chatId={chatId} messageId={id} toolInvocation={toolInvocation} />
+                                    <GeneratedJsxMessage
+                                        messageId={id}
+                                        toolInvocation={toolInvocation}
+                                        handleOnComponentCardClick={handleOnComponentCardClick}
+                                        downloadEtherealNexusFile={downloadEtherealNexusFile}
+                                        handleGenerateEtherealNexusStructuredFile={handleGenerateEtherealNexusStructuredFile}
+                                    />
                                 </React.Fragment>
                             );
                         }

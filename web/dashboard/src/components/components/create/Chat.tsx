@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext }  from 'react';
+import React, { useContext, useState, useRef, useEffect }  from 'react';
 import { X } from 'lucide-react';
 import { useChat } from "ai/react";
 import { TextArea } from "@/components/ui/text-area";
@@ -8,21 +8,232 @@ import { ComponentDetailsContainer } from "@/components/components/create/Compon
 import { ChatContext } from "@/components/components/create/utils/chatContext";
 import { ChatMessagesDisplayer } from "@/components/components/create/ChatMessagesDisplayer";
 import { Button } from "@/components/ui/button";
+import {
+    previewTemplate,
+    cssTemplate,
+    htmlTemplate,
+    postcssConfigTemplate,
+    tailwindConfigTemplate,
+    viteConfigTemplate,
+    getWebContainerInstance,
+} from "@/lib/web-container";
 
 const CHAT_ID = "ethereal-nexus-component-generation-chat";
 
 export default function Chat() {
-    const { messages, input, setInput, handleSubmit, isLoading } = useChat({
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+    const [output, setOutput] = useState<string>('');
+    const [isWebContainerBooted, setIsWebContainerBooted] = useState(false);
+
+    const serverUrlRef = useRef<string>('');
+
+    const { currentMessage, setCurrentMessage, isComponentDetailsContainerOpen, setIsComponentDetailsContainerOpen } = useContext(ChatContext);
+
+    const { messages, input, setInput, handleSubmit, isLoading: isLoadingNewMessage, append } = useChat({
         id: CHAT_ID,
     });
 
-    const { isComponentDetailsContainerOpen, setIsComponentDetailsContainerOpen } = useContext(ChatContext);
+    const setupInitialFiles = async () => {
+        const weeeee = await getWebContainerInstance('1');
+
+        try {
+            setOutput('Creating project files...');
+            await weeeee.mount({
+                'index.html': {
+                    file: { contents: htmlTemplate },
+                },
+                'styles.css': {
+                    file: { contents: cssTemplate },
+                },
+                'index.tsx': {
+                    file: { contents: previewTemplate },
+                },
+                'vite.config.js': {
+                    file: { contents: viteConfigTemplate },
+                },
+                'tailwind.config.js': {
+                    file: { contents: tailwindConfigTemplate },
+                },
+                'postcss.config.js': {
+                    file: { contents: postcssConfigTemplate },
+                },
+                'package.json': {
+                    file: {
+                        contents: JSON.stringify({
+                            name: 'preview-component',
+                            type: 'module',
+                            dependencies: {
+                                'react': '^18.2.0',
+                                'react-dom': '^18.2.0'
+                            },
+                            devDependencies: {
+                                '@vitejs/plugin-react': '^4.2.1',
+                                'vite': '^5.1.4',
+                                '@types/react': '^18.2.0',
+                                '@types/react-dom': '^18.2.0',
+                                'tailwindcss': '^3.4.1',
+                                'autoprefixer': '^10.4.18',
+                                'postcss': '^8.4.35'
+                            }
+                        }),
+                    },
+                },
+            });
+
+            setOutput('Installing dependencies...');
+            const installProcess = await weeeee.spawn('npm', ['install']);
+
+            installProcess.output.pipeTo(new WritableStream({
+                write(data) {
+                    setOutput(prev => `${prev}\n${data}`);
+                }
+            }));
+
+            const installExitCode = await installProcess.exit;
+
+            if (installExitCode !== 0) {
+                throw new Error('Installation failed');
+            }
+
+            setOutput('Starting development server...');
+            const devProcess = await weeeee.spawn('npx', ['vite']);
+
+            devProcess.output.pipeTo(new WritableStream({
+                write(data) {
+                    if (data.includes('Local:')) {
+                        const url = data.match(/Local:\s+(http:\/\/localhost:\d+)/)?.[1];
+                        if (url) {
+                            serverUrlRef.current = url;
+                            setPreviewUrl(url);
+                            setOutput('Component preview is ready!');
+                        }
+                    }
+                }
+            }));
+
+            weeeee.on('server-ready', (port, url) => {
+                serverUrlRef.current = url;
+                setPreviewUrl(url);
+                setOutput('Component preview is ready!');
+            });
+
+        } catch (error) {
+            setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+        } finally {
+            setIsWebContainerBooted(false);
+            setIsPreviewLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const bootWebContainer = async () => {
+            // only boots the webcontainer when the first message is received
+            if (messages.length === 1 && !isWebContainerBooted) {
+                setIsPreviewLoading(true);
+                setOutput('Starting WebContainer...');
+                try {
+                    await setupInitialFiles();
+                } catch (error) {
+                    setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+                }
+            }
+        };
+
+        bootWebContainer().then(() => setOutput('WebContainer booted!'));
+    }, [messages.length]);
+
+    useEffect(() => {
+        const updateComponent = async () => {
+            if (!currentMessage) return;
+            const webContainerInstance = await getWebContainerInstance('3');
+            if (!serverUrlRef.current) return;
+
+            try {
+                setOutput('Updating component...');
+                await webContainerInstance.fs.writeFile('/DynamicComponent.tsx', currentMessage?.generatedCode);
+                setOutput('Component updated successfully!');
+            } catch (error) {
+                setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+            }
+        };
+
+        updateComponent();
+    }, [currentMessage]);
+
+    useEffect(() => {
+        // Make the new added message the current one
+        const lastReceivedMessage = messages[messages.length - 1];
+
+        if (lastReceivedMessage && lastReceivedMessage.role !== 'user') {
+            lastReceivedMessage.toolInvocations?.map(toolInvocation => {
+                const { toolName, args } = toolInvocation;
+                if (toolName === "generateJSX" || toolName === "generateEtherealNexusJSX") {
+                    setCurrentMessage({
+                        id: lastReceivedMessage.id as string,
+                        componentName: args.componentName as string,
+                        fileName: args.fileName as string,
+                        generatedCode: args.code as string,
+                        type: toolName as "generateJSX" | "generateEtherealNexusJSX",
+                    });
+                    setIsComponentDetailsContainerOpen(true);
+                }
+            });
+        }
+    }, [messages.length]);
+
+    const handleGenerateEtherealNexusStructuredFile = async (result: unknown) => {
+        await append({
+            role: 'user',
+            content: `Generate me the Modified Component file for this code: ${result.code}. The file can be called ${result.fileName}`
+        });
+    };
+
+    const downloadEtherealNexusFile = async (result: unknown) => {
+        const file = new File([result?.code], result?.fileName, {
+            type: 'text/plain',
+        })
+
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(file);
+
+        link.href = url;
+        link.download = file.name;
+        document.body.appendChild(link);
+        link.click();
+
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    };
+
+    const handleOnComponentCardClick = (messageId: string, result: unknown, toolName: "generateJSX" | "generateEtherealNexusJSX") => {
+        if (currentMessage?.id === messageId) {
+            setCurrentMessage(undefined);
+            setIsComponentDetailsContainerOpen(false);
+            return;
+        }
+
+        setCurrentMessage({
+            id: messageId as string,
+            componentName: result.componentName as string,
+            fileName: result.fileName as string,
+            generatedCode: result.code as string,
+            type: toolName,
+        });
+        setIsComponentDetailsContainerOpen(true);
+    };
 
     return (
         <div className="flex h-full bg-gray-100">
             {/* Chat section */}
             <div className={`flex flex-col ${isComponentDetailsContainerOpen ? 'w-1/2' : 'w-full'} transition-all duration-300 ease-in-out`}>
-                <ChatMessagesDisplayer messages={messages} chatId={CHAT_ID} isLoading={isLoading} />
+                <ChatMessagesDisplayer
+                    messages={messages}
+                    isLoading={isLoadingNewMessage}
+                    handleGenerateEtherealNexusStructuredFile={handleGenerateEtherealNexusStructuredFile}
+                    downloadEtherealNexusFile={downloadEtherealNexusFile}
+                    handleOnComponentCardClick={handleOnComponentCardClick}
+                />
                 <div className="p-4 bg-white border-t">
                     <form onSubmit={handleSubmit} className="flex gap-2">
                         <TextArea
@@ -50,7 +261,7 @@ export default function Chat() {
                     >
                         <X className="h-4 w-4" />
                     </Button>
-                    <ComponentDetailsContainer />
+                    <ComponentDetailsContainer previewUrl={previewUrl} isPreviewLoading={isPreviewLoading}/>
                 </div>
             )}
         </div>

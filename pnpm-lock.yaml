@@ -424,6 +424,9 @@ importers:
         version: 8.20.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
 =======
         version: 8.13.2(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@webcontainer/api':
+        specifier: ^1.5.0
+        version: 1.5.0
       ai:
         specifier: ^3.2.39
         version: 3.2.39(react@18.2.0)(sswr@2.1.0(svelte@4.2.18))(svelte@4.2.18)(vue@3.4.34(typescript@5.1.6))(zod@3.22.4)
@@ -507,9 +510,6 @@ importers:
       react-dom:
         specifier: 18.2.0
         version: 18.2.0(react@18.2.0)
-      react-frame-component:
-        specifier: 5.2.7
-        version: 5.2.7(prop-types@15.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       react-hook-form:
         specifier: ^7.46.1
 <<<<<<< HEAD
@@ -4064,6 +4064,7 @@ packages:
   '@vue/shared@3.4.34':
     resolution: {integrity: sha512-x5LmiRLpRsd9KTjAB8MPKf0CDPMcuItjP0gbNqFCIgL1I8iYp4zglhj9w9FPCdIbHG2M91RVeIbArFfFTz9I3A==}
 
+<<<<<<< HEAD
   '@webassemblyjs/ast@1.12.1':
     resolution: {integrity: sha512-EKfMUOPRRUTy5UII4qJDGPpqfwjOmZ5jeGFwid9mnoqIFK+e0vqoi1qH56JpmZSzEL53jKnNzScdmftJyG5xWg==}
 
@@ -4114,6 +4115,10 @@ packages:
 
   '@xtuc/long@4.2.2':
     resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
+=======
+  '@webcontainer/api@1.5.0':
+    resolution: {integrity: sha512-Xb4PdQh5BjRbsndO9a5KmRw8n35GamRng6UrRA22XSCuT0Ze5HsKhq0//diIavnjURGm58PXeFwrN1oPfU/flQ==}
+>>>>>>> 326e839 (feat: Introduction of web containers)
 
   '@yarnpkg/lockfile@1.1.0':
     resolution: {integrity: sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==}
@@ -7850,6 +7855,7 @@ packages:
       react: ^18.3.1
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   react-hook-form@7.53.0:
     resolution: {integrity: sha512-M1n3HhqCww6S2hxLxciEXy2oISPnAzxY7gvwVPrtlczTM/1dDadXgUxDpHMrMTblDOcm/AXtXxHwZ3jpg1mqKQ==}
     engines: {node: '>=18.0.0'}
@@ -7861,6 +7867,8 @@ packages:
       react: '>= 16.3'
       react-dom: '>= 16.3'
 
+=======
+>>>>>>> 326e839 (feat: Introduction of web containers)
   react-hook-form@7.51.0:
     resolution: {integrity: sha512-BggOy5j58RdhdMzzRUHGOYhSz1oeylFAv6jUSG86OvCIvlAvS7KvnRY7yoAf2pfEiPN7BesnR0xx73nEk3qIiw==}
     engines: {node: '>=12.22.0'}
@@ -13674,6 +13682,7 @@ snapshots:
 
   '@vue/shared@3.4.34': {}
 
+<<<<<<< HEAD
   '@webassemblyjs/ast@1.12.1':
     dependencies:
       '@webassemblyjs/helper-numbers': 1.11.6
@@ -13753,6 +13762,9 @@ snapshots:
   '@xtuc/ieee754@1.2.0': {}
 
   '@xtuc/long@4.2.2': {}
+=======
+  '@webcontainer/api@1.5.0': {}
+>>>>>>> 326e839 (feat: Introduction of web containers)
 
   '@yarnpkg/lockfile@1.1.0': {}
 
@@ -18619,6 +18631,7 @@ snapshots:
       scheduler: 0.23.2
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   react-hook-form@7.53.0(react@18.2.0):
 =======
   react-frame-component@5.2.7(prop-types@15.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
@@ -18627,6 +18640,8 @@ snapshots:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
+=======
+>>>>>>> 326e839 (feat: Introduction of web containers)
   react-hook-form@7.51.0(react@18.2.0):
 >>>>>>> 5885314 (feat: files clean up)
     dependencies:

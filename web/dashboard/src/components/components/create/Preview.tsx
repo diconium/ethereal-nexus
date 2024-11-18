@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { ChatContext } from "@/components/components/create/utils/chatContext";
 
 interface PreviewProps {

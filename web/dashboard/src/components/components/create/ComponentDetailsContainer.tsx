@@ -22,7 +22,7 @@ export const ComponentDetailsContainer = ({ isPreviewLoading, previewUrl } : Com
     }, [currentMessage]);
 
     return (
-        <div className="border overflow-hidden flex flex-col">
+        <div className="h-full overflow-hidden flex flex-col">
             <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="h-full flex-1 flex flex-col">
                 <div className="flex items-center justify-between px-4 py-2 border-b bg-gray-50">
                     <Tabs.List className="flex space-x-2">
@@ -39,7 +39,7 @@ export const ComponentDetailsContainer = ({ isPreviewLoading, previewUrl } : Com
                             value="code"
                             className="flex px-3 py-1.5 text-sm font-medium text-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 data-[state=active]:bg-white data-[state=active]:shadow-sm"
                         >
-                            <FileText className="w-5 h-5 mr-2" /><></>Code
+                            <FileText className="w-5 h-5 mr-2" /><></>{currentMessage?.fileName || "Code"}
                         </Tabs.Trigger>
                     </Tabs.List>
                 </div>

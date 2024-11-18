@@ -3,16 +3,18 @@ import { Message } from "ai";
 import { UserMessage } from "@/components/components/create/UserMessage";
 import { GeneratedJsxMessage } from "@/components/components/create/GeneratedJsxMessage";
 import { LoadingComponentCard } from "@/components/components/create/LoadingComponentCard";
+import { NEW_MESSAGE_NAME, ToolCallingResult } from "@/components/components/create/Chat";
 
 interface ChatMessagesDisplayerProps {
     messages: Message[];
     isLoading: boolean;
-    handleGenerateEtherealNexusStructuredFile: (result: unknown) => Promise<void>;
-    downloadEtherealNexusFile: (result: unknown) => Promise<void>;
-    handleOnComponentCardClick: (messageId: string, result: unknown, toolName: "generateJSX" | "generateEtherealNexusJSX") => void;
+    handleGenerateEtherealNexusStructuredFile: (result: ToolCallingResult) => Promise<void>;
+    downloadEtherealNexusFile: (result: ToolCallingResult) => Promise<void>;
+    handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: "generateJSX" | "generateEtherealNexusJSX") => void;
 }
 
 export function ChatMessagesDisplayer({ messages, isLoading, handleGenerateEtherealNexusStructuredFile, downloadEtherealNexusFile, handleOnComponentCardClick } : ChatMessagesDisplayerProps) {
+
     return (
         <div className="flex-1 p-4 overflow-auto">
             <UserMessage message="An interactive pricing calculator for a SaaS product which takes into account seats, usage, and possible discounts. The calculator should be interactable, the monthly usage should be a slider and the total price should update accordingly" />
@@ -20,7 +22,7 @@ export function ChatMessagesDisplayer({ messages, isLoading, handleGenerateEther
             {messages?.map(message => (
                 <React.Fragment key={message.id}>
                     {
-                        message.role === 'user' && <UserMessage message={message.content} />
+                        message.role === 'user' && <UserMessage message={message.name === NEW_MESSAGE_NAME ? message.content.split('///File code:')[0].toString() : message.content} />
                     }
                     {message.toolInvocations?.map(toolInvocation => {
                         const { id } = message;

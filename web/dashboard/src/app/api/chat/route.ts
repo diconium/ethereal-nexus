@@ -200,7 +200,7 @@ export async function POST(request) {
             generateEtherealNexusJSX: {
                 description: 'Generate JSX code for the modified React component',
                 parameters: z.object({
-                    componentName: z.string().describe('The name of the original React component'),
+                    componentName: z.string().describe('The name of the new generated React component'),
                     description: z.string().describe('A brief description of the component'),
                     fileName: z.string().describe('The name of the file where the component will be saved'),
                     code: z.string().describe('The JSX code for the modified component')

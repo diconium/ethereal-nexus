@@ -18,7 +18,16 @@ import {
     getWebContainerInstance,
 } from "@/lib/web-container";
 
-const CHAT_ID = "ethereal-nexus-component-generation-chat";
+export const CHAT_ID = "ethereal-nexus-component-generation-chat";
+
+// TODO check where this is also used
+export interface ToolCallingResult {
+    componentName: string,
+    fileName: string,
+    code: string,
+    description: string,
+}
+export const NEW_MESSAGE_NAME = 'GenerateEtherealNexusStructuredFile';
 
 export default function Chat() {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -27,6 +36,7 @@ export default function Chat() {
     const [isWebContainerBooted, setIsWebContainerBooted] = useState(false);
 
     const serverUrlRef = useRef<string>('');
+    const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
     const { currentMessage, setCurrentMessage, isComponentDetailsContainerOpen, setIsComponentDetailsContainerOpen } = useContext(ChatContext);
 
@@ -34,12 +44,19 @@ export default function Chat() {
         id: CHAT_ID,
     });
 
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'end',
+        });
+    };
+
     const setupInitialFiles = async () => {
-        const weeeee = await getWebContainerInstance('1');
+        const webContainer = await getWebContainerInstance('1');
 
         try {
             setOutput('Creating project files...');
-            await weeeee.mount({
+            await webContainer.mount({
                 'index.html': {
                     file: { contents: htmlTemplate },
                 },
@@ -82,7 +99,7 @@ export default function Chat() {
             });
 
             setOutput('Installing dependencies...');
-            const installProcess = await weeeee.spawn('npm', ['install']);
+            const installProcess = await webContainer.spawn('npm', ['install']);
 
             installProcess.output.pipeTo(new WritableStream({
                 write(data) {
@@ -97,7 +114,7 @@ export default function Chat() {
             }
 
             setOutput('Starting development server...');
-            const devProcess = await weeeee.spawn('npx', ['vite']);
+            const devProcess = await webContainer.spawn('npx', ['vite']);
 
             devProcess.output.pipeTo(new WritableStream({
                 write(data) {
@@ -112,7 +129,7 @@ export default function Chat() {
                 }
             }));
 
-            weeeee.on('server-ready', (port, url) => {
+            webContainer.on('server-ready', (port, url) => {
                 serverUrlRef.current = url;
                 setPreviewUrl(url);
                 setOutput('Component preview is ready!');
@@ -127,6 +144,8 @@ export default function Chat() {
     };
 
     useEffect(() => {
+        console.log("Messages number update", messages);
+
         const bootWebContainer = async () => {
             // only boots the webcontainer when the first message is received
             if (messages.length === 1 && !isWebContainerBooted) {
@@ -139,9 +158,8 @@ export default function Chat() {
                 }
             }
         };
-
         bootWebContainer().then(() => setOutput('WebContainer booted!'));
-    }, [messages.length]);
+    }, [messages.length, isWebContainerBooted]);
 
     useEffect(() => {
         const updateComponent = async () => {
@@ -176,21 +194,23 @@ export default function Chat() {
                         generatedCode: args.code as string,
                         type: toolName as "generateJSX" | "generateEtherealNexusJSX",
                     });
+                    scrollToBottom();
                     setIsComponentDetailsContainerOpen(true);
                 }
             });
-        }
-    }, [messages.length]);
+        } else scrollToBottom();
+    }, [messages, setCurrentMessage, setIsComponentDetailsContainerOpen]);
 
-    const handleGenerateEtherealNexusStructuredFile = async (result: unknown) => {
+    const handleGenerateEtherealNexusStructuredFile = async (result: ToolCallingResult) => {
         await append({
             role: 'user',
-            content: `Generate me the Modified Component file for this code: ${result.code}. The file can be called ${result.fileName}`
+            content: `Generate me the Modified Component file for the previously created ${result.fileName} file. ///File code: ${result.code}.`,
+            name: NEW_MESSAGE_NAME,
         });
     };
 
-    const downloadEtherealNexusFile = async (result: unknown) => {
-        const file = new File([result?.code], result?.fileName, {
+    const downloadEtherealNexusFile = async (result: ToolCallingResult) => {
+        const file = new File([result.code], result.fileName, {
             type: 'text/plain',
         })
 
@@ -206,7 +226,7 @@ export default function Chat() {
         window.URL.revokeObjectURL(url);
     };
 
-    const handleOnComponentCardClick = (messageId: string, result: unknown, toolName: "generateJSX" | "generateEtherealNexusJSX") => {
+    const handleOnComponentCardClick = (messageId: string, result: ToolCallingResult, toolName: "generateJSX" | "generateEtherealNexusJSX") => {
         if (currentMessage?.id === messageId) {
             setCurrentMessage(undefined);
             setIsComponentDetailsContainerOpen(false);
@@ -223,29 +243,39 @@ export default function Chat() {
         setIsComponentDetailsContainerOpen(true);
     };
 
+    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit();
+        }
+    };
+
     return (
         <div className="flex h-full bg-gray-100">
-            {/* Chat section */}
             <div className={`flex flex-col ${isComponentDetailsContainerOpen ? 'w-1/2' : 'w-full'} transition-all duration-300 ease-in-out`}>
-                <ChatMessagesDisplayer
-                    messages={messages}
-                    isLoading={isLoadingNewMessage}
-                    handleGenerateEtherealNexusStructuredFile={handleGenerateEtherealNexusStructuredFile}
-                    downloadEtherealNexusFile={downloadEtherealNexusFile}
-                    handleOnComponentCardClick={handleOnComponentCardClick}
-                />
+                <div className="flex-1 p-4 overflow-auto">
+                    <ChatMessagesDisplayer
+                        messages={messages}
+                        isLoading={isLoadingNewMessage}
+                        handleGenerateEtherealNexusStructuredFile={handleGenerateEtherealNexusStructuredFile}
+                        downloadEtherealNexusFile={downloadEtherealNexusFile}
+                        handleOnComponentCardClick={handleOnComponentCardClick}
+                    />
+                    <div ref={messagesEndRef} className="mb-4"/>
+                </div>
                 <div className="p-4 bg-white border-t">
                     <form onSubmit={handleSubmit} className="flex gap-2">
                         <TextArea
                             placeholder="Describe the UI that you want to generate..."
                             rows={3}
+                            onKeyDown={handleKeyDown}
                             value={input}
                             onChange={event => {
                                 setInput(event.target.value);
                             }}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500" />
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus-visible:ring-orange-600 focus-visible:border-transparent" />
                         <div className="flex">
-                            <Button type="submit" className="px-4 py-2 text-white bg-orange-500 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 h-full">Send</Button>
+                            <Button type="submit" disabled={isLoadingNewMessage} className="px-4 py-2 text-white bg-orange-500 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 h-full">Send</Button>
                         </div>
                     </form>
                 </div>

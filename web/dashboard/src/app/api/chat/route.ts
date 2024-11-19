@@ -34,9 +34,21 @@ export async function POST(request) {
             When the user asks to create a modified file from a previously created component, follow these steps:
             - Start with the original component
             - Include all necessary imports at the top of the file
-            - ONLY convert values to props if they are EXPLICITLY identified as updatable or customizable. Static values should remain hardcoded.
-            - Import the following from @ethereal-nexus/core: image, rte, dialog, component, checkbox, select, calendar, pathbrowser, text, datasource, mutifield and object. Output should be imported as type.
+            - ONLY convert values to props if they are EXPLICITLY identified as updatable or customizable. Static values, like placeholders, should remain hardcoded.
+            - Import the following from @ethereal-nexus/core: image, rte, dialog, component, checkbox, select, calendar, pathbrowser, text, datasource, mutifield, datamodel, tabs, conditions group and object. Output should be imported as type.
             
+            - Pay close attention to any specific requests from the user regarding the modified component. For example:
+              - If the user mentions that some specific part or even the whole component is a representation of something and that should be used as a dataModel, use the datamodel type instead of any other type like image, textFields, checkbox, select, calendar etc.
+                  - Example of user input 'A component that represents an animal, the card has the image of the animal, the name of the animal and the species. It should be used as a data model'. For this case you will not use an image for the animal image or a text field for the animal name all of it will be retrieved from the person dataModel.
+                  - It can be that we have data models and also any other types in the same component.
+                    const dataModels = {
+                      person: datamodel({
+                        placeholder: 'Select a person',
+                        label: 'Person',
+                        required: true,
+                        tooltip: 'This is a person',
+                      }),
+                    };
             - For each <img> tag in the original component:
                 - Create or update a constant named 'imageDialog' at the top of the file
                 - add an entry to the imageDialog constant like this:
@@ -115,13 +127,13 @@ export async function POST(request) {
                     placeholder: 'Enter website URL',
                   })};
                   // ... and so on for all changeable links
-            - For each updatable text field in the original component:
+            - For each static text fields like headers, paragraphs, etc (not including <input />) in the original component:
               - Create or update a constant named 'textFields' at the top of the file
+              - IMPORTANT: <input /> placeholders should be hardcoded and not from the textFields
               - For each updatable text field, add an entry to the textFields constant like this:
                 const textFields = {
                   field1: text({
                     label: 'Field Label',
-                    placeholder: 'Enter text here',
                   }),
                   // ... and so on for all updatable text fields
                 };
@@ -144,7 +156,7 @@ export async function POST(request) {
               - For each collection, add an entry to the multiFields constant using the multifield and object functions
               - Multifields can have children of types: image, rte, checkbox, select, calendar, pathbrowser, text, datasource, or even another multifield
               - Example structure for a book with authors:
-                const multifields = {s
+                const multifields = {
                     authors: multifield({
                         label: 'Authors',
                         children: object({
@@ -159,8 +171,45 @@ export async function POST(request) {
                         }),
                     }),
                 }; 
+            
+            - Pay close attention to any specific requests from the user regarding grouping the values. For example:
+              - If the user mentions that some specific props or even the whole props of the component should be grouped together, something like this 'The card information should be grouped' or 'The image the title and the advanced boolean value should be grouped together' you should do group them like this.
+                const dialogSchema = dialog({
+                  group: group({
+                    label: 'Group Label',
+                    toggle: false,
+                    tooltip: 'This is a tooltip for the whole group',
+                    children: object({
+                      image: image({
+                        label: 'Image',
+                      }),
+                      grouptitle: text({
+                        label: 'Group Title',
+                        placeholder: 'Group Title',
+                      }),
+                      isadvanced: checkbox({
+                        label: 'Advanced',
+                        tooltip: 'Check this box to show advanced options',
+                      }),
+                    }),
+                  }),
+                });
+             
             - Create a dialogSchema constant that combines all created objects:
-                const dialogSchema = dialog({ ...imageDialog, ...rteComponents, ...checkboxes, ...dropdowns, ...calendars, ...links, ...textFields, ...dataSources, ...multifields });
+                const dialogSchema = dialog({ ...imageDialog, ...rteComponents, ...checkboxes, ...dropdowns, ...calendars, ...links, ...textFields, ...dataSources, ...multifields, ...dataModels });
+            - There are some specifications that the user can ask for that need to be added to the dialog, examples:
+             - The user can specify something like, group the authors and the datasourcevalue in one tab and the link1 in another tab, so you should do something like this on the dialogSchema:
+                dialogSchema = dialog({ ... }).tabs({
+                    tab1: {
+                      authors: true,
+                      datasourcevalue: true,
+                    },
+                    tab2: {
+                      link1: true,
+                    },
+                  });
+            - 
+             - This specifications have no impact on the final component, they are just to organize the dialog in a way that the user wants.
             - Create a schema constant using the component function:
             const schema = component({ version: '0.0.1' }, dialogSchema);
             - Create a Props type using the Output type and schema:
@@ -176,6 +225,18 @@ export async function POST(request) {
             - Replace customizable text elements with the corresponding textFields prop value
             - For fields getting data from external sources, use the dataSources prop values to fetch and display the data
             - For collections of multiple items, use the multiFields prop values to render the collection
+            - IMPORTANT: When using props in the Modified component, follow these rules:
+              - For most props, use them directly without accessing nested properties. For example:
+                  - If a textFields const was created like this: const textFields = {
+                      field1: text({
+                        label: 'Field Label',
+                        placeholder: 'Enter text here',
+                      }),
+                    }; when using it as a prop on the component you should only use <h1>{field1}</h1> and not <h1>{field1.label}</h1> because this is return undefined.
+                  - The same applies to all other props passed to the component
+              - For dataModels, use a nested structure even if the nested properties are not explicitly defined. For example:
+                   - Use 'person.firstName' even if 'firstName' is not defined in the person object
+                   - Example usage in JSX: <p>{person.firstName}</p>
             - Export the component as the default export
             - IMPORTANT: Once you have completed writing the modified component, IMMEDIATELY call the 'generateEtherealNexusJSX' action with the component name and JSX code.
     
@@ -198,7 +259,7 @@ export async function POST(request) {
                 },
             },
             generateEtherealNexusJSX: {
-                description: 'Generate JSX code for the modified React component',
+                description: 'Generate/update JSX code for the modified React component',
                 parameters: z.object({
                     componentName: z.string().describe('The name of the new generated React component'),
                     description: z.string().describe('A brief description of the component'),

@@ -15,8 +15,7 @@ interface EtherealNexusFileCardProps {
     isModified: boolean,
 }
 
-// TODO update Name
-export function EtherealNexusFileCard({ id, fileName, componentName, handleClick, isModified }: EtherealNexusFileCardProps) {
+export function ComponentFileCard({ id, fileName, componentName, handleClick, isModified }: EtherealNexusFileCardProps) {
     const { currentMessage } = useContext(ChatContext);
     const isSelected = currentMessage?.id === id;
 

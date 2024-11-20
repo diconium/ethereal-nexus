@@ -2,12 +2,12 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { ChatContext } from "@/components/components/create/utils/chatContext";
 
-interface PreviewProps {
+interface ComponentPreviewerProps {
     url: string | null;
     isLoading: boolean;
 }
 
-export function Preview({ url, isLoading }: PreviewProps) {
+export function ComponentPreviewer({ url, isLoading }: ComponentPreviewerProps) {
     const { currentMessage } = React.useContext(ChatContext);
 
     return (

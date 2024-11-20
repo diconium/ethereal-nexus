@@ -2,12 +2,6 @@
 
 import React, { useContext, useState, useRef, useEffect }  from 'react';
 import { X } from 'lucide-react';
-import { useChat } from "ai/react";
-import { TextArea } from "@/components/ui/text-area";
-import { ComponentDetailsContainer } from "@/components/components/create/ComponentDetailsContainer";
-import { ChatContext } from "@/components/components/create/utils/chatContext";
-import { ChatMessagesDisplayer } from "@/components/components/create/ChatMessagesDisplayer";
-import { Button } from "@/components/ui/button";
 import {
     previewTemplate,
     cssTemplate,
@@ -17,6 +11,12 @@ import {
     viteConfigTemplate,
     getWebContainerInstance,
 } from "@/lib/web-container";
+import { useChat } from "ai/react";
+import { TextArea } from "@/components/ui/text-area";
+import { ComponentDetailsContainer } from "@/components/components/create/ComponentDetailsContainer";
+import { ChatContext } from "@/components/components/create/utils/chatContext";
+import { ChatMessagesDisplayer } from "@/components/components/create/ChatMessagesDisplayer";
+import { Button } from "@/components/ui/button";
 
 export const CHAT_ID = "ethereal-nexus-component-generation-chat";
 

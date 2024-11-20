@@ -1,6 +1,6 @@
 import React from "react";
 
-export function LoadingComponentCard() {
+export function LoadingAssistantMessage() {
     return (
         <div className="flex space-x-4 p-4">
             <div className="flex items-center space-x-2 mr-2">

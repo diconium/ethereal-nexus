@@ -1,13 +1,13 @@
 import React from 'react';
+import { notFound } from 'next/navigation';
+import { Plus } from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { auth } from "@/auth";
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { columns } from '@/components/components/table/columns';
 import { getComponents } from '@/data/components/actions';
-import { notFound } from 'next/navigation';
-import Link from "next/link";
-import {cn} from "@/lib/utils";
-import {buttonVariants} from "@/components/ui/button";
-import {Plus} from "lucide-react";
-import {auth} from "@/auth";
+import { buttonVariants } from "@/components/ui/button";
 
 export default async function Components() {
   const session = await auth()
@@ -30,14 +30,15 @@ export default async function Components() {
           className={cn(
               buttonVariants({
                   variant: 'outline',
-                  size: 'sm',
-                  className: 'mr-2 transition-colors bg-orange-500 rounded-full text-white h-9 px-5 flex justify-center items-center',
+                  className: 'transition-colors bg-orange-500 rounded-full text-white h-12 px-5 flex justify-center items-center',
               }),
               session?.user?.role === 'viewer' && 'pointer-events-none opacity-50',
           )}
         >
-          <Plus />
-          <span className="text-sm font-bold">New component</span>
+            <div className="mr-4">
+                <Plus />
+            </div>
+          <span className="text-sm font-bold">Generate component</span>
         </Link>
       </div>
       <DataTable

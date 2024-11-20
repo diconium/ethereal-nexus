@@ -1,8 +1,8 @@
 import React from "react";
 import { Message } from "ai";
 import { UserMessage } from "@/components/components/create/UserMessage";
-import { GeneratedJsxMessage } from "@/components/components/create/GeneratedJsxMessage";
-import { LoadingComponentCard } from "@/components/components/create/LoadingComponentCard";
+import { AssistantGeneratedMessageCard } from "@/components/components/create/AssistantGeneratedMessageCard";
+import { LoadingAssistantMessage } from "@/components/components/create/LoadingAssistantMessage";
 import { NEW_MESSAGE_NAME, ToolCallingResult } from "@/components/components/create/Chat";
 
 interface ChatMessagesDisplayerProps {
@@ -24,14 +24,14 @@ export function ChatMessagesDisplayer({ messages, isLoading, handleGenerateEther
                     {
                         message.role === 'user' && <UserMessage message={message.name === NEW_MESSAGE_NAME ? message.content.split('///File code:')[0].toString() : message.content} />
                     }
-                    {message.toolInvocations?.map(toolInvocation => {
+                    {message.role !== 'user' && message.toolInvocations?.map(toolInvocation => {
                         const { id } = message;
                         const { toolCallId, state } = toolInvocation;
 
                         if (state === 'result') {
                             return (
                                 <React.Fragment key={toolCallId}>
-                                    <GeneratedJsxMessage
+                                    <AssistantGeneratedMessageCard
                                         messageId={id}
                                         toolInvocation={toolInvocation}
                                         handleOnComponentCardClick={handleOnComponentCardClick}
@@ -44,7 +44,7 @@ export function ChatMessagesDisplayer({ messages, isLoading, handleGenerateEther
                     })}
                 </React.Fragment>
             ))}
-            {isLoading && <LoadingComponentCard />}
+            {isLoading && <LoadingAssistantMessage />}
         </div>
     );
 };

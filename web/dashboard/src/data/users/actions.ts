@@ -132,7 +132,6 @@ export async function insertInvitedCredentialsUser(
   if (invite.length <= 0) {
     return actionError('No invite matches the key.');
   }
-
   if (
     invite[0].email.localeCompare(user.email, undefined, {
       sensitivity: 'base',
@@ -150,7 +149,6 @@ export async function insertInvitedCredentialsUser(
       await login('azure-communication-service', result.data);
     }
   }
-
   return result;
 }
 

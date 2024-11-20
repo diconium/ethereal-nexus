@@ -49,6 +49,7 @@ export async function POST(request) {
                         tooltip: 'This is a person',
                       }),
                     };
+
             - For each <img> tag in the original component:
                 - Create or update a constant named 'imageDialog' at the top of the file
                 - add an entry to the imageDialog constant like this:
@@ -208,10 +209,9 @@ export async function POST(request) {
                       link1: true,
                     },
                   });
-            - 
              - This specifications have no impact on the final component, they are just to organize the dialog in a way that the user wants.
             - Create a schema constant using the component function:
-            const schema = component({ version: '0.0.1' }, dialogSchema);
+                const schema = component({ version: '0.0.1' }, dialogSchema);
             - Create a Props type using the Output type and schema:
                 type Props = Output<typeof schema>;
             - Define the component to accept Props as its parameter

@@ -5,8 +5,12 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import {
-  Environment, EnvironmentInput, environmentInputSchema,
-  environmentsSchema, EnvironmentWithComponents, environmentWithComponentsSchema,
+  Environment,
+  EnvironmentInput,
+  environmentInputSchema,
+  environmentsSchema,
+  EnvironmentWithComponents,
+  environmentWithComponentsSchema,
   type Project,
   ProjectComponent,
   ProjectComponentConfig,
@@ -19,11 +23,9 @@ import {
   ProjectInput,
   projectInputSchema,
   projectSchema,
-  type ProjectWithComponent,
   projectWithComponentAssetsSchema,
   type ProjectWithComponentId,
-  projectWithComponentIdSchema,
-  projectWithComponentSchema
+  projectWithComponentIdSchema
 } from './dto';
 import * as console from 'console';
 import { and, desc, eq, getTableColumns, isNull, sql } from 'drizzle-orm';
@@ -462,14 +464,6 @@ export async function getProjectComponentConfig(
     return actionError('No user provided.');
   }
 
-  const assets = sql`
-      ARRAY_AGG
-      ( jsonb_build_object(
-          'id', ${componentAssets.id},
-          'url', ${componentAssets.url},
-          'type', ${componentAssets.type}
-          ))
-  `;
   const latest_version = db.select()
     .from(componentVersions)
     .as('latest_version');
@@ -480,16 +474,17 @@ export async function getProjectComponentConfig(
     .as('first_environment');
 
   try {
-    const result = await db
+    const component = await db
       .select({
         id: components.id,
         name: components.name,
         title: components.title,
         version: sql`coalesce
             (${componentVersions.version}, ${latest_version.version})`,
+        versionId: sql`coalesce
+            (${componentVersions.id}, ${latest_version.id})`,
         dialog: sql`coalesce
             (${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
-        assets
       })
       .from(projectComponentConfig)
       .leftJoin(components, eq(components.id, projectComponentConfig.component_id))
@@ -499,10 +494,6 @@ export async function getProjectComponentConfig(
         first_environment,
         eq(first_environment.id, projectComponentConfig.environment_id)
       )
-      .leftJoin(componentAssets, sql`coalesce
-          (${componentVersions.id}, ${latest_version.id})
-          =
-          ${componentAssets.version_id}`)
       .where(and(
         eq(first_environment.project_id, id),
         eq(projectComponentConfig.is_active, true),
@@ -516,6 +507,7 @@ export async function getProjectComponentConfig(
         first_environment.project_id,
         components.id,
         components.name,
+        componentVersions.id,
         componentVersions.version,
         sql`${componentVersions.dialog}::jsonb`,
         sql`${latest_version.dialog}::jsonb`,
@@ -523,16 +515,20 @@ export async function getProjectComponentConfig(
         latest_version.id
       );
 
-    const safe =
-      projectWithComponentAssetsSchema.safeParse(result[0]);
-    if (!safe.success) {
-      return actionZodError(
-        'There\'s an issue with the project records.',
-        safe.error
-      );
-    }
+    const result = component[0];
 
-    return actionSuccess(safe.data);
+    result.assets = await db
+      .select({
+        id: componentAssets.id,
+        type: componentAssets.type,
+        filePath: componentAssets.url,
+      })
+      .from(componentAssets)
+      .where(and(
+        eq(componentAssets.version_id, result.versionId)
+      ));
+
+    return actionSuccess(result);
   } catch (error) {
     console.error(error);
     return actionError('Failed to fetch project from database.');
@@ -556,38 +552,27 @@ export async function getEnvironmentComponentConfig(
     return actionError('No user provided.');
   }
 
-  const assets = sql`
-      ARRAY_AGG
-      ( jsonb_build_object(
-          'id', ${componentAssets.id},
-          'url', ${componentAssets.url},
-          'type', ${componentAssets.type}
-          ))
-  `;
   const latest_version = db.select()
     .from(componentVersions)
     .as('latest_version');
 
   try {
-    const result = await db
+    const component = await db
       .select({
         id: components.id,
         name: components.name,
         title: components.title,
+        versionId: sql`coalesce
+            (${componentVersions.id}, ${latest_version.id})`,
         version: sql`coalesce
             (${componentVersions.version}, ${latest_version.version})`,
         dialog: sql`coalesce
             (${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
-        assets
       })
       .from(projectComponentConfig)
       .leftJoin(components, eq(components.id, projectComponentConfig.component_id))
       .leftJoin(componentVersions, eq(componentVersions.id, projectComponentConfig.component_version))
       .fullJoin(latest_version, eq(latest_version.component_id, projectComponentConfig.component_id))
-      .leftJoin(componentAssets, sql`coalesce
-          (${componentVersions.id}, ${latest_version.id})
-          =
-          ${componentAssets.version_id}`)
       .where(and(
         eq(projectComponentConfig.environment_id, id),
         eq(projectComponentConfig.is_active, true),
@@ -599,24 +584,33 @@ export async function getEnvironmentComponentConfig(
       .limit(1)
       .groupBy(
         components.id,
-        components.name,
+        projectComponentConfig.id,
+        projectComponentConfig.environment_id,
+        projectComponentConfig.component_id,
+        projectComponentConfig.component_version,
+        componentVersions.id,
+        componentVersions.component_id,
         componentVersions.version,
-        sql`${componentVersions.dialog}::jsonb`,
-        sql`${latest_version.dialog}::jsonb`,
+        latest_version.id,
+        latest_version.component_id,
         latest_version.version,
-        latest_version.id
+        latest_version.dialog,
       );
 
-    const safe =
-      projectWithComponentAssetsSchema.safeParse(result[0]);
-    if (!safe.success) {
-      return actionZodError(
-        'There\'s an issue with the project records.',
-        safe.error
-      );
-    }
+    const result = component[0];
 
-    return actionSuccess(safe.data);
+    result['assets'] = await db
+      .select({
+        id: componentAssets.id,
+        type: componentAssets.type,
+        filePath: componentAssets.url,
+      })
+      .from(componentAssets)
+      .where(and(
+        eq(componentAssets.version_id, result.versionId)
+      ));
+
+    return actionSuccess(result);
   } catch (error) {
     console.error(error);
     return actionError('Failed to fetch project from database.');

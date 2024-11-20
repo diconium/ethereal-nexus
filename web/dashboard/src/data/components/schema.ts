@@ -1,4 +1,4 @@
-import { jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { index, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const assetTypeEnum = pgEnum('asset_type', ['css', 'js', 'chunk', 'server']);
@@ -56,6 +56,7 @@ export const componentAssets = pgTable("component_assets", {
           table.url,
         ],
       }),
+      version_id: index('version_id_idx').on(table.version_id)
     };
   })
 export const componentAssetsRelations = relations(componentAssets, ({ one }) => ({

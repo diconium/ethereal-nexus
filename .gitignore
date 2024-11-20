@@ -128,3 +128,4 @@ pnpm-debug.log*
 .DS_Store
 
 web/dashboard/gcloud-key.json
+__pycache__/

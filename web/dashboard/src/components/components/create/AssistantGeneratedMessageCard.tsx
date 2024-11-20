@@ -38,7 +38,7 @@ export function AssistantGeneratedMessageCard({ messageId, toolInvocation, handl
     }
 
     return (
-        <Card className="w-full max-w-2xl">
+        <Card className="w-full max-w-2xl mb-4 rounded-lg">
             <CardContent className="p-6 space-y-4">
                 <p className="text-sm text-muted-foreground">{result.description}</p>
                 <ComponentFileCard

@@ -12,11 +12,11 @@ import {
     getWebContainerInstance,
 } from "@/lib/web-container";
 import { useChat } from "ai/react";
+import { Button } from "@/components/ui/button";
 import { TextArea } from "@/components/ui/text-area";
-import { ComponentDetailsContainer } from "@/components/components/create/ComponentDetailsContainer";
 import { ChatContext } from "@/components/components/create/utils/chatContext";
 import { ChatMessagesDisplayer } from "@/components/components/create/ChatMessagesDisplayer";
-import { Button } from "@/components/ui/button";
+import { ComponentDetailsContainer } from "@/components/components/create/ComponentDetailsContainer";
 
 export const CHAT_ID = "ethereal-nexus-component-generation-chat";
 
@@ -52,7 +52,7 @@ export default function Chat() {
     };
 
     const setupInitialFiles = async () => {
-        const webContainer = await getWebContainerInstance('1');
+        const webContainer = await getWebContainerInstance();
 
         try {
             setOutput('Creating project files...');
@@ -144,8 +144,6 @@ export default function Chat() {
     };
 
     useEffect(() => {
-        console.log("Messages number update", messages);
-
         const bootWebContainer = async () => {
             // only boots the webcontainer when the first message is received
             if (messages.length === 1 && !isWebContainerBooted) {
@@ -159,12 +157,12 @@ export default function Chat() {
             }
         };
         bootWebContainer().then(() => setOutput('WebContainer booted!'));
-    }, [messages.length, isWebContainerBooted]);
+    }, [messages, isWebContainerBooted]);
 
     useEffect(() => {
         const updateComponent = async () => {
             if (!currentMessage) return;
-            const webContainerInstance = await getWebContainerInstance('3');
+            const webContainerInstance = await getWebContainerInstance();
             if (!serverUrlRef.current) return;
 
             try {
@@ -245,6 +243,7 @@ export default function Chat() {
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
+            if (isLoadingNewMessage) return;
             e.preventDefault();
             handleSubmit();
         }
@@ -253,15 +252,15 @@ export default function Chat() {
     return (
         <div className="flex h-full bg-gray-100">
             <div className={`flex flex-col ${isComponentDetailsContainerOpen ? 'w-1/2' : 'w-full'} transition-all duration-300 ease-in-out`}>
-                <div className="flex-1 p-4 overflow-auto">
+                <div className="flex flex-1 flex-col overflow-auto relative">
                     <ChatMessagesDisplayer
                         messages={messages}
+                        lastElementRef={messagesEndRef}
                         isLoading={isLoadingNewMessage}
                         handleGenerateEtherealNexusStructuredFile={handleGenerateEtherealNexusStructuredFile}
                         downloadEtherealNexusFile={downloadEtherealNexusFile}
                         handleOnComponentCardClick={handleOnComponentCardClick}
                     />
-                    <div ref={messagesEndRef} className="mb-4"/>
                 </div>
                 <div className="p-4 bg-white border-t">
                     <form onSubmit={handleSubmit} className="flex gap-2">

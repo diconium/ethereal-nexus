@@ -1,9 +1,11 @@
+import os
 from locust import HttpUser, task
 from low_load_shape import LowLoadShape
 
 class APIEnvironmentComponents(HttpUser):
     def on_start(self):
-        self.client.headers = {'Authorization': 'apikey 0f47f01a-543a-4358-aebf-b6b7f28538ef'}
+        key = f"apikey {os.environ["AUTH_API_KEY"]}"
+        self.client.headers = {'Authorization': key}
 
     @task
     def hello_world(self):

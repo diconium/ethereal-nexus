@@ -44,13 +44,13 @@ importers:
         version: 18.3.0
       '@vitejs/plugin-react':
         specifier: ^4.1.0
-        version: 4.3.1(vite@5.4.10(@types/node@22.5.5)(terser@5.32.0))
+        version: 4.3.1(vite@5.4.10(@types/node@22.9.0)(terser@5.32.0))
       typescript:
         specifier: ^5.6.2
         version: 5.6.2
       vite:
         specifier: ^5.4.6
-        version: 5.4.10(@types/node@22.5.5)(terser@5.32.0)
+        version: 5.4.10(@types/node@22.9.0)(terser@5.32.0)
 
   lib/cli:
     dependencies:
@@ -121,7 +121,7 @@ importers:
         version: 5.6.2
       vite-plugin-css-injected-by-js:
         specifier: ^3.5.2
-        version: 3.5.2(vite@5.4.10(@types/node@22.5.5)(terser@5.32.0))
+        version: 3.5.2(vite@5.4.10(@types/node@22.9.0)(terser@5.32.0))
 
   lib/vite-plugin:
     dependencies:
@@ -171,6 +171,21 @@ importers:
       vite:
         specifier: ^5.4.6
         version: 5.4.10(@types/node@20.16.5)(terser@5.32.0)
+
+  test/e2e:
+    devDependencies:
+      '@playwright/test':
+        specifier: ^1.48.2
+        version: 1.48.2
+      '@types/node':
+        specifier: ^22.9.0
+        version: 22.9.0
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.4.5
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
 
   web/dashboard:
     dependencies:
@@ -278,16 +293,16 @@ importers:
         version: 11.23.2
       next:
         specifier: ^14.2.13
-        version: 14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        version: 14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.48.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       next-auth:
         specifier: 5.0.0-beta.25
-        version: 5.0.0-beta.25(next@14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(nodemailer@6.9.16)(react@18.2.0)
+        version: 5.0.0-beta.25(next@14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.48.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(nodemailer@6.9.16)(react@18.2.0)
       next-swagger-doc:
         specifier: ^0.4.0
-        version: 0.4.0(next@14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(openapi-types@12.1.3)
+        version: 0.4.0(next@14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.48.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(openapi-types@12.1.3)
       next-themes:
         specifier: ^0.2.1
-        version: 0.2.1(next@14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        version: 0.2.1(next@14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.48.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       postgres:
         specifier: 3.3.5
         version: 3.3.5
@@ -408,16 +423,16 @@ importers:
         version: 0.7.0(prettier@3.3.3)(typescript@5.6.2)
       '@astrojs/react':
         specifier: ^3.5.0
-        version: 3.6.2(@types/react-dom@18.3.0)(@types/react@18.3.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vite@5.4.10(@types/node@22.5.5)(terser@5.32.0))
+        version: 3.6.2(@types/react-dom@18.3.0)(@types/react@18.3.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vite@5.4.10(@types/node@22.9.0)(terser@5.32.0))
       '@astrojs/starlight':
         specifier: ^0.24.0
-        version: 0.24.5(astro@4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))
+        version: 0.24.5(astro@4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))
       '@astrojs/starlight-tailwind':
         specifier: ^2.0.3
-        version: 2.0.3(@astrojs/starlight@0.24.5(astro@4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)))(@astrojs/tailwind@5.1.0(astro@4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))(tailwindcss@3.4.11))(tailwindcss@3.4.11)
+        version: 2.0.3(@astrojs/starlight@0.24.5(astro@4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)))(@astrojs/tailwind@5.1.0(astro@4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))(tailwindcss@3.4.11))(tailwindcss@3.4.11)
       '@astrojs/tailwind':
         specifier: ^5.1.0
-        version: 5.1.0(astro@4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))(tailwindcss@3.4.11)
+        version: 5.1.0(astro@4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))(tailwindcss@3.4.11)
       '@types/react':
         specifier: ^18.3.3
         version: 18.3.6
@@ -426,7 +441,7 @@ importers:
         version: 18.3.0
       astro:
         specifier: ^4.16.1
-        version: 4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)
+        version: 4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -2086,6 +2101,11 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
+  '@playwright/test@1.48.2':
+    resolution: {integrity: sha512-54w1xCWfXuax7dz4W2M9uw0gDyh+ti/0K/MxcCUxChFh37kkdxPdfZDw5QBbuPUJHr1CiHJ1hXgSs+GgeQc5Zw==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   '@prisma/prisma-fmt-wasm@4.17.0-16.27eb2449f178cd9fe1a4b892d732cc4795f75085':
     resolution: {integrity: sha512-zYz3rFwPB82mVlHGknAPdnSY/a308dhPOblxQLcZgZTDRtDXOE1MgxoRAys+jekwR4/bm3+rZDPs1xsFMsPZig==}
 
@@ -3448,8 +3468,8 @@ packages:
   '@types/node@20.4.0':
     resolution: {integrity: sha512-jfT7iTf/4kOQ9S7CHV9BIyRaQqHu67mOjsIQBC3BKZvzvUB6zLxEwJ6sBE3ozcvP8kF6Uk5PXN0Q+c0dfhGX0g==}
 
-  '@types/node@22.5.5':
-    resolution: {integrity: sha512-Xjs4y5UPO/CLdzpgR6GirZJx36yScjh73+2NlLlkFRSoQN8B0DpfXPdZGnvVmLRLOsqDpOfTNv7D9trgGhmOIA==}
+  '@types/node@22.9.0':
+    resolution: {integrity: sha512-vuyHg81vvWA1Z1ELfvLko2c8f34gyA0zaic0+Rllc5lbCnbSyuvb2Oxpm6TAUAC/2xZN3QGqxBNggD1nNR2AfQ==}
 
   '@types/node@8.10.66':
     resolution: {integrity: sha512-tktOkFUA4kXx2hhhrB8bIFb5TbwzS4uOhKEmwiD+NoiL0qtP2OQ9mFldbgD4dV1djrlBYP6eBuQZiWjuHUpqFw==}
@@ -5121,6 +5141,11 @@ packages:
 
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
+
+  fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
 
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -6923,6 +6948,16 @@ packages:
   pkg-dir@4.2.0:
     resolution: {integrity: sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==}
     engines: {node: '>=8'}
+
+  playwright-core@1.48.2:
+    resolution: {integrity: sha512-sjjw+qrLFlriJo64du+EK0kJgZzoQPsabGF4lBvsid+3CNIZIYLgnMj9V6JY5VhM2Peh20DJWIVpVljLLnlawA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  playwright@1.48.2:
+    resolution: {integrity: sha512-NjYvYgp4BPmiwfe31j4gHLa3J7bD2WiBz8Lk2RoSsmX38SVIARZ18VYjxLjAcDsAhA+F4iSEXTSGgjua0rrlgQ==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   possible-typed-array-names@1.0.0:
     resolution: {integrity: sha512-d7Uw+eZoloe0EHDIYoe+bQ5WXnGMOpmiZFTuMWCwpjzzkL2nTjcKiAk4hh8TjnGye2TwWOk3UXucZ+3rbmBa8Q==}
@@ -8925,12 +8960,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/mdx@3.1.6(astro@4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))':
+  '@astrojs/mdx@3.1.6(astro@4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))':
     dependencies:
       '@astrojs/markdown-remark': 5.2.0
       '@mdx-js/mdx': 3.0.1
       acorn: 8.12.1
-      astro: 4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)
+      astro: 4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)
       es-module-lexer: 1.5.4
       estree-util-visit: 2.0.0
       gray-matter: 4.0.3
@@ -8949,11 +8984,11 @@ snapshots:
     dependencies:
       prismjs: 1.29.0
 
-  '@astrojs/react@3.6.2(@types/react-dom@18.3.0)(@types/react@18.3.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vite@5.4.10(@types/node@22.5.5)(terser@5.32.0))':
+  '@astrojs/react@3.6.2(@types/react-dom@18.3.0)(@types/react@18.3.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vite@5.4.10(@types/node@22.9.0)(terser@5.32.0))':
     dependencies:
       '@types/react': 18.3.6
       '@types/react-dom': 18.3.0
-      '@vitejs/plugin-react': 4.3.1(vite@5.4.10(@types/node@22.5.5)(terser@5.32.0))
+      '@vitejs/plugin-react': 4.3.1(vite@5.4.10(@types/node@22.9.0)(terser@5.32.0))
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       ultrahtml: 1.5.3
@@ -8967,21 +9002,21 @@ snapshots:
       stream-replace-string: 2.0.0
       zod: 3.23.8
 
-  '@astrojs/starlight-tailwind@2.0.3(@astrojs/starlight@0.24.5(astro@4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)))(@astrojs/tailwind@5.1.0(astro@4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))(tailwindcss@3.4.11))(tailwindcss@3.4.11)':
+  '@astrojs/starlight-tailwind@2.0.3(@astrojs/starlight@0.24.5(astro@4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)))(@astrojs/tailwind@5.1.0(astro@4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))(tailwindcss@3.4.11))(tailwindcss@3.4.11)':
     dependencies:
-      '@astrojs/starlight': 0.24.5(astro@4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))
-      '@astrojs/tailwind': 5.1.0(astro@4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))(tailwindcss@3.4.11)
+      '@astrojs/starlight': 0.24.5(astro@4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))
+      '@astrojs/tailwind': 5.1.0(astro@4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))(tailwindcss@3.4.11)
       tailwindcss: 3.4.11
 
-  '@astrojs/starlight@0.24.5(astro@4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))':
+  '@astrojs/starlight@0.24.5(astro@4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))':
     dependencies:
-      '@astrojs/mdx': 3.1.6(astro@4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))
+      '@astrojs/mdx': 3.1.6(astro@4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))
       '@astrojs/sitemap': 3.1.6
       '@pagefind/default-ui': 1.1.0
       '@types/hast': 3.0.4
       '@types/mdast': 4.0.4
-      astro: 4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)
-      astro-expressive-code: 0.35.6(astro@4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))
+      astro: 4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)
+      astro-expressive-code: 0.35.6(astro@4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))
       bcp-47: 2.1.0
       hast-util-from-html: 2.0.2
       hast-util-select: 6.0.2
@@ -8999,9 +9034,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/tailwind@5.1.0(astro@4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))(tailwindcss@3.4.11)':
+  '@astrojs/tailwind@5.1.0(astro@4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2))(tailwindcss@3.4.11)':
     dependencies:
-      astro: 4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)
+      astro: 4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)
       autoprefixer: 10.4.20(postcss@8.4.47)
       postcss: 8.4.47
       postcss-load-config: 4.0.2(postcss@8.4.47)
@@ -10678,6 +10713,10 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
+  '@playwright/test@1.48.2':
+    dependencies:
+      playwright: 1.48.2
+
   '@prisma/prisma-fmt-wasm@4.17.0-16.27eb2449f178cd9fe1a4b892d732cc4795f75085':
     optional: true
 
@@ -12258,10 +12297,9 @@ snapshots:
 
   '@types/node@20.4.0': {}
 
-  '@types/node@22.5.5':
+  '@types/node@22.9.0':
     dependencies:
       undici-types: 6.19.8
-    optional: true
 
   '@types/node@8.10.66': {}
 
@@ -12459,14 +12497,14 @@ snapshots:
 
   '@ungap/structured-clone@1.2.0': {}
 
-  '@vitejs/plugin-react@4.3.1(vite@5.4.10(@types/node@22.5.5)(terser@5.32.0))':
+  '@vitejs/plugin-react@4.3.1(vite@5.4.10(@types/node@22.9.0)(terser@5.32.0))':
     dependencies:
       '@babel/core': 7.24.7
       '@babel/plugin-transform-react-jsx-self': 7.24.7(@babel/core@7.24.7)
       '@babel/plugin-transform-react-jsx-source': 7.24.7(@babel/core@7.24.7)
       '@types/babel__core': 7.20.5
       react-refresh: 0.14.2
-      vite: 5.4.10(@types/node@22.5.5)(terser@5.32.0)
+      vite: 5.4.10(@types/node@22.9.0)(terser@5.32.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -12718,12 +12756,12 @@ snapshots:
 
   astring@1.8.6: {}
 
-  astro-expressive-code@0.35.6(astro@4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)):
+  astro-expressive-code@0.35.6(astro@4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)):
     dependencies:
-      astro: 4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)
+      astro: 4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2)
       rehype-expressive-code: 0.35.6
 
-  astro@4.16.1(@types/node@22.5.5)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2):
+  astro@4.16.1(@types/node@22.9.0)(rollup@4.22.5)(terser@5.32.0)(typescript@5.6.2):
     dependencies:
       '@astrojs/compiler': 2.10.3
       '@astrojs/internal-helpers': 0.4.1
@@ -12779,8 +12817,8 @@ snapshots:
       tsconfck: 3.1.3(typescript@5.6.2)
       unist-util-visit: 5.0.0
       vfile: 6.0.3
-      vite: 5.4.10(@types/node@22.5.5)(terser@5.32.0)
-      vitefu: 1.0.2(vite@5.4.10(@types/node@22.5.5)(terser@5.32.0))
+      vite: 5.4.10(@types/node@22.9.0)(terser@5.32.0)
+      vitefu: 1.0.2(vite@5.4.10(@types/node@22.9.0)(terser@5.32.0))
       which-pm: 3.0.0
       xxhash-wasm: 1.0.2
       yargs-parser: 21.1.1
@@ -13845,8 +13883,8 @@ snapshots:
       '@typescript-eslint/parser': 6.21.0(eslint@8.44.0)(typescript@5.6.2)
       eslint: 8.44.0
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.6.3(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0)(eslint@8.44.0)
-      eslint-plugin-import: 2.30.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-typescript@3.6.3)(eslint@8.44.0)
+      eslint-import-resolver-typescript: 3.6.3(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint@8.44.0))(eslint@8.44.0)
+      eslint-plugin-import: 2.30.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-typescript@3.6.3(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint@8.44.0))(eslint@8.44.0))(eslint@8.44.0)
       eslint-plugin-jsx-a11y: 6.10.0(eslint@8.44.0)
       eslint-plugin-react: 7.36.1(eslint@8.44.0)
       eslint-plugin-react-hooks: 4.6.2(eslint@8.44.0)
@@ -13865,37 +13903,37 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.6.3(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0)(eslint@8.44.0):
+  eslint-import-resolver-typescript@3.6.3(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint@8.44.0))(eslint@8.44.0):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.3.7
       enhanced-resolve: 5.17.1
       eslint: 8.44.0
-      eslint-module-utils: 2.11.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.3(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0)(eslint@8.44.0))(eslint@8.44.0)
+      eslint-module-utils: 2.11.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.3(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint@8.44.0))(eslint@8.44.0))(eslint@8.44.0)
       fast-glob: 3.3.2
       get-tsconfig: 4.8.1
       is-bun-module: 1.2.1
       is-glob: 4.0.3
     optionalDependencies:
-      eslint-plugin-import: 2.30.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-typescript@3.6.3)(eslint@8.44.0)
+      eslint-plugin-import: 2.30.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-typescript@3.6.3(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint@8.44.0))(eslint@8.44.0))(eslint@8.44.0)
     transitivePeerDependencies:
       - '@typescript-eslint/parser'
       - eslint-import-resolver-node
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-module-utils@2.11.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.3(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0)(eslint@8.44.0))(eslint@8.44.0):
+  eslint-module-utils@2.11.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.3(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint@8.44.0))(eslint@8.44.0))(eslint@8.44.0):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 6.21.0(eslint@8.44.0)(typescript@5.6.2)
       eslint: 8.44.0
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.6.3(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0)(eslint@8.44.0)
+      eslint-import-resolver-typescript: 3.6.3(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint@8.44.0))(eslint@8.44.0)
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.30.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-typescript@3.6.3)(eslint@8.44.0):
+  eslint-plugin-import@2.30.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-typescript@3.6.3(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint@8.44.0))(eslint@8.44.0))(eslint@8.44.0):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.8
@@ -13906,7 +13944,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.44.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.11.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.3(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0)(eslint@8.44.0))(eslint@8.44.0)
+      eslint-module-utils: 2.11.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.3(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0(@typescript-eslint/parser@6.21.0(eslint@8.44.0)(typescript@5.6.2))(eslint@8.44.0))(eslint@8.44.0))(eslint@8.44.0)
       hasown: 2.0.2
       is-core-module: 2.15.1
       is-glob: 4.0.3
@@ -14283,6 +14321,9 @@ snapshots:
     optional: true
 
   fs.realpath@1.0.0: {}
+
+  fsevents@2.3.2:
+    optional: true
 
   fsevents@2.3.3:
     optional: true
@@ -16399,31 +16440,31 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  next-auth@5.0.0-beta.25(next@14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(nodemailer@6.9.16)(react@18.2.0):
+  next-auth@5.0.0-beta.25(next@14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.48.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(nodemailer@6.9.16)(react@18.2.0):
     dependencies:
       '@auth/core': 0.37.2(nodemailer@6.9.16)
-      next: 14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      next: 14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.48.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       react: 18.2.0
     optionalDependencies:
       nodemailer: 6.9.16
 
-  next-swagger-doc@0.4.0(next@14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(openapi-types@12.1.3):
+  next-swagger-doc@0.4.0(next@14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.48.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(openapi-types@12.1.3):
     dependencies:
       '@types/swagger-jsdoc': 6.0.1
       cleye: 1.3.2
       isarray: 2.0.5
-      next: 14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      next: 14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.48.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       swagger-jsdoc: 6.2.8(openapi-types@12.1.3)
     transitivePeerDependencies:
       - openapi-types
 
-  next-themes@0.2.1(next@14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
+  next-themes@0.2.1(next@14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.48.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:
-      next: 14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      next: 14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.48.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
-  next@14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
+  next@14.2.13(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.48.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:
       '@next/env': 14.2.13
       '@swc/helpers': 0.5.5
@@ -16445,6 +16486,7 @@ snapshots:
       '@next/swc-win32-ia32-msvc': 14.2.13
       '@next/swc-win32-x64-msvc': 14.2.13
       '@opentelemetry/api': 1.9.0
+      '@playwright/test': 1.48.2
     transitivePeerDependencies:
       - '@babel/core'
       - babel-plugin-macros
@@ -16820,6 +16862,14 @@ snapshots:
   pkg-dir@4.2.0:
     dependencies:
       find-up: 4.1.0
+
+  playwright-core@1.48.2: {}
+
+  playwright@1.48.2:
+    dependencies:
+      playwright-core: 1.48.2
+    optionalDependencies:
+      fsevents: 2.3.2
 
   possible-typed-array-names@1.0.0: {}
 
@@ -18646,9 +18696,9 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.2
 
-  vite-plugin-css-injected-by-js@3.5.2(vite@5.4.10(@types/node@22.5.5)(terser@5.32.0)):
+  vite-plugin-css-injected-by-js@3.5.2(vite@5.4.10(@types/node@22.9.0)(terser@5.32.0)):
     dependencies:
-      vite: 5.4.10(@types/node@22.5.5)(terser@5.32.0)
+      vite: 5.4.10(@types/node@22.9.0)(terser@5.32.0)
 
   vite@5.4.10(@types/node@20.16.5)(terser@5.32.0):
     dependencies:
@@ -18660,19 +18710,19 @@ snapshots:
       fsevents: 2.3.3
       terser: 5.32.0
 
-  vite@5.4.10(@types/node@22.5.5)(terser@5.32.0):
+  vite@5.4.10(@types/node@22.9.0)(terser@5.32.0):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.4.47
       rollup: 4.22.4
     optionalDependencies:
-      '@types/node': 22.5.5
+      '@types/node': 22.9.0
       fsevents: 2.3.3
       terser: 5.32.0
 
-  vitefu@1.0.2(vite@5.4.10(@types/node@22.5.5)(terser@5.32.0)):
+  vitefu@1.0.2(vite@5.4.10(@types/node@22.9.0)(terser@5.32.0)):
     optionalDependencies:
-      vite: 5.4.10(@types/node@22.5.5)(terser@5.32.0)
+      vite: 5.4.10(@types/node@22.9.0)(terser@5.32.0)
 
   volar-service-css@0.0.61(@volar/language-service@2.4.5):
     dependencies:

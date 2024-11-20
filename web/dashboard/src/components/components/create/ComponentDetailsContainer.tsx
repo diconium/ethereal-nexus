@@ -3,7 +3,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import { FileText, Eye } from 'lucide-react';
-import * as ScrollArea from "@radix-ui/react-scroll-area";
 import { ChatContext } from "@/components/components/create/utils/chatContext";
 import { GeneratedFileDisplay } from "@/components/components/create/GeneratedFileDisplay";
 import { Preview } from "@/components/components/create/Preview";

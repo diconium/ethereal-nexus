@@ -11,7 +11,7 @@ dotenv.config(
   }
 );
 
-const environment = process.env.TEST_BASE_URL || 'http://localhost:3000';
+const environment = process.env.TEST_E2E_BASE_URL || 'http://localhost:3000';
 
 export default defineConfig({
   timeout: 6000,

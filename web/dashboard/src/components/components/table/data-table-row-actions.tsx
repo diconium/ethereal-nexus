@@ -1,7 +1,5 @@
 'use client'
 
-import { DotsHorizontalIcon } from '@radix-ui/react-icons';
-
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -23,6 +21,7 @@ export function ComponentsDataTableRowActions({ row }) {
   const router = useRouter()
   const {data: session } = useSession()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const hasWritePermissions = session?.user?.role === 'admin';
 
   const handleDelete = async () => {
     const result = await deleteComponent(row.original.id)
@@ -56,6 +55,7 @@ export function ComponentsDataTableRowActions({ row }) {
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogTrigger asChild>
             <DropdownMenuItem
+              disabled={!hasWritePermissions}
               className="text-red-600"
               onSelect={(e) => e.preventDefault()}
             >

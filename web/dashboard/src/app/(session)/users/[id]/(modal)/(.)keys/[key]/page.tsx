@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation';
 
 export default async function ApiKeyPageModalPage({ params: { key } }) {
   const session = await auth()
-  const projects = await getProjects(session?.user?.id)
+  const projects = await getProjects()
   const apiKey = await getApiKeyById(key)
 
   if(!apiKey.success) {

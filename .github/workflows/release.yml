@@ -32,6 +32,7 @@ jobs:
       - name: 'Create env file'
         run: |
           echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./web/dashboard/.env
+          echo "${{ secrets.DRIZZLE_DATABASE_URL }}" >> ./web/dashboard/.env
 
       - name: Build Packages
         run: pnpm run build

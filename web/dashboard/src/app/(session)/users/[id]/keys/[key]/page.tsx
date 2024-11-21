@@ -7,7 +7,7 @@ import { getApiKeyById } from '@/data/users/actions';
 
 export default async function ApiKeyPage({ params: { key } }: any) {
   const session = await auth()
-  const projects = await getProjects(session?.user?.id)
+  const projects = await getProjects()
   const apiKey = await getApiKeyById(key)
 
   if(!apiKey.success) {

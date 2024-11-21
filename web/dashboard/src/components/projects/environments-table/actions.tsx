@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { DeleteIcon, Trash2, Undo2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogTrigger } from '@radix-ui/react-dialog';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -19,14 +19,15 @@ import { useSession } from 'next-auth/react';
 export function EnvironmentsRowActions({ row }) {
   const environment = row.original;
   const { data: session } = useSession();
-  const isDisabled = session?.permissions[environment.project_id] !== 'write';
+  const hasWritePermissions = session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[environment.project_id] || '');
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleDeleteOk = async () => {
     setDeleteDialogOpen(false);
 
     if (environment) {
-      const deleted = await deleteEnvironment(environment.id, session?.user?.id);
+      const deleted = await deleteEnvironment(environment.id);
 
       if (deleted.success) {
         toast({
@@ -56,7 +57,7 @@ export function EnvironmentsRowActions({ row }) {
           <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <DialogTrigger asChild>
               <DropdownMenuItem
-                disabled={session?.permissions[environment.project_id] === 'read'}
+                disabled={!hasWritePermissions}
                 className="text-red-600"
                 onSelect={(e) => e.preventDefault()}
               >
@@ -80,7 +81,7 @@ export function EnvironmentsRowActions({ row }) {
                   Cancel
                 </Button>
                 <Button
-                  disabled={isDisabled}
+                  disabled={!hasWritePermissions}
                   variant="destructive"
                   onClick={() => handleDeleteOk()}
                 >

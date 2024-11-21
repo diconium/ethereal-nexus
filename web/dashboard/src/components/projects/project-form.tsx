@@ -1,14 +1,13 @@
-"use client";
+'use client';
 
-import {useForm} from "react-hook-form";
-import * as z from "zod";
-import {Button} from "@/components/ui/button";
+import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
 
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
-import {Input} from "@/components/ui/input";
-import {TextArea} from '@/components/ui/text-area';
-import {zodResolver} from "@hookform/resolvers/zod";
-import React from "react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { TextArea } from '@/components/ui/text-area';
+import { zodResolver } from '@hookform/resolvers/zod';
+import React from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { ProjectInput, projectInputSchema } from '@/data/projects/dto';
 import { upsertProject } from '@/data/projects/actions';
@@ -20,30 +19,32 @@ type ProjectsFormProps = {
   onCancel?: () => void,
 }
 
-export default function ProjectsForm({project, onComplete, onCancel}: ProjectsFormProps) {
-  const {data: session} = useSession();
-  const { toast } = useToast()
+export default function ProjectsForm({ project, onComplete, onCancel }: ProjectsFormProps) {
+  const { data: session } = useSession();
+  const hasWritePermissions = session?.user?.role === 'admin' || (project?.id && session?.permissions && ['write', 'manage'].includes(session?.permissions[project.id] || ''));
+
+  const { toast } = useToast();
   const form: any = useForm<ProjectInput>({
     resolver: zodResolver(projectInputSchema),
-    defaultValues: project ?? {},
+    defaultValues: project ?? {}
   });
   const onSubmit = async (data: ProjectInput) => {
     const projects = await upsertProject({
       id: project?.id,
       ...data
-    }, session?.user?.id);
-    if(!projects.success) {
+    });
+    if (!projects.success) {
       toast({
-        title: `Failed to ${data.id ? "update" : "create"} project "${data.name}"!`,
+        title: `Failed to ${data.id ? 'update' : 'create'} project "${data.name}"!`
       });
     }
 
     toast({
-      title: `Project ${project?.id ? "update" : "create"}d successfully!`,
+      title: `Project ${project?.id ? 'update' : 'create'}d successfully!`
     });
 
-    if(onComplete) {
-      onComplete()
+    if (onComplete) {
+      onComplete();
     }
   };
 
@@ -57,7 +58,7 @@ export default function ProjectsForm({project, onComplete, onCancel}: ProjectsFo
             <FormItem>
               <FormLabel className="transition-colors text-muted-foreground font-bold">Name</FormLabel>
               <FormControl>
-                <Input placeholder="Name" {...field} className="bg-white dark:bg-transparent font-bold" />
+                <Input disabled={!hasWritePermissions} placeholder="Name" {...field} className="bg-white dark:bg-transparent font-bold" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -70,7 +71,7 @@ export default function ProjectsForm({project, onComplete, onCancel}: ProjectsFo
             <FormItem>
               <FormLabel className="transition-colors text-muted-foreground font-bold">Description</FormLabel>
               <FormControl>
-                <TextArea placeholder="Description" {...field} rows={5} className="bg-white dark:bg-transparent" />
+                <TextArea disabled={!hasWritePermissions} placeholder="Description" {...field} rows={5} className="bg-white dark:bg-transparent" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -84,7 +85,8 @@ export default function ProjectsForm({project, onComplete, onCancel}: ProjectsFo
               </Button>
             )
           }
-          <Button type="submit" variant="primary" size="base">{`${project?.id ? "Save" : "Create project"}`}</Button>
+          <Button disabled={!hasWritePermissions} type="submit" variant="primary"
+                  size="base">{`${project?.id ? 'Save' : 'Create project'}`}</Button>
         </div>
       </form>
     </Form>

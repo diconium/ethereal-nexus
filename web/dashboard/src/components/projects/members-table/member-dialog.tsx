@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckIcon, PlusCircledIcon } from '@radix-ui/react-icons';
+import { CheckIcon } from '@radix-ui/react-icons';
 import {
   Dialog,
   DialogContent,
@@ -25,18 +25,20 @@ type AddMemberProps = {
 }
 
 export function MemberDialog({ users, resource }: AddMemberProps) {
-  const { data } = useSession()
   const [open, setOpen] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<PublicUser[]>([]);
+
+  const { data: session } = useSession();
+  const hasWritePermissions = session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[resource] || '');
 
   const handleSubmit: MouseEventHandler = async () => {
     setOpen(false);
     const newMembers = selectedUsers
       .map(user => ({
         resource,
-        user_id: user.id
+        user_id: user.id,
       }));
-    const members = await insertMembers(newMembers, data?.user?.id);
+    const members = await insertMembers(newMembers);
     if(members.success) {
       toast({
         title: 'Member added successfully!',
@@ -52,7 +54,7 @@ export function MemberDialog({ users, resource }: AddMemberProps) {
   return (
     <>
       <Button
-        disabled={data?.permissions[resource] !== 'write'}
+        disabled={!hasWritePermissions}
         size="base"
         variant='primary'
         onClick={() => setOpen(true)}

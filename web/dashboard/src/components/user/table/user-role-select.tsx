@@ -44,8 +44,9 @@ export function UserRoleSelect({ value, userId }: UserRoleSelectProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="admin">admin</SelectItem>
+                    <SelectItem value="user">user</SelectItem>
+                    <SelectItem value="viewer">viewer</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>

@@ -7,21 +7,11 @@ import { cn } from '@/lib/utils';
 import { ToogleIconViewProjects } from '@/components/ui/toogle-icon-view-projects';
 import { UpdateProjectsView } from '@/components/ui/update-projects-view';
 import { ProjectsViewProvider } from '@/components/components/projects/ProjectsViewProvider';
-import { getMembersByResourceId } from '@/data/member/actions';
 import { Plus } from 'lucide-react';
 
 export default async function Projects() {
   const session = await auth()
-  const projects = await getProjects(session?.user?.id);
-
-  if (projects.success) {
-    projects.data = await Promise.all(
-      projects.data.map(async (project) => {
-        const membersData = await getMembersByResourceId(project.id, session?.user?.id);
-        return { ...project, membersLength: membersData.success ? membersData.data.length : 0 };
-      })
-    );
-  }
+  const projects = await getProjects();
 
   return (
     <ProjectsViewProvider>
@@ -55,7 +45,11 @@ export default async function Projects() {
           }
           <ToogleIconViewProjects></ToogleIconViewProjects>
         </div>
-        <UpdateProjectsView projects={projects} />
+        {
+          projects.success ?
+            <UpdateProjectsView projects={projects.data} /> :
+            <p>{projects.error.message}</p>
+        }
       </div>
     </ProjectsViewProvider>
   );

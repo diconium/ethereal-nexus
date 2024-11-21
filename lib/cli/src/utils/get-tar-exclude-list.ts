@@ -15,10 +15,9 @@ export function getTarExcludeList(excludedPaths: string[] = []) {
     : '';
   const gitignoreFiles = gitignore
     ?.split('\n')
-    ?.filter((file) => !file?.includes('#') && file?.trim() !== ''
-    );
+    ?.filter((file) => !file?.includes('#') && file?.trim() !== '');
 
-  const ignoreFiles = [
+  return [
     ...gitignoreFiles,
     ...excludedPaths,
     ...ignoreCommonFiles,
@@ -26,6 +25,4 @@ export function getTarExcludeList(excludedPaths: string[] = []) {
     '*.tar.gz',
     '*.tar.xz',
   ]
-
-  return `{${ignoreFiles?.map((ignoreFile) => `"${ignoreFile}"`).join(',')}}`;
-};
+}

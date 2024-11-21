@@ -4,11 +4,12 @@ import { ActionResponse } from '@/data/action';
 import { z } from 'zod';
 import { db } from '@/db';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
-import { eq, inArray } from 'drizzle-orm';
-import { members as memberTable } from '@/data/member/schema';
+import { and, eq, exists, inArray, ne, or, sql } from 'drizzle-orm';
+import { members, members as memberTable } from '@/data/member/schema';
 import {
   Member,
-  memberSchema, MemberWithPublicUser,
+  memberSchema,
+  MemberWithPublicUser,
   memberWithPublicUserSchema,
   newMemberSchema,
   UpdateMemberPermissions,
@@ -17,14 +18,17 @@ import {
 import { projects } from '@/data/projects/schema';
 import { PgColumn } from 'drizzle-orm/pg-core';
 import { logEvent } from '@/lib/events/event-middleware';
+import { auth } from '@/auth';
+import { revalidatePath } from 'next/cache';
 
-export async function getMembersByResourceId(id: string, userId: string | undefined | null): ActionResponse<MemberWithPublicUser[]> {
-  if (!userId) {
-    return actionError('No user provided.');
-  }
-
+export async function getMembersByResourceId(id: string): ActionResponse<MemberWithPublicUser[]> {
   if (!id) {
     return actionError('No resource identifier provided.');
+  }
+
+  const session = await auth()
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
   }
 
   try {
@@ -72,14 +76,20 @@ export async function getMembersByUser(userId: string | undefined | null): Actio
 }
 
 
-export async function insertMembers(members: z.infer<typeof newMemberSchema>[], userId): ActionResponse<z.infer<typeof memberSchema>[]> {
+export async function insertMembers(members: z.infer<typeof newMemberSchema>[]): ActionResponse<z.infer<typeof memberSchema>[]> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
+  }
+
   const input = z.array(newMemberSchema).safeParse(members);
   if (!input.success) {
     return actionZodError('Failed to parse member input.', input.error);
   }
 
   try {
-    const insert = await db.insert(memberTable)
+    const insert = await db
+      .insert(memberTable)
       .values(members)
       .returning();
 
@@ -92,19 +102,26 @@ export async function insertMembers(members: z.infer<typeof newMemberSchema>[], 
       const logData = { member_id: member.user_id};
       logEvent({
         type: 'project_member_added',
-        user_id: userId,
+        user_id: session?.user?.id!,
         data: logData,
         resource_id: member.resource,
       });
     });
 
+
+    revalidatePath('/(layout)/(session)/projects/[id]', 'layout');
     return actionSuccess(result.data);
   } catch (error) {
     return actionError('Failed to insert user into database.');
   }
 }
 
-export async function updateMemberPermissions(member: UpdateMemberPermissions, userId, resourceId: string) {
+export async function updateMemberPermissions(member: UpdateMemberPermissions, resourceId: string) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
+  }
+
   const input = updateMemberPermissionsSchema.safeParse(member);
   if (!input.success) {
     return actionZodError('Failed to parse member input.', input.error);
@@ -126,13 +143,61 @@ export async function updateMemberPermissions(member: UpdateMemberPermissions, u
       const logData = { member_id: result.data.user_id, permissions: member.permissions || {}};
       await logEvent({
         type: 'project_member_permissions_updated',
-        user_id: userId,
+        user_id: session.user.id,
         data: logData,
         resource_id: resourceId,
       });
 
   } catch (error) {
     return actionError('Failed to update user permissions into database.');
+  }
+}
+
+export async function deleteMember(
+  id: string,
+): ActionResponse<Member> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
+  }
+  const role = session.user.role;
+
+  try {
+    const deleted = await db
+      .delete(members)
+      .where(
+        eq(members.id, id),
+        ne(members.role, 'owner'),
+        role !== 'admin' ? exists(
+          db
+            .select()
+            .from(members)
+            .where(
+              and(
+                eq(members.id, session.user.id),
+                eq(members.resource, sql`${members.resource}`),
+                or(
+                  eq(members.permissions, 'write'),
+                  eq(members.role, 'owner')
+                )
+              )
+            )
+        ) : undefined
+      )
+      .returning();
+
+    const safeDeleted = memberSchema.safeParse(deleted[0]);
+    if (!safeDeleted.success) {
+      return actionZodError(
+        "There's an issue with the member record.",
+        safeDeleted.error,
+      );
+    }
+
+    revalidatePath('/(layout)/(session)/projects/[id]', 'layout');
+    return actionSuccess(safeDeleted.data);
+  } catch {
+    return actionError('Failed to delete member from database.');
   }
 }
 

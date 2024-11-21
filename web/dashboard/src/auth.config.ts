@@ -1,13 +1,19 @@
 import "next-auth/jwt"
 import * as bcrypt from 'bcryptjs';
 import Credential from 'next-auth/providers/credentials';
-import AzureADProvider from 'next-auth/providers/azure-ad';
+import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 import GitHubProvider from 'next-auth/providers/github';
-import { userLoginSchema } from '@/data/users/dto';
+import { User, userLoginSchema } from '@/data/users/dto';
 import { getUserByEmail, getUserById, insertInvitedSsoUser } from '@/data/users/actions';
 import { getMembersByUser } from '@/data/member/actions';
-import { NextAuthConfig } from 'next-auth';
+import { AuthError, NextAuthConfig, Profile } from 'next-auth';
 import { Permissions } from '@/data/users/permission-utils';
+import { DrizzleAdapter } from "@auth/drizzle-adapter"
+import { db } from '@/db';
+import Azure from '@/utils/providers/azure';
+import { accounts, users, verificationTokens } from '@/data/users/schema';
+import process from 'node:process';
+import { AdapterUser } from "next-auth/adapters";
 
 declare module "next-auth/jwt" {
   /** Returned by the `jwt` callback and `auth`, when using JWT sessions */
@@ -31,6 +37,30 @@ declare module "next-auth" {
   }
 }
 
+async function handleSSOLogin(user: AdapterUser, profile?: Profile) {
+  if (!user && profile) {
+    const insert = await insertInvitedSsoUser({
+      email: profile.email,
+      name: profile.name,
+      image: profile.avatar_url,
+      email_verified: new Date()
+    });
+    return insert.success;
+  }
+  return true;
+}
+
+function handleCredentialsLogin(user: AdapterUser) {
+  if(!user) {
+    return false;
+  }
+  if(process.env.AUTH_ENFORCE_EMAIL_VERIFICATION === "true" && !user.emailVerified) {
+    throw new AuthError("Email not verified", { type: "Verification"});
+  }
+
+  return true;
+}
+
 export const authConfig = {
   trustHost: true,
   session: {
@@ -41,8 +71,14 @@ export const authConfig = {
   },
   secret: process.env.NEXT_AUTH_SECRET,
   pages: {
-    signIn: '/auth/signin'
+    signIn: '/auth/signin',
+    verifyRequest: '/auth/email'
   },
+  adapter: DrizzleAdapter(db, {
+    usersTable: users,
+    accountsTable: accounts,
+    verificationTokensTable: verificationTokens
+  }),
   providers: [
     Credential({
       name: "Credentials",
@@ -70,34 +106,33 @@ export const authConfig = {
       }
     }),
     GitHubProvider({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET,
+      clientId: process.env.AUTH_GITHUB_ID,
+      clientSecret: process.env.AUTH_GITHUB_SECRET,
     }),
-    AzureADProvider({
-      clientId: process.env.AZURE_AD_CLIENT_ID!,
-      clientSecret: process.env.AZURE_AD_CLIENT_SECRET!,
-      tenantId: process.env.AZURE_AD_TENANT_ID!,
+    MicrosoftEntraID({
+      allowDangerousEmailAccountLinking: true,
+      clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID,
+      clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET,
+      issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER,
+    }),
+    Azure({
+      connectionString: process.env.COMMUNICATION_SERVICES_CONNECTION_STRING,
+      from: process.env.EMAIL_FROM,
     }),
   ],
   callbacks: {
-    async signIn({profile, account}) {
-      if (account?.provider == "credentials") {
-        return true;
+    async signIn({user, profile, account}) {
+      switch (account?.provider) {
+        case "azure-communication-service":
+          return true;
+        case "credentials":
+          return handleCredentialsLogin(user as AdapterUser);
+        case "github":
+        case "microsoft-entra-id":
+          return await handleSSOLogin(user as AdapterUser, profile);
+        default:
+          return false;
       }
-      if (account?.provider == "github") {
-        const existingUser = await getUserByEmail(profile?.email);
-        if(!existingUser.success && profile) {
-          const insert = await insertInvitedSsoUser({
-            email: profile.email,
-            name: profile.name,
-            image: profile.avatar_url,
-            email_verified: new Date()
-          })
-          return insert.success
-        }
-        return true
-      }
-      return false
     },
     async jwt({ token, user }) {
       const dbUser = await getUserByEmail(token.email);
@@ -110,9 +145,19 @@ export const authConfig = {
       const members = await getMembersByUser(token.sub)
       const user = await getUserById(token.sub)
 
-      if(members.success && members.data.length > 0) {
+      if(user.success && members.success && members.data.length > 0) {
         session.permissions = members.data.reduce((acc,member) => {
-          acc[member.resource] = member.permissions;
+          switch (user.data.role) {
+            case "admin":
+              acc[member.resource] = "write";
+              break;
+            case "viewer":
+              acc[member.resource] = "read";
+              break;
+            default:
+              acc[member.resource] = member.role !== 'owner' ? member.permissions : 'manage';
+              break;
+          }
           return acc;
         }, {})
       }

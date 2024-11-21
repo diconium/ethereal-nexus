@@ -1,7 +1,6 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getProjectById } from '@/data/projects/actions';
-import { auth } from '@/auth';
 import { notFound } from 'next/navigation';
 import { ProjectMemberList } from '@/components/projects/members-table/member-list';
 import { ProjectComponentsList } from '@/components/projects/component-selection-table/components-list';
@@ -10,10 +9,13 @@ import ProjectsForm from '@/components/projects/project-form';
 import { getResourceEvents } from '@/data/events/actions';
 import { ProjectEvents } from '@/components/projects/project-events/project-events';
 import { EnvironmentsList } from '@/components/projects/environments-table/environment-list';
+import { auth } from '@/auth';
 
 export default async function EditProject({ params: { id }, searchParams: { tab, env } }: any) {
   const session = await auth();
-  const project = await getProjectById(id, session?.user?.id);
+  const hasWritePermissions = session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[id] || '');
+
+  const project = await getProjectById(id);
   const events = await getResourceEvents(id);
 
   if (!project.success) {
@@ -45,16 +47,20 @@ export default async function EditProject({ params: { id }, searchParams: { tab,
               Environments
             </Link>
           </TabsTrigger>
-          <TabsTrigger value="settings" asChild>
-            <Link href={`/projects/${id}?tab=settings`}>
-              Settings
-            </Link>
-          </TabsTrigger>
-          <TabsTrigger value="activity" asChild>
-            <Link href={`/projects/${id}?tab=activity`}>
-              Activity
-            </Link>
-          </TabsTrigger>
+          {
+            hasWritePermissions ? <>
+              <TabsTrigger value="settings" asChild>
+                <Link href={`/projects/${id}?tab=settings`}>
+                  Settings
+                </Link>
+              </TabsTrigger>
+              <TabsTrigger value="activity" asChild>
+                <Link href={`/projects/${id}?tab=activity`}>
+                  Activity
+                </Link>
+              </TabsTrigger>
+            </> : null
+          }
         </TabsList>
         <TabsContent value="components" className="space-y-4">
           <ProjectComponentsList
@@ -73,14 +79,18 @@ export default async function EditProject({ params: { id }, searchParams: { tab,
             id={id}
           />
         </TabsContent>
-        <TabsContent value="settings">
-          <ProjectsForm
-            project={project.data}
-          />
-        </TabsContent>
-        <TabsContent value="activity">
-          <ProjectEvents events={events} />
-        </TabsContent>
+        {
+          hasWritePermissions ? <>
+            <TabsContent value="settings">
+              <ProjectsForm
+                project={project.data}
+              />
+            </TabsContent>
+            <TabsContent value="activity">
+              <ProjectEvents events={events} />
+            </TabsContent>
+          </> : null
+        }
       </Tabs>
     </div>
   );

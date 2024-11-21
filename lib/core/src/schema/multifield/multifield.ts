@@ -1,7 +1,7 @@
 import {
   BaseFieldInput,
   BaseSchema,
-  InferOutput
+  InferOutput, Output
 } from '../../types';
 
 export interface MultifieldSchema<
@@ -16,10 +16,11 @@ export interface MultifieldSchema<
 
 interface MultifieldInput<TChildren extends BaseSchema<unknown>> extends BaseFieldInput {
   children: TChildren
+  itemLabelKey?: keyof Output<TChildren>
 }
 
 export function multifield<const TChildren extends BaseSchema<unknown>>(input: MultifieldInput<TChildren>): MultifieldSchema<TChildren> {
-  const {label, children, required} = input;
+  const {label, children, required, itemLabelKey} = input;
   const childrenParse = children._parse();
 
   return {
@@ -29,6 +30,7 @@ export function multifield<const TChildren extends BaseSchema<unknown>>(input: M
         type: 'multifield',
         label,
         required,
+        itemLabelKey,
         children: Array.isArray(childrenParse) ? childrenParse : [childrenParse]
       }
     },

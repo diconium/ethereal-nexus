@@ -36,7 +36,7 @@ export default function EnvironmentsForm({project, environment, onComplete, onCa
   const onSubmit = async (data: EnvironmentInput) => {
     const environments = await upsertEnvironment({
       ...data
-    }, session?.user?.id);
+    });
     if(!environments.success) {
       return toast({
         title: `Failed to ${data.id ? "update" : "create"} environment "${data.name}"!`,

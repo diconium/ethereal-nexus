@@ -5,7 +5,7 @@ import {
   componentsSchema,
   componentVersionsSchema
 } from '@/data/components/dto';
-import { z } from 'zod';
+import { number, z } from 'zod';
 import { users } from '@/data/users/schema';
 import { members } from '@/data/member/schema';
 import { userSchema } from '@/data/users/dto';
@@ -59,7 +59,8 @@ export type ProjectComponentConfig = z.infer<
  */
 export const projectWithComponentIdSchema = projectSchema.extend({
   components: projectComponentConfigSchema.pick({ component_id: true }).array(),
-  environments: environmentsSchema.pick({ id: true, name: true }).array()
+  environments: environmentsSchema.pick({ id: true, name: true }).array(),
+  members: number(),
 });
 export type ProjectWithComponentId = z.infer<
   typeof projectWithComponentIdSchema

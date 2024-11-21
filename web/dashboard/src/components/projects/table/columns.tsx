@@ -24,19 +24,6 @@ export const columns = [
     enableHiding: true,
   },
   {
-    accessorKey: "components",
-    header: ({ column }) => (
-      <DataTableColumnHeader className="font-bold" column={column} title="Components" />
-    ),
-    cell: ({ row }) => (
-      <div className="inline-flex">
-        <div className="text-orange-500 text-base"> { row.getValue("components")?.length || 0 } </div>
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: true,
-  },
-  {
     accessorKey: "environments",
     header: ({ column }) => (
       <DataTableColumnHeader className="font-bold" column={column} title="Environments" />
@@ -50,10 +37,36 @@ export const columns = [
     enableHiding: true,
   },
   {
+    accessorKey: "components",
+    header: ({ column }) => (
+      <DataTableColumnHeader className="font-bold" column={column} title="Components" />
+    ),
+    cell: ({ row }) => (
+      <div className="inline-flex">
+        <div className="text-orange-500 text-base"> { row.getValue("components")?.length || 0 } </div>
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: true,
+  },
+  {
+    accessorKey: "members",
+    header: ({ column }) => (
+      <DataTableColumnHeader className="font-bold" column={column} title="Members" />
+    ),
+    cell: ({ row }) => (
+      <div className="inline-flex">
+        <div className="text-orange-500 text-base"> { row.getValue("members") } </div>
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: true,
+  },
+  {
     id: "actions",
-    cell: ({ table, row }) => (
+    cell: ({ row }) => (
       <div className="flex justify-end" >
-        <ProjectsDataTableRowActions row={row} table={table} />
+        <ProjectsDataTableRowActions row={row} />
       </div>
     ),
   },

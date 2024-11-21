@@ -1,8 +1,7 @@
 import React from 'react';
 import { Switch } from '@/components/ui/switch';
-import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
-import { upsertComponentConfig, upsertEnvironment } from '@/data/projects/actions';
+import { upsertEnvironment } from '@/data/projects/actions';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
@@ -16,16 +15,13 @@ type ActiveSwitchProps = {
 
 export function ActiveSwitch({ environment, active, disabled }: ActiveSwitchProps) {
   const router = useRouter();
-  const { data: session } = useSession();
   const form = useForm({ defaultValues: { is_active: active } });
 
   const onSubmit = async (data) => {
     const update = await upsertEnvironment({
         ...environment,
         secure: data.is_active
-      },
-      session?.user?.id
-    );
+      });
 
     if (!update.success) {
       toast({

@@ -122,10 +122,16 @@ pnpm-debug.log*
 
 # environment variables
 .env
-.env.production
+.env*
 
 # macOS-specific files
 .DS_Store
 
 web/dashboard/gcloud-key.json
 __pycache__/
+
+# PlayWrith files
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

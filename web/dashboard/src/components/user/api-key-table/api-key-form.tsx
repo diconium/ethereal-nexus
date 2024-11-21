@@ -144,6 +144,7 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
           <FormLabel className="text-base">Projects</FormLabel>
           <FormDescription>
             Select the projects you want to give permissions in the API key.
+            If you are an admin beware that only projects that you are a member of are selectable.
           </FormDescription>
         </div>
         {availableProjects.map((item) => (
@@ -167,7 +168,7 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
                     <FormControl>
                       <Select
                         value={field.value?.[item.id]}
-                        defaultValue={session?.permissions[item.id] ?? 'read'}
+                        defaultValue={'read'}
                         onValueChange={value => {
                           field.onChange({
                             ...field.value,
@@ -181,10 +182,8 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
                         <SelectContent>
                           <SelectGroup>
                             <SelectItem value="none">No access</SelectItem>
-                            <SelectItem value="read" disabled={session?.permissions[item.id] === 'none'}>Can
-                              read</SelectItem>
-                            <SelectItem value="write" disabled={session?.permissions[item.id] !== 'write'}>Can
-                              edit</SelectItem>
+                            <SelectItem value="read" disabled={session?.permissions[item.id] === 'none'}>Can read</SelectItem>
+                            <SelectItem value="write" disabled={!['write', 'manage'].includes(session?.permissions[item.id] || '')}>Can edit</SelectItem>
                           </SelectGroup>
                         </SelectContent>
                       </Select>

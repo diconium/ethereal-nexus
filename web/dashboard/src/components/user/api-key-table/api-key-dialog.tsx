@@ -20,11 +20,7 @@ type ApiKeyDialogProps = {
   availableProjects: ProjectLabels[]
 }
 
-const displayFormSchema = z.object({
-  permissions: apiKeyPermissionsSchema.optional()
-})
-
-export function ApiKeyDialog({ userId, availableProjects }: ApiKeyDialogProps) {
+export function ApiKeyDialog({ availableProjects }: ApiKeyDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 

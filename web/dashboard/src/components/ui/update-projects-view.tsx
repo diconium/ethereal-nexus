@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import React from 'react';
 import Link from 'next/link';
@@ -7,37 +7,30 @@ import { columns } from '@/components/projects/table/columns';
 import { useViewMode } from '@/components/components/projects/ProjectsViewProvider';
 import { ProjectCard } from '@/components/projects/project-card';
 
-export function UpdateProjectsView({ projects}) {
+type UpdateProjectsViewProps = {
+  projects: React.ComponentProps<typeof ProjectCard>['project'][]
+}
+
+export function UpdateProjectsView({ projects }: UpdateProjectsViewProps) {
   const { viewMode } = useViewMode();
 
-  return (
-    <>
-      {viewMode === 'list' ? (
-          projects.success ?
-            <DataTable
-              colWidth
-              entity={'projects'}
-              columns={columns}
-              data={projects.data}
-              isShowViewOpt={false}
-            /> :
-            projects.error.message
-
-        ) :
-        <div className="grid grid-cols-3 gap-5">
-          {projects.success ? (
-            projects.data.map((project) => (
-              <Link key={project.id} href={`/projects/${project.id}`}>
-                <ProjectCard project={project} />
-              </Link>
-            ))
-          ) : (
-            <p>{projects.error.message}</p>
-          )}
-        </div>
-
+  return viewMode === 'list' ? (
+    <DataTable
+      colWidth
+      entity={'projects'}
+      columns={columns}
+      data={projects}
+      isShowViewOpt={false}
+    />
+  ) : (
+    <div className="grid grid-cols-3 gap-5">
+      {projects.map(project =>
+        <Link key={project.id} href={`/projects/${project.id}`}>
+          <ProjectCard project={project} />
+        </Link>
+      )
       }
-    </>
+    </div>
   );
 }
 

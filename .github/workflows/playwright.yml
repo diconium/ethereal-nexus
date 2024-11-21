@@ -1,0 +1,46 @@
+name: Playwright Tests
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['Deploy dev environment']
+    types: [completed]
+
+env:
+  TEST_PATH: "./test/e2e"
+  CI: true
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    environment: development
+    container:
+      image: mcr.microsoft.com/playwright:v1.48.2-noble
+      options: --user 1001
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup environment
+        working-directory: ${{ env.TEST_PATH }}
+        run: |
+          echo "${{ secrets.TEST_E2E_ENV }}" >> .env
+
+          corepack enable pnpm
+          pnpm i --frozen-lockfile
+
+      - name: Run Playwright tests
+        working-directory: ${{ env.TEST_PATH }}
+        run: pnpm exec playwright test
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: ${{ env.TEST_PATH }}/playwright-report/
+          retention-days: 7

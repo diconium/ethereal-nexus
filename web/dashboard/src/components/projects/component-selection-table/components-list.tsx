@@ -12,14 +12,14 @@ import { ComponentsDialog } from '@/components/projects/component-selection-tabl
 export async function ProjectComponentsList({ id, environment }: { id: string, environment: string }) {
   const session = await auth();
 
-  const environments = await getEnvironmentsByProject(id, session?.user?.id);
+  const environments = await getEnvironmentsByProject(id);
   if (!environments.success) {
     throw new Error(environments.error.message);
   }
   const selected = environment || environments.data[0].id;
 
-  const components = await getComponentsNotInEnvironment(selected, session?.user?.id);
-  const project = await getEnvironmentComponents(selected, session?.user?.id);
+  const components = await getComponentsNotInEnvironment(selected);
+  const project = await getEnvironmentComponents(selected);
   if (!project.success) {
     throw new Error(project.error.message);
   }
@@ -30,7 +30,7 @@ export async function ProjectComponentsList({ id, environment }: { id: string, e
     meta={{
       projectId: id,
       environmentId: selected,
-      permissions: session?.permissions[id]
+      permissions: session?.permissions[id],
     }}
     entity={'components'}
     createSlot={

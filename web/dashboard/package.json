@@ -13,7 +13,8 @@
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
-    "@astrojs/mdx": "^2.2.0",
+    "@auth/drizzle-adapter": "^1.7.2",
+    "@azure/communication-email": "^1.0.0",
     "@azure/storage-blob": "^12.15.0",
     "@epic-web/remember": "^1.0.2",
     "@google-cloud/storage": "^7.11.2",
@@ -47,7 +48,7 @@
     "lucide-react": "^0.274.0",
     "newrelic": "^11.10.4",
     "next": "^14.2.13",
-    "next-auth": "5.0.0-beta.16",
+    "next-auth": "5.0.0-beta.25",
     "next-swagger-doc": "^0.4.0",
     "next-themes": "^0.2.1",
     "postgres": "3.3.5",

@@ -6,10 +6,10 @@ import { columns } from './columns';
 import { EnvironmentDialog } from '@/components/projects/environments-table/environment-dialog';
 
 export async function EnvironmentsList({id}: {id: string}) {
-  const session = await auth()
-  const environments = await getEnvironmentsByProject(id, session?.user?.id)
+  const session = await auth();
+  const role = session?.user?.role;
 
-
+  const environments = await getEnvironmentsByProject(id);
   if(!environments.success) {
     throw new Error('Users are not available.')
   }
@@ -18,7 +18,7 @@ export async function EnvironmentsList({id}: {id: string}) {
     columns={columns}
     meta={{
       projectId: id,
-      permissions: session?.permissions[id]
+      permissions: role !== 'admin' ? session?.permissions[id] : 'write'
     }}
     data={environments.data}
     entity={'members'}

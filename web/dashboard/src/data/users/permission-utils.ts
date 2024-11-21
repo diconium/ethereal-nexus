@@ -1,4 +1,4 @@
-const permissions = ['none', 'read', 'write'] as const;
+const permissions = ['none', 'read', 'write', 'manage'] as const;
 export type Permissions = typeof permissions[number]
 
 export function lowestPermission(left: Permissions, right: Permissions) {

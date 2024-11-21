@@ -34,21 +34,32 @@ import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import { members } from '@/data/member/schema';
 import { lowestPermission } from '@/data/users/permission-utils';
 import { auth, signIn, signOut } from '@/auth';
+import process from 'node:process';
+import { AuthError } from 'next-auth';
 
-type Providers = 'credentials' | 'github' | 'azure-ad';
+type Providers = 'credentials' | 'github' | 'microsoft-entra-id' | 'azure-communication-service';
 export async function login(provider: Providers, login?: UserLogin) {
-  return await signIn(
-    provider,
-    {
-      email: login?.email,
-      password: login?.password,
-      redirectTo: '/',
-    },
-    {
-      signin_type: 'login',
-    },
-  );
+  try {
+    await signIn(
+      provider,
+      {
+        email: login?.email,
+        identifier: login?.email,
+        password: login?.password,
+        redirectTo: '/',
+      },
+      {
+        signin_type: 'login',
+      },
+    );
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return actionError(error.message);
+    }
+    throw error;
+  }
 }
+
 
 export async function logout() {
   return await signOut();
@@ -134,6 +145,10 @@ export async function insertInvitedCredentialsUser(
 
   if(result.success){
     await deleteInvite(key);
+
+    if(process.env.COMMUNICATION_SERVICES_CONNECTION_STRING) {
+      await login('azure-communication-service', result.data);
+    }
   }
   
   return result;
@@ -183,6 +198,7 @@ export async function getUserById(userId?: string): ActionResponse<User> {
     return actionError('Failed to fetch user from database.');
   }
 }
+
 export async function getPublicUserById(
   userId?: string,
 ): ActionResponse<PublicUser> {
@@ -213,7 +229,7 @@ export async function getPublicUserById(
 
 export async function getUserByEmail(
   unsafeEmail: string | undefined | null,
-): ActionResponse<z.infer<typeof userSchema>> {
+): ActionResponse<User> {
   const safeEmail = userEmailSchema.safeParse({ email: unsafeEmail });
   if (!safeEmail.success) {
     return actionZodError('The email input is not valid.', safeEmail.error);
@@ -238,6 +254,41 @@ export async function getUserByEmail(
     return actionSuccess(safeUser.data);
   } catch {
     return actionError('Failed to fetch user from database.');
+  }
+}
+
+export async function deleteUser(
+  id: string,
+): ActionResponse<PublicUser> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
+  }
+  const role = session.user.role;
+
+  if (role !== 'admin') {
+    return actionError('Forbidden.');
+  }
+
+  try {
+    const deleted = await db
+      .delete(users)
+      .where(
+        eq(users.id, id)
+      )
+      .returning();
+
+    const safeDeleted = userPublicSchema.safeParse(deleted[0]);
+    if (!safeDeleted.success) {
+      return actionZodError(
+        "There's an issue with the API key record.",
+        safeDeleted.error,
+      );
+    }
+
+    return actionSuccess(safeDeleted.data);
+  } catch {
+    return actionError('Failed to delete user from database.');
   }
 }
 

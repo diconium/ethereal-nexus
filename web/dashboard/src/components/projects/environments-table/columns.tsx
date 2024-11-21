@@ -39,7 +39,7 @@ export const columns = [
       const { permissions } = table.options.meta;
 
       return <ActiveSwitch
-        disabled={permissions !== 'write'}
+        disabled={permissions === 'read'}
         key={row.original.id}
         environment={row.original}
         active={row.getValue("secure")}

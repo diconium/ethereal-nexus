@@ -25,8 +25,13 @@ const dialogSchema = dialog({
     tooltip: 'This is a person',
   }),
   anothermultifield: multifield({
+    itemLabelKey: 'title',
     label: 'Nested',
     children: object({
+      title: text({
+        label: 'Title',
+        placeholder: 'Title',
+      }),
       isadvanced: checkbox({
         label: 'Advanced',
         tooltip: 'Check this box to show advanced options',
@@ -216,7 +221,7 @@ export const EventExample: React.FC<Props> = ({
 
       <h2>Group</h2>
       <ul>
-        <li>image: {group.image}</li>
+        <li>image: {group.image.url}</li>
         <li>grouptitle: {group.grouptitle}</li>
         <li>isadvanced: {group.isadvanced}</li>
         <li>event: {group.event}</li>
@@ -230,7 +235,7 @@ export const EventExample: React.FC<Props> = ({
             <li>staticdropdownmultiple: {banner.staticdropdownmultiple}</li>
             <li>datasourcevalue: {banner.datasourcevalue}</li>
             <li>event: {banner.event}</li>
-            <li>image: {banner.image}</li>
+            <li>image: {banner.image.url}</li>
             <li>title: {banner.title}</li>
             <li>link: {banner.link}</li>
             <li><h4>Nested</h4>

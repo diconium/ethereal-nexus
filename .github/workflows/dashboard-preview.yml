@@ -24,6 +24,10 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: Log in to Azure
         uses: azure/login@v1
         with:
@@ -43,7 +47,10 @@ jobs:
           echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./web/dashboard/.env
           echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./web/dashboard/.env
           echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./web/dashboard/.env
+          echo "${{ secrets.COMMUNICATION_SERVICES_CONNECTION_STRING }}" >> ./web/dashboard/.env
+          echo "${{ secrets.AUTH_MICROSOFT_ENTRA }}" >> ./web/dashboard/.env
           echo "AZURE_CONTAINER_NAME=remote-components-aem-demo" >> ./web/dashboard/.env
+          echo "EMAIL_FROM=DoNotReply@c7a8ef4a-56f7-41de-b9ab-6754e39702ca.azurecomm.net" >> ./web/dashboard/.env
           echo "DRIZZLE_DATABASE_TYPE=neon" >> ./web/dashboard/.env
           echo "DRIZZLE_DATABASE_URL=${{ steps.create-branch.outputs.db_url }}?sslmode=require" >> ./web/dashboard/.env
           
@@ -51,7 +58,7 @@ jobs:
           
           corepack enable pnpm
           pnpm i --frozen-lockfile
-          pnpm --filter "@ethereal-nexus/dashboard" run push
+          pnpm --filter "@ethereal-nexus/dashboard" run db:push --force
 
       - name: Deploy Container App
         uses: azure/container-apps-deploy-action@v1

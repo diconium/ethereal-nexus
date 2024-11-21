@@ -1,8 +1,8 @@
 'use client';
 
 import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
-import { Badge } from '@/components/ui/badge';
 import { UserRoleSelect } from './user-role-select';
+import { UsersDataTableRowActions } from '@/components/user/table/data-table-row-actions';
 
 export const columns = [
   {
@@ -28,5 +28,13 @@ export const columns = [
     ),
     cell: ({ row }) => <UserRoleSelect value={row.original.role} userId={row.original.id} />,
     enableSorting: false
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => (
+      <div className="flex justify-end" >
+        <UsersDataTableRowActions user={row.original} />
+      </div>
+    ),
   },
 ];

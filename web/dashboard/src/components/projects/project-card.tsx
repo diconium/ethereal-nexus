@@ -3,15 +3,12 @@
 import React from 'react';
 import { type ProjectWithComponentId} from '@/data/projects/dto';
 
-type MembersLength = {
-  membersLength?: boolean,
+type ProjectCardProps = {
+  project: ProjectWithComponentId,
 }
 
-type ProjectCardProps = {
-  project: ProjectWithComponentId & MembersLength,
-}
 export function ProjectCard({ project }: ProjectCardProps) {
-  const { description, name , components, membersLength } = project;
+  const { description, name , components, members } = project;
 
   return (
     <div
@@ -28,12 +25,12 @@ export function ProjectCard({ project }: ProjectCardProps) {
             <p className="text-orange-500 text-base font-bold">{components.length}</p>
           </div>
           {
-            membersLength ? (
+            members ? (
               <>
                 <div className="border-r border-gray-200 h-10 dark:opacity-40"></div>
                 <div className="flex flex-col items-center">
                   <p className="text-xs">Project Members</p>
-                  <p className="text-base font-bold">{membersLength}</p>
+                  <p className="text-base font-bold">{members}</p>
                 </div>
               </>
             ) : null

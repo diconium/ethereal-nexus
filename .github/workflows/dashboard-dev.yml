@@ -1,4 +1,4 @@
-name: Build
+name: Deploy dev environment
 
 # When this action will be executed
 on:
@@ -21,6 +21,11 @@ jobs:
       - name: Checkout to the branch
         uses: actions/checkout@v2
 
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Azure Login
         uses: azure/login@v1
         with:
@@ -40,15 +45,21 @@ jobs:
           
       - name: 'Create env file'
         run: |
-          echo "${{ secrets.MONGODB_URI }}" >> ./web/dashboard/.env
           echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./web/dashboard/.env
           echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./web/dashboard/.env
-          echo "${{ secrets.PGHOST }}" >> ./web/dashboard/.env
-          echo "${{ secrets.PGUSER }}" >> ./web/dashboard/.env
-          echo "${{ secrets.PGPORT }}" >> ./web/dashboard/.env
-          echo "${{ secrets.PGPASSWORD }}" >> ./web/dashboard/.env
+          echo "${{ secrets.DRIZZLE_DATABASE_URL }}" >> ./web/dashboard/.env
           echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./web/dashboard/.env
-          echo "PGSSL=true" >> ./web/dashboard/.env
+          echo "${{ secrets.COMMUNICATION_SERVICES_CONNECTION_STRING }}" >> ./web/dashboard/.env
+          echo "EMAIL_FROM=DoNotReply@c7a8ef4a-56f7-41de-b9ab-6754e39702ca.azurecomm.net" >> ./web/dashboard/.env
+          echo "AUTH_ENFORCE_EMAIL_VERIFICATION=true" >> ./web/dashboard/.env
+
+      - name: 'Setup Database'
+        run: |
+          cd ./web/dashboard
+          
+          corepack enable pnpm
+          pnpm i --frozen-lockfile
+          pnpm --filter "@ethereal-nexus/dashboard" run db:push --force
 
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2

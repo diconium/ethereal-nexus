@@ -28,33 +28,32 @@ import {
   projectWithComponentIdSchema
 } from './dto';
 import * as console from 'console';
-import { and, desc, eq, getTableColumns, isNull, sql } from 'drizzle-orm';
+import { and, countDistinct, desc, eq, exists, getTableColumns, isNull, sql } from 'drizzle-orm';
 import { environments, projectComponentConfig, projects } from './schema';
 import { insertMembers, userIsMember } from '@/data/member/actions';
 import { componentAssets, components, componentVersions } from '@/data/components/schema';
 import { revalidatePath } from 'next/cache';
 import { Component, componentsSchema } from '@/data/components/dto';
 import { logEvent } from '@/lib/events/event-middleware';
+import { auth } from '@/auth';
+import { members } from '@/data/member/schema';
 
-export async function getProjects(
-  userId: string | undefined | null
-): ActionResponse<ProjectWithComponentId[]> {
-  if (!userId) {
+export async function getProjects(options?: { forceMember: boolean}): ActionResponse<ProjectWithComponentId[]> {
+  const { forceMember } = options || {};
+
+  const session = await auth()
+  if (!session?.user?.id) {
     return actionError('No user provided.');
   }
+  const role = session.user.role;
 
   try {
     const select = await db
       .select({
         ...getTableColumns(projects),
-        environments: sql`ARRAY_AGG
-            (jsonb_build_object('id', ${environments.id}, 'name', ${environments.name}))`,
-        components: sql`COALESCE
-        ( JSONB_AGG(
-            DISTINCT jsonb_build_object(
-            'component_id', ${projectComponentConfig.component_id}
-            )
-            ) FILTER (WHERE ${projectComponentConfig.is_active} = true), '[]')`
+        environments: sql`array_agg(distinct jsonb_build_object('id', ${environments.id}, 'name', ${environments.name}))`,
+        components: sql`coalesce(jsonb_agg(distinct jsonb_build_object('component_id', ${projectComponentConfig.component_id})) filter(where ${projectComponentConfig.is_active} = true), '[]')`,
+        members: countDistinct(members.user_id)
       })
       .from(projects)
       .leftJoin(
@@ -65,8 +64,16 @@ export async function getProjects(
         projectComponentConfig,
         eq(environments.id, projectComponentConfig.environment_id)
       )
-      .where(await userIsMember(userId))
-      .groupBy(projects.id);
+      .leftJoin(
+        members,
+        eq(members.resource, projects.id)
+      )
+      .where(
+        forceMember || role !== 'admin' ? await userIsMember(session.user.id) : undefined
+      )
+      .groupBy(
+        projects.id,
+      );
 
     const safe = z.array(projectWithComponentIdSchema).safeParse(select);
     if (!safe.success) {
@@ -85,11 +92,12 @@ export async function getProjects(
 
 export async function getEnvironmentsByProject(
   projectId: string,
-  userId: string | undefined | null
 ): ActionResponse<Environment[]> {
-  if (!userId) {
+  const session = await auth()
+  if (!session?.user?.id) {
     return actionError('No user provided.');
   }
+  const role = session.user.role;
 
   try {
     const select = await db
@@ -98,7 +106,7 @@ export async function getEnvironmentsByProject(
       .where(
         and(
           eq(environments.project_id, projectId),
-          await userIsMember(userId, environments.project_id)
+          role !== 'admin' ? await userIsMember(session.user.id, environments.project_id) : undefined
         )
       );
 
@@ -129,19 +137,19 @@ export async function getEnvironmentsById(
     const select = await db
       .select({
         ...getTableColumns(environments),
-        components: sql`COALESCE( 
-          jsonb_agg(
-            DISTINCT jsonb_build_object(
-              'id', ${components.id},
-              'name', ${components.name},
-              'title', ${components.title},
-              'config_id', ${projectComponentConfig.id},
-              'is_active', ${projectComponentConfig.is_active},
-              'version', ${componentVersions.version}
-            )
-          ) FILTER (WHERE ${components.id} IS NOT NULL),
-          '[]'::jsonb
-        )`
+        components: sql`COALESCE(
+                                    jsonb_agg(
+                                    DISTINCT jsonb_build_object(
+                                    'id', ${components.id},
+                                    'name', ${components.name},
+                                    'title', ${components.title},
+                                    'config_id', ${projectComponentConfig.id},
+                                    'is_active', ${projectComponentConfig.is_active},
+                                    'version', ${componentVersions.version}
+                                    )
+                                    ) FILTER (WHERE ${components.id} IS NOT NULL),
+                                    '[]'::jsonb
+                                )`
       })
       .from(environments)
       .leftJoin(
@@ -165,7 +173,7 @@ export async function getEnvironmentsById(
           await userIsMember(userId, environments.project_id)
         )
       )
-    
+
     const safe = environmentWithComponentsSchema.safeParse(select[0]);
     if (!safe.success) {
       return actionZodError(
@@ -183,14 +191,14 @@ export async function getEnvironmentsById(
 
 export async function getEnvironmentComponents(
   id: string | undefined | null,
-  userId: string | undefined | null
 ): ActionResponse<ProjectComponent[]> {
-  if (!id) {
-    return actionError('No identifier provided.');
+  const session = await auth()
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
   }
 
-  if (!userId) {
-    return actionError('No user provided.');
+  if (!id) {
+    return actionError('No identifier provided.');
   }
 
   const versions = db.select().from(componentVersions).as('versions');
@@ -246,14 +254,15 @@ export async function getEnvironmentComponents(
 
 export async function getComponentsNotInEnvironment(
   id: string | undefined | null,
-  userId: string | undefined | null
 ): ActionResponse<Component[]> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
+  }
+  const role = session.user.role;
+
   if (!id) {
     return actionError('No identifier provided.');
-  }
-
-  if (!userId) {
-    return actionError('No user provided.');
   }
 
   try {
@@ -273,7 +282,7 @@ export async function getComponentsNotInEnvironment(
         environments,
         and(
           eq(projectComponentConfig.environment_id, environments.id),
-          await userIsMember(userId, environments.project_id)
+          role !== 'admin' ? await userIsMember(session.user.id, environments.project_id) : undefined
         )
       )
       .where(
@@ -649,11 +658,12 @@ export async function deleteProject(
 
 export async function getProjectById(
   id: string,
-  userId: string | undefined | null
 ): ActionResponse<z.infer<typeof projectSchema>> {
-  if (!userId) {
+  const session = await auth()
+  if (!session?.user?.id) {
     return actionError('No user provided.');
   }
+  const role = session.user.role;
 
   if (!id) {
     return actionError('No identifier provided.');
@@ -666,7 +676,7 @@ export async function getProjectById(
       .where(
         and(
           eq(projects.id, id),
-          await userIsMember(userId)
+          role !== 'admin' ? await userIsMember(session.user.id) : undefined
         )
       )
       .limit(1);
@@ -792,11 +802,12 @@ export async function upsertComponentConfig(
 
 export async function upsertProject(
   project: ProjectInput,
-  userId: string | undefined | null
 ): ActionResponse<z.infer<typeof projectSchema>> {
-  if (!userId) {
+  const session = await auth()
+  if (!session?.user?.id) {
     return actionError('No user provided.');
   }
+
   const safeProject = projectInputSchema.safeParse(project);
   if (!safeProject.success) {
     return actionZodError('Failed to parse project´s input', safeProject.error);
@@ -823,7 +834,7 @@ export async function upsertProject(
 
     await logEvent({
       type: isUpdate ? 'project_updated' : 'project_created',
-      user_id: userId,
+      user_id: session.user.id,
       data: {},
       resource_id: result.data.id
     });
@@ -831,12 +842,12 @@ export async function upsertProject(
     if (!isUpdate) {
       const insertMember = await insertMembers([
         {
-          user_id: userId,
+          user_id: session.user.id,
           resource: result.data.id,
           role: 'owner',
           permissions: 'write'
         }
-      ], userId);
+      ]);
       if (!insertMember.success) {
         return actionError('Failed to create owner.');
       }
@@ -846,7 +857,7 @@ export async function upsertProject(
         description: `Default environment for the project ${result.data.name}`,
         project_id: result.data.id,
         secure: false
-      }, userId);
+      });
       if (!environment.success) {
         return actionError('Failed to create default environment.');
       }
@@ -862,9 +873,9 @@ export async function upsertProject(
 
 export async function upsertEnvironment(
   environment: EnvironmentInput,
-  userId: string | undefined | null
 ): ActionResponse<Environment> {
-  if (!userId) {
+  const session = await auth()
+  if (!session?.user?.id) {
     return actionError('No user provided.');
   }
 
@@ -912,17 +923,29 @@ export async function upsertEnvironment(
 export async function deleteComponentConfig(
   id: string,
   projectId: string,
-  userId: string | undefined | null
 ): ActionResponse<ProjectComponentConfig[]> {
-  if (!userId) {
+  const session = await auth()
+  if (!session?.user?.id) {
     return actionError('No user provided.');
   }
+  const role = session.user.role;
 
   try {
     const deleted = await db
       .delete(projectComponentConfig)
       .where(
-        eq(projectComponentConfig.id, id)
+        eq(projectComponentConfig.id, id),
+        exists(
+          db.select()
+            .from(environments)
+            .where(
+              and(
+                eq(environments.id, projectComponentConfig.environment_id),
+                eq(environments.project_id, projectId),
+                role !== 'admin' ? await userIsMember(session.user.id, environments.project_id) : undefined
+              )
+            )
+        )
       )
       .returning();
 
@@ -936,7 +959,7 @@ export async function deleteComponentConfig(
 
     await logEvent({
       type: 'project_component_removed',
-      user_id: userId,
+      user_id: session.user.id,
       data: { component_id: safe.data[0].component_id },
       resource_id: projectId
     });
@@ -952,11 +975,12 @@ export async function deleteComponentConfig(
 
 export async function deleteEnvironment(
   id: string,
-  userId: string | undefined | null
 ): ActionResponse<Environment[]> {
-  if (!userId) {
+  const session = await auth()
+  if (!session?.user?.id) {
     return actionError('No user provided.');
   }
+  const role = session.user.role;
 
   try {
     const deleted = await db
@@ -964,7 +988,7 @@ export async function deleteEnvironment(
       .where(
         and(
           eq(environments.id, id),
-          await userIsMember(userId, environments.project_id)
+          role !== 'admin' ? await userIsMember(session.user.id, environments.project_id) : undefined
         )
       )
       .returning();

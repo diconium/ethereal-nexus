@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 1.3.2
+
+### Patch Changes
+
+- ab6864b: fix: split assets from main query for getEnvironmentComponentConfig for performance
+
 ## 1.3.1
 
 ### Patch Changes

@@ -2,7 +2,7 @@ import { streamText } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 
-export async function POST(request) {
+export async function POST(request: Request) {
     const { messages } = await request.json();
 
     const response = await streamText({
@@ -21,7 +21,7 @@ export async function POST(request) {
             - Create a simple function without any parameters that returns a component, like function ComponentName() {...}
             - Use hardcoded values for any data or props
             - Implement proper accessibility attributes
-            - Use Tailwind CSS for styling
+            - Use Tailwind CSS for styling, and make sure every component that is returned to the user is styled 
             - Ensure the component is responsive
             - Use 'https://picsum.photos' to generate dummy placeholder images and each <img> tag should have an crossOrigin="anonymous" attribute
             - Include brief comments explaining complex logic
@@ -247,7 +247,7 @@ export async function POST(request) {
             `,
         tools: { // Record<string, tool>
             generateJSX: {
-                description: 'Generate JSX code for React components',
+                description: 'Generate/create/update JSX code for React components',
                 parameters: z.object({
                     componentName: z.string().describe('The name of the original React component'),
                     fileName: z.string().describe('The name of the file where the component will be saved'),

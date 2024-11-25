@@ -1,5 +1,6 @@
 import "./globals.css";
 import React from "react";
+import { ThemeProvider } from '@/components/theme-provider';
 
 export default async function RootLayout({
   children,
@@ -12,7 +13,9 @@ export default async function RootLayout({
     <head>
     </head>
     <body className="font-campton">
-    {children}
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      {children}
+    </ThemeProvider>
     </body>
     </html>;
 }

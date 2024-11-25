@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.5.0
+
+### Minor Changes
+
+- 1bea8ca: feat: adds item label key for multifield items.
+
 ## 1.4.0
 
 ### Minor Changes

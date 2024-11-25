@@ -1,5 +1,11 @@
 # @ethereal-nexus/cli
 
+## 1.0.1
+
+### Patch Changes
+
+- 1bea8ca: fix: added correct filter function for tar library
+
 ## 1.0.0
 
 ### Major Changes

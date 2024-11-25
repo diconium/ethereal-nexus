@@ -56,7 +56,6 @@
     "react-dom": "18.2.0",
     "react-hook-form": "^7.46.1",
     "react-markdown": "^9.0.1",
-    "react-spinners": "^0.13.8",
     "readable-stream": "^4.5.2",
     "semver": "^7.6.3",
     "sharp": "^0.33.3",

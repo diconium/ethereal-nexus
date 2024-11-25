@@ -1,7 +1,6 @@
 import React from 'react';
 import { SessionProvider } from 'next-auth/react';
 import { auth, signIn } from '@/auth';
-import { ThemeProvider } from '@/components/theme-provider';
 import DashboardLayout from '@/components/layout';
 
 export default async function SessionLayout({
@@ -16,12 +15,10 @@ export default async function SessionLayout({
   }
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <DashboardLayout>
-        <SessionProvider session={session}>
-          {children}
-        </SessionProvider>
-      </DashboardLayout>
-    </ThemeProvider>
+    <DashboardLayout>
+      <SessionProvider session={session}>
+        {children}
+      </SessionProvider>
+    </DashboardLayout>
   );
 }

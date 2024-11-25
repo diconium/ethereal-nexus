@@ -1,6 +1,7 @@
 import "./globals.css";
 import React from "react";
 import NewRelicSnippet from '@/components/newrelicSnippet';
+import { ThemeProvider } from '@/components/theme-provider';
 
 export default async function RootLayout({
   children,
@@ -15,7 +16,9 @@ export default async function RootLayout({
         <NewRelicSnippet/>
     </head>): null}
     <body className="font-campton">
-    {children}
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      {children}
+    </ThemeProvider>
     </body>
     </html>;
 }

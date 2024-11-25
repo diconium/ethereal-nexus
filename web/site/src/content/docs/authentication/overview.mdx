@@ -1,0 +1,62 @@
+---
+title: Overview
+description: Documentation for the authentication methods used in the ethereal nexus.
+sidebar:
+  order: 0
+---
+
+# Dashboard Authentication
+
+This section provides detailed documentation on the authentication methods used in the dashboard project. Each method is described separately with the corresponding environment variables and their explanations.
+
+## JWT Session
+
+Ethereal nexus uses JSON Web Tokens (JWT) to create the authentication sessions.
+
+When a user signs in, a JWT is created in an HttpOnly cookie. The JWT is encrypted with a secret key known only to the server and setup using the `NEXT_AUTH_SECRET` variable, making it secure even if stolen. The token has a short expiration time, enhancing security.
+
+When a user signs out, the JWT is deleted from the cookies, ending the session.
+
+## API Keys
+
+API keys are essential for integrating with third-party APIs or services, allowing you to authenticate as a specific user within Ethereal Nexus. These keys are generated on a per-user basis, similar to email and passwords, and are intended to represent a single user.
+
+For instance, if you have an external application or service that needs to perform protected actions within Ethereal Nexus, you must first create a user account, then you can generate an API key for that user account, which can be used to authenticate requests to the Ethereal Nexus API.
+
+These API keys are used on the CLI and on the CMS connectors, since these tools consume the API and this is their only authentication method.
+
+
+### Create an API Key
+
+To create an API key, navigate to your user page and follow the instructions to generate a new key.
+
+##### Navigate to Your User Page:
+  - Log in to the Ethereal Nexus dashboard.
+  - Click on your user profile or navigate to the user settings page.
+
+##### Access the API Keys Section:
+- On your user page, find and click on the "Api Keys" tab.
+
+##### Generate a New API Key:
+- Click the "Create Key" button.
+- Fill in the required details, such as the alias for the API key and the permissions you want to assign.
+- Select the projects you want to give permissions to with this API key.
+
+##### Save the API Key:
+- After filling in the details, click the "Continue" button.
+- The new API key will be generated and displayed. Make sure to copy and store it securely, as it will not be shown again.
+
+By following these steps, you can create and manage API keys for secure access to the Ethereal Nexus system.
+
+## Authentication Methods
+
+Ethereal Nexus supports various authentication methods to ensure secure access to the dashboard. Each method is designed to cater to different user preferences and security requirements.
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <LinkCard class="flex" title="Credentials" href="/ethereal-nexus/authentication/credentials/" description="Authenticate using user email and password managed internally by Ethereal Nexus." />
+  <LinkCard class="flex" title="Magic Link" href="/ethereal-nexus/authentication/magic-link/" description="Authenticate using a magic link sent to the user's email." />
+  <LinkCard class="flex" title="Microsoft Entra" href="/ethereal-nexus/authentication/microsoft-entra/" description="Authenticate using Microsoft Entra ID for secure access." />
+  <LinkCard class="flex" title="Github" href="/ethereal-nexus/authentication/github/" description="Authenticate using the user's GitHub account." />
+</CardGrid>

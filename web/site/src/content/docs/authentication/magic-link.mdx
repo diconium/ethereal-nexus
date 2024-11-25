@@ -1,0 +1,22 @@
+---
+title: Magic Link
+description: Documentation for the Magic Link method.
+sidebar:
+  order: 2
+  badge:
+    text: New
+    variant: tip
+---
+
+# Magic Link Authentication
+
+Magic Link authentication allows users to log in using a magic link sent to their email. The application uses the setup email tool to send the magic link.
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="tip">Currently this authentication method only supports Azure Communication Service. In the future further email server options will be added.</Aside>
+
+## Environment Variables
+
+- `COMMUNICATION_SERVICES_CONNECTION_STRING`: Connection string for Azure Communication Services.
+- `EMAIL_FROM`: Email address used for sending emails.

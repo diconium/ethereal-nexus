@@ -59,6 +59,16 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+  			sidebar: {
+  				DEFAULT: 'hsl(var(--sidebar-background))',
+  				foreground: 'hsl(var(--sidebar-foreground))',
+  				primary: 'hsl(var(--sidebar-primary))',
+  				'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+  				accent: 'hsl(var(--sidebar-accent))',
+  				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+  				border: 'hsl(var(--sidebar-border))',
+  				ring: 'hsl(var(--sidebar-ring))'
+  			}
       },
       borderRadius: {
         lg: `var(--radius)`,
@@ -78,24 +88,18 @@ module.exports = {
           to: { height: 0 },
         },
         meteor: {
-          "0%": { transform: "rotate(215deg) translateX(0)", opacity: "1" },
-          "70%": { opacity: "1" },
+          "0%": {
+            transform: "rotate(215deg) translateX(0)",
+            opacity: "1"
+          },
+          "70%": {
+            opacity: "1"
+          },
           "100%": {
             transform: "rotate(215deg) translateX(-500px)",
             opacity: "0",
           },
         },
-      },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-        "meteor-effect": "meteor 5s linear infinite",
-        "twinkle": "twinkle 1.5s infinite",
-        "bounce-gentle": "bounce-gentle 2s infinite",
-        "fade-in": "fade-in 0.5s ease-out",
-        "pulse": "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-      },
-      keyframes: {
         'bounce-gentle': {
           '0%, 100%': {
             transform: 'translateY(-5%)',
@@ -117,6 +121,15 @@ module.exports = {
             transform: 'scale(1.1) rotate(-5deg)',
           }
         },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        "meteor-effect": "meteor 5s linear infinite",
+        "twinkle": "twinkle 1.5s infinite",
+        "bounce-gentle": "bounce-gentle 2s infinite",
+        "fade-in": "fade-in 0.5s ease-out",
+        "pulse": "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       gridTemplateColumns: {
         'hero': '1fr 1.2fr',

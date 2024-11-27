@@ -11,7 +11,7 @@ interface ChatMessagesDisplayerProps {
     lastElementRef: MutableRefObject<HTMLDivElement | null>;
     handleGenerateEtherealNexusStructuredFile: (result: ToolCallingResult) => Promise<void>;
     downloadEtherealNexusFile: (result: ToolCallingResult) => Promise<void>;
-    handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: "generateJSX" | "generateEtherealNexusJSX") => void;
+    handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: "generateJSX" | "generateEtherealNexusJSX" | "updateJSX") => void;
 }
 
 export function ChatMessagesDisplayer({ messages, isLoading, handleGenerateEtherealNexusStructuredFile, downloadEtherealNexusFile, handleOnComponentCardClick, lastElementRef } : ChatMessagesDisplayerProps) {

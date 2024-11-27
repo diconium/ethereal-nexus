@@ -17,7 +17,7 @@ export const ComponentDetailsContainer = ({ isPreviewLoading, previewUrl } : Com
     const { currentMessage } = useContext(ChatContext);
 
     const tabs = [
-        { id: 'preview', label: 'Preview', icon: Eye, visible: currentMessage?.type === "generateJSX"},
+        { id: 'preview', label: 'Preview', icon: Eye, visible: currentMessage?.type === "generateJSX" || currentMessage?.type === "updateJSX"},
         { id: 'code', label: currentMessage?.fileName || "Code", icon: FileText, visible: true },
     ];
 

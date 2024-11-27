@@ -145,8 +145,8 @@ export default function Chat() {
 
     useEffect(() => {
         const bootWebContainer = async () => {
-            // only boots the webcontainer when the first message is received
-            if (messages.length === 1 && !isWebContainerBooted) {
+            // loads the web container when the chat is being loaded
+            if (messages.length === 0 && !isWebContainerBooted) {
                 setIsPreviewLoading(true);
                 setOutput('Starting WebContainer...');
                 try {
@@ -184,13 +184,14 @@ export default function Chat() {
         if (lastReceivedMessage && lastReceivedMessage.role !== 'user') {
             lastReceivedMessage.toolInvocations?.map(toolInvocation => {
                 const { toolName, args } = toolInvocation;
-                if (toolName === "generateJSX" || toolName === "generateEtherealNexusJSX") {
+                if (toolName === "generateJSX" || toolName === "updateJSX" || toolName === "generateEtherealNexusJSX") {
                     setCurrentMessage({
                         id: lastReceivedMessage.id as string,
                         componentName: args.componentName as string,
                         fileName: args.fileName as string,
                         generatedCode: args.code as string,
-                        type: toolName as "generateJSX" | "generateEtherealNexusJSX",
+                        version: args.version ? args.version : undefined,
+                        type: toolName as "generateJSX" | "generateEtherealNexusJSX" | "updateJSX",
                     });
                     scrollToBottom();
                     setIsComponentDetailsContainerOpen(true);
@@ -202,7 +203,7 @@ export default function Chat() {
     const handleGenerateEtherealNexusStructuredFile = async (result: ToolCallingResult) => {
         await append({
             role: 'user',
-            content: `Generate me the Modified Component file for the previously created ${result.fileName} file. ///File code: ${result.code}.`,
+            content: `Generate me ethereal nexus structured file for the previously created ${result.fileName} file. ///File code: ${result.code}.`,
             name: NEW_MESSAGE_NAME,
         });
     };
@@ -224,7 +225,7 @@ export default function Chat() {
         window.URL.revokeObjectURL(url);
     };
 
-    const handleOnComponentCardClick = (messageId: string, result: ToolCallingResult, toolName: "generateJSX" | "generateEtherealNexusJSX") => {
+    const handleOnComponentCardClick = (messageId: string, result: ToolCallingResult, toolName: "generateJSX" | "generateEtherealNexusJSX" | "updateJSX") => {
         if (currentMessage?.id === messageId) {
             setCurrentMessage(undefined);
             setIsComponentDetailsContainerOpen(false);
@@ -247,6 +248,11 @@ export default function Chat() {
             e.preventDefault();
             handleSubmit();
         }
+    };
+
+    const closeComponentDetailsContainer = () => {
+        setCurrentMessage(undefined);
+        setIsComponentDetailsContainerOpen(false);
     };
 
     return (
@@ -286,7 +292,7 @@ export default function Chat() {
                     <Button
                         variant="ghost"
                         className="absolute top-2 right-2 z-10 p-1 h-8 w-8 rounded-full bg-white shadow-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        onClick={() => setIsComponentDetailsContainerOpen(false)}
+                        onClick={closeComponentDetailsContainer}
                     >
                         <X className="h-4 w-4" />
                     </Button>

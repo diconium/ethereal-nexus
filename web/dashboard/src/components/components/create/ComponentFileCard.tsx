@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useContext } from 'react';
-import { FileIcon, GitBranchIcon } from "lucide-react";
+import {FileIcon, GitBranchIcon, TagIcon} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -13,36 +13,48 @@ interface EtherealNexusFileCardProps {
     fileName: string,
     handleClick: () => void,
     isModified: boolean,
+    version?: number,
 }
 
-export function ComponentFileCard({ id, fileName, componentName, handleClick, isModified }: EtherealNexusFileCardProps) {
+export function ComponentFileCard({ id, fileName, componentName, handleClick, isModified, version }: EtherealNexusFileCardProps) {
     const { currentMessage } = useContext(ChatContext);
     const isSelected = currentMessage?.id === id;
 
     return (
-        <Card className={`w-full max-w-md hover:shadow-lg transition-shadow duration-300 cursor-pointer ${isSelected ? 'border-2 border-orange-500' : 'border-l-2 border-l-orange-500'}`}>
-            <Button variant="ghost" className="w-full h-full p-0 justify-start rounded-xl" onClick={handleClick}>
-                <CardHeader className="flex flex-row items-center space-x-4 p-6">
-                    <div className="relative">
-                        <FileIcon className="w-8 h-8" />
-                        {
-                            isModified && <GitBranchIcon className="w-4 h-4 text-orange-500 absolute -top-1 -right-1" />
-                        }
-                    </div>
-                    <div className="flex-1 text-left">
-                        <div className="flex items-center space-x-2">
-                            <CardTitle className="text-xl font-semibold">{componentName}</CardTitle>
+        <div
+            className={`bg-background rounded-md p-4 hover:shadow-md transition-all duration-300 cursor-pointer
+                        ${isSelected
+                ? 'border-2 border-orange-500 shadow-md ring-2 ring-orange-300'
+                : 'hover:border-orange-400'}`}
+            onClick={handleClick}
+        >
+            <div className="flex items-start space-x-3">
+                <div className="relative flex-shrink-0">
+                    <FileIcon className="w-6 h-6" />
+                    <GitBranchIcon className="w-4 h-4 text-orange-500 absolute -top-1 -right-1" />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-start gap-2 mb-1">
+                        <h3 className="text-sm font-semibold break-all">{componentName}</h3>
+                        <div className="flex flex-wrap gap-1">
                             {
                                 isModified &&
                                 <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">
                                     Ethereal Nexus File
                                 </Badge>
                             }
+                            {
+                                version &&
+                                    <Badge variant="secondary" className="text-xs">
+                                        <TagIcon className="w-3 h-3 mr-1" />
+                                        v{version}
+                                    </Badge>
+                            }
                         </div>
-                        <CardDescription className="text-sm text-muted-foreground">{fileName}</CardDescription>
                     </div>
-                </CardHeader>
-            </Button>
-        </Card>
-    )
+                    <p className="text-xs text-muted-foreground break-all">{fileName}</p>
+                </div>
+            </div>
+        </div>
+    );
 }

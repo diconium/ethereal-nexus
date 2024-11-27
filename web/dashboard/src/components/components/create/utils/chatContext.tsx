@@ -7,7 +7,8 @@ export interface GeneratedComponentMessage {
     componentName: string;
     fileName: string;
     generatedCode: string;
-    type: "generateJSX" | "generateEtherealNexusJSX";
+    type: "generateJSX" | "generateEtherealNexusJSX" | "updateJSX";
+    version?: number;
 };
 
 interface ChatContextType {

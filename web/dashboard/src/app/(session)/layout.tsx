@@ -5,13 +5,11 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/ui/sidebar/app-sidebar';
 import { Toaster } from '@/components/ui/toaster';
 
-
 const navigation = [
   {
     title: 'Dashboard',
     url: '/',
     icon: "LayoutDashboard",
-    isActive: true
   },
   {
     title: 'Projects',
@@ -33,7 +31,6 @@ const navigation = [
 
 export default async function SessionLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
-
   if (!session?.user) {
     return await signIn();
   }
@@ -45,7 +42,7 @@ export default async function SessionLayout({ children }: { children: React.Reac
       }
 
       return session.user?.role === item.role;
-    });
+    })
 
   return (
     <SidebarProvider>

@@ -13,7 +13,7 @@ interface GeneratedMessageProps {
     toolInvocation: any;
     handleGenerateEtherealNexusStructuredFile: (result: ToolCallingResult) => Promise<void>
     downloadEtherealNexusFile: (result: ToolCallingResult) => Promise<void>;
-    handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: "generateJSX" | "generateEtherealNexusJSX") => void;
+    handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: "generateJSX" | "generateEtherealNexusJSX" | "updateJSX") => void;
 }
 
 export function AssistantGeneratedMessageCard({ messageId, toolInvocation, handleGenerateEtherealNexusStructuredFile, downloadEtherealNexusFile, handleOnComponentCardClick }: GeneratedMessageProps) {
@@ -25,7 +25,7 @@ export function AssistantGeneratedMessageCard({ messageId, toolInvocation, handl
     });
 
     const onCardClick = () => {
-        handleOnComponentCardClick(messageId, result, isModified ? "generateEtherealNexusJSX" : "generateJSX");
+        handleOnComponentCardClick(messageId, result, toolName);
     };
 
     const handleFooterActionClick = () => {
@@ -39,17 +39,18 @@ export function AssistantGeneratedMessageCard({ messageId, toolInvocation, handl
 
     return (
         <Card className="w-full max-w-2xl mb-4 rounded-lg">
-            <CardContent className="p-6 space-y-4">
+            <CardContent className="p-4 space-y-4">
                 <p className="text-sm text-muted-foreground">{result.description}</p>
                 <ComponentFileCard
                     id={messageId}
                     isModified={isModified}
                     fileName={result.fileName}
+                    version={result.version}
                     componentName={result.componentName}
                     handleClick={onCardClick} />
             </CardContent>
-            <CardFooter className="justify-between items-center">
-                <Button variant="text" className="text-orange-500 font-bold text-base p-0" onClick={handleFooterActionClick} disabled={!isModified && isLoadingNewMessage}>
+            <CardFooter className="justify-between items-center p-4">
+                <Button variant="text" className="text-orange-500 text-xs font-bold p-0" onClick={handleFooterActionClick} disabled={!isModified && isLoadingNewMessage}>
                     {
                         !isModified ?
                             <><SendIcon className="mr-2 h-4 w-4" />Generate Ethereal Nexus Structured File</> :

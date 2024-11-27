@@ -13,11 +13,11 @@ export async function POST(request: Request) {
             You are an expert React developer specializing in creating accessible, responsive, and modern UI components. 
             You will get descriptions of components by the user and you will generate React components based on the user descriptions/requests.
             You should handle two types of requests:
-                - The first one is generatation of JSX based on the user description, for that you should call the 'generateJSX' action that is described on the Original Component Creation step. 
-                - The other one is the generation of a modified version of the created JSX, for that you should call the 'generateEtherealNexusJSX' action that is described on the Modified Component Creation step.
+                - The first one is generatation of JSX based on the user description, for that you should call the 'generateJSX' action that is described on the Original Component Creation step or the 'updateJSX' for the cases of updates on components. 
+                - The other one is the generation of an ethereal nexus component version of the created JSX, for that you should call the 'generateEtherealNexusJSX' action that is described on the Ethereal Nexus Component Creation step.
 
             1. Original Component Creation:
-            When the user asks for a new component or UI creation, follow these steps:
+            When the user asks for a new component/UI creation or an update to previous created component, follow these steps:
             - Create a simple function without any parameters that returns a component, like function ComponentName() {...}
             - Use hardcoded values for any data or props
             - Implement proper accessibility attributes
@@ -29,9 +29,16 @@ export async function POST(request: Request) {
             - For sections that render HTML content, use a div with dangerouslySetInnerHTML
             - Provide an export named 'default'
             - IMPORTANT: Once you have completed writing the original component, IMMEDIATELY call the 'generateJSX' action with the component name the JSX code and the file name.
+            - IMPORTANT: Every created component will have a version, if the component is being created for the first time the version should be 1 and then the version should be incremented every time the user asks for a component update.
 
-            2. Modified Component Creation:
-            When the user asks to create a modified file from a previously created component, follow these steps:
+                1.1. Original Component Update:
+                When the user asks for updates to a previously generated component, follow these steps:
+                - Use exactly the same logic described above for creating a new component but increment the version number by 1 on each component update.
+                - IMPORTANT: Once you have completed writing the updated component, IMMEDIATELY call the 'updateJSX' action with the component name the JSX code and the file name.
+                - IMPORTANT: The user can ask for updates to an, already updated, component, in this case, you should increment the version number by 1 from the last updated version.
+            
+            2. Ethereal Nexus Component Creation:
+            When the user asks to create an ethereal nexus structured file from a previously created or updated component, follow these steps:
             - Start with the original component
             - Include all necessary imports at the top of the file
             - ONLY convert values to props if they are EXPLICITLY identified as updatable or customizable. Static values, like placeholders, should remain hardcoded.
@@ -243,28 +250,42 @@ export async function POST(request: Request) {
             Ensure both files are complete, standalone components with all necessary code.
             Do not use placeholders or incomplete code sections. Write out all code in full, even if repeating from previous examples.
             
-            IMPORTANT: Only call 'generateJSX' when creating a new component, and only call 'generateEtherealNexusJSX' when modifying an existing component. Never call both actions for the same request.
+            IMPORTANT: Only call 'generateJSX' when creating a new component or 'updateJSX' when the user asks for updates to a previously generated component, and only call 'generateEtherealNexusJSX' when the user asks for a component with the ethereal nexus structure from an existing component. Never call both actions for the same request.
             `,
         tools: { // Record<string, tool>
             generateJSX: {
-                description: 'Generate/create/update JSX code for React components',
+                description: 'Generate/create JSX code for React components',
                 parameters: z.object({
                     componentName: z.string().describe('The name of the original React component'),
                     fileName: z.string().describe('The name of the file where the component will be saved'),
                     code: z.string().describe('The JSX code for the original component'),
-                    description: z.string().describe('A brief description of the component'),
+                    description: z.string().describe('A detailed description of the component that was created'),
+                    version: z.number().describe('The version of the component'),
                 }),
-                execute: async function ({ code, componentName, fileName, description }) {
-                    return { code, componentName, fileName, description };
+                execute: async function ({ code, componentName, fileName, description, version }) {
+                    return { code, componentName, fileName, description, version };
+                },
+            },
+            updateJSX: {
+                description: 'Update JSX code for already created React components',
+                parameters: z.object({
+                    componentName: z.string().describe('The updated name of the React component'),
+                    fileName: z.string().describe('The updated of the file where the component will be saved'),
+                    code: z.string().describe('The updated JSX code for the original component'),
+                    description: z.string().describe('A detailed description of the component that was created'),
+                    version: z.number().describe('The version of the component'),
+                }),
+                execute: async function ({ code, componentName, fileName, description, version }) {
+                    return { code, componentName, fileName, description, version };
                 },
             },
             generateEtherealNexusJSX: {
-                description: 'Generate/update JSX code for the modified React component',
+                description: 'Generate/update JSX code, with the ethereal nexus structure, to create a React component',
                 parameters: z.object({
                     componentName: z.string().describe('The name of the new generated React component'),
-                    description: z.string().describe('A brief description of the component'),
+                    description: z.string().describe('A detailed description of the component'),
                     fileName: z.string().describe('The name of the file where the component will be saved'),
-                    code: z.string().describe('The JSX code for the modified component')
+                    code: z.string().describe('The JSX code for the modified component'),
                 }),
                 execute: async function ({ code, componentName, fileName, description }) {
                     return { code, componentName, fileName, description };

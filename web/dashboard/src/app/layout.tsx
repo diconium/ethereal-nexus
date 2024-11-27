@@ -3,22 +3,21 @@ import React from "react";
 import NewRelicSnippet from '@/components/newrelicSnippet';
 import { ThemeProvider } from '@/components/theme-provider';
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-    const env = process.env.NODE_ENV
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const env = process.env.NODE_ENV
 
-  return <html lang="en" suppressHydrationWarning>
-    { env == "production" ? (
-    <head>
+  return <html lang="en" suppressHydrationWarning={true} >
+    { env === "production" ?
+      <head>
         <NewRelicSnippet/>
-    </head>): null}
+        <title>Ethereal Nexus</title>
+      </head> :
+      null
+    }
     <body className="font-campton">
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-      {children}
-    </ThemeProvider>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        {children}
+      </ThemeProvider>
     </body>
-    </html>;
+  </html>;
 }

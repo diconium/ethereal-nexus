@@ -15,7 +15,7 @@ type AppSidebarProps = {
 export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
   return (
     <Sidebar {...props}>
-      <SidebarHeader className="p-8 text-white">
+      <SidebarHeader className="p-8 dark:text-white">
         <Link href="/" className="mx-auto w-full h-full" >
           <LogoImage fill="currentColor"/>
         </Link>

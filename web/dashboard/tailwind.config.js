@@ -26,6 +26,11 @@ module.exports = {
   	},
   	extend: {
   		colors: {
+				'orange-120': 'hsla(20, 100%, 41%, 1)',
+				'orange-80': 'hsla(19, 94%, 58%, 1)',
+				'orange-60': 'hsla(19, 85%, 65%, 1)',
+				'orange-40': 'hsla(19, 73%, 73%, 1)',
+				'orange-10': 'hsla(19, 80%, 92%, 1)',
 				'black-90': 'hsla(0, 0%, 10%, 1)',
 				'black-80': 'hsla(0, 0%, 18%, 1)',
 				'black-60': 'hsla(0, 0%, 35%, 1)',

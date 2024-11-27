@@ -1,6 +1,6 @@
 'use client';
 
-import { MoonIcon, Settings, SunIcon, UserRound } from 'lucide-react';
+import { Check, LogOut, MoonIcon, Settings, SunIcon, UserRound } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,18 +11,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import Link from 'next/link';
-import { UserNavLogout } from '@/components/user/user-nav-logout';
 import { User } from 'next-auth';
-import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
+import { signOutAction } from '@/auth/actions/signOutAction';
 
 type NavUserProps = {
   user: User;
 }
 
 export function NavUser({ user }: NavUserProps) {
-  const { isMobile } = useSidebar()
-  const { setTheme } = useTheme();
+  const { isMobile } = useSidebar();
+  const { setTheme, theme, themes } = useTheme();
 
   return (
     <SidebarMenu className="gap-4">
@@ -31,7 +30,7 @@ export function NavUser({ user }: NavUserProps) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="h-14 rounded-xl data-[state=open]:bg-orange-500 w-fit"
+              className="h-14 rounded-xl w-fit"
             >
               <span className="p-2 rounded-xl bg-black-10 text-purple">
                 <SunIcon className="absolute scale-100 transition-all dark:scale-0" />
@@ -41,21 +40,43 @@ export function NavUser({ user }: NavUserProps) {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-40 p-3 rounded-xl bg-black-80 border-black-60"
-            side={isMobile ? "bottom" : "right"}
+            className="relative w-40 p-3 ml-3 overflow-visible"
+            side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
+            <span className="absolute bottom-4 -left-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="20" fill="none">
+                <g clip-path="url(#a)">
+                  <path fill="#2D2D2D" stroke="#595959" d="M16 18.6603 1 10l15-8.66026V18.6603Z" />
+                  <g shape-rendering="crispEdges">
+                    <rect width="2" height="30" x="15" y="-5" fill="#2D2D2D" rx="8" />
+                    <rect width="2" height="30" x="15.5" y="-5" stroke="#595959" rx="7.5" />
+                  </g>
+                  <path fill="#2D2D2D" d="m15 2.51557 1-.71577v16.2275l-1-.5117V2.51557Z" />
+                </g>
+                <defs>
+                  <clipPath id="a">
+                    <path fill="#fff" d="M-192-920h1440V104H-192z" />
+                  </clipPath>
+                </defs>
+              </svg>
+            </span>
             <DropdownMenuGroup className="flex flex-col gap-3">
-              <DropdownMenuItem onClick={() => setTheme("light")}>
-                Light
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("dark")}>
-                Dark
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("system")}>
-                System
-              </DropdownMenuItem>
+              {
+                themes.map(themeName => (
+                  <DropdownMenuItem
+                    key={themeName}
+                    className="flex justify-between"
+                    onClick={() => setTheme(themeName)}
+                  >
+                    <span className={theme === themeName ? 'text-orange-40' : undefined}>
+                      {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
+                    </span>
+                    {theme === themeName ?
+                      <Check width={16} height={16} className="text-orange-40" color="currentColor" /> : null}
+                  </DropdownMenuItem>))
+              }
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -65,41 +86,65 @@ export function NavUser({ user }: NavUserProps) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="h-14 flex rounded-xl data-[state=open]:bg-orange-500"
+              className="h-14 flex rounded-xl data-[state=open]:text-orange-40"
             >
-                <span className="p-2 rounded-xl bg-orange-700">
-                  <UserRound />
+                <span className="p-2 rounded-xl bg-orange-120">
+                  <UserRound className="text-white" />
                 </span>
               <span>{user.name}</span>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-40 p-3 rounded-xl bg-black-80 border-black-60"
-            side={isMobile ? "bottom" : "right"}
+            className="relative w-40 p-3 ml-3 overflow-visible"
+            side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
+             <span className="absolute bottom-4 -left-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="20" fill="none">
+                <g clip-path="url(#a)">
+                  <path fill="#2D2D2D" stroke="#595959" d="M16 18.6603 1 10l15-8.66026V18.6603Z" />
+                  <g shape-rendering="crispEdges">
+                    <rect width="2" height="30" x="15" y="-5" fill="#2D2D2D" rx="8" />
+                    <rect width="2" height="30" x="15.5" y="-5" stroke="#595959" rx="7.5" />
+                  </g>
+                  <path fill="#2D2D2D" d="m15 2.51557 1-.71577v16.2275l-1-.5117V2.51557Z" />
+                </g>
+                <defs>
+                  <clipPath id="a">
+                    <path fill="#fff" d="M-192-920h1440V104H-192z" />
+                  </clipPath>
+                </defs>
+              </svg>
+            </span>
             <DropdownMenuGroup className="flex flex-col gap-3">
-              <Link href={`/users/${user.id}?tab=profile`} >
-                <DropdownMenuItem className="flex gap-2 items-center">
+              <DropdownMenuItem asChild className="flex gap-2 items-center">
+                <Link href={`/users/${user.id}?tab=profile`}>
                   <UserRound width={16} height={16} />
                   Profile
-                </DropdownMenuItem>
-              </Link>
-              <Link href={`/users/${user.id}?tab=keys`} >
-                <DropdownMenuItem className="flex gap-2 items-center">
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="flex gap-2 items-center">
+                <Link href={`/users/${user.id}?tab=keys`}>
                   <Settings width={16} height={16} />
                   Settings
-                </DropdownMenuItem>
-              </Link>
+                </Link>
+              </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator className="my-3 mx-0 bg-black-60"/>
+            <DropdownMenuSeparator className="my-3 mx-0 bg-black-60" />
             <DropdownMenuGroup>
-              <UserNavLogout />
+              <DropdownMenuItem
+                className="flex gap-2 items-center"
+                onClick={async () => {
+                  await signOutAction()
+                }}>
+                <LogOut width={16} height={16} />
+                Log out
+              </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

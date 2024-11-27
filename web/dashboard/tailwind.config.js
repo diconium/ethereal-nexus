@@ -26,6 +26,11 @@ module.exports = {
   	},
   	extend: {
   		colors: {
+				'black-90': 'hsla(0, 0%, 10%, 1)',
+				'black-80': 'hsla(0, 0%, 18%, 1)',
+				'black-60': 'hsla(0, 0%, 35%, 1)',
+				'black-10': 'hsla(0, 0%, 91%, 1)',
+				'purple': 'hsla(264, 23%, 33%, 1)',
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
@@ -116,7 +121,10 @@ module.exports = {
   		},
   		gridTemplateColumns: {
   			hero: '1fr 1.2fr'
-  		}
+  		},
+			boxShadow: {
+				'nexus': '10px 0px 4px 0px rgba(0, 0, 0, 0.15)',
+			}
   	}
   },
   plugins: [require("tailwindcss-animate")],

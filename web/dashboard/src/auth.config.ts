@@ -116,6 +116,7 @@ export const authConfig = {
       issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER,
     }),
     Azure({
+      connectionString: process.env.COMMUNICATION_SERVICES_CONNECTION_STRING,
       from: process.env.EMAIL_FROM,
     }),
   ],

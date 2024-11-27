@@ -42,24 +42,20 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: docker19diconium/remote-components
-          
+
       - name: 'Create env file'
         run: |
-          echo "${{ secrets.AZURE_BLOB_STORAGE_ACCOUNT }}" >> ./web/dashboard/.env
-          echo "${{ secrets.AZURE_BLOB_STORAGE_SECRET }}" >> ./web/dashboard/.env
-          echo "${{ secrets.DRIZZLE_DATABASE_URL }}" >> ./web/dashboard/.env
-          echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./web/dashboard/.env
-          echo "${{ secrets.COMMUNICATION_SERVICES_CONNECTION_STRING }}" >> ./web/dashboard/.env
-          echo "EMAIL_FROM=DoNotReply@c7a8ef4a-56f7-41de-b9ab-6754e39702ca.azurecomm.net" >> ./web/dashboard/.env
-          echo "AUTH_ENFORCE_EMAIL_VERIFICATION=true" >> ./web/dashboard/.env
+
 
       - name: 'Setup Database'
+        working-directory: ./web/dashboard
         run: |
-          cd ./web/dashboard
-          
+          echo "${{ secrets.NEXT_AUTH_SECRET }}" >> .env
+          echo "${{ secrets.DRIZZLE_DATABASE_URL }}" >> .env
           corepack enable pnpm
           pnpm i --frozen-lockfile
           pnpm --filter "@ethereal-nexus/dashboard" run db:push --force
+          sed -i '/^DRIZZLE_DATABASE_URL/d' .env
 
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2

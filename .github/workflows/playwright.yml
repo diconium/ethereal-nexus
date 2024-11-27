@@ -14,6 +14,9 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     environment: development
+    container:
+      image: mcr.microsoft.com/playwright:v1.48.2-noble
+      options: --user 1001
     steps:
       - name: Checkout to the branch
         uses: actions/checkout@v2
@@ -30,7 +33,6 @@ jobs:
 
           corepack enable pnpm
           pnpm i --frozen-lockfile
-          pnpm exec playwright install --with-deps
 
       - name: Run Playwright tests
         working-directory: ${{ env.TEST_PATH }}

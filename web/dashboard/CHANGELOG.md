@@ -1,5 +1,20 @@
 # @ethereal-nexus/dashboard
 
+## 1.4.0
+
+### Minor Changes
+
+- 1bea8ca: feat: it is now possible to remove members from projects if you have the appropriate permissions
+- 1bea8ca: feat: add delete user action to user table
+- 1bea8ca: feat: add new AUTH_CREDENTIALS_LOGIN to allow or disallow credentials authentication
+- 1bea8ca: feat: admin users are now able to manage projects even if not a member
+- 1bea8ca: feat: add magic link via azure communication service as a login option
+
+### Patch Changes
+
+- 1bea8ca: chore: update azure sso adapter to microsoft-entra-id
+- 1bea8ca: fix: several permission errors for view only users were fixed
+
 ## 1.3.2
 
 ### Patch Changes

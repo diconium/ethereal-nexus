@@ -2,7 +2,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import tailwind from '@astrojs/tailwind';
 
-import react from "@astrojs/react";
+import react from '@astrojs/react';
 
 // https://astro.build/config
 export default defineConfig({
@@ -17,27 +17,39 @@ export default defineConfig({
     social: {
       github: 'https://github.com/diconium/ethereal-nexus'
     },
-    sidebar: [{
-      label: 'Getting Started',
-      autogenerate: {
-        directory: 'setup'
-      }
-    }, {
-      label: 'Connectors',
-      autogenerate: {
-        directory: 'connectors'
-      }
-    }, {
-      label: 'Dashboard',
-      autogenerate: {
-        directory: 'dashboard'
-      }
-    }, {
-      label: 'Reference',
-      autogenerate: {
-        directory: 'reference'
-      }
-    }],
+    sidebar: [
+      {
+        label: 'Getting Started',
+        autogenerate: {
+          directory: 'setup'
+        }
+      },
+      {
+        label: 'Authentication',
+        autogenerate: {
+          directory: 'authentication'
+        },
+        badge: {
+          text: 'New',
+          variant: 'tip'
+        }
+      },
+      {
+        label: 'Connectors',
+        autogenerate: {
+          directory: 'connectors'
+        }
+      }, {
+        label: 'Dashboard',
+        autogenerate: {
+          directory: 'dashboard'
+        }
+      }, {
+        label: 'Reference',
+        autogenerate: {
+          directory: 'reference'
+        }
+      }],
     customCss: ['./src/tailwind.css']
   }), tailwind({
     applyBaseStyles: false

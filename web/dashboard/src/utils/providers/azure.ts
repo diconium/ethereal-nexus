@@ -1,37 +1,42 @@
-import type { EmailUserConfig, EmailConfig } from 'next-auth/providers';
+import type { EmailConfig, EmailUserConfig } from 'next-auth/providers';
 import { EmailClient } from '@azure/communication-email';
 
-const connectionString = process.env.COMMUNICATION_SERVICES_CONNECTION_STRING;
-const client = new EmailClient(connectionString!);
 
 /** @todo Document this */
-export default function Azure(config: EmailUserConfig): EmailConfig {
+export default function Azure(config: EmailUserConfig & { connectionString: string | undefined }): EmailConfig {
+  let client: EmailClient;
+  if (config.connectionString && config.connectionString !== '') {
+    client = new EmailClient(config.connectionString);
+  }
+
   return {
-    id: "azure-communication-service",
-    type: "email",
-    name: "Azure",
+    id: 'azure-communication-service',
+    type: 'email',
+    name: 'Azure',
     maxAge: 24 * 60 * 60,
     async sendVerificationRequest(params) {
-      const { identifier: to, provider, url, theme } = params
-      const { host } = new URL(url)
 
-      const escapedHost = host.replace(/\./g, "&#8203;.")
 
-      const brandColor = theme.brandColor || "#346df1"
+      const { identifier: to, provider, url, theme } = params;
+      const { host } = new URL(url);
 
-      const buttonText = theme.buttonText || "#fff"
+      const escapedHost = host.replace(/\./g, '&#8203;.');
+
+      const brandColor = theme.brandColor || '#346df1';
+
+      const buttonText = theme.buttonText || '#fff';
 
       const color = {
-        background: "#f9f9f9",
-        text: "#444",
-        mainBackground: "#fff",
+        background: '#f9f9f9',
+        text: '#444',
+        mainBackground: '#fff',
         buttonBackground: brandColor,
         buttonBorder: brandColor,
-        buttonText,
-      }
+        buttonText
+      };
 
-      if(!provider.from) {
-        throw new Error("Azure error: no from address found")
+      if (!provider.from) {
+        throw new Error('Azure error: no from address found');
       }
 
       const emailMessage = {
@@ -69,20 +74,20 @@ export default function Azure(config: EmailUserConfig): EmailConfig {
     </tr>
   </table>
 </body>
-`,
+`
         },
         recipients: {
-          to: [{ address: to }],
-        },
+          to: [{ address: to }]
+        }
       };
 
       const poller = await client.beginSend(emailMessage);
       const result = await poller.pollUntilDone();
 
-      if(result.error) {
-        throw new Error("Azure error: " + JSON.stringify(result.error.message))
+      if (result.error) {
+        throw new Error('Azure error: ' + JSON.stringify(result.error.message));
       }
     },
-    options: config,
-  }
+    options: config
+  };
 }

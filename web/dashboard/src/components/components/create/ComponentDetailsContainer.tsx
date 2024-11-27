@@ -3,9 +3,9 @@
 import React, { useContext, useEffect, useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import { FileText, Eye } from 'lucide-react';
-import { ChatContext } from "@/components/components/create/utils/chatContext";
 import { GeneratedFileDisplay } from "@/components/components/create/GeneratedFileDisplay";
 import { ComponentPreviewer } from "@/components/components/create/ComponentPreviewer";
+import { ChatContext, GeneratedComponentMessageType } from "@/components/components/create/utils/chatContext";
 
 interface ComponentDetailsContainerProps {
     isPreviewLoading: boolean;
@@ -17,7 +17,7 @@ export const ComponentDetailsContainer = ({ isPreviewLoading, previewUrl } : Com
     const { currentMessage } = useContext(ChatContext);
 
     const tabs = [
-        { id: 'preview', label: 'Preview', icon: Eye, visible: currentMessage?.type === "generateJSX" || currentMessage?.type === "updateJSX"},
+        { id: 'preview', label: 'Preview', icon: Eye, visible: currentMessage?.type === GeneratedComponentMessageType.GENERATE_JSX || currentMessage?.type === GeneratedComponentMessageType.UPDATE_JSX},
         { id: 'code', label: currentMessage?.fileName || "Code", icon: FileText, visible: true },
     ];
 

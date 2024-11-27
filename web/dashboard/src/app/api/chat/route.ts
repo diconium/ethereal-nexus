@@ -246,11 +246,17 @@ export async function POST(request: Request) {
                    - Example usage in JSX: <p>{person.firstName}</p>
             - Export the component as the default export
             - IMPORTANT: Once you have completed writing the modified component, IMMEDIATELY call the 'generateEtherealNexusJSX' action with the component name and JSX code.
+            
+                2.1. Ethereal Nexus Component Update:
+                When the user asks for updates to a previously generated ethereal nexus component, follow these steps:
+                - Use exactly the same logic described above for creating a new ethereal nexus component but increment the version number by 1 on each component update.
+                - IMPORTANT: Once you have completed writing the updated component, IMMEDIATELY call the 'updateEtherealNexusJSX' action with the component name the JSX code and the file name.
+                - IMPORTANT: The user can ask for updates to an, already updated, ethereal nexus component, in this case, you should increment the version number by 1 from the last updated version.
     
             Ensure both files are complete, standalone components with all necessary code.
             Do not use placeholders or incomplete code sections. Write out all code in full, even if repeating from previous examples.
             
-            IMPORTANT: Only call 'generateJSX' when creating a new component or 'updateJSX' when the user asks for updates to a previously generated component, and only call 'generateEtherealNexusJSX' when the user asks for a component with the ethereal nexus structure from an existing component. Never call both actions for the same request.
+            IMPORTANT: Only call 'generateJSX' when creating a new component or 'updateJSX' when the user asks for updates to a previously generated component, and only call 'generateEtherealNexusJSX' or 'updateEtherealNexusJSX' when the user asks for a component with the ethereal nexus structure from an existing component. Never call both actions for the same request.
             `,
         tools: { // Record<string, tool>
             generateJSX: {
@@ -280,15 +286,29 @@ export async function POST(request: Request) {
                 },
             },
             generateEtherealNexusJSX: {
-                description: 'Generate/update JSX code, with the ethereal nexus structure, to create a React component',
+                description: 'Generate JSX code, with the ethereal nexus structure, to create a React component',
                 parameters: z.object({
                     componentName: z.string().describe('The name of the new generated React component'),
                     description: z.string().describe('A detailed description of the component'),
                     fileName: z.string().describe('The name of the file where the component will be saved'),
                     code: z.string().describe('The JSX code for the modified component'),
+                    version: z.number().describe('The version of the component'),
                 }),
-                execute: async function ({ code, componentName, fileName, description }) {
-                    return { code, componentName, fileName, description };
+                execute: async function ({ code, componentName, fileName, description, version }) {
+                    return { code, componentName, fileName, description, version };
+                },
+            },
+            updateEtherealNexusJSX: {
+                description: 'Update JSX code, with the ethereal nexus structure, to create a React component',
+                parameters: z.object({
+                    componentName: z.string().describe('The name of the new generated React component'),
+                    description: z.string().describe('A detailed description of the component'),
+                    fileName: z.string().describe('The name of the file where the component will be saved'),
+                    code: z.string().describe('The JSX code for the modified component'),
+                    version: z.number().describe('The version of the component'),
+                }),
+                execute: async function ({ code, componentName, fileName, description, version }) {
+                    return { code, componentName, fileName, description, version };
                 },
             },
         },

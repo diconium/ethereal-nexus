@@ -4,6 +4,7 @@ import { UserMessage } from "@/components/components/create/UserMessage";
 import { AssistantGeneratedMessageCard } from "@/components/components/create/AssistantGeneratedMessageCard";
 import { LoadingAssistantMessage } from "@/components/components/create/LoadingAssistantMessage";
 import { NEW_MESSAGE_NAME, ToolCallingResult } from "@/components/components/create/Chat";
+import { GeneratedComponentMessageType } from "@/components/components/create/utils/chatContext";
 
 interface ChatMessagesDisplayerProps {
     messages: Message[];
@@ -11,7 +12,7 @@ interface ChatMessagesDisplayerProps {
     lastElementRef: MutableRefObject<HTMLDivElement | null>;
     handleGenerateEtherealNexusStructuredFile: (result: ToolCallingResult) => Promise<void>;
     downloadEtherealNexusFile: (result: ToolCallingResult) => Promise<void>;
-    handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: "generateJSX" | "generateEtherealNexusJSX" | "updateJSX") => void;
+    handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: GeneratedComponentMessageType) => void;
 }
 
 export function ChatMessagesDisplayer({ messages, isLoading, handleGenerateEtherealNexusStructuredFile, downloadEtherealNexusFile, handleOnComponentCardClick, lastElementRef } : ChatMessagesDisplayerProps) {

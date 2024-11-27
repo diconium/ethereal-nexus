@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useContext } from 'react';
-import {FileIcon, GitBranchIcon, TagIcon} from "lucide-react";
+import { FileIcon, GitBranchIcon, TagIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ChatContext } from "@/components/components/create/utils/chatContext";
 
 interface EtherealNexusFileCardProps {

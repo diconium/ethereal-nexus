@@ -14,9 +14,9 @@ import {
 import { useChat } from "ai/react";
 import { Button } from "@/components/ui/button";
 import { TextArea } from "@/components/ui/text-area";
-import { ChatContext } from "@/components/components/create/utils/chatContext";
 import { ChatMessagesDisplayer } from "@/components/components/create/ChatMessagesDisplayer";
 import { ComponentDetailsContainer } from "@/components/components/create/ComponentDetailsContainer";
+import { ChatContext, GeneratedComponentMessageType } from "@/components/components/create/utils/chatContext";
 
 export const CHAT_ID = "ethereal-nexus-component-generation-chat";
 
@@ -184,14 +184,14 @@ export default function Chat() {
         if (lastReceivedMessage && lastReceivedMessage.role !== 'user') {
             lastReceivedMessage.toolInvocations?.map(toolInvocation => {
                 const { toolName, args } = toolInvocation;
-                if (toolName === "generateJSX" || toolName === "updateJSX" || toolName === "generateEtherealNexusJSX") {
+                if (Object.values(GeneratedComponentMessageType).includes(toolName)) {
                     setCurrentMessage({
                         id: lastReceivedMessage.id as string,
                         componentName: args.componentName as string,
                         fileName: args.fileName as string,
                         generatedCode: args.code as string,
                         version: args.version ? args.version : undefined,
-                        type: toolName as "generateJSX" | "generateEtherealNexusJSX" | "updateJSX",
+                        type: toolName as GeneratedComponentMessageType,
                     });
                     scrollToBottom();
                     setIsComponentDetailsContainerOpen(true);
@@ -225,7 +225,7 @@ export default function Chat() {
         window.URL.revokeObjectURL(url);
     };
 
-    const handleOnComponentCardClick = (messageId: string, result: ToolCallingResult, toolName: "generateJSX" | "generateEtherealNexusJSX" | "updateJSX") => {
+    const handleOnComponentCardClick = (messageId: string, result: ToolCallingResult, toolName: GeneratedComponentMessageType) => {
         if (currentMessage?.id === messageId) {
             setCurrentMessage(undefined);
             setIsComponentDetailsContainerOpen(false);

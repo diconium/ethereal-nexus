@@ -21,10 +21,6 @@ export const ComponentDetailsContainer = ({ isPreviewLoading, previewUrl } : Com
         { id: 'code', label: currentMessage?.fileName || "Code", icon: FileText, visible: true },
     ];
 
-    useEffect(() => {
-        setActiveTab("code");
-    }, [currentMessage]);
-
     return (
         <div className="h-full overflow-hidden flex flex-col">
             <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="h-full flex-1 flex flex-col">

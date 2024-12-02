@@ -6,7 +6,7 @@ interface GeneratedFileDisplayProps {
     code: string;
 };
 
-export const GeneratedFileDisplay = ({ code }: GeneratedFileDisplayProps) => {
+export const GeneratedCodeDisplay = ({ code }: GeneratedFileDisplayProps) => {
     return (
         <div className="h-full">
             <pre className="bg-gray-900 rounded-lg text-gray-100 h-full p-4 overflow-auto text-sm">

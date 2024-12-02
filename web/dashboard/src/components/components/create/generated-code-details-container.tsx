@@ -3,8 +3,8 @@
 import React, { useContext, useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import { FileText, Eye } from 'lucide-react';
-import { GeneratedFileDisplay } from "@/components/components/create/GeneratedFileDisplay";
-import { ComponentPreviewer } from "@/components/components/create/ComponentPreviewer";
+import { GeneratedCodeDisplay } from "@/components/components/create/generated-code-display";
+import { ComponentPreviewer } from "@/components/components/create/component-previewer";
 import { ChatContext } from "@/components/components/create/utils/chatContext";
 
 interface ComponentDetailsContainerProps {
@@ -12,7 +12,7 @@ interface ComponentDetailsContainerProps {
     previewUrl: string | null;
 };
 
-export const ComponentDetailsContainer = ({ isPreviewLoading, previewUrl } : ComponentDetailsContainerProps) => {
+export const GeneratedCodeDetailsContainer = ({ isPreviewLoading, previewUrl } : ComponentDetailsContainerProps) => {
     const [activeTab, setActiveTab] = useState("code");
     const { currentMessage } = useContext(ChatContext);
 
@@ -44,7 +44,7 @@ export const ComponentDetailsContainer = ({ isPreviewLoading, previewUrl } : Com
                         <ComponentPreviewer url={previewUrl} isLoading={isPreviewLoading} />
                     </Tabs.Content>
                     <Tabs.Content value="code" className="h-full p-4 outline-none">
-                        <GeneratedFileDisplay code={currentMessage?.generatedCode || ""} />
+                        <GeneratedCodeDisplay code={currentMessage?.generatedCode || ""} />
                     </Tabs.Content>
                 </div>
             </Tabs.Root>

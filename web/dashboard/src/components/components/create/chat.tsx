@@ -14,8 +14,8 @@ import {
 import { useChat } from "ai/react";
 import { Button } from "@/components/ui/button";
 import { TextArea } from "@/components/ui/text-area";
-import { ChatMessagesDisplayer } from "@/components/components/create/ChatMessagesDisplayer";
-import { ComponentDetailsContainer } from "@/components/components/create/ComponentDetailsContainer";
+import { ChatMessagesDisplayer } from "@/components/components/create/chat-messages-displayer";
+import { GeneratedCodeDetailsContainer } from "@/components/components/create/generated-code-details-container";
 import { ChatContext, GeneratedComponentMessageType } from "@/components/components/create/utils/chatContext";
 
 export const CHAT_ID = "ethereal-nexus-component-generation-chat";
@@ -291,7 +291,7 @@ export default function Chat() {
                     >
                         <X className="h-4 w-4" />
                     </Button>
-                    <ComponentDetailsContainer previewUrl={previewUrl} isPreviewLoading={isPreviewLoading}/>
+                    <GeneratedCodeDetailsContainer previewUrl={previewUrl} isPreviewLoading={isPreviewLoading}/>
                 </div>
             )}
         </div>

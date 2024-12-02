@@ -1,6 +1,6 @@
 import React from "react";
 
-export function LoadingAssistantMessage() {
+export function AssistantMessageLoader() {
     return (
         <div className="flex">
             <div className="flex items-center space-x-2 mr-2">

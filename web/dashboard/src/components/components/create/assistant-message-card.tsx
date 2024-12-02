@@ -5,8 +5,8 @@ import { useChat } from "ai/react";
 import { SendIcon, DownloadIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { ToolCallingResult, CHAT_ID } from "@/components/components/create/Chat";
-import { ComponentFileCard } from "@/components/components/create/ComponentFileCard";
+import { ToolCallingResult, CHAT_ID } from "@/components/components/create/chat";
+import { ComponentFileCard } from "@/components/components/create/component-file-card";
 import { GeneratedComponentMessageType } from "@/components/components/create/utils/chatContext";
 
 interface GeneratedMessageProps {

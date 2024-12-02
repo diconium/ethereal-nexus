@@ -1,9 +1,9 @@
 import React, { MutableRefObject } from "react";
 import { Message } from "ai";
-import { UserMessage } from "@/components/components/create/UserMessage";
-import { AssistantGeneratedMessageCard } from "@/components/components/create/AssistantGeneratedMessageCard";
-import { LoadingAssistantMessage } from "@/components/components/create/LoadingAssistantMessage";
-import { ToolCallingResult } from "@/components/components/create/Chat";
+import { UserMessage } from "@/components/components/create/user-message";
+import { AssistantGeneratedMessageCard } from "@/components/components/create/assistant-message-card";
+import { AssistantMessageLoader } from "@/components/components/create/assistant-message-loader";
+import { ToolCallingResult } from "@/components/components/create/chat";
 import { GeneratedComponentMessageType } from "@/components/components/create/utils/chatContext";
 
 interface ChatMessagesDisplayerProps {
@@ -52,7 +52,7 @@ export function ChatMessagesDisplayer({ messages, isLoading, downloadEtherealNex
             {
                 isLoading &&
                 <div className="flex mt-auto mr-auto ml-auto mb-2 items-center z-10">
-                    <LoadingAssistantMessage />
+                    <AssistantMessageLoader />
                 </div>
             }
             <div ref={lastElementRef} />

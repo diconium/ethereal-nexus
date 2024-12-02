@@ -11,16 +11,16 @@ export async function getWebContainerInstance() {
 };
 
 export const previewTemplate = `
-    import { StrictMode } from 'react';
+    import React from 'react';
     import { createRoot } from 'react-dom/client';
     import './styles.css';
     import DynamicComponent from './DynamicComponent';
     
     const root = createRoot(document.getElementById('root'));
     root.render(
-      <StrictMode>
+      <React.StrictMode>
         <DynamicComponent />
-      </StrictMode>
+      </React.StrictMode>
     );
 `;
 

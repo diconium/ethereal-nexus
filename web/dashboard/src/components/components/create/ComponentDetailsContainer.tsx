@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import { FileText, Eye } from 'lucide-react';
 import { GeneratedFileDisplay } from "@/components/components/create/GeneratedFileDisplay";
 import { ComponentPreviewer } from "@/components/components/create/ComponentPreviewer";
-import { ChatContext, GeneratedComponentMessageType } from "@/components/components/create/utils/chatContext";
+import { ChatContext } from "@/components/components/create/utils/chatContext";
 
 interface ComponentDetailsContainerProps {
     isPreviewLoading: boolean;
@@ -17,7 +17,7 @@ export const ComponentDetailsContainer = ({ isPreviewLoading, previewUrl } : Com
     const { currentMessage } = useContext(ChatContext);
 
     const tabs = [
-        { id: 'preview', label: 'Preview', icon: Eye, visible: currentMessage?.type === GeneratedComponentMessageType.GENERATE_JSX || currentMessage?.type === GeneratedComponentMessageType.UPDATE_JSX},
+        { id: 'preview', label: 'Preview', icon: Eye, visible: true },
         { id: 'code', label: currentMessage?.fileName || "Code", icon: FileText, visible: true },
     ];
 
@@ -40,7 +40,7 @@ export const ComponentDetailsContainer = ({ isPreviewLoading, previewUrl } : Com
                     </Tabs.List>
                 </div>
                 <div className="flex-1 min-h-0">
-                    <Tabs.Content value="preview"className="h-full p-4 outline-none">
+                    <Tabs.Content value="preview" className="h-full p-4 outline-none">
                         <ComponentPreviewer url={previewUrl} isLoading={isPreviewLoading} />
                     </Tabs.Content>
                     <Tabs.Content value="code" className="h-full p-4 outline-none">
@@ -50,4 +50,4 @@ export const ComponentDetailsContainer = ({ isPreviewLoading, previewUrl } : Com
             </Tabs.Root>
         </div>
     )
-}
+};

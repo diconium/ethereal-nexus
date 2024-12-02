@@ -10,11 +10,10 @@ interface EtherealNexusFileCardProps {
     componentName: string,
     fileName: string,
     handleClick: () => void,
-    isModified: boolean,
     version?: number,
 }
 
-export function ComponentFileCard({ id, fileName, componentName, handleClick, isModified, version }: EtherealNexusFileCardProps) {
+export function ComponentFileCard({ id, fileName, componentName, handleClick, version }: EtherealNexusFileCardProps) {
     const { currentMessage } = useContext(ChatContext);
     const isSelected = currentMessage?.id === id;
 
@@ -35,12 +34,9 @@ export function ComponentFileCard({ id, fileName, componentName, handleClick, is
                     <div className="flex flex-wrap items-start gap-2 mb-1">
                         <h3 className="text-sm font-semibold break-all">{componentName}</h3>
                         <div className="flex flex-wrap gap-1">
-                            {
-                                isModified &&
-                                <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">
-                                    Ethereal Nexus File
-                                </Badge>
-                            }
+                            <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">
+                                Ethereal Nexus File
+                            </Badge>
                             {
                                 version &&
                                     <Badge variant="secondary" className="text-xs">

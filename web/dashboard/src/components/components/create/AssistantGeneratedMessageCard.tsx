@@ -12,12 +12,11 @@ import { GeneratedComponentMessageType } from "@/components/components/create/ut
 interface GeneratedMessageProps {
     messageId: string;
     toolInvocation: any;
-    handleGenerateEtherealNexusStructuredFile: (result: ToolCallingResult) => Promise<void>
     downloadEtherealNexusFile: (result: ToolCallingResult) => Promise<void>;
     handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: GeneratedComponentMessageType) => void;
 }
 
-export function AssistantGeneratedMessageCard({ messageId, toolInvocation, handleGenerateEtherealNexusStructuredFile, downloadEtherealNexusFile, handleOnComponentCardClick }: GeneratedMessageProps) {
+export function AssistantGeneratedMessageCard({ messageId, toolInvocation, downloadEtherealNexusFile, handleOnComponentCardClick }: GeneratedMessageProps) {
     const { toolName, result } = toolInvocation;
     const isModified = toolName === GeneratedComponentMessageType.GENERATE_ETHEREAL_NEXUS_JSX || toolName === GeneratedComponentMessageType.UPDATE_ETHEREAL_NEXUS_JSX;
 
@@ -30,11 +29,6 @@ export function AssistantGeneratedMessageCard({ messageId, toolInvocation, handl
     };
 
     const handleFooterActionClick = () => {
-        if (!isModified) {
-            handleGenerateEtherealNexusStructuredFile(result as ToolCallingResult);
-            return;
-        }
-
         downloadEtherealNexusFile(result as ToolCallingResult);
     }
 
@@ -44,7 +38,6 @@ export function AssistantGeneratedMessageCard({ messageId, toolInvocation, handl
                 <p className="text-sm text-muted-foreground">{result.description}</p>
                 <ComponentFileCard
                     id={messageId}
-                    isModified={isModified}
                     fileName={result.fileName}
                     version={result.version}
                     componentName={result.componentName}
@@ -52,11 +45,7 @@ export function AssistantGeneratedMessageCard({ messageId, toolInvocation, handl
             </CardContent>
             <CardFooter className="justify-between items-center px-4 pt-0 pb-4">
                 <Button variant="text" className="text-orange-500 text-xs font-bold p-0" onClick={handleFooterActionClick} disabled={!isModified && isLoadingNewMessage}>
-                    {
-                        !isModified ?
-                            <><SendIcon className="mr-2 h-4 w-4" />Generate Ethereal Nexus Structured File</> :
-                            <><DownloadIcon className="w-4 h-4 mr-2" />Download File</>
-                    }
+                    <><DownloadIcon className="w-4 h-4 mr-2" />Download File</>
                 </Button>
             </CardFooter>
         </Card>

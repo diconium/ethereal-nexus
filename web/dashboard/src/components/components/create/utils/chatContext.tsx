@@ -3,9 +3,7 @@
 import React, { createContext, useState } from 'react';
 
 export enum GeneratedComponentMessageType {
-    GENERATE_JSX = "generateJSX",
     GENERATE_ETHEREAL_NEXUS_JSX = "generateEtherealNexusJSX",
-    UPDATE_JSX = "updateJSX",
     UPDATE_ETHEREAL_NEXUS_JSX = "updateEtherealNexusJSX",
 }
 
@@ -14,6 +12,7 @@ export interface GeneratedComponentMessage {
     componentName: string;
     fileName: string;
     generatedCode: string;
+    indexFileCode: string;
     type: GeneratedComponentMessageType;
     version?: number;
 };

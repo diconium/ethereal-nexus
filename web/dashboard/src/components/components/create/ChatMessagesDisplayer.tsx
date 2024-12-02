@@ -3,19 +3,18 @@ import { Message } from "ai";
 import { UserMessage } from "@/components/components/create/UserMessage";
 import { AssistantGeneratedMessageCard } from "@/components/components/create/AssistantGeneratedMessageCard";
 import { LoadingAssistantMessage } from "@/components/components/create/LoadingAssistantMessage";
-import { NEW_MESSAGE_NAME, ToolCallingResult } from "@/components/components/create/Chat";
+import { ToolCallingResult } from "@/components/components/create/Chat";
 import { GeneratedComponentMessageType } from "@/components/components/create/utils/chatContext";
 
 interface ChatMessagesDisplayerProps {
     messages: Message[];
     isLoading: boolean;
     lastElementRef: MutableRefObject<HTMLDivElement | null>;
-    handleGenerateEtherealNexusStructuredFile: (result: ToolCallingResult) => Promise<void>;
     downloadEtherealNexusFile: (result: ToolCallingResult) => Promise<void>;
     handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: GeneratedComponentMessageType) => void;
 }
 
-export function ChatMessagesDisplayer({ messages, isLoading, handleGenerateEtherealNexusStructuredFile, downloadEtherealNexusFile, handleOnComponentCardClick, lastElementRef } : ChatMessagesDisplayerProps) {
+export function ChatMessagesDisplayer({ messages, isLoading, downloadEtherealNexusFile, handleOnComponentCardClick, lastElementRef } : ChatMessagesDisplayerProps) {
 
     return (
         <div className="flex flex-1 flex-col overflow-auto p-4">
@@ -28,7 +27,7 @@ export function ChatMessagesDisplayer({ messages, isLoading, handleGenerateEther
                 {
                     message.role === 'user' &&
                     <div className="flex mb-4 w-full justify-end">
-                        <UserMessage message={message.name === NEW_MESSAGE_NAME ? message.content.split('///File code:')[0].toString() : message.content} />
+                        <UserMessage message={message.content} />
                     </div>
                 }
                 {message.role !== 'user' && message.toolInvocations?.map(toolInvocation => {
@@ -43,7 +42,6 @@ export function ChatMessagesDisplayer({ messages, isLoading, handleGenerateEther
                                     toolInvocation={toolInvocation}
                                     handleOnComponentCardClick={handleOnComponentCardClick}
                                     downloadEtherealNexusFile={downloadEtherealNexusFile}
-                                    handleGenerateEtherealNexusStructuredFile={handleGenerateEtherealNexusStructuredFile}
                                 />
                             </React.Fragment>
                         );

@@ -22,12 +22,12 @@ export const CHAT_ID = "ethereal-nexus-component-generation-chat";
 
 // TODO check where this is also used
 export interface ToolCallingResult {
+    indexFileCode: string,
     componentName: string,
     fileName: string,
     code: string,
     description: string,
 }
-export const NEW_MESSAGE_NAME = 'GenerateEtherealNexusStructuredFile';
 
 export default function Chat() {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export default function Chat() {
 
     const { currentMessage, setCurrentMessage, isComponentDetailsContainerOpen, setIsComponentDetailsContainerOpen } = useContext(ChatContext);
 
-    const { messages, input, setInput, handleSubmit, isLoading: isLoadingNewMessage, append } = useChat({
+    const { messages, input, setInput, handleSubmit, isLoading: isLoadingNewMessage } = useChat({
         id: CHAT_ID,
     });
 
@@ -82,7 +82,8 @@ export default function Chat() {
                             type: 'module',
                             dependencies: {
                                 'react': '^18.2.0',
-                                'react-dom': '^18.2.0'
+                                'react-dom': '^18.2.0',
+                                '@ethereal-nexus/core': '1.5.0',
                             },
                             devDependencies: {
                                 '@vitejs/plugin-react': '^4.2.1',
@@ -167,7 +168,8 @@ export default function Chat() {
 
             try {
                 setOutput('Updating component...');
-                await webContainerInstance.fs.writeFile('/DynamicComponent.tsx', currentMessage?.generatedCode);
+                await webContainerInstance.fs.writeFile(`/${currentMessage?.fileName}`, currentMessage?.generatedCode);
+                await webContainerInstance.fs.writeFile('/index.tsx', currentMessage?.indexFileCode);
                 setOutput('Component updated successfully!');
             } catch (error) {
                 setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
@@ -184,12 +186,13 @@ export default function Chat() {
         if (lastReceivedMessage && lastReceivedMessage.role !== 'user') {
             lastReceivedMessage.toolInvocations?.map(toolInvocation => {
                 const { toolName, args } = toolInvocation;
-                if (Object.values(GeneratedComponentMessageType).includes(toolName)) {
+                if (Object.values(GeneratedComponentMessageType).includes(toolName as GeneratedComponentMessageType)) {
                     setCurrentMessage({
                         id: lastReceivedMessage.id as string,
                         componentName: args.componentName as string,
                         fileName: args.fileName as string,
                         generatedCode: args.code as string,
+                        indexFileCode: args.indexFileCode as string,
                         version: args.version ? args.version : undefined,
                         type: toolName as GeneratedComponentMessageType,
                     });
@@ -199,14 +202,6 @@ export default function Chat() {
             });
         } else scrollToBottom();
     }, [messages, setCurrentMessage, setIsComponentDetailsContainerOpen]);
-
-    const handleGenerateEtherealNexusStructuredFile = async (result: ToolCallingResult) => {
-        await append({
-            role: 'user',
-            content: `Generate me ethereal nexus structured file for the previously created ${result.fileName} file. ///File code: ${result.code}.`,
-            name: NEW_MESSAGE_NAME,
-        });
-    };
 
     const downloadEtherealNexusFile = async (result: ToolCallingResult) => {
         const file = new File([result.code], result.fileName, {
@@ -237,6 +232,7 @@ export default function Chat() {
             componentName: result.componentName as string,
             fileName: result.fileName as string,
             generatedCode: result.code as string,
+            indexFileCode: result.indexFileCode as string,
             type: toolName,
         });
         setIsComponentDetailsContainerOpen(true);
@@ -263,7 +259,6 @@ export default function Chat() {
                         messages={messages}
                         lastElementRef={messagesEndRef}
                         isLoading={isLoadingNewMessage}
-                        handleGenerateEtherealNexusStructuredFile={handleGenerateEtherealNexusStructuredFile}
                         downloadEtherealNexusFile={downloadEtherealNexusFile}
                         handleOnComponentCardClick={handleOnComponentCardClick}
                     />

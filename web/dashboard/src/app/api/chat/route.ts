@@ -20,13 +20,14 @@ export async function POST(request: Request) {
             - Use 'https://picsum.photos' to generate dummy placeholder images and each <img> tag should have an crossOrigin="anonymous" attribute
             - Include brief comments explaining complex logic
             - Use TypeScript for type safety
-            - For sections that render HTML content, use a div with dangerouslySetInnerHTML
+            - If the user specifies that the component needs to render formatted text in a div element, use a div with dangerouslySetInnerHTML. dangerouslySetInnerHTML prop should only be used on div tags
             - Provide an export named 'default'.
                 
             After applying the guidelines you should take in consideration a couple of things:
             - Include all necessary imports at the top of the file
             - ONLY convert values to props if they are EXPLICITLY identified as updatable or customizable. Static values, like placeholders, should remain hardcoded.
             - Import the following from @ethereal-nexus/core: image, rte, dialog, component, checkbox, select, calendar, pathbrowser, text, datasource, mutifield, datamodel, tabs, conditions group and object. Output should be imported as type.
+            - ONLY the types mentioned above should be imported from @ethereal-nexus/core nothing more.
             - Pay close attention to any specific requests from the user regarding the modified component. For example:
                   - If the user mentions that some specific part or even the whole component is a representation of something and that should be used as a dataModel, use the datamodel type instead of any other type like image, textFields, checkbox, select, calendar etc.
                       - Example of user input 'A component that represents an animal, the card has the image of the animal, the name of the animal and the species. It should be used as a data model'. For this case you will not use an image for the animal image or a text field for the animal name all of it will be retrieved from the person dataModel.
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
                           person: datamodel({
                             placeholder: 'Select a person',
                             label: 'Person',
-                            required: true,
+                            required: true // if the field is required, true by default and only only false if the user specifies,
                             tooltip: 'This is a person',
                           }),
                         };
@@ -46,19 +47,21 @@ export async function POST(request: Request) {
                 const imageDialog = {
                     image1: image({
                         label: 'Description or alt text of the image',
+                        tootip: 'This is an image',
                     }),
                     image2: image({
                         label: 'Description or alt text of another image',
                     }),
                     // ... and so on for all images
                 };
-            - For each div with dangerouslySetInnerHTML:
+            - For div that will be used to render external HTML with dangerouslySetInnerHTML:
                 - Create or update a constant named 'rteComponents' at the top of the file
                 - For each rich text area, add an entry to the rteComponents constant like this:
                 const rteComponents = {
                     rte1: rte({
                         label: 'Label for RTE 1',
-                        placeholder: 'Placeholder text for RTE 1'
+                        placeholder: 'Placeholder text for RTE 1',
+                        defaultValue: 'This is the rte default value'
                     }),
                     // ... and so on for all rich text areas
                 };
@@ -68,6 +71,9 @@ export async function POST(request: Request) {
                 const checkboxes = {
                   isVisible1: checkbox({
                     label: 'Is Component 1 Visible',
+                    defaultValue: false, // true or false
+                    tooltip: 'Check this box to define if the component is visible',
+                    
                   }),
                   isEnabled2: checkbox({
                     label: 'Is Feature 2 Enabled',
@@ -104,8 +110,8 @@ export async function POST(request: Request) {
                     tooltip: 'This is a date picker',
                     placeholder: 'Choose a date',
                     startday: '1',
-                    max: '2024-12-31',
-                    min: '2024-01-01',
+                    max: '2024-12-31', // The max date of the calendar, should be updated if specified by the user
+                    min: '2024-01-01', // The min date of the calendar, should be updated if specified by the user
                   }),
                   // ... and so on for all date inputs
                 };
@@ -125,6 +131,7 @@ export async function POST(request: Request) {
                 const textFields = {
                   field1: text({
                     label: 'Field Label',
+                    placeholder: 'Title'
                   }),
                   // ... and so on for all updatable text fields
                 };
@@ -199,6 +206,7 @@ export async function POST(request: Request) {
                     },
                   });
              - This specifications have no impact on the final component, they are just to organize the dialog in a way that the user wants.
+            - IMPORTANT: ONLY the changes mentioned above should be done to the file.
             - Create a schema constant using the component function:
                     const schema = component({ version: '0.0.1' }, dialogSchema);
             - Create a Props type using the Output type and schema:

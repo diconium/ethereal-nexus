@@ -3,7 +3,7 @@
 import React, { useContext } from 'react';
 import { FileIcon, GitBranchIcon, TagIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { ChatContext } from "@/components/components/create/utils/chatContext";
+import { ChatContext } from "@/components/components/create/utils/chat-context";
 
 interface EtherealNexusFileCardProps {
     id: string,

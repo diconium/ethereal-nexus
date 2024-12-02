@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ToolCallingResult, CHAT_ID } from "@/components/components/create/chat";
 import { ComponentFileCard } from "@/components/components/create/component-file-card";
-import { GeneratedComponentMessageType } from "@/components/components/create/utils/chatContext";
+import { GeneratedComponentMessageType } from "@/components/components/create/utils/chat-context";
 
 interface GeneratedMessageProps {
     messageId: string;

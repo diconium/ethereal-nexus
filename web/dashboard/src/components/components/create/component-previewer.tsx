@@ -1,6 +1,6 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
-import { ChatContext } from "@/components/components/create/utils/chatContext";
+import { ChatContext } from "@/components/components/create/utils/chat-context";
 
 interface ComponentPreviewerProps {
     url: string | null;

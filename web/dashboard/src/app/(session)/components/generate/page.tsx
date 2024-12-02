@@ -1,6 +1,6 @@
 import React from "react";
 import Chat  from '@/components/components/create/chat';
-import { ChatProvider } from "@/components/components/create/utils/chatContext";
+import { ChatProvider } from "@/components/components/create/utils/chat-context";
 
 export default async function GenerateComponentPage() {
     return (

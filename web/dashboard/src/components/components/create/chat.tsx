@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { TextArea } from "@/components/ui/text-area";
 import { ChatMessagesDisplayer } from "@/components/components/create/chat-messages-displayer";
 import { GeneratedCodeDetailsContainer } from "@/components/components/create/generated-code-details-container";
-import { ChatContext, GeneratedComponentMessageType } from "@/components/components/create/utils/chatContext";
+import { ChatContext, GeneratedComponentMessageType } from "@/components/components/create/utils/chat-context";
 
 export const CHAT_ID = "ethereal-nexus-component-generation-chat";
 

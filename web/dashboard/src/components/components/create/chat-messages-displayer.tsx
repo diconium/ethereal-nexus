@@ -4,7 +4,7 @@ import { UserMessage } from "@/components/components/create/user-message";
 import { AssistantGeneratedMessageCard } from "@/components/components/create/assistant-message-card";
 import { AssistantMessageLoader } from "@/components/components/create/assistant-message-loader";
 import { ToolCallingResult } from "@/components/components/create/chat";
-import { GeneratedComponentMessageType } from "@/components/components/create/utils/chatContext";
+import { GeneratedComponentMessageType } from "@/components/components/create/utils/chat-context";
 
 interface ChatMessagesDisplayerProps {
     messages: Message[];

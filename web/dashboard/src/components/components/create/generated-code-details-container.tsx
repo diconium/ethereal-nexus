@@ -5,7 +5,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import { FileText, Eye } from 'lucide-react';
 import { GeneratedCodeDisplay } from "@/components/components/create/generated-code-display";
 import { ComponentPreviewer } from "@/components/components/create/component-previewer";
-import { ChatContext } from "@/components/components/create/utils/chatContext";
+import { ChatContext } from "@/components/components/create/utils/chat-context";
 
 interface ComponentDetailsContainerProps {
     isPreviewLoading: boolean;

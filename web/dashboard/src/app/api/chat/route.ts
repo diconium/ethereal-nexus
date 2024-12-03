@@ -1,15 +1,25 @@
+import { z } from "zod";
 import { streamText } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { z } from "zod";
+import { NextRequest, NextResponse } from "next/server";
+import { HttpStatus } from "@/app/api/utils";
+import { authenticatedWithKey } from "@/lib/route-wrappers";
 
-export async function POST(request: Request) {
+export const POST = authenticatedWithKey(async (request: NextRequest, ext) => {
     const { messages } = await request.json();
+
+    const userId = ext?.user.id;
+    if (!userId) {
+        return NextResponse.json('You do not have permissions for this resource.', {
+            status: HttpStatus.FORBIDDEN,
+        });
+    }
 
     const response = await streamText({
         model: openai("gpt-4"),
         messages,
         toolChoice: "required",
-        system:` 
+        system:`
             You are an expert React developer specializing in creating accessible, responsive, and modern UI components.
             You will get descriptions of components by the user and you will generate React components based on the user descriptions, requests or even questions.
 
@@ -22,7 +32,7 @@ export async function POST(request: Request) {
             - Use TypeScript for type safety
             - If the user specifies that the component needs to render formatted text in a div element, use a div with dangerouslySetInnerHTML. dangerouslySetInnerHTML prop should only be used on div tags
             - Provide an export named 'default'.
-                
+
             After applying the guidelines you should take in consideration a couple of things:
             - Include all necessary imports at the top of the file
             - ONLY convert values to props if they are EXPLICITLY identified as updatable or customizable. Static values, like placeholders, should remain hardcoded.
@@ -40,7 +50,7 @@ export async function POST(request: Request) {
                             tooltip: 'This is a person',
                           }),
                         };
-    
+
             - For each <img> tag:
                 - Create or update a constant named 'imageDialog' at the top of the file
                 - add an entry to the imageDialog constant like this:
@@ -73,7 +83,7 @@ export async function POST(request: Request) {
                     label: 'Is Component 1 Visible',
                     defaultValue: false, // true or false
                     tooltip: 'Check this box to define if the component is visible',
-                    
+
                   }),
                   isEnabled2: checkbox({
                     label: 'Is Feature 2 Enabled',
@@ -168,7 +178,7 @@ export async function POST(request: Request) {
                             }),
                         }),
                     }),
-                }; 
+                };
             - Pay close attention to any specific requests from the user regarding grouping the values. For example:
               - If the user mentions that some specific props or even the whole props of the component should be grouped together, something like this 'The card information should be grouped' or 'The image the title and the advanced boolean value should be grouped together' you should do group them like this.
                 const dialogSchema = dialog({
@@ -191,7 +201,7 @@ export async function POST(request: Request) {
                     }),
                   }),
                 });
-             
+
             - Create a dialogSchema constant that combines all created objects:
                 const dialogSchema = dialog({ ...imageDialog, ...rteComponents, ...checkboxes, ...dropdowns, ...calendars, ...links, ...textFields, ...dataSources, ...multifields, ...dataModels });
             - There are some specifications that the user can ask for that need to be added to the dialog, examples:
@@ -234,15 +244,15 @@ export async function POST(request: Request) {
                    - Use 'person.firstName' even if 'firstName' is not defined in the person object
                    - Example usage in JSX: <p>{person.firstName}</p>
             - Export the component as the default export
-            
+
             IMPORTANT: Each component should be versioned, for the cases of new components the version should start at 1 and for each update the version should be incremented by 1.
-            
-            Now that you know how to structure the component you need to know that you have to deal with two types of requests that are described below on the sections 1. Create Ethereal Nexus Component and 2. Update Ethereal Nexus Component. 
+
+            Now that you know how to structure the component you need to know that you have to deal with two types of requests that are described below on the sections 1. Create Ethereal Nexus Component and 2. Update Ethereal Nexus Component.
             They are very similar, the only difference is on the versioning of the component.
-            You will need to understand if the user is asking for a new component or if he is asking for a change/update on an already created component and act accordingly: 
+            You will need to understand if the user is asking for a new component or if he is asking for a change/update on an already created component and act accordingly:
                 - If the user is describing a new component you must follow the steps described in the section 1. Create Ethereal Nexus Component and call the 'generateEtherealNexusJSX' action.
                 - If the user is asking for an update you must follow the steps described in the section 2. Update Ethereal Nexus Component and call the 'updateEtherealNexusJSX' action.
-            
+
             1. Create Ethereal Nexus Component:
             To create an ethereal nexus structured file from a previously created component, follow these steps:
             - Create a new React component file with the structure and guidelines described above.
@@ -299,6 +309,6 @@ export async function POST(request: Request) {
             },
         },
     });
-
+    console.log('Response', response);
     return response.toDataStreamResponse();
-};
+});

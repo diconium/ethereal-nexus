@@ -14,4 +14,4 @@ export const GeneratedCodeDisplay = ({ code }: GeneratedFileDisplayProps) => {
             </pre>
         </div>
     );
-}
+};

@@ -1,19 +1,9 @@
 import { z } from "zod";
 import { streamText } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { NextRequest, NextResponse } from "next/server";
-import { HttpStatus } from "@/app/api/utils";
-import { authenticatedWithKey } from "@/lib/route-wrappers";
 
-export const POST = authenticatedWithKey(async (request: NextRequest, ext) => {
+export async function POST(request: Request) {
     const { messages } = await request.json();
-
-    const userId = ext?.user.id;
-    if (!userId) {
-        return NextResponse.json('You do not have permissions for this resource.', {
-            status: HttpStatus.FORBIDDEN,
-        });
-    }
 
     const response = await streamText({
         model: openai("gpt-4"),
@@ -311,4 +301,4 @@ export const POST = authenticatedWithKey(async (request: NextRequest, ext) => {
     });
     console.log('Response', response);
     return response.toDataStreamResponse();
-});
+};

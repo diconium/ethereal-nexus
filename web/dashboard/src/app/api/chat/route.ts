@@ -1,8 +1,18 @@
 import { z } from "zod";
 import { streamText } from "ai";
+import { auth } from '@/auth';
 import { openai } from "@ai-sdk/openai";
+import { NextResponse } from "next/server";
+import { HttpStatus } from "@/app/api/utils";
 
 export async function POST(request: Request) {
+    const session = await auth();
+
+    if (!session) {
+        return NextResponse.json('You do not have permissions for this resource.', {
+            status: HttpStatus.FORBIDDEN,
+        });
+    }
     const { messages } = await request.json();
 
     const response = await streamText({
@@ -11,9 +21,17 @@ export async function POST(request: Request) {
         toolChoice: "required",
         system:`
             You are an expert React developer specializing in creating accessible, responsive, and modern UI components.
-            You will get descriptions of components by the user and you will generate React components based on the user descriptions, requests or even questions.
+            You will get descriptions of components or descriptions of updates to components by the user and you will generate or update React components based on the user descriptions, requests or even questions.
+            You will only deal with two types of actions, creating a new component or updating an already created component. So you will need to be able to identify if the user is asking/describing a new component or if he is asking for an update to an already created component. Example:
+             - If the user input is something like 'Create a new component that represents a card with an image, title, and description' you should create a new component and follow the instructions on step 1. Create Ethereal Nexus Component.
+             - If you already generated one component the user can ask for styling or functionality updates for the component like 'Make the title bigger' or 'Add a button to the compoennt' in this case you should follow what is described on step 2. Update Ethereal Nexus Component.
+            You must determine whether to create a new component or update an existing one based on the user's request.
+                Look for keywords like "update", "modify", "change", or references to existing components to identify update scenarios.
+            It can be the case that the user asks for an update and then changes the context and describes a new component, in this case, you should follow the instructions on step 1. Create Ethereal Nexus Component.
+            And can also be the case where the user describes multiple updates to a component in a row, in those cases you keep follow the steps described on 2. Update Ethereal Nexus Component and increment the version number by 1 on each update.
+            For each action you will have to follow the guidelines below:
 
-            These are the guidelines you should follow for the  creation/update of components:
+            These are the guidelines you should follow for the creation/update of components:
             - Implement proper accessibility attributes
             - Use Tailwind CSS for styling, and make sure every component that is returned to the user is styled
             - Ensure the component is responsive
@@ -242,11 +260,11 @@ export async function POST(request: Request) {
             You will need to understand if the user is asking for a new component or if he is asking for a change/update on an already created component and act accordingly:
                 - If the user is describing a new component you must follow the steps described in the section 1. Create Ethereal Nexus Component and call the 'generateEtherealNexusJSX' action.
                 - If the user is asking for an update you must follow the steps described in the section 2. Update Ethereal Nexus Component and call the 'updateEtherealNexusJSX' action.
-
+                
             1. Create Ethereal Nexus Component:
             To create an ethereal nexus structured file from a previously created component, follow these steps:
             - Create a new React component file with the structure and guidelines described above.
-            - IMPORTANT: You MUST also create an index.tsx file that will be the file where the Ethereal Nexus Component will be imported and used. For the cases where the created component has some props, you should create some mock data on the index.tsx file and pass it to the component. The file should respect the follow structure:
+            - IMPORTANT: You MUST also create an index.tsx file that will be the file where the Ethereal Nexus Component will be imported and used. You MUST create some mock data on the index.tsx file and pass the needed params to the "DynamicComponent" component. The file should respect the follow structure:
                 import React from 'react';
                 import { createRoot } from 'react-dom/client';
                 import './styles.css';
@@ -254,17 +272,18 @@ export async function POST(request: Request) {
                 const root = createRoot(document.getElementById('root'));
                 root.render(
                   <React.StrictMode>
-                    <DynamicComponent />
+                    <DynamicComponent prop1="1" prop2={2} />
                   </React.StrictMode>
                 );
             - IMPORTANT: This step should only be called if the user is asking for a new component, if the user is asking for an update to an already created component you should follow the steps described on 2. Update Ethereal Nexus Component and leave the component with the same name.
 
             2. Update Ethereal Nexus Component:
             When the user asks for updates to a previously generated ethereal nexus component, follow these steps:
-            - Use exactly the same logic described above on 1. Create Ethereal Nexus Component: for creating a new ethereal nexus component but increment the version number by 1 on each component update.
+            - Use exactly the same logic described above on 1. Create Ethereal Nexus Component but increment the version number by 1 on each component update. Use also the index.tsx file as it described on step 1.
             - IMPORTANT: Only apply the changes requested by the user. Do not modify any other part of the component including styling.
+            - IMPORTANT: The props passed to the component on the index.tsx file should NOT be updated, updates should only be made accordingly to user input.
             - IMPORTANT: Once you have completed writing the updated component, IMMEDIATELY call the 'updateEtherealNexusJSX' action with the component name the JSX code and the file name.
-            - IMPORTANT: The user can ask for updates to an, already updated, ethereal nexus component, in this case, you should increment the version number by 1 from the last updated version.
+            - IMPORTANT: The user can ask for updates to, already updated, ethereal nexus component in this case, you should increment the version number by 1 from the last updated version.    
 
             Ensure created files are complete, standalone components with all necessary code.
             Do not use placeholders or incomplete code sections. Write out all code in full, even if repeating from previous examples.
@@ -288,17 +307,17 @@ export async function POST(request: Request) {
                 description: 'Update JSX code, with the ethereal nexus structure',
                 parameters: z.object({
                     componentName: z.string().describe('The name of the new generated React component'),
+                    indexFileCode: z.string().describe('The JSX code for the index.tsx file where the component will be imported and used'),
                     description: z.string().describe('A detailed description of the component'),
                     fileName: z.string().describe('The name of the file where the component will be saved'),
                     code: z.string().describe('The JSX code for the modified component'),
                     version: z.number().describe('The version of the component'),
                 }),
-                execute: async function ({ code, componentName, fileName, description, version }) {
-                    return { code, componentName, fileName, description, version };
+                execute: async function ({ code, componentName, fileName, description, version, indexFileCode }) {
+                    return { code, componentName, fileName, description, version, indexFileCode };
                 },
             },
         },
     });
-    console.log('Response', response);
     return response.toDataStreamResponse();
 };

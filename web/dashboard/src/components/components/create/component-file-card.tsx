@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useContext } from 'react';
-import { FileIcon, GitBranchIcon, TagIcon } from "lucide-react";
+import { FileIcon, GitBranchIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ChatContext } from "@/components/components/create/utils/chat-context";
 
@@ -13,7 +13,7 @@ interface EtherealNexusFileCardProps {
     version?: number,
 }
 
-export function ComponentFileCard({ id, fileName, componentName, handleClick, version }: EtherealNexusFileCardProps) {
+export function ComponentFileCard({ id, fileName, componentName, handleClick }: EtherealNexusFileCardProps) {
     const { currentMessage } = useContext(ChatContext);
     const isSelected = currentMessage?.id === id;
 
@@ -37,13 +37,6 @@ export function ComponentFileCard({ id, fileName, componentName, handleClick, ve
                             <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">
                                 Ethereal Nexus File
                             </Badge>
-                            {
-                                version &&
-                                    <Badge variant="secondary" className="text-xs">
-                                        <TagIcon className="w-3 h-3 mr-1" />
-                                        v{version}
-                                    </Badge>
-                            }
                         </div>
                     </div>
                     <p className="text-xs text-muted-foreground break-all">{fileName}</p>

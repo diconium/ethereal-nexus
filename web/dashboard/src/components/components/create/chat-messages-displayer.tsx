@@ -7,6 +7,7 @@ import { ToolCallingResult } from "@/components/components/create/chat";
 import { GeneratedComponentMessageType } from "@/components/components/create/utils/chat-context";
 
 interface ChatMessagesDisplayerProps {
+    chatId?: string;
     messages: Message[];
     isLoading: boolean;
     lastElementRef: MutableRefObject<HTMLDivElement | null>;
@@ -14,7 +15,7 @@ interface ChatMessagesDisplayerProps {
     handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: GeneratedComponentMessageType) => void;
 }
 
-export function ChatMessagesDisplayer({ messages, isLoading, downloadEtherealNexusFile, handleOnComponentCardClick, lastElementRef } : ChatMessagesDisplayerProps) {
+export function ChatMessagesDisplayer({ chatId, messages, isLoading, downloadEtherealNexusFile, handleOnComponentCardClick, lastElementRef } : ChatMessagesDisplayerProps) {
 
     return (
         <div className="flex flex-1 flex-col overflow-auto p-4">
@@ -38,6 +39,7 @@ export function ChatMessagesDisplayer({ messages, isLoading, downloadEtherealNex
                         return (
                             <React.Fragment key={toolCallId}>
                                 <AssistantGeneratedMessageCard
+                                    chatId={chatId}
                                     messageId={id}
                                     toolInvocation={toolInvocation}
                                     handleOnComponentCardClick={handleOnComponentCardClick}

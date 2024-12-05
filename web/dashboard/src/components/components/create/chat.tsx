@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useContext, useState, useRef, useEffect }  from 'react';
-import { X } from 'lucide-react';
+import { X, Send, StopCircle } from 'lucide-react';
 import {
     previewTemplate,
     cssTemplate,
@@ -18,8 +18,6 @@ import { ChatMessagesDisplayer } from "@/components/components/create/chat-messa
 import { GeneratedCodeDetailsContainer } from "@/components/components/create/generated-code-details-container";
 import { ChatContext, GeneratedComponentMessageType } from "@/components/components/create/utils/chat-context";
 
-export const CHAT_ID = "ethereal-nexus-component-generation-chat";
-
 // TODO check where this is also used
 export interface ToolCallingResult {
     indexFileCode: string,
@@ -29,7 +27,11 @@ export interface ToolCallingResult {
     description: string,
 }
 
-export default function Chat() {
+interface ChatProps {
+    chatId: string;
+}
+
+export default function Chat({ chatId }: ChatProps) {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isPreviewLoading, setIsPreviewLoading] = useState(false);
     const [output, setOutput] = useState<string>('');
@@ -40,8 +42,8 @@ export default function Chat() {
 
     const { currentMessage, setCurrentMessage, isComponentDetailsContainerOpen, setIsComponentDetailsContainerOpen } = useContext(ChatContext);
 
-    const { messages, input, setInput, handleSubmit, isLoading: isLoadingNewMessage } = useChat({
-        id: CHAT_ID,
+    const { messages, input, setInput, handleSubmit, isLoading: isLoadingNewMessage, stop } = useChat({
+        id: chatId,
     });
 
     const scrollToBottom = () => {
@@ -256,6 +258,7 @@ export default function Chat() {
             <div className={`flex flex-col ${isComponentDetailsContainerOpen ? 'w-1/2' : 'w-full'} transition-all duration-300 ease-in-out`}>
                 <div className="flex flex-1 flex-col overflow-auto relative">
                     <ChatMessagesDisplayer
+                        chatId={chatId}
                         messages={messages}
                         lastElementRef={messagesEndRef}
                         isLoading={isLoadingNewMessage}
@@ -275,7 +278,16 @@ export default function Chat() {
                             }}
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus-visible:ring-orange-600 focus-visible:border-transparent" />
                         <div className="flex">
-                            <Button type="submit" disabled={isLoadingNewMessage} className="px-4 py-2 text-white bg-orange-500 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 h-full">Send</Button>
+                            {
+                                !isLoadingNewMessage ?
+                                    <Button type="submit" className="px-4 py-2 text-white bg-orange-500 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 h-full">
+                                        <Send className="h-5 w-5" />
+                                    </Button>
+                                    :
+                                    <Button type="button" onClick={() => stop()} className="px-4 py-2 text-white bg-orange-500 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 h-full">
+                                        <StopCircle className="h-5 w-5" />
+                                    </Button>
+                            }
                         </div>
                     </form>
                 </div>

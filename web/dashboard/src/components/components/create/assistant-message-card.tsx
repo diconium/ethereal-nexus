@@ -2,26 +2,27 @@
 
 import React from "react";
 import { useChat } from "ai/react";
-import { SendIcon, DownloadIcon } from "lucide-react";
+import { DownloadIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { ToolCallingResult, CHAT_ID } from "@/components/components/create/chat";
+import { ToolCallingResult } from "@/components/components/create/chat";
 import { ComponentFileCard } from "@/components/components/create/component-file-card";
 import { GeneratedComponentMessageType } from "@/components/components/create/utils/chat-context";
 
 interface GeneratedMessageProps {
+    chatId?: string;
     messageId: string;
     toolInvocation: any;
     downloadEtherealNexusFile: (result: ToolCallingResult) => Promise<void>;
     handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: GeneratedComponentMessageType) => void;
 }
 
-export function AssistantGeneratedMessageCard({ messageId, toolInvocation, downloadEtherealNexusFile, handleOnComponentCardClick }: GeneratedMessageProps) {
+export function AssistantGeneratedMessageCard({ chatId, messageId, toolInvocation, downloadEtherealNexusFile, handleOnComponentCardClick }: GeneratedMessageProps) {
     const { toolName, result } = toolInvocation;
     const isModified = toolName === GeneratedComponentMessageType.GENERATE_ETHEREAL_NEXUS_JSX || toolName === GeneratedComponentMessageType.UPDATE_ETHEREAL_NEXUS_JSX;
 
     const { isLoading: isLoadingNewMessage } = useChat({
-        id: CHAT_ID,
+        id: chatId,
     });
 
     const onCardClick = () => {

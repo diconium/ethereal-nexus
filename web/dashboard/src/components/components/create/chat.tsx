@@ -28,7 +28,7 @@ export interface ToolCallingResult {
 }
 
 interface ChatProps {
-    chatId: string;
+    chatId?: string;
 }
 
 export default function Chat({ chatId }: ChatProps) {

@@ -9,6 +9,7 @@ import {
   datasource,
   multifield,
   image,
+  media,
   text,
   group,
   pathbrowser,
@@ -56,7 +57,10 @@ const dialogSchema = dialog({
     toggle: false,
     tooltip: 'This is a tooltip for the whole group',
     children: object({
-
+      media: media({
+        label: 'Media',
+        allowedMimeTypes: ['application/pdf', 'application/zip'],
+      }),
       image: image({
         label: 'Image',
       }),

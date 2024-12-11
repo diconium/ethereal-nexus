@@ -4,7 +4,7 @@ export * from "./schema/multifield";
 export * from "./schema/text";
 export * from "./schema/checkbox";
 export * from "./schema/pathbrowser";
-export * from "./schema/image";
+export * from "./schema/media";
 export * from "./schema/select";
 export * from "./schema/rte";
 export * from "./schema/dynamic";

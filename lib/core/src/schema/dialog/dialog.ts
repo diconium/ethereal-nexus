@@ -1,14 +1,14 @@
-import { BaseSchema, EntryMask, NestedPaths } from '../../types';
+import { BaseSchema, NestedPaths } from '../../types';
 import { ObjectEntries, ObjectOutput } from '../../types/object';
 import { Tabs } from './tabs';
 import { WebcomponentPropTypes } from '../../types/webcomponent';
 import { Condition } from './condition';
 import { pathToArray } from '../../utils/pathToArray';
-import { ConditionsArgument } from './types';
+import { ConditionsArgument, TabsArgument } from './types';
 
 export interface DialogSchema<TEntries extends ObjectEntries> extends BaseSchema<ObjectOutput<TEntries>> {
   type: 'dialog';
-  tabs: (tabs: Record<string, EntryMask<TEntries>>) => DialogSchema<TEntries>;
+  tabs: (tabs: TabsArgument<TEntries>) => DialogSchema<TEntries>;
   conditions: (conditions: ConditionsArgument<TEntries>) => DialogSchema<TEntries>;
 }
 
@@ -32,7 +32,7 @@ class DialogBuilder<TEntries extends ObjectEntries> implements DialogSchema<TEnt
     return this;
   }
 
-  tabs(tabs: Record<string, EntryMask<TEntries>>) {
+  tabs(tabs: TabsArgument<TEntries>) {
     for (const [key, tab] of Object.entries(tabs)) {
       this.tabsModule.addTab(key as any, tab!);
     }

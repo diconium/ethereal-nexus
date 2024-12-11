@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.5.1
+
+### Patch Changes
+
+- 90a9d7a: fix: imported same TabsArgument so TS can match tabs type from interface and function
+
 ## 1.5.0
 
 ### Minor Changes

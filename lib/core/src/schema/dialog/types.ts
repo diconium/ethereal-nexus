@@ -1,5 +1,5 @@
 import { ObjectEntries, ObjectOutput } from '../../types/object';
-import { AddType, DeepPartial, LeavesPath, NodesPath, PathValue, UnArray } from '../../types';
+import { AddType, DeepPartial, EntryMask, LeavesPath, NodesPath, PathValue, UnArray } from '../../types';
 
 type Operators = 'eq' | 'neq' | 'and' | 'or' | 'exists'
 
@@ -29,5 +29,6 @@ export type ConditionFn<TEntries extends ObjectEntries> = (ops: ConditionOperato
 
 type ThisPlaceholder = symbol
 export type ConditionsArgument<TEntries extends ObjectEntries> = AddType<UnArray<DeepPartial<AddType<ObjectOutput<TEntries>, {$this: ThisPlaceholder}>>>, ConditionFn<TEntries>>
+export type TabsArgument<TEntries extends ObjectEntries> = Record<string, EntryMask<TEntries>>
 
 export type Field = { id: string, condition?: Conditions, children?: Field[] }

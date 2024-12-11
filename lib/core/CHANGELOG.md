@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.6.0
+
+### Minor Changes
+
+- 2906ca2: feat: Adds Media type. Media adds the possibility to select allowedMimeTypes to be passed to CMS. Deprecates Image type.
+
 ## 1.5.1
 
 ### Patch Changes

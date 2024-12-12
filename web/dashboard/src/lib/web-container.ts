@@ -10,6 +10,24 @@ export async function getWebContainerInstance() {
     return webContainerInstance;
 };
 
+export const createIndexFileTemplate = (componentName: string, fileName: string, componentProps: any) => (
+    `
+        import { StrictMode } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import './styles.css';
+        import ${componentName} from './${fileName}';
+        
+        const props = ${componentProps};
+        const root = createRoot(document.getElementById('root'));
+        root.render(
+          <StrictMode>
+            <${componentName} ${componentProps? "{...props}" : ""} />
+          </StrictMode>
+        );
+    `
+);
+
+
 export const previewTemplate = `
     import React from 'react';
     import { createRoot } from 'react-dom/client';

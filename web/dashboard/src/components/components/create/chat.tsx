@@ -9,6 +9,7 @@ import {
     tailwindConfigTemplate,
     viteConfigTemplate,
     previewTemplate,
+    createIndexFileTemplate,
     getWebContainerInstance,
 } from "@/lib/web-container";
 import { useChat } from "ai/react";
@@ -172,19 +173,8 @@ export default function Chat({ chatId }: ChatProps) {
             try {
                 setOutput('Updating component...');
                 const propsToIndexFile = JSON.stringify(currentMessage.etherealNexusComponentMockedProps);
-                const indexFileUpdatedTemplate = `
-                    import { StrictMode } from 'react';
-                    import { createRoot } from 'react-dom/client';
-                    import './styles.css';
-                    import ${currentMessage?.componentName} from './${currentMessage?.fileName}';
-                    
-                    const props = ${propsToIndexFile};
-                    const root = createRoot(document.getElementById('root'));
-                    root.render(
-                      <StrictMode>
-                        <${currentMessage?.componentName} ${currentMessage.etherealNexusComponentMockedProps? "{...props}" : ""} />
-                      </StrictMode>
-                    );`
+                const indexFileUpdatedTemplate = createIndexFileTemplate(currentMessage?.componentName, currentMessage?.fileName, propsToIndexFile);
+
                 await webContainerInstance.fs.writeFile(`/${currentMessage?.fileName}`, currentMessage?.generatedCode);
                 await webContainerInstance.fs.writeFile('/index.tsx', indexFileUpdatedTemplate);
                 setOutput('Component updated successfully!');

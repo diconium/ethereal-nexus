@@ -40,7 +40,6 @@ export function AssistantGeneratedMessageCard({ chatId, messageId, toolInvocatio
                 <ComponentFileCard
                     id={messageId}
                     fileName={result.fileName}
-                    version={result.version}
                     componentName={result.componentName}
                     handleClick={onCardClick} />
             </CardContent>

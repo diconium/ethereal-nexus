@@ -21,7 +21,7 @@ export function ComponentPreviewer({ url, isLoading }: ComponentPreviewerProps) 
                 <iframe
                     id={`iframe-${currentMessage?.id}`}
                     src={url}
-                    className="w-full h-full border-0"
+                    className="w-full h-full flex-1 border-0"
                     title="Component Preview"
                     sandbox="allow-scripts allow-same-origin"
                 />

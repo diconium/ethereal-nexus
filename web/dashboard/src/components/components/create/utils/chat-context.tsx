@@ -12,9 +12,8 @@ export interface GeneratedComponentMessage {
     componentName: string;
     fileName: string;
     generatedCode: string;
-    indexFileCode: string;
+    etherealNexusComponentMockedProps: any; // TODO: Define type
     type: GeneratedComponentMessageType;
-    version?: number;
 };
 
 interface ChatContextType {

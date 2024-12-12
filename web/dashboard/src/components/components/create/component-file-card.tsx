@@ -10,7 +10,6 @@ interface EtherealNexusFileCardProps {
     componentName: string,
     fileName: string,
     handleClick: () => void,
-    version?: number,
 }
 
 export function ComponentFileCard({ id, fileName, componentName, handleClick }: EtherealNexusFileCardProps) {

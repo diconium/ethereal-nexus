@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+@import './animations.css';
 
 @layer base {
   :root {

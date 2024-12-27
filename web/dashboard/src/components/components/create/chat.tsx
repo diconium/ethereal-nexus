@@ -28,7 +28,7 @@ export interface ToolCallingResult {
     etherealNexusComponentMockedProps: string,
     componentName: string,
     fileName: string,
-    code: string,
+    etherealNexusFileCode: string,
     description: string,
 }
 
@@ -240,7 +240,7 @@ export default function Chat({ chatId }: ChatProps) {
             id: messageId as string,
             componentName: result.componentName as string,
             fileName: result.fileName as string,
-            generatedCode: result.code as string,
+            generatedCode: result.etherealNexusFileCode as string,
             etherealNexusComponentMockedProps: result.etherealNexusComponentMockedProps,
             type: toolName,
         });

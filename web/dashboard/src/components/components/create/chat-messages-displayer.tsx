@@ -13,9 +13,10 @@ interface ChatMessagesDisplayerProps {
     lastElementRef: MutableRefObject<HTMLDivElement | null>;
     downloadEtherealNexusFile: (result: ToolCallingResult) => Promise<void>;
     handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: GeneratedComponentMessageType) => void;
+    handlePublishComponent: (generatedFileName: string) => Promise<void>;
 }
 
-export function ChatMessagesDisplayer({ chatId, messages, isLoading, downloadEtherealNexusFile, handleOnComponentCardClick, lastElementRef } : ChatMessagesDisplayerProps) {
+export function ChatMessagesDisplayer({ chatId, messages, isLoading, downloadEtherealNexusFile, handleOnComponentCardClick, lastElementRef, handlePublishComponent } : ChatMessagesDisplayerProps) {
 
     return (
         <div className="flex flex-1 flex-col overflow-auto p-4">
@@ -44,6 +45,7 @@ export function ChatMessagesDisplayer({ chatId, messages, isLoading, downloadEth
                                     toolInvocation={toolInvocation}
                                     handleOnComponentCardClick={handleOnComponentCardClick}
                                     downloadEtherealNexusFile={downloadEtherealNexusFile}
+                                    handlePublishComponent={handlePublishComponent}
                                 />
                             </React.Fragment>
                         );

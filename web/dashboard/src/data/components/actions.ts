@@ -13,7 +13,6 @@ import {
   componentsUpsertSchema,
   componentsWithVersions,
   ComponentToUpsert,
-  ComponentVersion,
   componentVersionsCreateSchema,
   componentVersionsSchema,
   ComponentWithVersion, NewComponentVersion
@@ -31,6 +30,12 @@ import { members } from '@/data/member/schema';
 import { users } from '@/data/users/schema';
 import { logEvent } from '@/lib/events/event-middleware';
 import { userIsMember } from '@/data/member/actions';
+import { NextResponse } from "next/server";
+import { HttpStatus } from "@/app/api/utils";
+import { EtherealStorage } from '@/storage/ethereal-storage';
+import { auth } from "@/auth";
+
+const storage = new EtherealStorage();
 
 async function upsertComponentVersion(version: NewComponentVersion) {
   const safeVersion = componentVersionsCreateSchema.safeParse(version);
@@ -68,6 +73,85 @@ async function upsertComponentVersion(version: NewComponentVersion) {
 
   return actionSuccess(insertedVersion.data);
 }
+
+export async function upsertNewComponent(formData: FormData, componentName: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
+  }
+
+  const filesMap: { [key: string]: string } = {};
+
+  for (const [filePath, content] of formData.entries()) {
+    if (typeof content === 'string') {
+      filesMap[filePath] = content;
+    }
+  }
+
+  const manifestFile = filesMap[`/dist/.ethereal/${componentName}/manifest.json`];
+  console.log('manifestFile', manifestFile)
+
+  if (!manifestFile) {
+    return NextResponse.json('No manifest present in the bundle.', {
+      status: HttpStatus.BAD_REQUEST
+    });
+  }
+
+  const manifest = JSON.parse(manifestFile);
+  const result = await upsertComponentWithVersion(manifest, session?.user?.id);
+  if (!result.success) {
+    console.error(JSON.stringify(result.error, undefined, 2));
+    return NextResponse.json(result.error.message, {
+      status: HttpStatus.BAD_REQUEST
+    });
+  }
+
+  const { id, slug, version } = result.data;
+
+  for (const [fileName, content] of Object.entries(filesMap)) {
+    if (fileName.endsWith('.js') || fileName.endsWith('.css')) {
+      const urlObject = await storage.uploadToStorage(
+          content,
+          `${slug}/${version.version}`,
+          fileName
+      );
+
+      if (!urlObject) {
+        return NextResponse.json('Failed to upload assets', {
+          status: HttpStatus.BAD_REQUEST
+        });
+      }
+
+      let type: 'css' | 'js' | 'chunk' | 'server' = 'chunk' as const;
+      if (fileName.endsWith('.css')) {
+        type = 'css';
+      } else if (fileName.endsWith('index.js')) {
+        type = 'js';
+      } else if (fileName.endsWith('server.js')) {
+        type = 'server';
+      }
+
+      const response = await upsertAssets(
+          id,
+          version.id,
+          urlObject.toString(),
+          type
+      );
+
+      if (!response.success && response.error.message !== 'Asset already exists.') {
+        return NextResponse.json('Failed to upsert assets', {
+          status: HttpStatus.BAD_REQUEST
+        });
+      }
+
+      if (!response.success && response.error.message === 'Asset already exists.') {
+        // conflictingAssets = true;
+      }
+    }
+  }
+
+  return result;
+};
 
 export async function upsertComponentWithVersion(
   component: ComponentToUpsert,

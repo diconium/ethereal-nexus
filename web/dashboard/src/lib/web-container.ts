@@ -32,12 +32,11 @@ export const previewTemplate = `
     import React from 'react';
     import { createRoot } from 'react-dom/client';
     import './styles.css';
-    import DynamicComponent from './DynamicComponent';
     
     const root = createRoot(document.getElementById('root'));
     root.render(
       <React.StrictMode>
-        <DynamicComponent />
+        <div></div>
       </React.StrictMode>
     );
 `;

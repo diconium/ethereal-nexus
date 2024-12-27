@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useContext, useState, useRef, useEffect }  from 'react';
+import path from 'path';
+import { WebContainer } from "@webcontainer/api";
 import { X, Send, StopCircle } from 'lucide-react';
 import {
     cssTemplate,
@@ -19,6 +21,7 @@ import { ChatMessagesDisplayer } from "@/components/components/create/chat-messa
 import { WebContainerStatusOutput } from "@/components/components/create/webcontainer-status-output";
 import { GeneratedCodeDetailsContainer } from "@/components/components/create/generated-code-details-container";
 import { ChatContext, GeneratedComponentMessageType } from "@/components/components/create/utils/chat-context";
+import { upsertNewComponent } from "@/data/components/actions";
 
 // TODO check where this is also used
 export interface ToolCallingResult {
@@ -257,18 +260,64 @@ export default function Chat({ chatId }: ChatProps) {
         setIsComponentDetailsContainerOpen(false);
     };
 
-    const printFilesFromFS = async () => {
-        const webContainer = await getWebContainerInstance();
-        const files = await webContainer.fs.readdir('/dist/assets');
+    const getMinifiedComponentFiles = async (webContainer: WebContainer) => {
+        const filesMap = new Map<string, string>();
+        const distNameSpace = '/dist';
 
-        const file = await webContainer.fs.readFile('/dist/assets/index-BJ4prWjV.js', 'utf-8');
+        async function traverseDirectory(currentPath) {
+            const entries = await webContainer.fs.readdir(currentPath, { withFileTypes: true });
+
+            for (const entry of entries) {
+                const fullPath = path.join(currentPath, entry.name);
+
+                if (entry.isDirectory()) {
+                    await traverseDirectory(fullPath);
+                } else if (entry.isFile()) {
+                    try {
+                        const content = await webContainer.fs.readFile(fullPath, 'utf-8');
+                        filesMap.set(fullPath, content);
+                    } catch (error) {
+                        console.error(`Error reading file ${fullPath}:`, error);
+                    }
+                }
+            }
+        }
+
+        await traverseDirectory(distNameSpace);
+
+        return filesMap;
     };
 
-    const executeEtherealNexus = async () => {
+    const executeViteReactPlugin = async (generatedFileName: string) => {
+        const componentName = generatedFileName.replace('.tsx', '');
         const webContainer = await getWebContainerInstance();
 
         try {
             setOutput('Executing Ethereal Nexus plugin...');
+            const updatedViteConfigFile = `
+                import { defineConfig } from 'vite';
+                import react from '@vitejs/plugin-react';
+                import ethereal from '@ethereal-nexus/vite-plugin-ethereal-nexus';
+                
+                export default defineConfig({
+                  plugins: [
+                    react(),
+                    ethereal({
+                      exposes: {
+                        ${componentName}: './${generatedFileName}',
+                      },
+                      server: true,
+                    }),
+                  ],
+                  server: {
+                    host: '0.0.0.0',
+                    port: 5173
+                  }
+                });
+            `;
+            console.log(updatedViteConfigFile);
+            await webContainer.fs.writeFile('/vite.config.js', updatedViteConfigFile);
+
             const process = await webContainer.spawn('npx', ['vite', 'build', '--mode', 'ethereal']);
 
             process.output.pipeTo(new WritableStream({
@@ -281,6 +330,14 @@ export default function Chat({ chatId }: ChatProps) {
 
             if (exitCode === 0) {
                 setOutput('Ethereal Nexus execution completed successfully!');
+                const minifiedFiles = await getMinifiedComponentFiles(webContainer);
+                const formData = new FormData()
+
+                for (const [key, value] of minifiedFiles) {
+                    formData.append(key, value);
+                }
+
+                await upsertNewComponent(formData, componentName);
             } else {
                 throw new Error('Ethereal Nexus execution failed');
             }
@@ -301,6 +358,7 @@ export default function Chat({ chatId }: ChatProps) {
                         isLoading={isLoadingNewMessage}
                         downloadEtherealNexusFile={downloadEtherealNexusFile}
                         handleOnComponentCardClick={handleOnComponentCardClick}
+                        handlePublishComponent={executeViteReactPlugin}
                     />
                 </div>
                 <div className="p-4 bg-white border-t">
@@ -341,7 +399,7 @@ export default function Chat({ chatId }: ChatProps) {
                         >
                             <X className="h-4 w-4" />
                         </Button>
-                        <GeneratedCodeDetailsContainer previewUrl={previewUrl} isPreviewLoading={isPreviewLoading} webContainerOutput={output}/>
+                        <GeneratedCodeDetailsContainer previewUrl={previewUrl} isPreviewLoading={isPreviewLoading} />
                     </div>
                     <div className="mx-6 mb-6">
                         <WebContainerStatusOutput output={output} />

@@ -11,7 +11,7 @@ export function WebContainerStatusOutput({ output }: StatusOutputProps) {
     const isError = output.toLowerCase().includes('error');
 
     return (
-        <div className={`p-4 rounded-lg ${
+        <div className={`p-4 rounded-lg overflow-auto max-h-40 ${
             isError ? 'bg-red-50 border border-red-200' : 'bg-gray-50 border border-gray-200'
         }`}>
             <h2 className="text-lg font-semibold text-gray-700 mb-2 flex items-center gap-2">

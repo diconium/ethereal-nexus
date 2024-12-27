@@ -15,7 +15,6 @@ import { Dialog, DialogTrigger } from '@radix-ui/react-dialog';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useState } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import { deleteComponent } from '@/data/components/actions';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { deleteApiKey } from '@/data/users/actions';

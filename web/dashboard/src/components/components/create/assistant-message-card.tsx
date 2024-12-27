@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useChat } from "ai/react";
-import { DownloadIcon } from "lucide-react";
+import { DownloadIcon, ArrowBigUpDash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ToolCallingResult } from "@/components/components/create/chat";
@@ -15,11 +15,11 @@ interface GeneratedMessageProps {
     toolInvocation: any;
     downloadEtherealNexusFile: (result: ToolCallingResult) => Promise<void>;
     handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: GeneratedComponentMessageType) => void;
+    handlePublishComponent: (generatedFileName: string) => Promise<void>;
 }
 
-export function AssistantGeneratedMessageCard({ chatId, messageId, toolInvocation, downloadEtherealNexusFile, handleOnComponentCardClick }: GeneratedMessageProps) {
+export function AssistantGeneratedMessageCard({ chatId, messageId, toolInvocation, downloadEtherealNexusFile, handleOnComponentCardClick, handlePublishComponent }: GeneratedMessageProps) {
     const { toolName, result } = toolInvocation;
-    const isModified = toolName === GeneratedComponentMessageType.GENERATE_ETHEREAL_NEXUS_JSX || toolName === GeneratedComponentMessageType.UPDATE_ETHEREAL_NEXUS_JSX;
 
     const { isLoading: isLoadingNewMessage } = useChat({
         id: chatId,
@@ -31,7 +31,11 @@ export function AssistantGeneratedMessageCard({ chatId, messageId, toolInvocatio
 
     const handleFooterActionClick = () => {
         downloadEtherealNexusFile(result as ToolCallingResult);
-    }
+    };
+
+    const publishComponent = async () => {
+      await handlePublishComponent(result.fileName);
+    };
 
     return (
         <Card className="w-full max-w-md mb-4 rounded-lg">
@@ -44,8 +48,11 @@ export function AssistantGeneratedMessageCard({ chatId, messageId, toolInvocatio
                     handleClick={onCardClick} />
             </CardContent>
             <CardFooter className="justify-between items-center px-4 pt-0 pb-4">
-                <Button variant="text" className="text-orange-500 text-xs font-bold p-0" onClick={handleFooterActionClick} disabled={!isModified && isLoadingNewMessage}>
+                <Button variant="text" className="text-orange-500 text-xs font-bold p-0" onClick={handleFooterActionClick} disabled={isLoadingNewMessage}>
                     <><DownloadIcon className="w-4 h-4 mr-2" />Download File</>
+                </Button>
+                <Button variant="text" className="text-orange-500 text-xs font-bold p-0" onClick={publishComponent} disabled={isLoadingNewMessage}>
+                    <><ArrowBigUpDash className="w-5 h-5 mr-2" />Publish Component</>
                 </Button>
             </CardFooter>
         </Card>

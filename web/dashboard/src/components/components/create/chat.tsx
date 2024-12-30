@@ -38,6 +38,7 @@ interface ChatProps {
 
 export default function Chat({ chatId }: ChatProps) {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [isPublishingComponent, setIsPublishingComponent] = useState(false);
     const [isPreviewLoading, setIsPreviewLoading] = useState(false);
     const [output, setOutput] = useState<string>('');
     const [isWebContainerBooted, setIsWebContainerBooted] = useState(false);
@@ -172,7 +173,15 @@ export default function Chat({ chatId }: ChatProps) {
         const updateComponent = async () => {
             if (!currentMessage) return;
             const webContainerInstance = await getWebContainerInstance();
-            if (!serverUrlRef.current) return;
+
+            if (!serverUrlRef.current) { //happens when the user goes to another page and returns
+                try {
+                    await setupInitialFiles();
+                } catch (error) {
+                    setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+                }
+            };
+
             try {
                 setOutput('Updating component...');
                 const propsToIndexFile = JSON.stringify(currentMessage.etherealNexusComponentMockedProps);
@@ -213,7 +222,7 @@ export default function Chat({ chatId }: ChatProps) {
     }, [messages, setCurrentMessage, setIsComponentDetailsContainerOpen]);
 
     const downloadEtherealNexusFile = async (result: ToolCallingResult) => {
-        const file = new File([result.code], result.fileName, {
+        const file = new File([result.etherealNexusFileCode], result.fileName, {
             type: 'text/plain',
         })
 
@@ -288,7 +297,8 @@ export default function Chat({ chatId }: ChatProps) {
         return filesMap;
     };
 
-    const executeViteReactPlugin = async (generatedFileName: string) => {
+    const executeViteReactPlugin = async (generatedFileName: string, generatedCode: string) => {
+        setIsPublishingComponent(true);
         const componentName = generatedFileName.replace('.tsx', '');
         const webContainer = await getWebContainerInstance();
 
@@ -315,7 +325,7 @@ export default function Chat({ chatId }: ChatProps) {
                   }
                 });
             `;
-            console.log(updatedViteConfigFile);
+            await webContainer.fs.writeFile(`/${generatedFileName}`, generatedCode); // for the cases where multiple components with the same name are generated
             await webContainer.fs.writeFile('/vite.config.js', updatedViteConfigFile);
 
             const process = await webContainer.spawn('npx', ['vite', 'build', '--mode', 'ethereal']);
@@ -327,10 +337,9 @@ export default function Chat({ chatId }: ChatProps) {
             }));
 
             const exitCode = await process.exit;
-
             if (exitCode === 0) {
-                setOutput('Ethereal Nexus execution completed successfully!');
-                const minifiedFiles = await getMinifiedComponentFiles(webContainer);
+                // setOutput('Ethereal Nexus execution completed successfully!');
+                const minifiedFiles = await getMinifiedComponentFiles(webContainer); // TODO CHECK IF WE NEED TO DELETE ALL THE FILES FROM DIST FOLDER BEFORE ADDING NEW ONES
                 const formData = new FormData()
 
                 for (const [key, value] of minifiedFiles) {
@@ -338,12 +347,16 @@ export default function Chat({ chatId }: ChatProps) {
                 }
 
                 await upsertNewComponent(formData, componentName);
+                setIsPublishingComponent(false);
             } else {
-                throw new Error('Ethereal Nexus execution failed');
+                // throw new Error('Ethereal Nexus execution failed');
+                console.log('Ethereal Nexus execution failed');
+                setIsPublishingComponent(false);
             }
         } catch (error) {
             console.error('Error executing Ethereal Nexus:', error);
             setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+            setIsPublishingComponent(false);
         }
     };
 
@@ -352,9 +365,9 @@ export default function Chat({ chatId }: ChatProps) {
             <div className={`flex flex-col ${isComponentDetailsContainerOpen ? 'w-1/2' : 'w-full'} transition-all duration-300 ease-in-out`}>
                 <div className="flex flex-1 flex-col overflow-auto relative">
                     <ChatMessagesDisplayer
-                        chatId={chatId}
                         messages={messages}
                         lastElementRef={messagesEndRef}
+                        disabledActions={isPublishingComponent || isLoadingNewMessage}
                         isLoading={isLoadingNewMessage}
                         downloadEtherealNexusFile={downloadEtherealNexusFile}
                         handleOnComponentCardClick={handleOnComponentCardClick}
@@ -375,11 +388,11 @@ export default function Chat({ chatId }: ChatProps) {
                         <div className="flex">
                             {
                                 !isLoadingNewMessage ?
-                                    <Button type="submit" className="px-4 py-2 text-white bg-orange-500 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 h-full">
+                                    <Button disabled={isPublishingComponent} type="submit" className="px-4 py-2 text-white bg-orange-500 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 h-full">
                                         <Send className="h-5 w-5" />
                                     </Button>
                                     :
-                                    <Button type="button" onClick={() => stop()} className="px-4 py-2 text-white bg-orange-500 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 h-full">
+                                    <Button disabled={isPublishingComponent} type="button" onClick={() => stop()} className="px-4 py-2 text-white bg-orange-500 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 h-full">
                                         <StopCircle className="h-5 w-5" />
                                     </Button>
                             }

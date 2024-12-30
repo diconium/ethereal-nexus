@@ -10,20 +10,16 @@ import { ComponentFileCard } from "@/components/components/create/component-file
 import { GeneratedComponentMessageType } from "@/components/components/create/utils/chat-context";
 
 interface GeneratedMessageProps {
-    chatId?: string;
     messageId: string;
+    disabledActions: boolean;
     toolInvocation: any;
     downloadEtherealNexusFile: (result: ToolCallingResult) => Promise<void>;
     handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: GeneratedComponentMessageType) => void;
-    handlePublishComponent: (generatedFileName: string) => Promise<void>;
+    handlePublishComponent: (generatedFileName: string, generatedCode: string) => Promise<void>;
 }
 
-export function AssistantGeneratedMessageCard({ chatId, messageId, toolInvocation, downloadEtherealNexusFile, handleOnComponentCardClick, handlePublishComponent }: GeneratedMessageProps) {
+export function AssistantGeneratedMessageCard({ messageId, toolInvocation, downloadEtherealNexusFile, handleOnComponentCardClick, handlePublishComponent, disabledActions }: GeneratedMessageProps) {
     const { toolName, result } = toolInvocation;
-
-    const { isLoading: isLoadingNewMessage } = useChat({
-        id: chatId,
-    });
 
     const onCardClick = () => {
         handleOnComponentCardClick(messageId, result, toolName);
@@ -34,7 +30,7 @@ export function AssistantGeneratedMessageCard({ chatId, messageId, toolInvocatio
     };
 
     const publishComponent = async () => {
-      await handlePublishComponent(result.fileName);
+      await handlePublishComponent(result.fileName, result.etherealNexusFileCode);
     };
 
     return (
@@ -48,10 +44,10 @@ export function AssistantGeneratedMessageCard({ chatId, messageId, toolInvocatio
                     handleClick={onCardClick} />
             </CardContent>
             <CardFooter className="justify-between items-center px-4 pt-0 pb-4">
-                <Button variant="text" className="text-orange-500 text-xs font-bold p-0" onClick={handleFooterActionClick} disabled={isLoadingNewMessage}>
+                <Button variant="text" className="text-orange-500 text-xs font-bold p-0" onClick={handleFooterActionClick} disabled={disabledActions}>
                     <><DownloadIcon className="w-4 h-4 mr-2" />Download File</>
                 </Button>
-                <Button variant="text" className="text-orange-500 text-xs font-bold p-0" onClick={publishComponent} disabled={isLoadingNewMessage}>
+                <Button variant="text" className="text-orange-500 text-xs font-bold p-0" onClick={publishComponent} disabled={disabledActions}>
                     <><ArrowBigUpDash className="w-5 h-5 mr-2" />Publish Component</>
                 </Button>
             </CardFooter>

@@ -7,16 +7,16 @@ import { ToolCallingResult } from "@/components/components/create/chat";
 import { GeneratedComponentMessageType } from "@/components/components/create/utils/chat-context";
 
 interface ChatMessagesDisplayerProps {
-    chatId?: string;
     messages: Message[];
+    disabledActions: boolean;
     isLoading: boolean;
     lastElementRef: MutableRefObject<HTMLDivElement | null>;
     downloadEtherealNexusFile: (result: ToolCallingResult) => Promise<void>;
     handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: GeneratedComponentMessageType) => void;
-    handlePublishComponent: (generatedFileName: string) => Promise<void>;
+    handlePublishComponent: (generatedFileName: string, generatedCode: string) => Promise<void>;
 }
 
-export function ChatMessagesDisplayer({ chatId, messages, isLoading, downloadEtherealNexusFile, handleOnComponentCardClick, lastElementRef, handlePublishComponent } : ChatMessagesDisplayerProps) {
+export function ChatMessagesDisplayer({ messages, isLoading, downloadEtherealNexusFile, handleOnComponentCardClick, lastElementRef, handlePublishComponent, disabledActions } : ChatMessagesDisplayerProps) {
 
     return (
         <div className="flex flex-1 flex-col overflow-auto p-4">
@@ -40,8 +40,8 @@ export function ChatMessagesDisplayer({ chatId, messages, isLoading, downloadEth
                         return (
                             <React.Fragment key={toolCallId}>
                                 <AssistantGeneratedMessageCard
-                                    chatId={chatId}
                                     messageId={id}
+                                    disabledActions={disabledActions}
                                     toolInvocation={toolInvocation}
                                     handleOnComponentCardClick={handleOnComponentCardClick}
                                     downloadEtherealNexusFile={downloadEtherealNexusFile}

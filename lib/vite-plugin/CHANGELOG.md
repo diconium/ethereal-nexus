@@ -1,5 +1,20 @@
 # @ethereal-nexus/vite-plugin-ethereal-nexus
 
+## 1.0.7
+
+### Patch Changes
+
+- Updated dependencies [2906ca2]
+  - @ethereal-nexus/core@1.6.0
+
+## 1.0.6
+
+### Patch Changes
+
+- 64d80e1: fix: add apply build to plugin definition
+- Updated dependencies [90a9d7a]
+  - @ethereal-nexus/core@1.5.1
+
 ## 1.0.5
 
 ### Patch Changes

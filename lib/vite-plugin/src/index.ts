@@ -16,6 +16,7 @@ export default function rollupEthereal(opts: EtherealPluginOptions): Plugin {
 
   return {
     name: 'ethereal:compiler',
+    apply: 'build',
     async buildStart(_options) {
       console.log('Building ethereal bundles...');
       if (typeof opts.server === 'object') {

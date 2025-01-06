@@ -3,7 +3,7 @@
   "version": "1.4.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS='' next dev",
+    "dev": "NODE_OPTIONS=' --experimental-vm-modules --inspect' next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -16,7 +16,6 @@
     "@auth/drizzle-adapter": "^1.7.2",
     "@azure/communication-email": "^1.0.0",
     "@ai-sdk/openai": "^0.0.40",
-    "@astrojs/mdx": "^2.2.0",
     "@azure/storage-blob": "^12.15.0",
     "@epic-web/remember": "^1.0.2",
     "@google-cloud/storage": "^7.11.2",

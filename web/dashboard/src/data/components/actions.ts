@@ -89,7 +89,6 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
   }
 
   const manifestFile = filesMap[`/dist/.ethereal/${componentName}/manifest.json`];
-  console.log('manifestFile', manifestFile)
 
   if (!manifestFile) {
     return NextResponse.json('No manifest present in the bundle.', {

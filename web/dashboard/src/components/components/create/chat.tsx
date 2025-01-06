@@ -32,6 +32,11 @@ export interface ToolCallingResult {
     description: string,
 }
 
+export interface StatusOutputType {
+    status: 'Info' | 'Error' | 'Success' | 'Executing';
+    message: string;
+}
+
 interface ChatProps {
     chatId?: string;
 }
@@ -40,7 +45,7 @@ export default function Chat({ chatId }: ChatProps) {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isPublishingComponent, setIsPublishingComponent] = useState(false);
     const [isPreviewLoading, setIsPreviewLoading] = useState(false);
-    const [output, setOutput] = useState<string>('');
+    const [output, setOutput] = useState<StatusOutputType | undefined>();
     const [isWebContainerBooted, setIsWebContainerBooted] = useState(false);
 
     const serverUrlRef = useRef<string>('');
@@ -63,7 +68,7 @@ export default function Chat({ chatId }: ChatProps) {
         const webContainer = await getWebContainerInstance();
 
         try {
-            setOutput('Creating project files...');
+            setOutput({ status: 'Executing', message: 'Booting WebContainer...' });
             await webContainer.mount({
                 'index.html': {
                     file: { contents: htmlTemplate },
@@ -108,12 +113,15 @@ export default function Chat({ chatId }: ChatProps) {
                 },
             });
 
-            setOutput('Installing dependencies...');
+            setOutput({ status: 'Executing', message: 'Installing dependencies...'});
             const installProcess = await webContainer.spawn('npm', ['install']);
 
             installProcess.output.pipeTo(new WritableStream({
                 write(data) {
-                    setOutput(prev => `${prev}\n${data}`);
+                    setOutput((prev: StatusOutputType | undefined) => ({
+                        status: 'Executing',
+                        message: `${prev?.message ?? ''}\n${data}`,
+                    }));
                 }
             }));
 
@@ -123,17 +131,16 @@ export default function Chat({ chatId }: ChatProps) {
                 throw new Error('Installation failed');
             }
 
-            setOutput('Starting development server...');
+            setOutput({ status: 'Executing', message: 'Starting development server...'});
             const devProcess = await webContainer.spawn('npx', ['vite']);
 
             devProcess.output.pipeTo(new WritableStream({
                 write(data) {
                     if (data.includes('Local:')) {
-                        const url = data.match(/Local:\s+(http:\/\/localhost:\d+)/)?.[1];
+                        const url = /Local:\s+(http:\/\/localhost:\d+)/.exec(data)?.[1];
                         if (url) {
                             serverUrlRef.current = url;
                             setPreviewUrl(url);
-                            setOutput('Component preview is ready!');
                         }
                     }
                 }
@@ -142,11 +149,10 @@ export default function Chat({ chatId }: ChatProps) {
             webContainer.on('server-ready', (port, url) => {
                 serverUrlRef.current = url;
                 setPreviewUrl(url);
-                setOutput('Component preview is ready!');
             });
 
         } catch (error) {
-            setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+            setOutput({ status: 'Error', message: `Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`});
         } finally {
             setIsWebContainerBooted(false);
             setIsPreviewLoading(false);
@@ -158,15 +164,15 @@ export default function Chat({ chatId }: ChatProps) {
             // loads the web container when the chat is being loaded
             if (messages.length === 0 && !isWebContainerBooted) {
                 setIsPreviewLoading(true);
-                setOutput('Starting WebContainer...');
+                setOutput({ status: 'Executing', message: 'Starting WebContainer...'});
                 try {
                     await setupInitialFiles();
                 } catch (error) {
-                    setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+                    setOutput({ status: 'Error', message: `Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`});
                 }
             }
         };
-        bootWebContainer().then(() => setOutput('WebContainer booted!'));
+        bootWebContainer().then(() => setOutput({ status: 'Success', message: 'WebContainer booted!'}));
     }, [messages, isWebContainerBooted]);
 
     useEffect(() => {
@@ -178,20 +184,20 @@ export default function Chat({ chatId }: ChatProps) {
                 try {
                     await setupInitialFiles();
                 } catch (error) {
-                    setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+                    setOutput({ status: 'Error', message: `Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`});
                 }
             };
 
             try {
-                setOutput('Updating component...');
+                setOutput({ status: 'Executing', message: 'Updating component...'});
                 const propsToIndexFile = JSON.stringify(currentMessage.etherealNexusComponentMockedProps);
                 const indexFileUpdatedTemplate = createIndexFileTemplate(currentMessage?.componentName, currentMessage?.fileName, propsToIndexFile);
 
                 await webContainerInstance.fs.writeFile(`/${currentMessage?.fileName}`, currentMessage?.generatedCode);
                 await webContainerInstance.fs.writeFile('/index.tsx', indexFileUpdatedTemplate);
-                setOutput('Component updated successfully!');
+                setOutput({ status: 'Success', message: 'Component updated successfully!' });
             } catch (error) {
-                setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+                setOutput({ status: 'Error', message: `Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`});
             }
         };
 
@@ -207,7 +213,7 @@ export default function Chat({ chatId }: ChatProps) {
                 const { toolName, args } = toolInvocation;
                 if (Object.values(GeneratedComponentMessageType).includes(toolName as GeneratedComponentMessageType)) {
                     setCurrentMessage({
-                        id: lastReceivedMessage.id as string,
+                        id: lastReceivedMessage.id,
                         componentName: args.componentName as string,
                         fileName: args.fileName as string,
                         etherealNexusComponentMockedProps: args.etherealNexusComponentMockedProps,
@@ -246,10 +252,10 @@ export default function Chat({ chatId }: ChatProps) {
         }
 
         setCurrentMessage({
-            id: messageId as string,
-            componentName: result.componentName as string,
-            fileName: result.fileName as string,
-            generatedCode: result.etherealNexusFileCode as string,
+            id: messageId,
+            componentName: result.componentName,
+            fileName: result.fileName,
+            generatedCode: result.etherealNexusFileCode,
             etherealNexusComponentMockedProps: result.etherealNexusComponentMockedProps,
             type: toolName,
         });
@@ -303,7 +309,7 @@ export default function Chat({ chatId }: ChatProps) {
         const webContainer = await getWebContainerInstance();
 
         try {
-            setOutput('Executing Ethereal Nexus plugin...');
+            setOutput({ status: 'Executing', message: 'Executing Ethereal Nexus plugin...'});
             const updatedViteConfigFile = `
                 import { defineConfig } from 'vite';
                 import react from '@vitejs/plugin-react';
@@ -332,13 +338,15 @@ export default function Chat({ chatId }: ChatProps) {
 
             process.output.pipeTo(new WritableStream({
                 write(data) {
-                    setOutput(prev => `${prev}\n${data}`);
+                    setOutput((prev: StatusOutputType | undefined) => ({
+                        status: 'Executing',
+                        message: `${prev?.message ?? ''}\n${data}`,
+                    }));
                 }
             }));
 
             const exitCode = await process.exit;
             if (exitCode === 0) {
-                // setOutput('Ethereal Nexus execution completed successfully!');
                 const minifiedFiles = await getMinifiedComponentFiles(webContainer); // TODO CHECK IF WE NEED TO DELETE ALL THE FILES FROM DIST FOLDER BEFORE ADDING NEW ONES
                 const formData = new FormData()
 
@@ -347,15 +355,15 @@ export default function Chat({ chatId }: ChatProps) {
                 }
 
                 await upsertNewComponent(formData, componentName);
+                setOutput({ status: 'Success', message: 'Component was published successfully!' });
                 setIsPublishingComponent(false);
             } else {
-                // throw new Error('Ethereal Nexus execution failed');
-                console.log('Ethereal Nexus execution failed');
+                setOutput({ status: 'Error', message: 'Ethereal Nexus execution failed'});
                 setIsPublishingComponent(false);
             }
         } catch (error) {
             console.error('Error executing Ethereal Nexus:', error);
-            setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+            setOutput({ status: 'Error', message: `Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`});
             setIsPublishingComponent(false);
         }
     };

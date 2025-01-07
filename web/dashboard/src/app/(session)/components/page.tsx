@@ -17,18 +17,6 @@ export default async function Components() {
     notFound();
   }
 
-  const iconVariants = {
-    animate: {
-      scale: [1, 1.2, 1],
-      rotate: [0, 5, -5, 0],
-      transition: {
-        duration: 1.5,
-        repeat: Infinity,
-        repeatType: "loop" as const
-      }
-    }
-  }
-
   return (
     <div className="container h-full flex-1 flex-col space-y-8 p-8 md:flex">
       <div className="w-full flex items-end">

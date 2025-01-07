@@ -142,10 +142,6 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
           status: HttpStatus.BAD_REQUEST
         });
       }
-
-      if (!response.success && response.error.message === 'Asset already exists.') {
-        // conflictingAssets = true;
-      }
     }
   }
 

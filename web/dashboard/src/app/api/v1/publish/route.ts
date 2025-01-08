@@ -69,7 +69,7 @@ export const POST = authenticatedWithKey(async (request, ext) => {
     }
 
     const manifest = JSON.parse(manifestFile);
-    const result = await upsertComponentWithVersion(manifest,ext?.user.id);
+    const result = await upsertComponentWithVersion(manifest, ext?.user.id);
     if (!result.success) {
       console.error(JSON.stringify(result.error, undefined, 2));
       return NextResponse.json(result.error.message, {

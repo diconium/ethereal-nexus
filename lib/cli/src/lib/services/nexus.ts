@@ -21,7 +21,6 @@ const publish = async (filePath: string) => {
     .post()
     .error(409, (error) => 409)
     .json()
-
 }
 
 export const nexus = {

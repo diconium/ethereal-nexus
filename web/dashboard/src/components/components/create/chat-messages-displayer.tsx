@@ -4,7 +4,6 @@ import { UserMessage } from "@/components/components/create/user-message";
 import { AssistantGeneratedMessageCard } from "@/components/components/create/assistant-message-card";
 import { AssistantMessageLoader } from "@/components/components/create/assistant-message-loader";
 import { ToolCallingResult } from "@/components/components/create/chat";
-import { GeneratedComponentMessageType } from "@/components/components/create/utils/chat-context";
 
 interface ChatMessagesDisplayerProps {
     messages: Message[];
@@ -12,8 +11,8 @@ interface ChatMessagesDisplayerProps {
     isLoading: boolean;
     lastElementRef: MutableRefObject<HTMLDivElement | null>;
     downloadEtherealNexusFile: (result: ToolCallingResult) => Promise<void>;
-    handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: GeneratedComponentMessageType) => void;
-    handlePublishComponent: (generatedFileName: string, generatedCode: string) => Promise<void>;
+    handleOnComponentCardClick: (messageId: string, result: ToolCallingResult) => void;
+    handlePublishComponent: (messageId: string, generatedFileName: string, generatedCode: string) => Promise<void>;
 }
 
 export function ChatMessagesDisplayer({ messages, isLoading, downloadEtherealNexusFile, handleOnComponentCardClick, lastElementRef, handlePublishComponent, disabledActions } : ChatMessagesDisplayerProps) {

@@ -15,21 +15,27 @@ import {
     getWebContainerInstance,
 } from "@/lib/web-container";
 import { useChat } from "ai/react";
+import {
+    getComponentByName,
+    getComponentVersions,
+    upsertNewComponent,
+} from "@/data/components/actions";
 import { Button } from "@/components/ui/button";
 import { TextArea } from "@/components/ui/text-area";
+import { ChatContext } from "@/components/components/create/utils/chat-context";
 import { ChatMessagesDisplayer } from "@/components/components/create/chat-messages-displayer";
 import { WebContainerStatusOutput } from "@/components/components/create/webcontainer-status-output";
 import { GeneratedCodeDetailsContainer } from "@/components/components/create/generated-code-details-container";
-import { ChatContext, GeneratedComponentMessageType } from "@/components/components/create/utils/chat-context";
-import { upsertNewComponent } from "@/data/components/actions";
+import { UpdateComponentMetadataModal } from "@/components/components/create/update-component-metadata-modal";
 
-// TODO check where this is also used
 export interface ToolCallingResult {
-    etherealNexusComponentMockedProps: string,
-    componentName: string,
-    fileName: string,
-    etherealNexusFileCode: string,
-    description: string,
+    id: string;
+    etherealNexusComponentMockedProps: string;
+    componentName: string;
+    fileName: string;
+    etherealNexusFileCode: string;
+    description: string;
+    updated: boolean;
 }
 
 export interface StatusOutputType {
@@ -43,17 +49,19 @@ interface ChatProps {
 
 export default function Chat({ chatId }: ChatProps) {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const [isPublishingComponent, setIsPublishingComponent] = useState(false);
-    const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+    const [isPublishingComponent, setIsPublishingComponent] = useState<boolean>(false);
+    const [isPreviewLoading, setIsPreviewLoading] = useState<boolean>(false);
     const [output, setOutput] = useState<StatusOutputType | undefined>();
-    const [isWebContainerBooted, setIsWebContainerBooted] = useState(false);
+    const [isWebContainerBooted, setIsWebContainerBooted] = useState<boolean>(false);
+
+    const [updateComponentModalMetadata, setUpdateComponentModalMetadata] = useState<{ messageId: string, versions: string[], componentName: string } | undefined>(null);
 
     const serverUrlRef = useRef<string>('');
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
     const { currentMessage, setCurrentMessage, isComponentDetailsContainerOpen, setIsComponentDetailsContainerOpen } = useContext(ChatContext);
 
-    const { messages, input, setInput, handleSubmit, isLoading: isLoadingNewMessage, stop } = useChat({
+    const { messages, input, setInput, handleSubmit, isLoading: isLoadingNewMessage, stop, setMessages } = useChat({
         id: chatId,
     });
 
@@ -210,19 +218,16 @@ export default function Chat({ chatId }: ChatProps) {
 
         if (lastReceivedMessage && lastReceivedMessage.role !== 'user') {
             lastReceivedMessage.toolInvocations?.map(toolInvocation => {
-                const { toolName, args } = toolInvocation;
-                if (Object.values(GeneratedComponentMessageType).includes(toolName as GeneratedComponentMessageType)) {
-                    setCurrentMessage({
-                        id: lastReceivedMessage.id,
-                        componentName: args.componentName as string,
-                        fileName: args.fileName as string,
-                        etherealNexusComponentMockedProps: args.etherealNexusComponentMockedProps,
-                        generatedCode: args.etherealNexusFileCode as string,
-                        type: toolName as GeneratedComponentMessageType,
-                    });
-                    scrollToBottom();
-                    setIsComponentDetailsContainerOpen(true);
-                }
+                const { args } = toolInvocation;
+                setCurrentMessage({
+                    id: lastReceivedMessage.id,
+                    componentName: args.componentName as string,
+                    fileName: args.fileName as string,
+                    etherealNexusComponentMockedProps: args.etherealNexusComponentMockedProps,
+                    generatedCode: args.etherealNexusFileCode as string,
+                });
+                scrollToBottom();
+                setIsComponentDetailsContainerOpen(true);
             });
         } else scrollToBottom();
     }, [messages, setCurrentMessage, setIsComponentDetailsContainerOpen]);
@@ -244,7 +249,7 @@ export default function Chat({ chatId }: ChatProps) {
         window.URL.revokeObjectURL(url);
     };
 
-    const handleOnComponentCardClick = (messageId: string, result: ToolCallingResult, toolName: GeneratedComponentMessageType) => {
+    const handleOnComponentCardClick = (messageId: string, result: ToolCallingResult) => {
         if (currentMessage?.id === messageId) {
             setCurrentMessage(undefined);
             setIsComponentDetailsContainerOpen(false);
@@ -257,7 +262,6 @@ export default function Chat({ chatId }: ChatProps) {
             fileName: result.fileName,
             generatedCode: result.etherealNexusFileCode,
             etherealNexusComponentMockedProps: result.etherealNexusComponentMockedProps,
-            type: toolName,
         });
         setIsComponentDetailsContainerOpen(true);
     };
@@ -303,11 +307,67 @@ export default function Chat({ chatId }: ChatProps) {
         return filesMap;
     };
 
-    const executeViteReactPlugin = async (generatedFileName: string, generatedCode: string) => {
+    const updateComponentMetadata = (messageId: string, name: string, version: string) => {
+
+        function replaceEtherealNexusFileCodeWithUpdatedValues (code: string) {
+            const updatedCode = code
+                ?.replace(new RegExp(`const ${currentMessage?.componentName}: React\\.FC<Props>`, 'g'), `const ${name}: React.FC<Props>`)
+                .replace(new RegExp(`export default ${currentMessage?.componentName};`, 'g'), `export default ${name};`)
+                .replace(new RegExp(`export { ${currentMessage?.componentName} };`, 'g'), `export { ${name} };`)
+                .replace(new RegExp(`const schema = component\\({ version: '\\d+\\.\\d+\\.\\d+' }, dialogSchema\\);`, 'g'), `const schema = component({ version: '${version}' }, dialogSchema);`);
+            return updatedCode;
+        };
+
+        if (messageId === currentMessage?.id) {
+            // TODO UPDATE À CURRENT MESSAGE
+        }
+
+
+
+        const updatedMessages = messages.map(message => {
+            if (message.id === messageId) {
+                return {
+                    ...message,
+                    toolInvocations: message.toolInvocations?.map(toolInvocation => {
+                        return {
+                            ...toolInvocation,
+                            result: {
+                                ...toolInvocation.result,
+                                componentName: name,
+                                etherealNexusFileCode: replaceEtherealNexusFileCodeWithUpdatedValues(toolInvocation.result.etherealNexusFileCode),
+                                fileName: `${name}.tsx`,
+                                updated: true,
+                            }
+                        }
+                    }),
+                };
+            }
+            return message;
+        });
+
+        setMessages(updatedMessages);
+    };
+
+    const executeViteReactPlugin = async (messageId: string, generatedFileName: string, generatedCode: string) => {
+        setOutput({ status: 'Executing', message: 'Publishing component'});
         setIsPublishingComponent(true);
+
         const componentName = generatedFileName.replace('.tsx', '');
         const webContainer = await getWebContainerInstance();
 
+        const getComponentResult = await getComponentByName(componentName);
+        if (getComponentResult.success) { // there is already a component with the same name
+            const getComponentVersionsResult = await getComponentVersions(getComponentResult.data.id);
+            if (getComponentVersionsResult.success) {
+                setUpdateComponentModalMetadata({
+                    messageId,
+                    componentName: componentName,
+                    versions: getComponentVersionsResult?.data.map(item => item.version),
+                });
+                setIsPublishingComponent(false);
+            }
+            return;
+        }
         try {
             setOutput({ status: 'Executing', message: 'Executing Ethereal Nexus plugin...'});
             const updatedViteConfigFile = `
@@ -354,8 +414,12 @@ export default function Chat({ chatId }: ChatProps) {
                     formData.append(key, value);
                 }
 
-                await upsertNewComponent(formData, componentName);
-                setOutput({ status: 'Success', message: 'Component was published successfully!' });
+                const upsertResponse = await upsertNewComponent(formData, componentName);
+                if (!upsertResponse.success) {
+                    setOutput({ status: 'Error', message: 'There was an error publishing the component' });
+                } else {
+                    setOutput({ status: 'Success', message: 'Component was published successfully!' });
+                }
                 setIsPublishingComponent(false);
             } else {
                 setOutput({ status: 'Error', message: 'Ethereal Nexus execution failed'});
@@ -427,6 +491,16 @@ export default function Chat({ chatId }: ChatProps) {
                     </div>
                 </div>
             )}
+            {
+                updateComponentModalMetadata &&
+                <UpdateComponentMetadataModal
+                    messageId={updateComponentModalMetadata.messageId} //TODO PASSAR SÓ UM OBJETO COM TUDO
+                    componentName={updateComponentModalMetadata.componentName}
+                    versions={updateComponentModalMetadata.versions}
+                    onClose={() => setUpdateComponentModalMetadata(null)}
+                    updateComponentMetadata={updateComponentMetadata}
+                />
+            }
         </div>
     )
 }

@@ -90,9 +90,7 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
   const manifestFile = filesMap[`/dist/.ethereal/${componentName}/manifest.json`];
 
   if (!manifestFile) {
-    return NextResponse.json('No manifest present in the bundle.', {
-      status: HttpStatus.BAD_REQUEST
-    });
+    return actionError('No manifest present in the bundle.');
   }
 
   const manifest = JSON.parse(manifestFile);
@@ -100,10 +98,7 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
 
   const result = await upsertComponentWithVersion(manifest, session?.user?.id);
   if (!result.success) {
-    console.error(JSON.stringify(result.error, undefined, 2));
-    return NextResponse.json(result.error.message, {
-      status: HttpStatus.BAD_REQUEST
-    });
+    return actionError(result.error.message);
   }
 
   const { id, slug, version } = result.data;
@@ -117,9 +112,7 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
       );
 
       if (!urlObject) {
-        return NextResponse.json('Failed to upload assets', {
-          status: HttpStatus.BAD_REQUEST
-        });
+        return actionError('Failed to upload assets, no url returned.');
       }
 
       let type: 'css' | 'js' | 'chunk' | 'server' = 'chunk' as const;
@@ -139,14 +132,13 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
       );
 
       if (!response.success && response.error.message !== 'Asset already exists.') {
-        return NextResponse.json('Failed to upsert assets', {
-          status: HttpStatus.BAD_REQUEST
-        });
+        return actionError('Failed to upsert assets');
       }
     }
   }
-
-  return result;
+  return actionSuccess({
+    ...result.data,
+  });
 };
 
 export async function upsertComponentWithVersion(

@@ -54,7 +54,7 @@ export default function Chat({ chatId }: ChatProps) {
     const [output, setOutput] = useState<StatusOutputType | undefined>();
     const [isWebContainerBooted, setIsWebContainerBooted] = useState<boolean>(false);
 
-    const [updateComponentModalMetadata, setUpdateComponentModalMetadata] = useState<{ messageId: string, versions: string[], componentName: string } | undefined>(null);
+    const [updateComponentModalMetadata, setUpdateComponentModalMetadata] = useState<{ messageId: string, versions: string[], componentName: string } | undefined>();
 
     const serverUrlRef = useRef<string>('');
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -335,12 +335,12 @@ export default function Chat({ chatId }: ChatProps) {
                         return {
                             ...toolInvocation,
                             result: {
-                                ...toolInvocation.result,
+                                description: toolInvocation.args.description,
                                 componentName: name,
-                                etherealNexusFileCode: replaceEtherealNexusFileCodeWithUpdatedValues(toolInvocation.result.etherealNexusFileCode),
+                                etherealNexusFileCode: replaceEtherealNexusFileCodeWithUpdatedValues(toolInvocation.args.etherealNexusFileCode),
                                 fileName: `${name}.tsx`,
                                 updated: true,
-                            }
+                            },
                         }
                     }),
                 };
@@ -500,7 +500,7 @@ export default function Chat({ chatId }: ChatProps) {
                     messageId={updateComponentModalMetadata.messageId} //TODO PASSAR SÓ UM OBJETO COM TUDO
                     componentName={updateComponentModalMetadata.componentName}
                     versions={updateComponentModalMetadata.versions}
-                    onClose={() => setUpdateComponentModalMetadata(null)}
+                    onClose={() => setUpdateComponentModalMetadata(undefined)}
                     updateComponentMetadata={updateComponentMetadata}
                 />
             }

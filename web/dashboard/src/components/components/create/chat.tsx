@@ -438,6 +438,7 @@ export default function Chat({ chatId }: ChatProps) {
     return (
         <div className="flex h-full bg-gray-100">
             <div className={`flex flex-col ${isComponentDetailsContainerOpen ? 'w-1/2' : 'w-full'} transition-all duration-300 ease-in-out`}>
+                <WebContainerStatusOutput output={output} />
                 <div className="flex flex-1 flex-col overflow-auto relative">
                     <ChatMessagesDisplayer
                         messages={messages}
@@ -489,17 +490,12 @@ export default function Chat({ chatId }: ChatProps) {
                         </Button>
                         <GeneratedCodeDetailsContainer previewUrl={previewUrl} isPreviewLoading={isPreviewLoading} />
                     </div>
-                    <div className="mx-6 mb-6">
-                        <WebContainerStatusOutput output={output} />
-                    </div>
                 </div>
             )}
             {
                 updateComponentModalMetadata &&
                 <UpdateComponentMetadataModal
-                    messageId={updateComponentModalMetadata.messageId} //TODO PASSAR SÓ UM OBJETO COM TUDO
-                    componentName={updateComponentModalMetadata.componentName}
-                    versions={updateComponentModalMetadata.versions}
+                    metadata={updateComponentModalMetadata}
                     onClose={() => setUpdateComponentModalMetadata(undefined)}
                     updateComponentMetadata={updateComponentMetadata}
                 />

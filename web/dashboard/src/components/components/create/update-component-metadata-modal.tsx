@@ -5,16 +5,18 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 
 interface MetadataModalProps {
     onClose: () => void;
-    messageId: string;
-    versions: string[];
-    componentName: string;
+    metadata: {
+        messageId: string;
+        versions: string[];
+        componentName: string;
+    };
     updateComponentMetadata: (messageId: string, name: string, version: string) => void;
 }
 
-export function UpdateComponentMetadataModal({ messageId, onClose, versions, componentName, updateComponentMetadata }: MetadataModalProps) {
+export function UpdateComponentMetadataModal({ metadata, onClose, updateComponentMetadata }: MetadataModalProps) {
     const [error, setError] = React.useState<string | null>(null);
     const [formData, setFormData] = React.useState({
-        name: componentName,
+        name: metadata.componentName,
         version: '1.0.0'
     });
 
@@ -22,14 +24,14 @@ export function UpdateComponentMetadataModal({ messageId, onClose, versions, com
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (versions.includes(formData.version)) {
+        if (metadata.versions.includes(formData.version)) {
             setError('This version already exists. Please enter a different version.');
             return;
         }
         toast({
             title: `Component metadata updated. Component name: ${formData.name}. Component version ${formData.version}.`
         });
-        updateComponentMetadata(messageId, formData.name, formData.version);
+        updateComponentMetadata(metadata.messageId, formData.name, formData.version);
         onClose();
     };
 
@@ -42,7 +44,7 @@ export function UpdateComponentMetadataModal({ messageId, onClose, versions, com
                         There is already an existing component with the same name, do you want to update it by creating a new version or do you want to create a new component by changing the name?
                     </DialogDescription>
                     <DialogDescription>
-                        Update the component name to create a new one or update the version to add a new version of the {componentName} component
+                        Update the component name to create a new one or update the version to add a new version of the {metadata.componentName} component
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
@@ -64,7 +66,7 @@ export function UpdateComponentMetadataModal({ messageId, onClose, versions, com
 
                         <div>
                             <label htmlFor="version" className="block text-sm font-medium text-gray-700 mb-1">
-                                Version (Current component versions: [{versions.map((version, index) => index <= versions.length ? `${version}` : `${version},`)}])
+                                Version (Current component versions: [{metadata.versions.map((version, index) => index <= metadata.versions.length ? `${version}` : `${version},`)}])
                             </label>
                             <input
                                 type="text"

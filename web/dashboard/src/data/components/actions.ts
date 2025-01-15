@@ -29,8 +29,6 @@ import { members } from '@/data/member/schema';
 import { users } from '@/data/users/schema';
 import { logEvent } from '@/lib/events/event-middleware';
 import { userIsMember } from '@/data/member/actions';
-import { NextResponse } from "next/server";
-import { HttpStatus } from "@/app/api/utils";
 import { EtherealStorage } from '@/storage/ethereal-storage';
 import { auth } from "@/auth";
 

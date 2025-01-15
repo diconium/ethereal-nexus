@@ -2,9 +2,9 @@
 
 import { ActionResponse, Result } from '@/data/action';
 import { z } from 'zod';
-import { actionError, actionSuccess, actionZodError } from '@/data/utils';
+import { and, eq, sql } from 'drizzle-orm';
 import { db } from '@/db';
-
+import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import {
   Component,
   componentAssetsCreateSchema,
@@ -17,7 +17,6 @@ import {
   componentVersionsSchema,
   ComponentWithVersion, NewComponentVersion
 } from './dto';
-import { and, eq, sql } from 'drizzle-orm';
 import {
   componentAssets,
   components,
@@ -97,6 +96,8 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
   }
 
   const manifest = JSON.parse(manifestFile);
+  manifest.is_ai_generated = true;
+
   const result = await upsertComponentWithVersion(manifest, session?.user?.id);
   if (!result.success) {
     console.error(JSON.stringify(result.error, undefined, 2));

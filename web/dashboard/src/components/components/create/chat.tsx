@@ -230,7 +230,7 @@ export default function Chat({ chatId }: ChatProps) {
                 setIsComponentDetailsContainerOpen(true);
             });
         } else scrollToBottom();
-    }, [messages, setCurrentMessage, setIsComponentDetailsContainerOpen]);
+    }, [messages.length, setCurrentMessage, setIsComponentDetailsContainerOpen]);
 
     const downloadEtherealNexusFile = async (result: ToolCallingResult) => {
         const file = new File([result.etherealNexusFileCode], result.fileName, {
@@ -319,10 +319,13 @@ export default function Chat({ chatId }: ChatProps) {
         };
 
         if (messageId === currentMessage?.id) {
-            // TODO UPDATE À CURRENT MESSAGE
+            setCurrentMessage({
+                ...currentMessage,
+                componentName: name,
+                generatedCode: replaceEtherealNexusFileCodeWithUpdatedValues(currentMessage.generatedCode),
+                fileName: `${name}.tsx`,
+            });
         }
-
-
 
         const updatedMessages = messages.map(message => {
             if (message.id === messageId) {

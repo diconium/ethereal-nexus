@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Info, Pause, CheckCircle, X, Terminal } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { Button } from "@/components/ui/button";
 
 import { StatusOutputType } from "@/components/components/create/chat";
 
@@ -26,6 +28,14 @@ const statusIcons = {
 export function WebContainerStatusOutput({ output }: StatusOutputProps) {
     const [isOpen, setIsOpen] = useState(false);
 
+    const logsEndRef = React.useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        if (isOpen) {
+            logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [output?.message, isOpen]);
+
     if (!output) return null;
 
     const isError = output.status === 'Error';
@@ -35,32 +45,34 @@ export function WebContainerStatusOutput({ output }: StatusOutputProps) {
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <button
-                    className={`z-1 fixed bottom-6 right-6 flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-full shadow-lg 
+                <Button
+                    className={`z-10 fixed bottom-40 right-11 flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-full shadow-lg 
                         hover:bg-gray-800 hover:scale-105 hover:shadow-xl
                         transition-all duration-300 ease-in-out
                         ${output.status === 'Executing' ? 'motion-safe:animate-bounce-gentle' : ''}`}
                 >
                     <Terminal className="w-4 h-4" />
                     <span className="text-sm font-medium">Logs</span>
-                    {isError && (
-                    <span className="flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                    </span>
-                    )}
-                </button>
+                </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col" aria-describedby="webcontainer-output">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Terminal className={`w-4 h-4 ${isError ? 'text-red-600' : 'text-blue-600'}`} />
                         WebContainer Logs
                     </DialogTitle>
                 </DialogHeader>
+                <DialogDescription className="text-sm text-gray-500">
+                    Real-time logs from the WebContainer instance showing build progress, errors, and server status.
+                    {isError && (
+                        <span className="block mt-1 text-red-500">
+                            ⚠️ There are errors in the logs that need attention.
+                        </span>
+                    )}
+                </DialogDescription>
                 <div className="mt-4 flex-1 overflow-auto">
                     <div className="bg-gray-900 p-4 rounded-lg font-mono text-sm">
-                        <h2 className="text-lg font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <h2 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
                             {icon}
                             Status:
                         </h2>
@@ -70,6 +82,7 @@ export function WebContainerStatusOutput({ output }: StatusOutputProps) {
                             </div>
                         ))}
                     </div>
+                    <div ref={logsEndRef} />
                 </div>
             </DialogContent>
         </Dialog>

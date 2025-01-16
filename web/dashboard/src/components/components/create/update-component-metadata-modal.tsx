@@ -66,7 +66,7 @@ export function UpdateComponentMetadataModal({ metadata, onClose, updateComponen
 
                         <div>
                             <label htmlFor="version" className="block text-sm font-medium text-gray-700 mb-1">
-                                Version (Current component versions: [{metadata.versions.map((version, index) => index <= metadata.versions.length ? `${version}` : `${version},`)}])
+                                Version (Current component versions: [{metadata.versions.map((version, index) => (index < metadata.versions.length - 1 ? `${version}, ` : `${version}`)).join('')}])
                             </label>
                             <input
                                 type="text"
@@ -87,7 +87,7 @@ export function UpdateComponentMetadataModal({ metadata, onClose, updateComponen
                             Cancel
                         </Button>
                         <Button type="submit" variant="primary" size="base" className="px-4 py-2">
-                            Save Changes
+                            Save Changes and Publish
                         </Button>
                     </div>
                 </form>

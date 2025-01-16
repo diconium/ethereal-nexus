@@ -307,7 +307,7 @@ export default function Chat({ chatId }: ChatProps) {
         return filesMap;
     };
 
-    const updateComponentMetadata = (messageId: string, name: string, version: string) => {
+    const updateComponentMetadataAndPublishUpdatedComponent = async (messageId: string, name: string, version: string) => {
 
         function replaceEtherealNexusFileCodeWithUpdatedValues (code: string) {
             const updatedCode = code
@@ -326,12 +326,15 @@ export default function Chat({ chatId }: ChatProps) {
                 fileName: `${name}.tsx`,
             });
         }
+        let updatedCode = '';
 
         const updatedMessages = messages.map(message => {
             if (message.id === messageId) {
                 return {
                     ...message,
                     toolInvocations: message.toolInvocations?.map(toolInvocation => {
+                        updatedCode = replaceEtherealNexusFileCodeWithUpdatedValues(toolInvocation.args.etherealNexusFileCode);
+
                         return {
                             ...toolInvocation,
                             result: {
@@ -349,15 +352,11 @@ export default function Chat({ chatId }: ChatProps) {
         });
 
         setMessages(updatedMessages);
+
+        await executeViteReactPlugin(messageId, `${name}.tsx`, updatedCode, true);
     };
 
-    const executeViteReactPlugin = async (messageId: string, generatedFileName: string, generatedCode: string) => {
-        setOutput({ status: 'Executing', message: 'Publishing component'});
-        setIsPublishingComponent(true);
-
-        const componentName = generatedFileName.replace('.tsx', '');
-        const webContainer = await getWebContainerInstance();
-
+    const componentVersionAlreadyExists = async (messageId: string, componentName: string): Promise<void> => {
         const getComponentResult = await getComponentByName(componentName);
         if (getComponentResult.success) { // there is already a component with the same name
             const getComponentVersionsResult = await getComponentVersions(getComponentResult.data.id);
@@ -371,6 +370,20 @@ export default function Chat({ chatId }: ChatProps) {
             }
             return;
         }
+    };
+
+    const executeViteReactPlugin = async (messageId: string, generatedFileName: string, generatedCode: string, publishingUpdatedComponent = false) => {
+        setOutput({ status: 'Executing', message: 'Publishing component'});
+        setIsPublishingComponent(true);
+
+        const componentName = generatedFileName.replace('.tsx', '');
+        const webContainer = await getWebContainerInstance();
+
+        if (!publishingUpdatedComponent) {
+            await componentVersionAlreadyExists(messageId, componentName);
+        }
+
+
         try {
             setOutput({ status: 'Executing', message: 'Executing Ethereal Nexus plugin...'});
             const updatedViteConfigFile = `
@@ -497,7 +510,7 @@ export default function Chat({ chatId }: ChatProps) {
                 <UpdateComponentMetadataModal
                     metadata={updateComponentModalMetadata}
                     onClose={() => setUpdateComponentModalMetadata(undefined)}
-                    updateComponentMetadata={updateComponentMetadata}
+                    updateComponentMetadata={updateComponentMetadataAndPublishUpdatedComponent}
                 />
             }
         </div>

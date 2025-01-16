@@ -27,7 +27,6 @@ export const createIndexFileTemplate = (componentName: string | undefined, fileN
     `
 );
 
-
 export const previewTemplate = `
     import React from 'react';
     import { createRoot } from 'react-dom/client';

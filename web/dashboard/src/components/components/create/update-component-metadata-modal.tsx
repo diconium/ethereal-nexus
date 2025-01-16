@@ -24,7 +24,7 @@ export function UpdateComponentMetadataModal({ metadata, onClose, updateComponen
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (metadata.versions.includes(formData.version)) {
+        if (metadata.versions.includes(formData.version) && metadata.componentName === formData.name) {
             setError('This version already exists. Please enter a different version.');
             return;
         }

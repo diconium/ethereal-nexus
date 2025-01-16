@@ -322,6 +322,7 @@ export default function Chat({ chatId }: ChatProps) {
             setCurrentMessage({
                 ...currentMessage,
                 componentName: name,
+                etherealNexusComponentMockedProps: currentMessage.etherealNexusComponentMockedProps,
                 generatedCode: replaceEtherealNexusFileCodeWithUpdatedValues(currentMessage.generatedCode),
                 fileName: `${name}.tsx`,
             });
@@ -337,9 +338,10 @@ export default function Chat({ chatId }: ChatProps) {
 
                         return {
                             ...toolInvocation,
-                            result: {
+                            result: { // use ... to facilitate when new properties are added to the result
                                 description: toolInvocation.args.description,
                                 componentName: name,
+                                etherealNexusComponentMockedProps: toolInvocation.args.etherealNexusComponentMockedProps,
                                 etherealNexusFileCode: replaceEtherealNexusFileCodeWithUpdatedValues(toolInvocation.args.etherealNexusFileCode),
                                 fileName: `${name}.tsx`,
                                 updated: true,

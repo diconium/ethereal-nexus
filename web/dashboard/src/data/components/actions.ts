@@ -94,6 +94,18 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
   const manifest = JSON.parse(manifestFile);
   manifest.is_ai_generated = true;
 
+  const getComponentResult = await getComponentByName(componentName);
+  if (getComponentResult.success) {
+    const getComponentVersionsResult = await getComponentVersions(getComponentResult.data.id);
+    if (getComponentVersionsResult.success) {
+      const versionAlreadyExists = getComponentVersionsResult.data.some((version) => version.version === manifest.version);
+
+      if (versionAlreadyExists) {
+        return actionError('Component version already exists.');
+      }
+    }
+  }
+
   const result = await upsertComponentWithVersion(manifest, session?.user?.id);
   if (!result.success) {
     return actionError(result.error.message);

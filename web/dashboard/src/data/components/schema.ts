@@ -23,7 +23,6 @@ export const componentVersions = pgTable("component_version", {
   created_at: timestamp("created_at").defaultNow().notNull(),
   readme: text("readme"),
   changelog: text("changelog"),
-  is_ai_generated: boolean('is_ai_generated').notNull().default(false),
 },
   (table) => {
     return {

@@ -7,14 +7,12 @@ interface MetadataModalProps {
     onClose: () => void;
     metadata: {
         messageId: string;
-        versions: string[];
         componentName: string;
     };
     updateComponentMetadata: (messageId: string, name: string, version: string) => void;
 }
 
 export function UpdateComponentMetadataModal({ metadata, onClose, updateComponentMetadata }: MetadataModalProps) {
-    const [error, setError] = React.useState<string | null>(null);
     const [formData, setFormData] = React.useState({
         name: metadata.componentName,
         version: '1.0.0'
@@ -24,12 +22,9 @@ export function UpdateComponentMetadataModal({ metadata, onClose, updateComponen
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (metadata.versions.includes(formData.version) && metadata.componentName === formData.name) {
-            setError('This version already exists. Please enter a different version.');
-            return;
-        }
         toast({
-            title: `Component metadata updated. Component name: ${formData.name}. Component version ${formData.version}.`
+            title: `Component metadata updated successfully`,
+            description: `A new ${formData.version} version of the ${formData.name} component has been created.`
         });
         updateComponentMetadata(metadata.messageId, formData.name, formData.version);
         onClose();
@@ -41,7 +36,7 @@ export function UpdateComponentMetadataModal({ metadata, onClose, updateComponen
                 <DialogHeader>
                     <DialogTitle>Edit Component Metadata</DialogTitle>
                     <DialogDescription>
-                        There is already an existing component with the same name, do you want to update it by creating a new version or do you want to create a new component by changing the name?
+                        {`There is already a component named ${metadata.componentName} with that specific version. Do you want to update it by creating a new version or do you want to create a new component by changing the name?`}
                     </DialogDescription>
                     <DialogDescription>
                         Update the component name to create a new one or update the version to add a new version of the {metadata.componentName} component
@@ -66,7 +61,7 @@ export function UpdateComponentMetadataModal({ metadata, onClose, updateComponen
 
                         <div>
                             <label htmlFor="version" className="block text-sm font-medium text-gray-700 mb-1">
-                                Version (Current component versions: [{metadata.versions.map((version, index) => (index < metadata.versions.length - 1 ? `${version}, ` : `${version}`)).join('')}])
+                                Version
                             </label>
                             <input
                                 type="text"
@@ -78,10 +73,8 @@ export function UpdateComponentMetadataModal({ metadata, onClose, updateComponen
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 required
                             />
-                            {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
                         </div>
                     </div>
-
                     <div className="mt-6 flex justify-end gap-3">
                         <Button onClick={onClose} variant="text" className="px-4 py-2 text-orange-500 font-bold text-base p-0">
                             Cancel

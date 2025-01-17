@@ -3,7 +3,7 @@
 import React, { useContext, useState, useRef, useEffect }  from 'react';
 import path from 'path';
 import { WebContainer } from "@webcontainer/api";
-import { X, Send, StopCircle } from 'lucide-react';
+import { X, Send, StopCircle, CheckCircle } from 'lucide-react';
 import {
     cssTemplate,
     htmlTemplate,
@@ -21,6 +21,7 @@ import {
     upsertNewComponent,
 } from "@/data/components/actions";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import { TextArea } from "@/components/ui/text-area";
 import { ChatContext } from "@/components/components/create/utils/chat-context";
 import { ChatMessagesDisplayer } from "@/components/components/create/chat-messages-displayer";
@@ -54,7 +55,7 @@ export default function Chat({ chatId }: ChatProps) {
     const [output, setOutput] = useState<StatusOutputType | undefined>();
     const [isWebContainerBooted, setIsWebContainerBooted] = useState<boolean>(false);
 
-    const [updateComponentModalMetadata, setUpdateComponentModalMetadata] = useState<{ messageId: string, versions: string[], componentName: string } | undefined>();
+    const [updateComponentModalMetadata, setUpdateComponentModalMetadata] = useState<{ messageId: string, componentName: string } | undefined>();
 
     const serverUrlRef = useRef<string>('');
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -64,6 +65,8 @@ export default function Chat({ chatId }: ChatProps) {
     const { messages, input, setInput, handleSubmit, isLoading: isLoadingNewMessage, stop, setMessages } = useChat({
         id: chatId,
     });
+
+    const { toast } = useToast();
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({
@@ -308,7 +311,6 @@ export default function Chat({ chatId }: ChatProps) {
     };
 
     const updateComponentMetadataAndPublishUpdatedComponent = async (messageId: string, name: string, version: string) => {
-
         function replaceEtherealNexusFileCodeWithUpdatedValues (code: string) {
             const updatedCode = code
                 ?.replace(new RegExp(`const ${currentMessage?.componentName}: React\\.FC<Props>`, 'g'), `const ${name}: React.FC<Props>`)
@@ -355,36 +357,15 @@ export default function Chat({ chatId }: ChatProps) {
 
         setMessages(updatedMessages);
 
-        await executeViteReactPlugin(messageId, `${name}.tsx`, updatedCode, true);
+        await executeViteReactPlugin(messageId, `${name}.tsx`, updatedCode);
     };
 
-    const componentVersionAlreadyExists = async (messageId: string, componentName: string): Promise<void> => {
-        const getComponentResult = await getComponentByName(componentName);
-        if (getComponentResult.success) { // there is already a component with the same name
-            const getComponentVersionsResult = await getComponentVersions(getComponentResult.data.id);
-            if (getComponentVersionsResult.success) {
-                setUpdateComponentModalMetadata({
-                    messageId,
-                    componentName: componentName,
-                    versions: getComponentVersionsResult?.data.map(item => item.version),
-                });
-                setIsPublishingComponent(false);
-            }
-            return;
-        }
-    };
-
-    const executeViteReactPlugin = async (messageId: string, generatedFileName: string, generatedCode: string, publishingUpdatedComponent = false) => {
+    const executeViteReactPlugin = async (messageId: string, generatedFileName: string, generatedCode: string) => {
         setOutput({ status: 'Executing', message: 'Publishing component'});
         setIsPublishingComponent(true);
 
         const componentName = generatedFileName.replace('.tsx', '');
         const webContainer = await getWebContainerInstance();
-
-        if (!publishingUpdatedComponent) {
-            await componentVersionAlreadyExists(messageId, componentName);
-        }
-
 
         try {
             setOutput({ status: 'Executing', message: 'Executing Ethereal Nexus plugin...'});
@@ -434,9 +415,19 @@ export default function Chat({ chatId }: ChatProps) {
 
                 const upsertResponse = await upsertNewComponent(formData, componentName);
                 if (!upsertResponse.success) {
+                    if (upsertResponse.error.message === 'Component version already exists.') {
+                        setUpdateComponentModalMetadata({
+                            messageId,
+                            componentName: componentName,
+                        });
+                        setIsPublishingComponent(false);
+                    }
                     setOutput({ status: 'Error', message: 'There was an error publishing the component' });
                 } else {
                     setOutput({ status: 'Success', message: 'Component was published successfully!' });
+                    toast({
+                        title: <div className="flex items-center"><CheckCircle className="w-4 h-4 mr-2" /><span>{`${componentName} was published successfully!`}</span></div>,
+                    });
                 }
                 setIsPublishingComponent(false);
             } else {

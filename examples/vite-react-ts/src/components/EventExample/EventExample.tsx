@@ -44,7 +44,7 @@ const dialogSchema = dialog({
     tooltip: 'This is a list of contributors',
     children: object({
       person: datamodel({
-        placeholder: 'Selet a person',
+        placeholder: 'Select a person',
         label: 'Person',
         required: true,
         tooltip: 'This is a person',

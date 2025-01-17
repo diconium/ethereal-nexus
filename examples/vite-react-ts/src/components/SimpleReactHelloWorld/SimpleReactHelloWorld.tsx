@@ -12,10 +12,12 @@ const dialogSchema = dialog({
     placeholder: 'Any title',
     tooltip: 'The title of the component',
     defaultValue: 'Hello World',
+    validationRegex: '^Hello World$',
+    validationErrorMessage: 'The text must be "Hello World"',
   }),
 });
 
-const schema = component({ version: '0.0.2' }, dialogSchema);
+const schema = component({ version: '0.0.3' }, dialogSchema);
 
 type Props = Output<typeof schema>
 

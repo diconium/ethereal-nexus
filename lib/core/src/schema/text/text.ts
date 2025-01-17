@@ -10,10 +10,13 @@ export interface TextSchema<TOutput extends string = string> extends BaseSchema<
 interface TextInput extends BaseFieldInput {
   placeholder?: string;
   defaultValue?: string;
+  validationRegex?: string;
+  validationErrorMessage?: string;
+
 }
 
 export function text(input: TextInput): TextSchema {
-  const {placeholder, label,tooltip, required, defaultValue} = input;
+  const {placeholder, label,tooltip, required, defaultValue, validationRegex, validationErrorMessage} = input;
 
   return {
     type: 'textfield',
@@ -24,7 +27,9 @@ export function text(input: TextInput): TextSchema {
         placeholder,
         tooltip,
         required,
-        defaultValue
+        defaultValue,
+        validationRegex,
+        validationErrorMessage
       }
     },
     _primitive() {

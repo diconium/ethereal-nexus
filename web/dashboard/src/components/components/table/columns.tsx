@@ -1,11 +1,10 @@
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
 import { ComponentsDataTableRowActions } from "./data-table-row-actions";
 import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
 import Link from "next/link";
 import * as React from "react";
-import { ProjectsDataTableRowActions } from '@/components/projects/table/data-table-row-actions';
+import { Sparkles } from "lucide-react";
 
 export const columns = [
   {
@@ -13,7 +12,15 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
     ),
-    cell: ({ row }) => <Link href={`/components/${row.original.id}`}>{row.getValue("name")}</Link>,
+    cell: ({ row }) => <div>
+      <Link href={`/components/${row.original.id}`}>{row.getValue("name")}</Link>
+      {row.original.is_ai_generated && (
+          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 relative overflow-hidden group">
+            <Sparkles className="w-3 h-3 mr-1 text-orange-500" />
+            AI
+          </span>
+      )}
+    </div>,
     enableSorting: true,
     enableHiding: true,
   },

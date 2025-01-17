@@ -1,28 +1,26 @@
 "use client";
 
 import React from "react";
-import { useChat } from "ai/react";
 import { DownloadIcon, ArrowBigUpDash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ToolCallingResult } from "@/components/components/create/chat";
 import { ComponentFileCard } from "@/components/components/create/component-file-card";
-import { GeneratedComponentMessageType } from "@/components/components/create/utils/chat-context";
 
 interface GeneratedMessageProps {
     messageId: string;
     disabledActions: boolean;
     toolInvocation: any;
     downloadEtherealNexusFile: (result: ToolCallingResult) => Promise<void>;
-    handleOnComponentCardClick: (messageId: string, result: ToolCallingResult, toolName: GeneratedComponentMessageType) => void;
-    handlePublishComponent: (generatedFileName: string, generatedCode: string) => Promise<void>;
+    handleOnComponentCardClick: (messageId: string, result: ToolCallingResult) => void;
+    handlePublishComponent: (messageId: string, generatedFileName: string, generatedCode: string) => Promise<void>;
 }
 
 export function AssistantGeneratedMessageCard({ messageId, toolInvocation, downloadEtherealNexusFile, handleOnComponentCardClick, handlePublishComponent, disabledActions }: GeneratedMessageProps) {
-    const { toolName, result } = toolInvocation;
+    const { result } = toolInvocation;
 
     const onCardClick = () => {
-        handleOnComponentCardClick(messageId, result, toolName);
+        handleOnComponentCardClick(messageId, result);
     };
 
     const handleFooterActionClick = () => {
@@ -30,7 +28,7 @@ export function AssistantGeneratedMessageCard({ messageId, toolInvocation, downl
     };
 
     const publishComponent = async () => {
-      await handlePublishComponent(result.fileName, result.etherealNexusFileCode);
+      await handlePublishComponent(messageId, result.fileName, result.etherealNexusFileCode);
     };
 
     return (
@@ -39,6 +37,7 @@ export function AssistantGeneratedMessageCard({ messageId, toolInvocation, downl
                 <p className="text-sm text-muted-foreground">{result.description}</p>
                 <ComponentFileCard
                     id={messageId}
+                    updated={result.updated}
                     fileName={result.fileName}
                     componentName={result.componentName}
                     handleClick={onCardClick} />

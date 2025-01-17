@@ -2,18 +2,12 @@
 
 import React, { createContext, useState } from 'react';
 
-export enum GeneratedComponentMessageType {
-    GENERATE_ETHEREAL_NEXUS_JSX = "generateEtherealNexusJSX",
-    UPDATE_ETHEREAL_NEXUS_JSX = "updateEtherealNexusJSX",
-}
-
 export interface GeneratedComponentMessage {
     id: string;
     componentName: string;
     fileName: string;
     generatedCode: string;
     etherealNexusComponentMockedProps: any; // TODO: Define type
-    type: GeneratedComponentMessageType;
 };
 
 interface ChatContextType {

@@ -3,7 +3,7 @@
 import React, { useContext, useState, useRef, useEffect }  from 'react';
 import path from 'path';
 import { WebContainer } from "@webcontainer/api";
-import { X, Send, StopCircle, CheckCircle } from 'lucide-react';
+import { X, Send, StopCircle } from 'lucide-react';
 import {
     cssTemplate,
     htmlTemplate,
@@ -16,8 +16,6 @@ import {
 } from "@/lib/web-container";
 import { useChat } from "ai/react";
 import {
-    getComponentByName,
-    getComponentVersions,
     upsertNewComponent,
 } from "@/data/components/actions";
 import { Button } from "@/components/ui/button";
@@ -426,7 +424,7 @@ export default function Chat({ chatId }: ChatProps) {
                 } else {
                     setOutput({ status: 'Success', message: 'Component was published successfully!' });
                     toast({
-                        title: <div className="flex items-center"><CheckCircle className="w-4 h-4 mr-2" /><span>{`${componentName} was published successfully!`}</span></div>,
+                        title: `${componentName} was published successfully!`,
                     });
                 }
                 setIsPublishingComponent(false);

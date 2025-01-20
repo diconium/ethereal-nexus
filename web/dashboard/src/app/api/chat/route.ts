@@ -13,6 +13,7 @@ export async function POST(request: Request) {
             status: HttpStatus.FORBIDDEN,
         });
     }
+
     const { messages } = await request.json();
 
     const response = await streamText({

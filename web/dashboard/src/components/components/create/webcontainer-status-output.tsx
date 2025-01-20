@@ -25,6 +25,10 @@ const statusIcons = {
     Info: <Info className="w-5 h-5 text-blue-600" />
 };
 
+const removeAnsiCodes = (text: string) => {
+    return text.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
+};
+
 export function WebContainerStatusOutput({ output }: StatusOutputProps) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -40,7 +44,7 @@ export function WebContainerStatusOutput({ output }: StatusOutputProps) {
 
     const isError = output.status === 'Error';
     const icon = statusIcons[output.status];
-    const lines = output.message.split('\n').filter(line => line.trim());
+    const lines = removeAnsiCodes(output.message).split('\n').filter(line => line.trim());
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>

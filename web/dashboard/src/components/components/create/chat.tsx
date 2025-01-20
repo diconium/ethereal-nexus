@@ -60,7 +60,7 @@ export default function Chat({ chatId }: ChatProps) {
 
     const { currentMessage, setCurrentMessage, isComponentDetailsContainerOpen, setIsComponentDetailsContainerOpen } = useContext(ChatContext);
 
-    const { messages, input, setInput, handleSubmit, isLoading: isLoadingNewMessage, stop, setMessages } = useChat({
+    const { messages, input, setInput, handleSubmit, isLoading: isLoadingNewMessage, stop, setMessages, reload, error } = useChat({
         id: chatId,
     });
 
@@ -454,6 +454,14 @@ export default function Chat({ chatId }: ChatProps) {
                         handlePublishComponent={executeViteReactPlugin}
                     />
                 </div>
+                {error && (
+                    <div className="flex items-center p-2">
+                        <div className="mr-2">An error occurred.</div>
+                        <Button type="button" onClick={() => reload()}>
+                            Retry
+                        </Button>
+                    </div>
+                )}
                 <div className="p-4 bg-white border-t">
                     <form onSubmit={handleSubmit} className="flex gap-2">
                         <TextArea

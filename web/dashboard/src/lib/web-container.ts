@@ -10,7 +10,7 @@ export async function getWebContainerInstance() {
     return webContainerInstance;
 };
 
-export const createIndexFileTemplate = (componentName: string, fileName: string, componentProps: any) => (
+export const createIndexFileTemplate = (componentName: string | undefined, fileName: string | undefined, componentProps: any) => (
     `
         import { StrictMode } from 'react';
         import { createRoot } from 'react-dom/client';
@@ -26,7 +26,6 @@ export const createIndexFileTemplate = (componentName: string, fileName: string,
         );
     `
 );
-
 
 export const previewTemplate = `
     import React from 'react';

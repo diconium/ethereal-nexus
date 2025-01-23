@@ -13,6 +13,7 @@ export async function POST(request: Request) {
             status: HttpStatus.FORBIDDEN,
         });
     }
+
     const { messages } = await request.json();
 
     const response = await streamText({
@@ -286,8 +287,8 @@ export async function POST(request: Request) {
                     description: z.string().describe('A detailed description of the component'),
                     etherealNexusComponentMockedProps: z.any().describe('An object with the needed mock props that have to be passed to the created component'), // TODO check typing
                 }),
-                execute: async function ({ etherealNexusFileCode, componentName, fileName, description, etherealNexusComponentMockedProps }) {
-                    return { etherealNexusFileCode, componentName, fileName, etherealNexusComponentMockedProps, description };
+                execute: async function ({ id, etherealNexusFileCode, componentName, fileName, description, etherealNexusComponentMockedProps }) {
+                    return { id, etherealNexusFileCode, componentName, fileName, etherealNexusComponentMockedProps, description, updated: false };
                 },
             },
         },

@@ -2,9 +2,9 @@
 
 import { ActionResponse, Result } from '@/data/action';
 import { z } from 'zod';
-import { actionError, actionSuccess, actionZodError } from '@/data/utils';
+import { and, eq, sql } from 'drizzle-orm';
 import { db } from '@/db';
-
+import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import {
   Component,
   componentAssetsCreateSchema,
@@ -17,7 +17,6 @@ import {
   componentVersionsSchema,
   ComponentWithVersion, NewComponentVersion
 } from './dto';
-import { and, eq, sql } from 'drizzle-orm';
 import {
   componentAssets,
   components,
@@ -30,8 +29,6 @@ import { members } from '@/data/member/schema';
 import { users } from '@/data/users/schema';
 import { logEvent } from '@/lib/events/event-middleware';
 import { userIsMember } from '@/data/member/actions';
-import { NextResponse } from "next/server";
-import { HttpStatus } from "@/app/api/utils";
 import { EtherealStorage } from '@/storage/ethereal-storage';
 import { auth } from "@/auth";
 
@@ -91,18 +88,27 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
   const manifestFile = filesMap[`/dist/.ethereal/${componentName}/manifest.json`];
 
   if (!manifestFile) {
-    return NextResponse.json('No manifest present in the bundle.', {
-      status: HttpStatus.BAD_REQUEST
-    });
+    return actionError('No manifest present in the bundle.');
   }
 
   const manifest = JSON.parse(manifestFile);
+  manifest.is_ai_generated = true;
+
+  const getComponentResult = await getComponentByName(componentName);
+  if (getComponentResult.success) {
+    const getComponentVersionsResult = await getComponentVersions(getComponentResult.data.id);
+    if (getComponentVersionsResult.success) {
+      const versionAlreadyExists = getComponentVersionsResult.data.some((version) => version.version === manifest.version);
+
+      if (versionAlreadyExists) {
+        return actionError('Component version already exists.');
+      }
+    }
+  }
+
   const result = await upsertComponentWithVersion(manifest, session?.user?.id);
   if (!result.success) {
-    console.error(JSON.stringify(result.error, undefined, 2));
-    return NextResponse.json(result.error.message, {
-      status: HttpStatus.BAD_REQUEST
-    });
+    return actionError(result.error.message);
   }
 
   const { id, slug, version } = result.data;
@@ -116,9 +122,7 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
       );
 
       if (!urlObject) {
-        return NextResponse.json('Failed to upload assets', {
-          status: HttpStatus.BAD_REQUEST
-        });
+        return actionError('Failed to upload assets, no url returned.');
       }
 
       let type: 'css' | 'js' | 'chunk' | 'server' = 'chunk' as const;
@@ -138,14 +142,13 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
       );
 
       if (!response.success && response.error.message !== 'Asset already exists.') {
-        return NextResponse.json('Failed to upsert assets', {
-          status: HttpStatus.BAD_REQUEST
-        });
+        return actionError('Failed to upsert assets');
       }
     }
   }
-
-  return result;
+  return actionSuccess({
+    ...result.data,
+  });
 };
 
 export async function upsertComponentWithVersion(

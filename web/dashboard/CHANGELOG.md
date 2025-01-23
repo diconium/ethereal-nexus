@@ -1,5 +1,22 @@
 # @ethereal-nexus/dashboard
 
+## 1.5.0
+
+### Minor Changes
+
+- f04e803: feat: it is now possible to remove members from projects if you have the appropriate permissions
+- f04e803: feat: add delete user action to user table
+- f04e803: feat: add new AUTH_CREDENTIALS_LOGIN to allow or disallow credentials authentication
+- f04e803: feat: admin users are now able to manage projects even if not a member
+- bbdbfb2: feat: Adds component generation, and publishing, via ai
+- f04e803: feat: add magic link via azure communication service as a login option
+
+### Patch Changes
+
+- f04e803: chore: update azure sso adapter to microsoft-entra-id
+- f04e803: fix: several permission errors for view only users were fixed
+- 0cdcf05: fix: Add validations by component name and version when publishing ai generated component
+
 ## 1.4.0
 
 ### Minor Changes

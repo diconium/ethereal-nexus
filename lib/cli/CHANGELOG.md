@@ -1,5 +1,12 @@
 # @ethereal-nexus/cli
 
+## 1.0.2
+
+### Patch Changes
+
+- f04e803: fix: added correct filter function for tar library
+- bbdbfb2: feat: Adds component generation, and publishing, via ai
+
 ## 1.0.1
 
 ### Patch Changes

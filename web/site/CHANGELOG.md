@@ -1,5 +1,11 @@
 # @ethereal-nexus/site
 
+## 1.0.1
+
+### Patch Changes
+
+- bbdbfb2: feat: Adds component generation, and publishing, via ai
+
 ## 1.0.0
 
 ### Major Changes

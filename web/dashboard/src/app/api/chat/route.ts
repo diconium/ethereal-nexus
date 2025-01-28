@@ -4,9 +4,15 @@ import { auth } from '@/auth';
 import { openai } from "@ai-sdk/openai";
 import { NextResponse } from "next/server";
 import { HttpStatus } from "@/app/api/utils";
+import process from 'node:process';
+import { notFound } from 'next/navigation';
 
 export async function POST(request: Request) {
     const session = await auth();
+
+    if(!process.env.OPENAI_API_KEY) {
+        notFound()
+    }
 
     if (!session) {
         return NextResponse.json('You do not have permissions for this resource.', {

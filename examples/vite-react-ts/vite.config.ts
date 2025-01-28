@@ -10,6 +10,7 @@ export default defineConfig({
       exposes: {
         ReactHelloWorld: './src/components/ReactHelloWorld/ReactHelloWorld.tsx',
         SimpleReactHelloWorld: './src/components/SimpleReactHelloWorld/SimpleReactHelloWorld.tsx',
+        DynamicImportVideo: './src/components/DynamicImportVideo/DynamicImportVideo.tsx',
         EventExample: './src/components/EventExample/EventExample.tsx',
         DropdownExample: './src/components/DropdownExample/DropdownExample.tsx',
         NavigationExample: './src/components/NavigationExample/NavigationExample.tsx',

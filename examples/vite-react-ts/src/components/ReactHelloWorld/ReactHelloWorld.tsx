@@ -10,6 +10,7 @@ import {
   type Output, pathbrowser, rte, select,
   text
 } from '@ethereal-nexus/core';
+import { Slot } from '@ethereal-nexus/react'
 
 import { Item } from '@/patterns';
 import { titles } from '@/dialogs/titles.ts';
@@ -109,7 +110,7 @@ const dialogSchema = dialog({
     }
   });
 
-const schema = component({ name: 'TestReactHelloWorld', version: '3.0.29' }, dialogSchema);
+const schema = component({ name: 'TestReactHelloWorld', version: '4.0.6' }, dialogSchema);
 
 type Props = Output<typeof schema>
 
@@ -146,10 +147,11 @@ export const ReactHelloWorld: React.FC<Props> = ({
 
       <div className={'columnsContainer'}>
         <div className={'column'}>
-          <slot name={dynamiczoneone} />
+          {/*Slot component now accepts props that will be passed to the slotted component, it should be able to accept strings, objects, numbers and booleans*/}
+          <Slot name={dynamiczoneone} title="Hello from the Slot" image={{ src: 'google.com', alt: 'Alt Image' }} days={42} true={true} />
         </div>
         <div className={'column'}>
-          <slot name={dynamiczonetwo} />
+          <Slot name={dynamiczonetwo} />
         </div>
       </div>
 

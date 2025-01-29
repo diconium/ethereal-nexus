@@ -1,8 +1,10 @@
 {
-  "name": "@ethereal-nexus/core",
-  "version": "1.7.0",
+  "name": "@ethereal-nexus/react",
+  "version": "0.0.1",
   "description": "",
-  "keywords": [],
+  "keywords": [
+    "react"
+  ],
   "author": "",
   "license": "Apache-2.0",
   "scripts": {
@@ -10,6 +12,9 @@
     "build": "tsup ./src",
     "dev": "tsup ./src --watch"
   },
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -17,22 +22,18 @@
       "import": "./dist/index.mjs"
     }
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
   "sideEffects": false,
   "files": [
     "dist",
     "README.md"
   ],
   "devDependencies": {
-    "@types/react": "^18.3.0",
-    "react": "^18.3.1",
+    "@types/react": "^19.0.8",
     "tsup": "^8.0.2",
-    "typescript": "^5.6.2",
-    "vite-plugin-css-injected-by-js": "^3.5.2"
+    "typescript": "^5.6.2"
   },
-  "dependencies": {
-    "@r2wc/react-to-web-component": "^2.0.3"
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   }
 }

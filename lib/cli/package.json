@@ -1,6 +1,6 @@
 {
   "name": "@ethereal-nexus/cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "description": "",
   "exports": "./dist/index.js",

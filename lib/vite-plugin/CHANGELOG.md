@@ -1,5 +1,13 @@
 # @ethereal-nexus/vite-plugin-ethereal-nexus
 
+## 1.0.8
+
+### Patch Changes
+
+- df2f414: fix: added dynamic import to chunk resolution for nexus bundle
+- Updated dependencies [f04e803]
+  - @ethereal-nexus/core@1.7.0
+
 ## 1.0.7
 
 ### Patch Changes

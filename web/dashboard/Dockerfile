@@ -27,8 +27,6 @@ RUN pnpm --filter "@ethereal-nexus/dashboard" build
 FROM base AS runner
 WORKDIR /app
 
-RUN corepack enable pnpm && pnpm install @newrelic/next
-
 ENV NODE_ENV production
 # Uncomment the following line in case you want to disable telemetry during runtime.
 # ENV NEXT_TELEMETRY_DISABLED 1
@@ -48,4 +46,4 @@ USER nextjs
 EXPOSE 3000
 ENV PORT 3000
 
-CMD ["node", "-r", "@newrelic/next", "web/dashboard/server.js"]
+CMD ["node", "web/dashboard/server.js"]

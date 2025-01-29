@@ -1,6 +1,5 @@
 import "./globals.css";
 import React from "react";
-import NewRelicSnippet from '@/components/newrelicSnippet';
 
 export default async function RootLayout({
   children,
@@ -10,10 +9,8 @@ export default async function RootLayout({
     const env = process.env.NODE_ENV
 
   return <html lang="en" suppressHydrationWarning>
-    { env == "production" ? (
     <head>
-        <NewRelicSnippet/>
-    </head>): null}
+    </head>
     <body className="font-campton">
     {children}
     </body>

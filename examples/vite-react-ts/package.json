@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@ethereal-nexus/core": "workspace:*",
+    "@vidstack/react": "^1.12.12",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
   },

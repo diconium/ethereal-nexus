@@ -2,9 +2,15 @@ import React from "react";
 import Chat  from '@/components/components/create/chat';
 import { ChatProvider } from "@/components/components/create/utils/chat-context";
 import { auth } from "@/auth";
+import process from 'node:process';
+import { notFound } from 'next/navigation';
 
 export default async function GenerateComponentPage() {
     const session = await auth();
+
+    if(!process.env.OPENAI_API_KEY) {
+      notFound()
+    }
 
     return (
         <ChatProvider>

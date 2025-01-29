@@ -73,14 +73,18 @@ export function bundleClient(code: string, exposed: Map<string, string>, id: str
 }
 
 function readJSDeps(chunk: OutputChunk, bundle: OutputBundle, js = new Set<string>()) {
-  if(chunk?.imports) {
-    for (const jsFileName of chunk?.imports) {
-      js.add(jsFileName)
-    }
-  }
-  if(chunk.imports.length > 0) {
-    for(const nestedChunk of chunk.imports) {
-      readJSDeps(bundle[nestedChunk] as OutputChunk, bundle, js)
+  const queue = [chunk.fileName];
+  while (queue.length > 0) {
+    const chunk = queue.shift();
+    const chunkData = bundle[chunk!];
+
+    if (!chunkData || chunkData.type !== 'chunk') continue;
+
+    for (const dep of [...chunkData.imports, ...chunkData.dynamicImports]) {
+      if (!js.has(dep)) {
+        js.add(dep);
+        queue.push(dep);
+      }
     }
   }
 

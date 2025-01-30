@@ -51,7 +51,7 @@ export default async function SessionLayout({ children }: { children: React.Reac
         user={session.user}
         navigation={authorizedNavigation}
       />
-      <main className="container mx-auto">
+      <main className="container mx-auto mt-20">
         <SessionProvider session={session}>
           {children}
         </SessionProvider>

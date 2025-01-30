@@ -35,6 +35,7 @@ module.exports = {
 				'black-80': 'hsla(0, 0%, 18%, 1)',
 				'black-60': 'hsla(0, 0%, 35%, 1)',
 				'black-10': 'hsla(0, 0%, 91%, 1)',
+				'black-05': 'hsla(0, 0%, 96%, 1)',
 				'purple': 'hsla(264, 23%, 33%, 1)',
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
@@ -66,8 +67,8 @@ module.exports = {
   				foreground: 'hsl(var(--popover-foreground))'
   			},
   			card: {
-  				DEFAULT: 'hsl(var(--card))',
-  				foreground: 'hsl(var(--card-foreground))'
+  				DEFAULT: 'hsl(var(--black-80))',
+  				foreground: 'hsl(var(--black-60))'
   			},
   			sidebar: {
   				DEFAULT: 'hsl(var(--sidebar-background))',

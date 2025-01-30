@@ -20,7 +20,12 @@ export const Slot: React.FC<SlotProps> = ({ name, ...props }) => {
         .filter(el => el.tagName.includes("-"))
         .forEach(el =>
             Object.keys(props)
-              .forEach(key => el.setAttribute(key, JSON.stringify(props[key]))
+              .forEach(key => {
+                const value = typeof props[key] === 'object' ?
+                  JSON.stringify(props[key]) :
+                  props[key];
+                el.setAttribute(key, value)
+              }
           )
         )
     };

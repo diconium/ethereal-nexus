@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@ethereal-nexus/core": "workspace:*",
+    "@ethereal-nexus/react": "workspace:*",
     "@vidstack/react": "^1.12.12",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
@@ -19,8 +20,8 @@
   "devDependencies": {
     "@ethereal-nexus/cli": "workspace:*",
     "@ethereal-nexus/vite-plugin-ethereal-nexus": "workspace:*",
-    "@types/react": "^18.3.0",
-    "@types/react-dom": "^18.3.0",
+    "@types/react": "^19.0.3",
+    "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.1.0",
     "typescript": "^5.6.2",
     "vite": "^5.4.6"

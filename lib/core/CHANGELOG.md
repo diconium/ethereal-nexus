@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.7.1
+
+### Patch Changes
+
+- a367679: build: change types order in package json
+
 ## 1.7.0
 
 ### Minor Changes

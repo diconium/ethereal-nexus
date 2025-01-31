@@ -109,7 +109,7 @@ export const POST = authenticatedWithKey(
           status: HttpStatus.BAD_REQUEST,
         });
       }
-      const headersList = headers();
+      const headersList = await headers();
       const contentType = headersList.get('Content-Type') || '';
       const filePath: string = getFilePath(params, contentType);
       const url = await uploadToStorage(

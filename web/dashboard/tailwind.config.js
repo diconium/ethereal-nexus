@@ -67,8 +67,8 @@ module.exports = {
   				foreground: 'hsl(var(--popover-foreground))'
   			},
   			card: {
-  				DEFAULT: 'hsl(var(--black-80))',
-  				foreground: 'hsl(var(--black-60))'
+					DEFAULT: 'hsl(var(--card))',
+					foreground: 'hsl(var(--card-foreground))'
   			},
   			sidebar: {
   				DEFAULT: 'hsl(var(--sidebar-background))',

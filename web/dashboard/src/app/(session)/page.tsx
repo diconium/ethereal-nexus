@@ -34,7 +34,7 @@ export default async function Home() {
     <article className="grid md:grid-cols-4 gap-x-6 gap-y-6 md:gap-y-16">
       <h1 className="text-4xl md:col-span-4">Hi, {session.user.name}</h1>
         <Link href="/components">
-          <Card className="border-black-10 bg-white dark:border-black-60 dark:bg-black-80">
+          <Card>
             <CardHeader>
               <CardTitle className="font-normal">Available components</CardTitle>
             </CardHeader>
@@ -49,7 +49,7 @@ export default async function Home() {
           </Card>
         </Link>
         <Link href="/projects">
-          <Card className="border-black-10 bg-white dark:border-black-60 dark:bg-black-80">
+          <Card>
             <CardHeader>
               <CardTitle className="font-normal">Available projects</CardTitle>
             </CardHeader>

@@ -30,7 +30,6 @@ export default async function Home() {
         undefined
     );
 
-  console.log(components)
   return (
     <article className="grid md:grid-cols-4 gap-x-6 gap-y-6 md:gap-y-16">
       <h1 className="text-4xl md:col-span-4">Hi, {session.user.name}</h1>

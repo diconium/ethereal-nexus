@@ -67,7 +67,6 @@
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
     "tar-stream": "^3.1.7",
-    "uuid": "^9.0.1",
     "winston": "^3.17.0",
     "zod": "^3.24.1"
   },

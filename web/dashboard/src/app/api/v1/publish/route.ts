@@ -4,18 +4,18 @@ import gunzip from 'gunzip-maybe';
 import { Buffer } from 'buffer';
 import { PassThrough } from 'stream';
 import { pipeline } from 'stream/promises';
-import { authenticatedWithKey } from '@/lib/route-wrappers';
-import { HttpStatus } from '@/app/api/utils';
+import { authenticatedWithApiKeyUser, HttpStatus } from '@/app/api/utils';
 import { upsertAssets, upsertComponentWithVersion } from '@/data/components/actions';
 import { EtherealStorage } from '@/storage/ethereal-storage';
 
 const storage = new EtherealStorage();
 
-export const POST = authenticatedWithKey(async (request, ext) => {
+export const POST = async (request) => {
   let conflictingAssets = false;
   const filesMap = new Map<string, string>()
+  const user = await authenticatedWithApiKeyUser();
 
-  const userId = ext?.user?.id;
+  const userId = user?.id;
   if (!userId) {
     return NextResponse.json('Api key not provided or invalid.', {
       status: HttpStatus.UNAUTHORIZED
@@ -69,7 +69,7 @@ export const POST = authenticatedWithKey(async (request, ext) => {
     }
 
     const manifest = JSON.parse(manifestFile);
-    const result = await upsertComponentWithVersion(manifest, ext?.user.id);
+    const result = await upsertComponentWithVersion(manifest, user.id);
     if (!result.success) {
       console.error(JSON.stringify(result.error, undefined, 2));
       return NextResponse.json(result.error.message, {
@@ -134,4 +134,4 @@ export const POST = authenticatedWithKey(async (request, ext) => {
       status: HttpStatus.INTERNAL_SERVER_ERROR
     });
   }
-});
+}

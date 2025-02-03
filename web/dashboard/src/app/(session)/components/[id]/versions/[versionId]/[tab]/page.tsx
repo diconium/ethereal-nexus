@@ -7,38 +7,40 @@ import ComponentVersionTabs from '@/components/components/component/version/tabs
 import { auth } from '@/auth';
 import { getResourceEvents } from '@/data/events/actions';
 
-export default async function EditComponentVersion({params: {id, versionId, tab}}: any) {
-    const session = await auth()
+export default async function EditComponentVersion(props: any) {
+  const {
+    id, versionId, tab
+  } = await props.params;
 
-    const component = await getComponentById(id);
-    const versions = await getComponentVersions(id);
-    const dependents = await getComponentDependentsProjects(id, session?.user?.id);
-    const events = await getResourceEvents(id);
+  const session = await auth();
 
-    if (!versions.success || !component.success || !dependents.success ) {
-        notFound();
-    }
+  const component = await getComponentById(id);
+  const versions = await getComponentVersions(id);
+  const dependents = await getComponentDependentsProjects(id, session?.user?.id);
+  const events = await getResourceEvents(id);
 
-    const safeDependents = dependents.data.map(p => p.has_access ? p : null)
-    const selectedVersion = versions.data.filter((version: any) => version.id === versionId)[0];
+  if (!versions.success || !component.success || !dependents.success) {
+    notFound();
+  }
 
-    return (
-        <div className="container space-y-6">
-            <ComponentVersionHeader
-              versions={versions}
-              component={component}
-              selectedVersion={selectedVersion}
-              activeTab={tab}
-            />
-            <Separator/>
-            <ComponentVersionTabs
-              activeTab={tab}
-              versions={versions}
-              selectedVersion={selectedVersion}
-              component={component}
-              dependents={safeDependents}
-              events={events}
-            />
-        </div>
-    );
+  const safeDependents = dependents.data.map(p => p.has_access ? p : null);
+  const selectedVersion = versions.data.filter((version: any) => version.id === versionId)[0];
+
+  return (<div className="container space-y-6">
+      <ComponentVersionHeader
+        versions={versions}
+        component={component}
+        selectedVersion={selectedVersion}
+        activeTab={tab}
+      />
+      <Separator />
+      <ComponentVersionTabs
+        activeTab={tab}
+        versions={versions}
+        selectedVersion={selectedVersion}
+        component={component}
+        dependents={safeDependents}
+        events={events}
+      />
+    </div>);
 }

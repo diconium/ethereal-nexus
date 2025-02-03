@@ -1,18 +1,16 @@
 "use client";
 
-import {useForm} from "react-hook-form";
-import * as z from "zod";
-import {Button} from "@/components/ui/button";
+import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
 
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
-import {Input} from "@/components/ui/input";
-import {TextArea} from '@/components/ui/text-area';
-import {zodResolver} from "@hookform/resolvers/zod";
-import React from "react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { TextArea } from '@/components/ui/text-area';
+import { zodResolver } from '@hookform/resolvers/zod';
+import React from 'react';
 import { useToast } from '@/components/ui/use-toast';
-import { Environment, EnvironmentInput, environmentInputSchema, ProjectInput } from '@/data/projects/dto';
-import { upsertEnvironment, upsertProject } from '@/data/projects/actions';
-import { useSession } from 'next-auth/react';
+import { Environment, EnvironmentInput, environmentInputSchema } from '@/data/projects/dto';
+import { upsertEnvironment } from '@/data/projects/actions';
 import { Switch } from '@/components/ui/switch';
 
 type ProjectsFormProps = {
@@ -23,7 +21,6 @@ type ProjectsFormProps = {
 }
 
 export default function EnvironmentsForm({project, environment, onComplete, onCancel}: ProjectsFormProps) {
-  const {data: session} = useSession();
   const { toast } = useToast()
   const form: any = useForm<EnvironmentInput>({
     resolver: zodResolver(environmentInputSchema),

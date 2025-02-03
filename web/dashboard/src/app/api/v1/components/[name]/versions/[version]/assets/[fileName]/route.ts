@@ -1,11 +1,10 @@
-import { HttpStatus } from '@/app/api/utils';
+import { authenticatedWithApiKeyUser, HttpStatus } from '@/app/api/utils';
 import { headers } from 'next/headers';
-import { AuthenticatedWithApiKeyUser, authenticatedWithKey, DefaultExt } from '@/lib/route-wrappers';
 import { NextRequest, NextResponse } from 'next/server';
 import { getComponentByName, getComponentVersions, upsertAssets } from '@/data/components/actions';
 import * as console from 'console';
-import { v4 as uuidv4 } from 'uuid';
 import { EtherealStorage } from '@/storage/ethereal-storage';
+import { randomUUID } from 'node:crypto';
 
 const fileTypes: FileTypes = {
   'text/css': 'css',
@@ -17,101 +16,30 @@ interface FileTypes {
   [key: string]: 'css' | 'js';
 }
 
-
 const storage = new EtherealStorage();
 
-/**
- * @swagger
- * /api/v1/components/{name}/versions/{version}/assets/{fileName}:
- *   post:
- *     summary: add component asset
- *     description: Add component asset
- *     tags:
- *      - Components
- *     produces:
- *      - application/json
- *     requestBody:
- *      content:
- *          text/javascript:
- *            schema:
- *              type: string
- *              format: binary
- *          text/css:
- *            schema:
- *              type: string
- *              format: binary
- *     parameters:
- *      - in: path
- *        name: name
- *        description: The component's name
- *        required: true
- *        type: string
- *      - in: path
- *        name: version
- *        description: The component's version
- *        required: true
- *        type: string
- *      - in: path
- *        name: fileName
- *        description: The asset file name
- *        required: false
- *        type: string
- *     responses:
- *      '200':
- *        description: The component's info
- *        content:
- *         application/json:
- *          schema:
- *           type: object
- *           $ref: '#/components/schemas/Component'
- *      '404':
- *        description: Not Found
- *        content:
- *         application/json:
- *          schema:
- *           type: object
- *           properties:
- *            message:
- *             type: string
- *             example: Not Found - the component does not exist
- *      '500':
- *        description: Internal Server Error
- *        content:
- *         application/json:
- *          schema:
- *           type: object
- *           properties:
- *            message:
- *             type: string
- *             example: Internal Server Error - Something went wrong on the server side
- */
-export const POST = authenticatedWithKey(
+export const POST =
   async (
     request: NextRequest,
-    ext:
-      | { params: { name: string; version: string; fileName: string } } & DefaultExt & AuthenticatedWithApiKeyUser
-      | undefined,
+    { params }: { params: Promise<{ name: string; version: string; fileName: string }> }
   ) => {
-    const permissions = ext?.user.permissions;
+    const user = await authenticatedWithApiKeyUser();
+    const permissions = user?.permissions;
     if (permissions?.['components'] !== 'write') {
       return NextResponse.json('You do not have permissions to write this resource.', {
         status: HttpStatus.FORBIDDEN,
       });
     }
     try {
-      const params = ext?.params || {
-        name: undefined,
-        version: undefined,
-        fileName: undefined,
-      };
-      if (!params?.name || !params.version || !params.fileName) {
+      const { name, version: requestVersion, fileName } = await params;
+      if (!name || !requestVersion || !fileName) {
         return NextResponse.json('Invalid request. Missing params', {
           status: HttpStatus.BAD_REQUEST,
         });
       }
-      const headersList = headers();
+      const headersList = await headers();
       const contentType = headersList.get('Content-Type') || '';
-      const filePath: string = getFilePath(params, contentType);
+      const filePath: string = getFilePath(await params, contentType);
       const url = await uploadToStorage(
         request,
         filePath,
@@ -123,7 +51,7 @@ export const POST = authenticatedWithKey(
           status: HttpStatus.BAD_REQUEST,
         });
       }
-      const component = await getComponentByName(params.name);
+      const component = await getComponentByName(name);
       if(!component.success){
         return NextResponse.json('Component does not exist.', {
           status: HttpStatus.BAD_REQUEST,
@@ -136,7 +64,7 @@ export const POST = authenticatedWithKey(
           status: HttpStatus.BAD_REQUEST,
         });
       }
-      const version = versions.data.find(version => version.version === params.version)
+      const version = versions.data.find(version => version.version === requestVersion)
       if(!version){
         return NextResponse.json('Version does not exist.', {
           status: HttpStatus.BAD_REQUEST,
@@ -167,8 +95,7 @@ export const POST = authenticatedWithKey(
         status: HttpStatus.BAD_REQUEST,
       });
     }
-  },
-);
+  }
 
 const uploadToStorage = async (
   request: any,
@@ -205,6 +132,6 @@ function getFilePath(
   }: { name: string; version: string; fileName: string },
   contentType: string,
 ): string {
-  const myUUID = uuidv4().replace(/-/g, '');
+  const myUUID = randomUUID().replace(/-/g, '');
   return `${name}/${version}/${fileName}.${myUUID}.${fileTypes[contentType]}`;
 }

@@ -1,14 +1,10 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
-import {
-  CheckIcon,
-  ChevronRightIcon,
-  DotFilledIcon,
-} from "@radix-ui/react-icons"
+import * as React from 'react';
+import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
+import { CheckIcon, ChevronRightIcon, DotFilledIcon } from '@radix-ui/react-icons';
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils';
 
 const DropdownMenu = DropdownMenuPrimitive.Root
 
@@ -69,7 +65,7 @@ const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md",
+        "z-50 min-w-[8rem] overflow-hidden rounded-xl border border-black-10 dark:border-black-60 bg-popover p-1 text-popover-foreground shadow-md",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         className
       )}
@@ -88,7 +84,7 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-orange-10 focus:text-orange-60 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       inset && "pl-8",
       className
     )}
@@ -186,6 +182,32 @@ const DropdownMenuShortcut = ({
 }
 DropdownMenuShortcut.displayName = "DropdownMenuShortcut"
 
+const DropdownMenuArrow = ({ className }: { className?: string }) => {
+  return <span className={cn('absolute bottom-4 -left-4', className)}>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="17"
+      height="20"
+      fill="none"
+      className="fill-white stroke-black-10 dark:fill-black-80 dark:stroke-black-60"
+    >
+      <g clipPath="url(#a)">
+        <path d="M16 18.66 1 10l15-8.66z" strokeWidth="1" />
+        <g shapeRendering="crispEdges">
+          <rect width="2" height="30" x="15" y="-5" rx="8" stroke="none" />
+          <rect width="2" height="30" x="15.5" y="-5" rx="7.5" strokeWidth="1" />
+        </g>
+        <path d="m15 2.516 1-.716v16.227l-1-.511z" stroke="none" />
+      </g>
+      <defs>
+        <clipPath id="a">
+          <path d="M-192-920h1440V104H-192z" />
+        </clipPath>
+      </defs>
+    </svg>
+  </span>;
+}
+
 export {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -202,4 +224,5 @@ export {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuRadioGroup,
+  DropdownMenuArrow,
 }

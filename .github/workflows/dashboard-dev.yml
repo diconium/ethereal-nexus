@@ -48,7 +48,7 @@ jobs:
         run: |
           echo "${{ secrets.NEXT_AUTH_SECRET }}" >> .env
           echo "${{ secrets.DRIZZLE_DATABASE_URL }}" >> .env
-          corepack enable pnpm
+          corepack enable && corepack prepare pnpm@9.15.2 --activate
           pnpm i --frozen-lockfile
           pnpm --filter "@ethereal-nexus/dashboard" run db:push --force
           sed -i '/^DRIZZLE_DATABASE_URL/d' .env

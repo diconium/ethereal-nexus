@@ -7,9 +7,9 @@
     "release": "pnpm --filter \"...{lib/**}\" publish --access public"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.8",
-    "prettier": "^3.2.5",
-    "turbo": "^1.13.3"
+    "@changesets/cli": "^2.27.12",
+    "prettier": "^3.4.2",
+    "turbo": "^1.13.4"
   },
   "engines": {
     "npm": "please-use-pnpm",

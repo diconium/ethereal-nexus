@@ -29,7 +29,7 @@ interface DataTableProps<TData, TValue> {
   isShowViewOpt?: boolean;
 }
 
-export function DataTable<TData, TValue>({ columns, data, meta, entity, createSlot, colWidth, isShowViewOpt }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, meta, entity, createSlot, colWidth }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -66,7 +66,6 @@ export function DataTable<TData, TValue>({ columns, data, meta, entity, createSl
         table={table}
         entityName={entity}
         createSlot={createSlot}
-        isShowViewOpt={isShowViewOpt}
       />
       <Table>
           <TableHeader>

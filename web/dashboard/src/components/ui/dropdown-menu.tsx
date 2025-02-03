@@ -1,14 +1,10 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
-import {
-  CheckIcon,
-  ChevronRightIcon,
-  DotFilledIcon,
-} from "@radix-ui/react-icons"
+import * as React from 'react';
+import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
+import { CheckIcon, ChevronRightIcon, DotFilledIcon } from '@radix-ui/react-icons';
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils';
 
 const DropdownMenu = DropdownMenuPrimitive.Root
 
@@ -186,6 +182,32 @@ const DropdownMenuShortcut = ({
 }
 DropdownMenuShortcut.displayName = "DropdownMenuShortcut"
 
+const DropdownMenuArrow = ({ className }: { className?: string }) => {
+  return <span className={cn('absolute bottom-4 -left-4', className)}>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="17"
+      height="20"
+      fill="none"
+      className="fill-white stroke-black-10 dark:fill-black-80 dark:stroke-black-60"
+    >
+      <g clipPath="url(#a)">
+        <path d="M16 18.66 1 10l15-8.66z" strokeWidth="1" />
+        <g shapeRendering="crispEdges">
+          <rect width="2" height="30" x="15" y="-5" rx="8" stroke="none" />
+          <rect width="2" height="30" x="15.5" y="-5" rx="7.5" strokeWidth="1" />
+        </g>
+        <path d="m15 2.516 1-.716v16.227l-1-.511z" stroke="none" />
+      </g>
+      <defs>
+        <clipPath id="a">
+          <path d="M-192-920h1440V104H-192z" />
+        </clipPath>
+      </defs>
+    </svg>
+  </span>;
+}
+
 export {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -202,4 +224,5 @@ export {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuRadioGroup,
+  DropdownMenuArrow,
 }

@@ -2,6 +2,7 @@
 
 import { Check, LogOut, MoonIcon, Settings, SunIcon, UserRound } from 'lucide-react';
 import {
+  DropdownMenuArrow,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -23,8 +24,7 @@ export function NavUser({ user }: NavUserProps) {
   const { isMobile } = useSidebar();
   const { setTheme, theme, themes } = useTheme();
 
-  return (
-    <SidebarMenu className="gap-4">
+  return (<SidebarMenu className="gap-4">
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -45,38 +45,19 @@ export function NavUser({ user }: NavUserProps) {
             align="end"
             sideOffset={4}
           >
-            <span className="absolute bottom-4 -left-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="20" fill="none">
-                <g clip-path="url(#a)">
-                  <path fill="#2D2D2D" stroke="#595959" d="M16 18.6603 1 10l15-8.66026V18.6603Z" />
-                  <g shape-rendering="crispEdges">
-                    <rect width="2" height="30" x="15" y="-5" fill="#2D2D2D" rx="8" />
-                    <rect width="2" height="30" x="15.5" y="-5" stroke="#595959" rx="7.5" />
-                  </g>
-                  <path fill="#2D2D2D" d="m15 2.51557 1-.71577v16.2275l-1-.5117V2.51557Z" />
-                </g>
-                <defs>
-                  <clipPath id="a">
-                    <path fill="#fff" d="M-192-920h1440V104H-192z" />
-                  </clipPath>
-                </defs>
-              </svg>
-            </span>
+            <DropdownMenuArrow className="text-black-80"/>
             <DropdownMenuGroup className="flex flex-col gap-3">
-              {
-                themes.map(themeName => (
-                  <DropdownMenuItem
-                    key={themeName}
-                    className="flex justify-between"
-                    onClick={() => setTheme(themeName)}
-                  >
+              {themes.map(themeName => (<DropdownMenuItem
+                key={themeName}
+                className="flex justify-between"
+                onClick={() => setTheme(themeName)}
+              >
                     <span className={theme === themeName ? 'text-orange-40' : undefined}>
                       {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
                     </span>
-                    {theme === themeName ?
-                      <Check width={16} height={16} className="text-orange-40" color="currentColor" /> : null}
-                  </DropdownMenuItem>))
-              }
+                {theme === themeName ?
+                  <Check width={16} height={16} className="text-orange-40" color="currentColor" /> : null}
+              </DropdownMenuItem>))}
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -100,23 +81,7 @@ export function NavUser({ user }: NavUserProps) {
             align="end"
             sideOffset={4}
           >
-             <span className="absolute bottom-4 -left-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="20" fill="none">
-                <g clip-path="url(#a)">
-                  <path fill="#2D2D2D" stroke="#595959" d="M16 18.6603 1 10l15-8.66026V18.6603Z" />
-                  <g shape-rendering="crispEdges">
-                    <rect width="2" height="30" x="15" y="-5" fill="#2D2D2D" rx="8" />
-                    <rect width="2" height="30" x="15.5" y="-5" stroke="#595959" rx="7.5" />
-                  </g>
-                  <path fill="#2D2D2D" d="m15 2.51557 1-.71577v16.2275l-1-.5117V2.51557Z" />
-                </g>
-                <defs>
-                  <clipPath id="a">
-                    <path fill="#fff" d="M-192-920h1440V104H-192z" />
-                  </clipPath>
-                </defs>
-              </svg>
-            </span>
+            <DropdownMenuArrow />
             <DropdownMenuGroup className="flex flex-col gap-3">
               <DropdownMenuItem asChild className="flex gap-2 items-center">
                 <Link href={`/users/${user.id}?tab=profile`}>
@@ -136,7 +101,7 @@ export function NavUser({ user }: NavUserProps) {
               <DropdownMenuItem
                 className="flex gap-2 items-center"
                 onClick={async () => {
-                  await signOutAction()
+                  await signOutAction();
                 }}>
                 <LogOut width={16} height={16} />
                 Log out
@@ -145,6 +110,5 @@ export function NavUser({ user }: NavUserProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
-    </SidebarMenu>
-  );
+    </SidebarMenu>);
 }

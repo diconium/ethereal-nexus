@@ -19,6 +19,7 @@ export async function ApiKeyList() {
     columns={columns}
     data={keys.data}
     entity={'api key'}
+    filterColumn={'alias'}
     createSlot={
       <ApiKeyDialog userId={session?.user?.id} availableProjects={projects.success ? projects.data : []} />
     }

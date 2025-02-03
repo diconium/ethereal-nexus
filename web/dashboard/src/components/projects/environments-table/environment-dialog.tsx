@@ -24,7 +24,6 @@ export function EnvironmentDialog({ resource }: AddEnvironmentProps) {
       <Button
         disabled={!hasWritePermissions}
         size="base"
-        variant="primary"
         onClick={() => setOpen(true)}
         className="ml-auto flex">
         <Plus />

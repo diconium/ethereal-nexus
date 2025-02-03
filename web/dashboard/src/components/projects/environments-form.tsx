@@ -102,7 +102,7 @@ export default function EnvironmentsForm({project, environment, onComplete, onCa
               </Button>
             )
           }
-          <Button type="submit" variant="primary" size="base">{`${environment?.id ? "Save" : "Create Environment"}`}</Button>
+          <Button type="submit" size="base">{`${environment?.id ? "Save" : "Create Environment"}`}</Button>
         </div>
       </form>
     </Form>

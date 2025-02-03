@@ -20,7 +20,7 @@ export function UpdateProjectsView({ projects }: UpdateProjectsViewProps) {
       entity={'projects'}
       columns={columns}
       data={projects}
-      isShowViewOpt={false}
+      filterColumn={'name'}
     />
   ) : (
     <div className="grid grid-cols-3 gap-5">

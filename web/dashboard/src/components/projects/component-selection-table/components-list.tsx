@@ -27,6 +27,7 @@ export async function ProjectComponentsList({ id, environment }: { id: string, e
   return <DataTable
     columns={columns}
     data={project.data}
+    filterColumn={'name'}
     meta={{
       projectId: id,
       environmentId: selected,

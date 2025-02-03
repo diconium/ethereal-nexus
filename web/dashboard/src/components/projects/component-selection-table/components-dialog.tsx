@@ -148,7 +148,6 @@ export function ComponentsDialog({ components, environment, project, environment
             <Button
               disabled={!hasWritePermissions}
               size="sm"
-              variant="primary"
             >
               <Rocket className="mr-2 h-4 w-4" />
               <span>Launch</span>
@@ -194,7 +193,6 @@ export function ComponentsDialog({ components, environment, project, environment
       </div>
       <Button
         size="base"
-        variant="primary"
         onClick={() => setIsOpen(true)}
         disabled={!hasWritePermissions}
       >
@@ -256,7 +254,6 @@ export function ComponentsDialog({ components, environment, project, environment
             <Button
               disabled={selectedComponents.length < 1}
               onClick={handleSubmit}
-              variant="primary"
               size="base"
               className="self-start"
             >

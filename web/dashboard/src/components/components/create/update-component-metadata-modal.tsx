@@ -79,7 +79,7 @@ export function UpdateComponentMetadataModal({ metadata, onClose, updateComponen
                         <Button onClick={onClose} variant="text" className="px-4 py-2 text-orange-500 font-bold text-base p-0">
                             Cancel
                         </Button>
-                        <Button type="submit" variant="primary" size="base" className="px-4 py-2">
+                        <Button type="submit" size="base" className="px-4 py-2">
                             Save Changes and Publish
                         </Button>
                     </div>

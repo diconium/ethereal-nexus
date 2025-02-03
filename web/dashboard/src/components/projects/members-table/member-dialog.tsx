@@ -56,7 +56,6 @@ export function MemberDialog({ users, resource }: AddMemberProps) {
       <Button
         disabled={!hasWritePermissions}
         size="base"
-        variant='primary'
         onClick={() => setOpen(true)}
         className="ml-auto flex">
         <Plus />

@@ -85,7 +85,7 @@ export default function ProjectsForm({ project, onComplete, onCancel }: Projects
               </Button>
             )
           }
-          <Button disabled={!hasWritePermissions} type="submit" variant="primary"
+          <Button disabled={!hasWritePermissions} type="submit"
                   size="base">{`${project?.id ? 'Save' : 'Create project'}`}</Button>
         </div>
       </form>

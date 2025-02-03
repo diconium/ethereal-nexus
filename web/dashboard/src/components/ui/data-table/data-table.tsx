@@ -21,15 +21,15 @@ import { DataTableToolbar } from './data-table-toolbar';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  filterColumn?: keyof TData
   meta?: TableMeta<TData>;
   handlerPath?: string
   entity: ComponentProps<typeof DataTableToolbar>['entityName']
   createSlot?: ComponentProps<typeof DataTableToolbar>['createSlot']
   colWidth?: boolean;
-  isShowViewOpt?: boolean;
 }
 
-export function DataTable<TData, TValue>({ columns, data, meta, entity, createSlot, colWidth }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, meta, entity, createSlot, colWidth, filterColumn }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -66,6 +66,7 @@ export function DataTable<TData, TValue>({ columns, data, meta, entity, createSl
         table={table}
         entityName={entity}
         createSlot={createSlot}
+        filterColumn={filterColumn}
       />
       <Table>
           <TableHeader>

@@ -38,6 +38,7 @@ export default async function Teams() {
             entity={'users'}
             columns={columns}
             data={users.data}
+            filterColumn={'name'}
           /> :
           users.error.message
       }

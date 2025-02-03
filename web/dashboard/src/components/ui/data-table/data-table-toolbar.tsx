@@ -5,20 +5,24 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Cross2Icon } from '@radix-ui/react-icons';
 
-export function DataTableToolbar<TData>({ table, entityName, createSlot }) {
+export function DataTableToolbar<TData>({ table, entityName, createSlot, filterColumn }) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
     <div>
       <div className="flex flex-1 items-center space-x-2">
-        <Input
-          placeholder={`Filter ${entityName}...`}
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
-          className="h-8 w-[150px] lg:w-[250px]"
-        />
+        {
+          filterColumn ?  <Input
+              placeholder={`Filter ${entityName}...`}
+              value={(table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
+              onChange={(event) =>
+                table.getColumn(filterColumn)?.setFilterValue(event.target.value)
+              }
+              className="h-8 w-[150px] lg:w-[250px]"
+            /> :
+            null
+        }
+
         {isFiltered && (
           <Button
             variant="ghost"

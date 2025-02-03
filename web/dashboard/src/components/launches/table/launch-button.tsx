@@ -41,7 +41,6 @@ export function LaunchButton({ from, to }: LaunchButtonProps) {
     <DialogTrigger asChild>
       <Button
         size="base"
-        variant="primary"
         className="ml-auto flex gap-2">
         <Rocket />
         <span>Confirm Launch</span>
@@ -63,7 +62,6 @@ export function LaunchButton({ from, to }: LaunchButtonProps) {
         </Button>
         <Button
           size="sm"
-          variant="primary"
           onClick={handleLaunch}
           className="flex gap-2">
           <Rocket />

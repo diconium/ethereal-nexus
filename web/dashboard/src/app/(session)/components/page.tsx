@@ -58,6 +58,7 @@ export default async function Components() {
         columns={columns}
         data={components.data}
         entity="components"
+        filterColumn={'name'}
       />
     </div>
   );

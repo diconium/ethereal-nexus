@@ -16,6 +16,7 @@ export async function EnvironmentsList({id}: {id: string}) {
 
   return <DataTable
     columns={columns}
+    filterColumn={'name'}
     meta={{
       projectId: id,
       permissions: role !== 'admin' ? session?.permissions[id] : 'write'

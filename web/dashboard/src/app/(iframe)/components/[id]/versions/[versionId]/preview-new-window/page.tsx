@@ -3,8 +3,11 @@ import PreviewContainer from "@/components/components/component/version/preview-
 import {notFound} from "next/navigation";
 
 export const revalidate = 0;
-export default async function PreviewVersion({params: {id, versionId}}: any) {
-
+export default async function PreviewVersion(props: any) {
+    const {
+        id,
+        versionId
+    } = await props.params;
 
     const component = await getComponentById(id);
     const versions = await getComponentVersions(id);

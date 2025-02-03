@@ -8,14 +8,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProfileForm from '@/components/user/profile-form';
 import PasswordForm from '@/components/user/password-form';
 
-export default async function UserPage({ params: { id }, searchParams: {tab} }: any) {
+export default async function UserPage(props: any) {
+  const {
+    tab
+  } = await props.searchParams;
+
+  const {
+    id
+  } = await props.params;
+
   const session = await auth();
   const user = await getPublicUserById(session?.user?.id);
   if (!user.success || id !== session?.user?.id) {
     notFound();
   }
 
-  const { name, email } = user.data
+  const { name, email } = user.data;
 
   return (
     <div className="container h-full flex-1 flex-col space-y-8 p-8 md:flex">

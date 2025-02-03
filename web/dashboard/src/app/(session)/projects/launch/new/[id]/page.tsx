@@ -5,7 +5,6 @@ import { auth } from '@/auth';
 import { EnvironmentWithComponents } from '@/data/projects/dto';
 import { notFound } from 'next/navigation';
 import { EnvironmentPicker } from './picker';
-import { useSession } from 'next-auth/react';
 
 function compareEnvironments(from: EnvironmentWithComponents, to: EnvironmentWithComponents): ComparisonResult[] {
   const result: ComparisonResult[] = [];
@@ -21,12 +20,12 @@ function compareEnvironments(from: EnvironmentWithComponents, to: EnvironmentWit
         new: false,
         is_active: {
           from: compFrom.is_active,
-          to: compTo.is_active,
+          to: compTo.is_active
         },
         version: {
           from: compFrom.version || 'latest',
-          to: compTo.version || 'latest',
-        },
+          to: compTo.version || 'latest'
+        }
       });
     } else {
       result.push({
@@ -36,31 +35,35 @@ function compareEnvironments(from: EnvironmentWithComponents, to: EnvironmentWit
         new: true,
         is_active: {
           from: compFrom.is_active,
-          to: null,
+          to: null
         },
         version: {
           from: compFrom.version || 'latest',
-          to: null,
-        },
-      })
+          to: null
+        }
+      });
     }
   });
 
   return result;
 }
 
-export default async function NewLaunch({ params: { id } }: any) {
-  const session = await auth()
+export default async function NewLaunch(props: any) {
+  const {
+    id
+  } = await props.params;
 
-  const [fromId, toId] = id.split('...')
-  const from = await getEnvironmentsById(fromId, session?.user?.id)
-  const to = await getEnvironmentsById(toId, session?.user?.id)
+  const session = await auth();
+
+  const [fromId, toId] = id.split('...');
+  const from = await getEnvironmentsById(fromId, session?.user?.id);
+  const to = await getEnvironmentsById(toId, session?.user?.id);
 
   if (!from.success || !to.success || from.data.project_id !== to.data.project_id || !(session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[from.data.project_id] || ''))) {
     notFound();
   }
 
-  const environments = await getEnvironmentsByProject(from.data.project_id)
+  const environments = await getEnvironmentsByProject(from.data.project_id);
   const comparison = compareEnvironments(from.data, to.data);
 
   return (

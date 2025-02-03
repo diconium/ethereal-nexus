@@ -1,6 +1,10 @@
-import {redirect} from 'next/navigation';
+import { redirect } from 'next/navigation';
 
 
-export default async function EditComponentVersion({params: {id, versionId}}: any) {
-    redirect(`/components/${id}/versions/${versionId}/readme`);
+export default async function EditComponentVersion(props: any) {
+  const {
+    id, versionId
+  } = await props.params;
+
+  redirect(`/components/${id}/versions/${versionId}/readme`);
 }

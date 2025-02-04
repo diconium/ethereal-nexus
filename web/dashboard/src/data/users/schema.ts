@@ -2,14 +2,18 @@ import { jsonb, pgEnum, pgTable, text, timestamp, uuid, primaryKey, integer } fr
 import type { AdapterAccountType } from "next-auth/adapters"
 
 export const userRolesEnum = pgEnum('roles', ['admin', 'user', 'viewer']);
+export const userTypesEnum = pgEnum('type', ['email', 'oauth']);
 
 export const users = pgTable('user', {
   id: uuid('id').notNull().primaryKey().defaultRandom(),
   password: text('password'),
-  email: text('email').notNull().unique(),
+  email: text('email').unique(),
   emailVerified: timestamp('emailVerified', { mode: 'date' }),
   name: text('name'),
   image: text('image'),
+  issuer: text('issuer'),
+  client_id: text('clientId').unique(),
+  type: userTypesEnum('type').notNull().default('email'),
   role: userRolesEnum('role').notNull().default('user'),
 });
 

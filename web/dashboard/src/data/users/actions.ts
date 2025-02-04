@@ -14,7 +14,7 @@ import {
   NewCredentialsUser,
   newCredentialsUserSchema,
   NewInvite,
-  newInviteSchema,
+  newInviteSchema, newServiceUserSchema, NewServiceUserSchema,
   NewUser,
   newUserSchema,
   PublicApiKey,
@@ -171,6 +171,22 @@ export async function insertInvitedSsoUser(
   await deleteInvite(invite[0].key);
 
   return insertUser(safeUser.data);
+}
+
+export async function insertServiceUser(
+  user: NewServiceUserSchema,
+): ActionResponse<PublicUser> {
+  const safeUser = newServiceUserSchema.safeParse(user);
+  if (!safeUser.success) {
+    return actionZodError('Failed to parse user input.', safeUser.error);
+  }
+
+  try {
+    return insertUser(safeUser.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to insert service user into database.');
+  }
 }
 
 export async function getUserById(userId?: string): ActionResponse<User> {

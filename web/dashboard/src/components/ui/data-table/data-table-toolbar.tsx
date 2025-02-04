@@ -9,8 +9,8 @@ export function DataTableToolbar<TData>({ table, entityName, createSlot, filterC
   const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
-    <div>
-      <div className="flex flex-1 items-center space-x-2">
+    <div className="mb-6">
+      <div className="flex flex-1 items-center">
         {
           filterColumn ?  <Input
               placeholder={`Filter ${entityName}...`}
@@ -22,7 +22,6 @@ export function DataTableToolbar<TData>({ table, entityName, createSlot, filterC
             /> :
             null
         }
-
         {isFiltered && (
           <Button
             variant="ghost"
@@ -33,8 +32,8 @@ export function DataTableToolbar<TData>({ table, entityName, createSlot, filterC
             <Cross2Icon className="ml-2 h-4 w-4" />
           </Button>
         )}
+        { createSlot }
       </div>
-      { createSlot }
       <DataTableViewOptions table={table} />
     </div>
   );

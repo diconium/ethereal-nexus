@@ -1,5 +1,11 @@
 # @ethereal-nexus/site
 
+## 1.0.2
+
+### Patch Changes
+
+- 293f23f: chore: bump react dependencies to react 19
+
 ## 1.0.1
 
 ### Patch Changes

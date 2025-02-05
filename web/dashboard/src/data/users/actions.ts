@@ -5,7 +5,7 @@ import { db } from '@/db';
 import { apiKeys, invites, users } from '@/data/users/schema';
 import {
   ApiKey,
-  ApiKeyPermissions,
+  ApiPermissions,
   apiKeyPublicSchema,
   apiKeySchema,
   Invite,
@@ -189,7 +189,10 @@ export async function insertServiceUser(
   }
 
   try {
-    return insertUser(safeUser.data);
+    return insertUser({
+      ...safeUser.data,
+      type: 'oauth'
+    });
   } catch (error) {
     console.error(error);
     return actionError('Failed to insert service user into database.');
@@ -697,7 +700,7 @@ export async function updateUserRole(
 
 
 export async function getServiceUser(issuer: string, subject: string): ActionResponse<NewServiceUserSchema & {
-  permissions: ApiKeyPermissions
+  permissions: ApiPermissions
 }> {
   try {
     const user = await db.select({
@@ -722,7 +725,7 @@ export async function getServiceUser(issuer: string, subject: string): ActionRes
       )
       .groupBy(users.id);
 
-    return actionSuccess(user);
+    return actionSuccess(user[0]);
   } catch (error) {
     console.error(error);
     return actionError('Failed to fetch service user on the database.');

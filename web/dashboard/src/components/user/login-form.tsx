@@ -6,7 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
-import { NewUser, userLoginSchema } from '@/data/users/dto';
+import { userLoginSchema } from '@/data/users/dto';
 import { PasswordInput } from '@/components/ui/password-input';
 import { login } from '@/data/users/actions';
 import { Github } from '@/components/ui/icons/Github';
@@ -19,11 +19,11 @@ type UserFormProps = {
 }
 
 export default function LoginForm({ providers }: UserFormProps) {
-  const credentialsForm = useForm<NewUser>({
+  const credentialsForm = useForm({
     resolver: zodResolver(userLoginSchema)
   });
 
-  const emailForm = useForm<NewUser>({
+  const emailForm = useForm({
     resolver: zodResolver(userLoginSchema.pick({ email: true }))
   });
 

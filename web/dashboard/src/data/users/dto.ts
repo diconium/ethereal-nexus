@@ -9,6 +9,9 @@ export const userSchema = createSelectSchema(users);
 export type User = z.infer<typeof userSchema>
 
 export const userPublicSchema = userSchema
+  .extend({
+    email: z.string().email()
+  })
   .omit({
     password: true
   });
@@ -22,12 +25,12 @@ export const newUserSchema  = createInsertSchema(users)
 export type NewUser = z.infer<typeof newUserSchema>
 
 export const newCredentialsUserSchema =  createInsertSchema(users, {
-  password: (schema) => schema.password
-    .min(8, 'Password must be longer than 8 characters'),
+  password: (schema) => schema.password.min(8, 'Password must be longer than 8 characters'),
   email: (schema) => schema.email.email()
 })
   .required({
-    password: true
+    password: true,
+    email: true
   })
   .omit({ id: true });
 export type NewCredentialsUser = z.infer<typeof newCredentialsUserSchema>
@@ -57,15 +60,18 @@ export const updateRoleSchema = userSchema
   .pick({id: true, role: true})
 export type UpdateRole = z.infer<typeof updateRoleSchema>
 
-export const userLoginSchema = newUserSchema.pick({
-  password: true,
-  email: true
-});
+export const userLoginSchema = z.object({
+  password: z.string(),
+  email: z.string(),
+})
 export type UserLogin = z.infer<typeof userLoginSchema>
 
 export const userEmailSchema = newUserSchema.pick({
   email: true
-});
+})
+  .extend({
+    email: newUserSchema.shape.email.unwrap()
+  });
 
 export const apiKeySchema = createSelectSchema(apiKeys)
   .extend({

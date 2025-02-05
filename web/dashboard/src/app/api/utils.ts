@@ -44,9 +44,10 @@ export async function authenticatedWithApiKeyUser() {
 async function handleApiKeyAuthentication(token: string) {
   const apiKey = await getApiKeyByKey(token);
   if (!apiKey.success) {
-    return NextResponse.json(apiKey.error, {
+    NextResponse.json(apiKey.error, {
       status: HttpStatus.FORBIDDEN
     });
+    return;
   }
 
   return {
@@ -59,25 +60,28 @@ async function handleBearerAuthentication(token: string) {
   try {
     const { iss, sub } = decodeJwt(token);
     if (!iss || !sub) {
-      return NextResponse.json('Invalid OAuth credentials.', {
+      NextResponse.json('Invalid OAuth credentials.', {
         status: HttpStatus.FORBIDDEN
       });
+      return;
     }
 
     const serviceUser = await getServiceUser(iss, sub);
     if(!serviceUser.success) {
-      return NextResponse.json('User not found.', {
+      NextResponse.json('User not found.', {
         status: HttpStatus.NOT_FOUND
       });
+      return;
     }
 
     const { id, client_id, client_secret, permissions } = serviceUser.data;
     const config = await client.discovery(new URL(iss), client_id, { client_secret: client_secret ?? undefined });
     const introspection = await client.tokenIntrospection(config, token);
     if (!introspection.active) {
-      return NextResponse.json('Token is not active.', {
+      NextResponse.json('Token is not active.', {
         status: HttpStatus.UNAUTHORIZED
       });
+      return;
     }
 
     return {
@@ -86,8 +90,9 @@ async function handleBearerAuthentication(token: string) {
     };
   } catch (error) {
     console.error(error);
-    return NextResponse.json(error, {
+    NextResponse.json(error, {
       status: HttpStatus.FORBIDDEN
     });
+    return;
   }
 }

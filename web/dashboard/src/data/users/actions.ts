@@ -25,7 +25,6 @@ import {
   UpdatePassword,
   UpdateRole,
   User,
-  userEmailSchema,
   userIdSchema,
   UserLogin,
   userPublicSchema,
@@ -89,19 +88,19 @@ async function insertUser(user: NewUser): ActionResponse<PublicUser> {
 }
 
 async function insertCredentialsUser(
-  user: NewCredentialsUser
-): ActionResponse<PublicUser> {
-  const safeUser = newCredentialsUserSchema.safeParse(user);
-  if (!safeUser.success) {
-    return actionZodError('Failed to parse user input.', safeUser.error);
+  user: {
+    email: string
+    password: string
   }
-
-  const { email, password } = safeUser.data;
+): ActionResponse<PublicUser> {
+  const { email, password } = user;
 
   const existingUser = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.email, email));
+    .where(
+      eq(users.email, email)
+    );
   if (existingUser.length > 0) {
     return actionError('User with that email already exists.');
   }
@@ -109,8 +108,8 @@ async function insertCredentialsUser(
   try {
     const hashedPassword = await bcrypt.hash(password!, 10);
     return insertUser({
-      ...safeUser.data,
-      password: hashedPassword
+      ...user,
+      password: hashedPassword,
     });
   } catch (error) {
     return actionError('Failed to insert user into database.');
@@ -152,7 +151,7 @@ export async function insertInvitedCredentialsUser(
     await deleteInvite(key);
 
     if (process.env.COMMUNICATION_SERVICES_CONNECTION_STRING) {
-      await login('azure-communication-service', result.data);
+      await login('azure-communication-service', user);
     }
   }
   return result;
@@ -165,11 +164,12 @@ export async function insertInvitedSsoUser(
   if (!safeUser.success) {
     return actionZodError('Failed to parse user input.', safeUser.error);
   }
+  const email = safeUser.data.email;
 
   const invite = await db
     .select({ id: invites.id, email: invites.email, key: invites.key })
     .from(invites)
-    .where(eq(invites.email, safeUser.data.email));
+    .where(eq(invites.email, email!));
 
   if (invite.length === 0) {
     return actionError('No invite matches the email.');
@@ -248,14 +248,11 @@ export async function getPublicUserById(
 }
 
 export async function getUserByEmail(
-  unsafeEmail: string | undefined | null
+  email: string | undefined | null
 ): ActionResponse<User> {
-  const safeEmail = userEmailSchema.safeParse({ email: unsafeEmail });
-  if (!safeEmail.success) {
-    return actionZodError('The email input is not valid.', safeEmail.error);
+  if (!email) {
+    return actionError('The email input is not valid.');
   }
-
-  const email = safeEmail.data.email;
 
   try {
     const userSelect = await db

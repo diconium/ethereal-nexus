@@ -20,10 +20,14 @@ interface DataModelInput extends BaseFieldInput {
   showChildrenCheckbox?: boolean;
   showRootLevel?: boolean;
   defaultValue?: string;
+  pageProperties?:{
+    value: string;
+    label: string;
+  }[]
 }
 
 export function navigation(input: DataModelInput): NavigationSchema {
-  const {placeholder, label,tooltip, required, showChildrenCheckbox, showRootLevel, defaultValue} = input;
+  const {placeholder, label,tooltip, required, showChildrenCheckbox, showRootLevel, defaultValue, pageProperties} = input;
 
   return {
     type: 'navigation',
@@ -37,6 +41,7 @@ export function navigation(input: DataModelInput): NavigationSchema {
         showChildrenCheckbox,
         showRootLevel,
         defaultValue,
+        pageProperties,
       }
     },
     _primitive() {

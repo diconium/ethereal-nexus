@@ -13,6 +13,10 @@ const dialogSchema = dialog({
       label: 'Navigation Root',
       showChildrenCheckbox: true,
       showRootLevel: true,
+      pageProperties: [{
+          label: "subtitle",
+          value: "subtitle",
+      }],
       required: true,
       tooltip: 'The root page from which to build the navigation. Can be a blueprint master, language master or regular page.',
     }),

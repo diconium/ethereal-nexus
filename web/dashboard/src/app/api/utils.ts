@@ -65,7 +65,8 @@ async function handleBearerAuthentication(token: string) {
       });
       return;
     }
-
+console.log("iss", iss);
+    console.log("sub", sub);
     const serviceUser = await getServiceUser(iss, sub);
     if(!serviceUser.success) {
       NextResponse.json('User not found.', {
@@ -74,8 +75,18 @@ async function handleBearerAuthentication(token: string) {
       return;
     }
 
-    const { id, client_id, client_secret, permissions } = serviceUser.data;
-    const config = await client.discovery(new URL(iss), client_id, { client_secret: client_secret ?? undefined });
+    console.log("serviceUser", serviceUser);
+    console.log("serviceUser", serviceUser.data[0]);
+
+    const { id, client_id, client_secret, permissions } = serviceUser.data[0];
+    console.log("serviceUser.data", serviceUser.data);
+    console.log("iss", iss);
+    console.log("clientId", client_id);
+
+    const config = await client.discovery(new URL(`${iss}/.well-known/openid-configuration`), client_id, { client_secret: client_secret ?? undefined },undefined,{
+      execute: [client.allowInsecureRequests],
+    });
+    console.log("hello", config);
     const introspection = await client.tokenIntrospection(config, token);
     if (!introspection.active) {
       NextResponse.json('Token is not active.', {
@@ -83,6 +94,8 @@ async function handleBearerAuthentication(token: string) {
       });
       return;
     }
+
+    console.log("introspection", introspection);
 
     return {
       id,

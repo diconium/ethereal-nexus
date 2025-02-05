@@ -10,7 +10,7 @@ export type User = z.infer<typeof userSchema>
 
 export const userPublicSchema = userSchema
   .extend({
-    email: z.string().email()
+    email: z.string().email().nullable()
   })
   .omit({
     password: true

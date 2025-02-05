@@ -33,10 +33,16 @@ export const newCredentialsUserSchema =  createInsertSchema(users, {
 export type NewCredentialsUser = z.infer<typeof newCredentialsUserSchema>
 
 export const newServiceUserSchema =  newUserSchema.pick({
+  id: true,
   name: true,
   issuer: true,
+  subject: true,
   client_id: true,
+  client_secret: true,
+}).extend({
+  client_id: z.string(),
 })
+
 export type NewServiceUserSchema = z.infer<typeof newServiceUserSchema>
 
 export const updatePasswordSchema = userSchema

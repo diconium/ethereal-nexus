@@ -22,7 +22,9 @@ export default function OauthUserForm({ onComplete }: UserInviteFormProps) {
     defaultValues: {
       name: '',
       issuer: '',
+      subject: '',
       client_id: '',
+      client_secret: '',
     }
   });
 
@@ -78,6 +80,22 @@ export default function OauthUserForm({ onComplete }: UserInviteFormProps) {
         />
         <FormField
           control={form.control}
+          name="subject"
+          render={({field}) => (
+            <FormItem>
+              <FormLabel>Subject</FormLabel>
+              <FormControl>
+                <Input placeholder="Subject of the client" {...field} />
+              </FormControl>
+              <FormDescription>
+                Sub claim for the users JWT.
+              </FormDescription>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="client_id"
           render={({field}) => (
             <FormItem>
@@ -87,6 +105,22 @@ export default function OauthUserForm({ onComplete }: UserInviteFormProps) {
               </FormControl>
               <FormDescription>
                 Client ID provided by the OAuth server.
+              </FormDescription>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="client_secret"
+          render={({field}) => (
+            <FormItem>
+              <FormLabel>Client Secret</FormLabel>
+              <FormControl>
+                <Input placeholder="client_secret" {...field} />
+              </FormControl>
+              <FormDescription>
+                Client Secret provided by the OAuth server.
               </FormDescription>
               <FormMessage/>
             </FormItem>

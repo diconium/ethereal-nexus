@@ -5,6 +5,7 @@ import { db } from '@/db';
 import { apiKeys, invites, users } from '@/data/users/schema';
 import {
   ApiKey,
+  ApiKeyPermissions,
   apiKeyPublicSchema,
   apiKeySchema,
   Invite,
@@ -14,12 +15,15 @@ import {
   NewCredentialsUser,
   newCredentialsUserSchema,
   NewInvite,
-  newInviteSchema, newServiceUserSchema, NewServiceUserSchema,
+  newInviteSchema,
+  newServiceUserSchema,
+  NewServiceUserSchema,
   NewUser,
   newUserSchema,
   PublicApiKey,
   PublicUser,
-  UpdatePassword, UpdateRole,
+  UpdatePassword,
+  UpdateRole,
   User,
   userEmailSchema,
   userIdSchema,
@@ -38,6 +42,7 @@ import process from 'node:process';
 import { AuthError } from 'next-auth';
 
 type Providers = 'credentials' | 'github' | 'microsoft-entra-id' | 'azure-communication-service';
+
 export async function login(provider: Providers, login?: UserLogin) {
   try {
     await signIn(
@@ -46,11 +51,11 @@ export async function login(provider: Providers, login?: UserLogin) {
         email: login?.email,
         identifier: login?.email,
         password: login?.password,
-        redirectTo: '/',
+        redirectTo: '/'
       },
       {
-        signin_type: 'login',
-      },
+        signin_type: 'login'
+      }
     );
   } catch (error) {
     if (error instanceof AuthError) {
@@ -64,6 +69,7 @@ export async function login(provider: Providers, login?: UserLogin) {
 export async function logout() {
   return await signOut();
 }
+
 async function insertUser(user: NewUser): ActionResponse<PublicUser> {
   try {
     const insert = await db.insert(users).values(user).returning();
@@ -72,7 +78,7 @@ async function insertUser(user: NewUser): ActionResponse<PublicUser> {
     if (!result.success) {
       return actionZodError(
         'Failed to parse user inserted user.',
-        result.error,
+        result.error
       );
     }
 
@@ -83,7 +89,7 @@ async function insertUser(user: NewUser): ActionResponse<PublicUser> {
 }
 
 async function insertCredentialsUser(
-  user: NewCredentialsUser,
+  user: NewCredentialsUser
 ): ActionResponse<PublicUser> {
   const safeUser = newCredentialsUserSchema.safeParse(user);
   if (!safeUser.success) {
@@ -104,7 +110,7 @@ async function insertCredentialsUser(
     const hashedPassword = await bcrypt.hash(password!, 10);
     return insertUser({
       ...safeUser.data,
-      password: hashedPassword,
+      password: hashedPassword
     });
   } catch (error) {
     return actionError('Failed to insert user into database.');
@@ -113,7 +119,7 @@ async function insertCredentialsUser(
 
 export async function insertInvitedCredentialsUser(
   user: any,
-  key?: string | null,
+  key?: string | null
 ): ActionResponse<PublicUser> {
   if (!key) {
     return actionError('No invite key was provided.');
@@ -134,18 +140,18 @@ export async function insertInvitedCredentialsUser(
   }
   if (
     invite[0].email.localeCompare(user.email, undefined, {
-      sensitivity: 'base',
+      sensitivity: 'base'
     }) !== 0
   ) {
-    return actionError("The emails doesn't match the invite.");
+    return actionError('The emails doesn\'t match the invite.');
   }
 
   const result = await insertCredentialsUser(user);
 
-  if(result.success){
+  if (result.success) {
     await deleteInvite(key);
 
-    if(process.env.COMMUNICATION_SERVICES_CONNECTION_STRING) {
+    if (process.env.COMMUNICATION_SERVICES_CONNECTION_STRING) {
       await login('azure-communication-service', result.data);
     }
   }
@@ -153,7 +159,7 @@ export async function insertInvitedCredentialsUser(
 }
 
 export async function insertInvitedSsoUser(
-  user: any,
+  user: any
 ): ActionResponse<PublicUser> {
   const safeUser = newUserSchema.safeParse(user);
   if (!safeUser.success) {
@@ -174,7 +180,7 @@ export async function insertInvitedSsoUser(
 }
 
 export async function insertServiceUser(
-  user: NewServiceUserSchema,
+  user: NewServiceUserSchema
 ): ActionResponse<PublicUser> {
   const safeUser = newServiceUserSchema.safeParse(user);
   if (!safeUser.success) {
@@ -191,19 +197,19 @@ export async function insertServiceUser(
 
 export async function getUserById(userId?: string): ActionResponse<User> {
   try {
-    if(!userId) {
+    if (!userId) {
       return actionError('No user id provided.');
     }
 
     const userSelect = await db.query.users.findFirst({
-      where: eq(users.id, userId),
+      where: eq(users.id, userId)
     });
 
     const safeUser = userSchema.safeParse(userSelect);
     if (!safeUser.success) {
       return actionZodError(
-        "There's an issue with the user record.",
-        safeUser.error,
+        'There\'s an issue with the user record.',
+        safeUser.error
       );
     }
 
@@ -214,7 +220,7 @@ export async function getUserById(userId?: string): ActionResponse<User> {
 }
 
 export async function getPublicUserById(
-  userId?: string,
+  userId?: string
 ): ActionResponse<PublicUser> {
   try {
     const input = userIdSchema.safeParse({ id: userId });
@@ -230,8 +236,8 @@ export async function getPublicUserById(
     const safeUser = userPublicSchema.safeParse(user.data);
     if (!safeUser.success) {
       return actionZodError(
-        "There's an issue with the user record.",
-        safeUser.error,
+        'There\'s an issue with the user record.',
+        safeUser.error
       );
     }
 
@@ -242,7 +248,7 @@ export async function getPublicUserById(
 }
 
 export async function getUserByEmail(
-  unsafeEmail: string | undefined | null,
+  unsafeEmail: string | undefined | null
 ): ActionResponse<User> {
   const safeEmail = userEmailSchema.safeParse({ email: unsafeEmail });
   if (!safeEmail.success) {
@@ -260,8 +266,8 @@ export async function getUserByEmail(
     const safeUser = userSchema.safeParse(userSelect[0]);
     if (!safeUser.success) {
       return actionZodError(
-        "There's an issue with the user record.",
-        safeUser.error,
+        'There\'s an issue with the user record.',
+        safeUser.error
       );
     }
 
@@ -272,9 +278,9 @@ export async function getUserByEmail(
 }
 
 export async function deleteUser(
-  id: string,
+  id: string
 ): ActionResponse<PublicUser> {
-  const session = await auth()
+  const session = await auth();
   if (!session?.user?.id) {
     return actionError('No user provided.');
   }
@@ -295,8 +301,8 @@ export async function deleteUser(
     const safeDeleted = userPublicSchema.safeParse(deleted[0]);
     if (!safeDeleted.success) {
       return actionZodError(
-        "There's an issue with the API key record.",
-        safeDeleted.error,
+        'There\'s an issue with the API key record.',
+        safeDeleted.error
       );
     }
 
@@ -307,7 +313,7 @@ export async function deleteUser(
 }
 
 export async function getApiKeyById(
-  apiKey: string,
+  apiKey: string
 ): ActionResponse<Omit<ApiKey, 'member_permissions'>> {
   const input = apiKeySchema.pick({ id: true }).safeParse({ id: apiKey });
   if (!input.success) {
@@ -317,7 +323,7 @@ export async function getApiKeyById(
   const { id } = input.data;
   try {
     const result = await db.query.apiKeys.findFirst({
-      where: eq(apiKeys.id, id),
+      where: eq(apiKeys.id, id)
     });
 
     const safe = apiKeySchema
@@ -325,8 +331,8 @@ export async function getApiKeyById(
       .safeParse(result);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the api key record.",
-        safe.error,
+        'There\'s an issue with the api key record.',
+        safe.error
       );
     }
 
@@ -358,12 +364,12 @@ const apiKeyValidPermissions = apiKeySchema.transform((val) => {
   return {
     ...val,
     permissions,
-    member_permissions: undefined,
+    member_permissions: undefined
   };
 });
 
 export async function getApiKeyByKey(
-  apiKey: string,
+  apiKey: string
 ): ActionResponse<z.infer<typeof apiKeyValidPermissions>> {
   const input = apiKeySchema.pick({ id: true }).safeParse({ id: apiKey });
   if (!input.success) {
@@ -377,9 +383,10 @@ export async function getApiKeyByKey(
       .select({
         id: apiKeys.id,
         user_id: apiKeys.user_id,
-        api_resource: sql`jsonb_object_keys(${apiKeys.permissions})`.as(
-          'api_resource',
-        ),
+        api_resource: sql`jsonb_object_keys
+            (${apiKeys.permissions})`.as(
+          'api_resource'
+        )
       })
       .from(apiKeys)
       .as('api_resource');
@@ -387,7 +394,8 @@ export async function getApiKeyByKey(
     const result = await db
       .select({
         ...getTableColumns(apiKeys),
-        member_permissions: sql`jsonb_object_agg(${members.resource}, ${members.permissions})`,
+        member_permissions: sql`jsonb_object_agg
+            (${members.resource}, ${members.permissions})`
       })
       .from(apiKeys)
       .leftJoin(permissions, eq(permissions.id, apiKeys.id))
@@ -395,8 +403,8 @@ export async function getApiKeyByKey(
         members,
         and(
           eq(sql`${members.resource}::text`, permissions.api_resource),
-          eq(members.user_id, apiKeys.user_id),
-        ),
+          eq(members.user_id, apiKeys.user_id)
+        )
       )
       .where(and(eq(apiKeys.key, id), isNotNull(members.id)))
       .groupBy(apiKeys.id);
@@ -404,8 +412,8 @@ export async function getApiKeyByKey(
     const safe = apiKeyValidPermissions.array().safeParse(result);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the api key record.",
-        safe.error,
+        'There\'s an issue with the api key record.',
+        safe.error
       );
     }
     return actionSuccess(safe.data[0]);
@@ -416,7 +424,7 @@ export async function getApiKeyByKey(
 }
 
 export async function upsertApiKey(
-  key: NewApiKey,
+  key: NewApiKey
 ): ActionResponse<Omit<ApiKey, 'member_permissions'>> {
   const input = newApiKeySchema.safeParse(key);
   if (!input.success) {
@@ -427,14 +435,14 @@ export async function upsertApiKey(
     const insert = await db
       .insert(apiKeys)
       .values({
-        ...input.data,
+        ...input.data
       })
       .onConflictDoUpdate({
         target: apiKeys.id,
         set: {
           alias: input.data.alias,
-          permissions: input.data.permissions,
-        },
+          permissions: input.data.permissions
+        }
       })
       .returning();
 
@@ -443,8 +451,8 @@ export async function upsertApiKey(
       .safeParse(insert[0]);
     if (!safeKey.success) {
       return actionZodError(
-        "There's an issue with the api key record.",
-        safeKey.error,
+        'There\'s an issue with the api key record.',
+        safeKey.error
       );
     }
 
@@ -456,7 +464,7 @@ export async function upsertApiKey(
 }
 
 export async function getApiKeys(
-  userId?: string,
+  userId?: string
 ): ActionResponse<z.infer<typeof apiKeyPublicSchema>[]> {
   const input = userIdSchema.safeParse({ id: userId });
   if (!input.success) {
@@ -473,8 +481,8 @@ export async function getApiKeys(
     const safe = z.array(apiKeyPublicSchema).safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        "There's an issue with the api keys records.",
-        safe.error,
+        'There\'s an issue with the api keys records.',
+        safe.error
       );
     }
 
@@ -492,8 +500,8 @@ export async function getUsers(): ActionResponse<PublicUser[]> {
     const safeUsers = z.array(userPublicSchema).safeParse(userSelect);
     if (!safeUsers.success) {
       return actionZodError(
-        "There's an issue with the user records.",
-        safeUsers.error,
+        'There\'s an issue with the user records.',
+        safeUsers.error
       );
     }
 
@@ -505,7 +513,7 @@ export async function getUsers(): ActionResponse<PublicUser[]> {
 
 export async function deleteApiKey(
   id: string,
-  userId: string | undefined,
+  userId: string | undefined
 ): ActionResponse<PublicApiKey> {
   if (!userId) {
     return actionError('No user provided.');
@@ -520,8 +528,8 @@ export async function deleteApiKey(
     const safeDeleted = apiKeyPublicSchema.safeParse(deleted);
     if (!safeDeleted.success) {
       return actionZodError(
-        "There's an issue with the API key record.",
-        safeDeleted.error,
+        'There\'s an issue with the API key record.',
+        safeDeleted.error
       );
     }
 
@@ -570,8 +578,8 @@ export async function deleteInvite(key: string): ActionResponse<Invite> {
     const safeDeleted = inviteSchema.safeParse(deleted);
     if (!safeDeleted.success) {
       return actionZodError(
-        "There's an issue with the invite record.",
-        safeDeleted.error,
+        'There\'s an issue with the invite record.',
+        safeDeleted.error
       );
     }
 
@@ -588,7 +596,7 @@ export async function updateUser(user: PublicUser): ActionResponse<PublicUser> {
       .update(users)
       .set({
         name: user.name,
-        email: user.email,
+        email: user.email
       })
       .where(eq(users.id, user.id))
       .returning();
@@ -596,8 +604,8 @@ export async function updateUser(user: PublicUser): ActionResponse<PublicUser> {
     const safeUpdated = userPublicSchema.safeParse(updated[0]);
     if (!safeUpdated.success) {
       return actionZodError(
-        "There's an issue with the user record.",
-        safeUpdated.error,
+        'There\'s an issue with the user record.',
+        safeUpdated.error
       );
     }
 
@@ -609,7 +617,7 @@ export async function updateUser(user: PublicUser): ActionResponse<PublicUser> {
 }
 
 export async function updateUserPassword(
-  user: UpdatePassword,
+  user: UpdatePassword
 ): ActionResponse<PublicUser> {
   try {
     const existingUser = await getUserById(user.id);
@@ -618,22 +626,22 @@ export async function updateUserPassword(
       !existingUser.data.password ||
       !user.oldPassword
     ) {
-      return actionError("Cannot update user's password.");
+      return actionError('Cannot update user\'s password.');
     }
 
     const passwordMatches = bcrypt.compare(
       user.oldPassword,
-      existingUser.data.password,
+      existingUser.data.password
     );
     if (!passwordMatches) {
-      return actionError("Cannot update user's password.");
+      return actionError('Cannot update user\'s password.');
     }
 
     const newPassword = await bcrypt.hash(user.password!, 10);
     const updated = await db
       .update(users)
       .set({
-        password: newPassword,
+        password: newPassword
       })
       .where(eq(users.id, user.id))
       .returning();
@@ -641,8 +649,8 @@ export async function updateUserPassword(
     const safeUpdated = userPublicSchema.safeParse(updated[0]);
     if (!safeUpdated.success) {
       return actionZodError(
-        "There's an issue with the user record.",
-        safeUpdated.error,
+        'There\'s an issue with the user record.',
+        safeUpdated.error
       );
     }
 
@@ -654,12 +662,12 @@ export async function updateUserPassword(
 }
 
 export async function updateUserRole(
-  user: UpdateRole,
+  user: UpdateRole
 ): ActionResponse<PublicUser> {
-  const session = await auth()
+  const session = await auth();
 
   if (session?.user?.role !== 'admin') {
-    return actionError("Forbidden.");
+    return actionError('Forbidden.');
   }
 
   try {
@@ -672,8 +680,8 @@ export async function updateUserRole(
     const safeUpdated = userPublicSchema.safeParse(updated[0]);
     if (!safeUpdated.success) {
       return actionZodError(
-        "There's an issue with the user record.",
-        safeUpdated.error,
+        'There\'s an issue with the user record.',
+        safeUpdated.error
       );
     }
 
@@ -681,5 +689,39 @@ export async function updateUserRole(
   } catch (error) {
     console.error(error);
     return actionError('Failed to update user role on the database.');
+  }
+}
+
+
+export async function getServiceUser(issuer: string, subject: string): ActionResponse<NewServiceUserSchema & {
+  permissions: ApiKeyPermissions
+}> {
+  try {
+    const user = await db.select({
+      id: users.id,
+      subject: users.subject,
+      issuer: users.issuer,
+      client_id: users.client_id,
+      client_secret: users.client_secret,
+      permissions: sql`jsonb_object_agg
+          (${members.resource}, ${members.permissions})`
+    })
+      .from(users)
+      .where(
+        and(
+          eq(users.issuer, issuer),
+          eq(users.subject, subject)
+        )
+      )
+      .leftJoin(
+        members,
+        eq(members.user_id, users.id)
+      )
+      .groupBy(users.id);
+
+    return actionSuccess(user);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to fetch service user on the database.');
   }
 }

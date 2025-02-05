@@ -12,7 +12,9 @@ export const users = pgTable('user', {
   name: text('name'),
   image: text('image'),
   issuer: text('issuer'),
-  client_id: text('clientId').unique(),
+  subject: text('subject').unique(),
+  client_id: text('client_id'),
+  client_secret: text('client_secret'),
   type: userTypesEnum('type').notNull().default('email'),
   role: userRolesEnum('role').notNull().default('user'),
 });

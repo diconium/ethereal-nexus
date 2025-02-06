@@ -1,5 +1,14 @@
 # remote-components-vite-react-ts
 
+## 0.3.3
+
+### Patch Changes
+
+- 0ab7e9c: Extend navigation type to allow selection of page properties
+- Updated dependencies [0ab7e9c]
+- Updated dependencies [293f23f]
+  - @ethereal-nexus/core@1.7.2
+
 ## 0.3.2
 
 ### Patch Changes

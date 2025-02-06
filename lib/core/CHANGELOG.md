@@ -1,5 +1,12 @@
 # @ethereal-nexus/core
 
+## 1.7.2
+
+### Patch Changes
+
+- 0ab7e9c: Extend navigation type to allow selection of page properties
+- 293f23f: chore: bump react dependencies to react 19
+
 ## 1.7.1
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @ethereal-nexus/dashboard
 
+## 1.6.0
+
+### Minor Changes
+
+- 293f23f: feat: update layout for new design system
+- 293f23f: feat: added new home page and sidebar redesign
+
+### Patch Changes
+
+- 293f23f: fix: remove setTimeout blocking page loading
+
 ## 1.5.0
 
 ### Minor Changes

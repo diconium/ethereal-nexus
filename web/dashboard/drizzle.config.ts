@@ -6,6 +6,7 @@ dotenv.config({
 });
 
 export default defineConfig({
+  out: "./drizzle",
   schema: [
     "src/data/**/schema.ts",
   ],

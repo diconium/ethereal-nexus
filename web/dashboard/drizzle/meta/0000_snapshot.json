@@ -1,7 +1,5 @@
 {
-  "id": "7d3c9a34-8a01-4023-b11e-893258e9ede6",
-  "prevId": "00000000-0000-0000-0000-000000000000",
-  "version": "6",
+  "version": "7",
   "dialect": "postgresql",
   "tables": {
     "public.component_assets": {
@@ -46,28 +44,28 @@
         "component_assets_component_id_component_id_fk": {
           "name": "component_assets_component_id_component_id_fk",
           "tableFrom": "component_assets",
-          "tableTo": "component",
           "columnsFrom": [
             "component_id"
           ],
+          "tableTo": "component",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "component_assets_version_id_component_version_id_fk": {
           "name": "component_assets_version_id_component_version_id_fk",
           "tableFrom": "component_assets",
-          "tableTo": "component_version",
           "columnsFrom": [
             "version_id"
           ],
+          "tableTo": "component_version",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {
@@ -83,12 +81,15 @@
       "uniqueConstraints": {
         "component_assets_id_unique": {
           "name": "component_assets_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
     "public.component_version": {
       "name": "component_version",
@@ -151,15 +152,15 @@
         "component_version_component_id_component_id_fk": {
           "name": "component_version_component_id_component_id_fk",
           "tableFrom": "component_version",
-          "tableTo": "component",
           "columnsFrom": [
             "component_id"
           ],
+          "tableTo": "component",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {
@@ -174,12 +175,15 @@
       "uniqueConstraints": {
         "component_version_id_unique": {
           "name": "component_version_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
     "public.component": {
       "name": "component",
@@ -223,12 +227,15 @@
       "uniqueConstraints": {
         "component_slug_unique": {
           "name": "component_slug_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "slug"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
     "public.event": {
       "name": "event",
@@ -279,19 +286,22 @@
         "event_user_id_user_id_fk": {
           "name": "event_user_id_user_id_fk",
           "tableFrom": "event",
-          "tableTo": "user",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "user",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
     "public.member": {
       "name": "member",
@@ -336,15 +346,15 @@
         "member_user_id_user_id_fk": {
           "name": "member_user_id_user_id_fk",
           "tableFrom": "member",
-          "tableTo": "user",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "user",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {
@@ -356,7 +366,10 @@
           ]
         }
       },
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
     "public.environment": {
       "name": "environment",
@@ -400,19 +413,22 @@
         "environment_project_id_project_id_fk": {
           "name": "environment_project_id_project_id_fk",
           "tableFrom": "environment",
-          "tableTo": "project",
           "columnsFrom": [
             "project_id"
           ],
+          "tableTo": "project",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
     "public.project_component_config": {
       "name": "project_component_config",
@@ -456,41 +472,41 @@
         "project_component_config_environment_id_environment_id_fk": {
           "name": "project_component_config_environment_id_environment_id_fk",
           "tableFrom": "project_component_config",
-          "tableTo": "environment",
           "columnsFrom": [
             "environment_id"
           ],
+          "tableTo": "environment",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "project_component_config_component_id_component_id_fk": {
           "name": "project_component_config_component_id_component_id_fk",
           "tableFrom": "project_component_config",
-          "tableTo": "component",
           "columnsFrom": [
             "component_id"
           ],
+          "tableTo": "component",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "project_component_config_component_version_component_version_id_fk": {
           "name": "project_component_config_component_version_component_version_id_fk",
           "tableFrom": "project_component_config",
-          "tableTo": "component_version",
           "columnsFrom": [
             "component_version"
           ],
+          "tableTo": "component_version",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "set null"
         }
       },
       "compositePrimaryKeys": {
@@ -505,12 +521,15 @@
       "uniqueConstraints": {
         "project_component_config_id_unique": {
           "name": "project_component_config_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
     "public.project": {
       "name": "project",
@@ -542,12 +561,15 @@
       "uniqueConstraints": {
         "project_name_unique": {
           "name": "project_name_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "name"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
     "public.api_key": {
       "name": "api_key",
@@ -598,27 +620,30 @@
         "api_key_user_id_user_id_fk": {
           "name": "api_key_user_id_user_id_fk",
           "tableFrom": "api_key",
-          "tableTo": "user",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "user",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "api_key_key_unique": {
           "name": "api_key_key_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "key"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
     "public.invite": {
       "name": "invite",
@@ -658,12 +683,15 @@
       "uniqueConstraints": {
         "invite_key_unique": {
           "name": "invite_key_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "key"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
     "public.user": {
       "name": "user",
@@ -721,12 +749,15 @@
       "uniqueConstraints": {
         "user_email_unique": {
           "name": "user_email_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "email"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     }
   },
   "enums": {
@@ -771,8 +802,14 @@
   },
   "schemas": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
-  }
+    "tables": {},
+    "columns": {}
+  },
+  "id": "7d3c9a34-8a01-4023-b11e-893258e9ede6",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "sequences": {},
+  "policies": {},
+  "views": {},
+  "roles": {}
 }

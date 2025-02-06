@@ -209,8 +209,7 @@ export async function getEnvironmentComponents(
         config_id: projectComponentConfig.id,
         is_active: projectComponentConfig.is_active,
         version: componentVersions.version,
-        versions: sql`ARRAY_AGG
-            (jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`
+        versions: sql`ARRAY_AGG(jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`
       })
       .from(projectComponentConfig)
       .leftJoin(
@@ -245,7 +244,7 @@ export async function getEnvironmentComponents(
       );
     }
 
-    return actionSuccess(safe.data);
+    return actionSuccess(select);
   } catch (error) {
     console.error(error);
     return actionError('Failed to fetch project from database.');

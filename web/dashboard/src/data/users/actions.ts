@@ -495,21 +495,15 @@ export async function getApiKeys(
 }
 
 export async function getUsers(): ActionResponse<PublicUser[]> {
-  console.log("asd")
-
   try {
     const userSelect = await db.select().from(users);
-    console.log("userSelect",userSelect)
-
     const safeUsers = z.array(userPublicSchema).safeParse(userSelect);
-    console.log("safeUsers",safeUsers)
     if (!safeUsers.success) {
       return actionZodError(
         'There\'s an issue with the user records.',
         safeUsers.error
       );
     }
-// console.log("safeUsers",safeUsers)
     return actionSuccess(safeUsers.data);
   } catch (error) {
     console.log("Failed to fetch users from database {}", error);

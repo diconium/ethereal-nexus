@@ -29,6 +29,7 @@ export const insertEvent = async (event: NewEvent) => {
 
 export async function getResourceEvents(
   resourceId: string,
+  limit = 50,
 ): ActionResponse<EventWithDiscriminatedUnions[]> {
 
   if (!resourceId) {
@@ -57,7 +58,7 @@ export async function getResourceEvents(
       .leftJoin(componentVersions, sql`(${events.data}->>'version_id')::uuid =  ${componentVersions.id}`)
       .leftJoin(components, sql`(${events.data}->>'component_id')::uuid = ${components.id}`)
       .leftJoin(members, sql`(${events.data}->>'member_id')::uuid = ${members.id}`)
-
+      .limit(limit)
       .where(eq(events.resource_id, resourceId));
 
     const modifiedSelect = select.map(event => {

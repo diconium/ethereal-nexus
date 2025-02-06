@@ -1,23 +1,27 @@
-import { jsonb, pgEnum, pgTable, text, timestamp, uuid, primaryKey, integer } from 'drizzle-orm/pg-core';
+import { jsonb, pgEnum, pgTable, text, timestamp, uuid, primaryKey, integer, unique } from 'drizzle-orm/pg-core';
 import type { AdapterAccountType } from "next-auth/adapters"
 
 export const userRolesEnum = pgEnum('roles', ['admin', 'user', 'viewer']);
 export const userTypesEnum = pgEnum('type', ['email', 'oauth']);
 
 export const users = pgTable('user', {
-  id: uuid('id').notNull().primaryKey().defaultRandom(),
-  password: text('password'),
-  email: text('email').unique(),
-  emailVerified: timestamp('emailVerified', { mode: 'date' }),
-  name: text('name'),
-  image: text('image'),
-  issuer: text('issuer'),
-  subject: text('subject').unique(),
-  client_id: text('client_id'),
-  client_secret: text('client_secret'),
-  type: userTypesEnum('type').notNull().default('email'),
-  role: userRolesEnum('role').notNull().default('user'),
-});
+    id: uuid('id').notNull().primaryKey().defaultRandom(),
+    password: text('password'),
+    email: text('email'),
+    emailVerified: timestamp('emailVerified', { mode: 'date' }),
+    name: text('name'),
+    image: text('image'),
+    issuer: text('issuer'),
+    subject: text('subject'),
+    client_id: text('client_id'),
+    client_secret: text('client_secret'),
+    type: userTypesEnum('type').notNull().default('email'),
+    role: userRolesEnum('role').notNull().default('user'),
+  },
+  (t) => ({
+    uniqueUsers: unique('unique_user').on(t.email, t.issuer, t.subject).nullsNotDistinct(),
+  })
+);
 
 export const apiKeys = pgTable('api_key', {
   id: uuid('id').notNull().primaryKey().defaultRandom(),

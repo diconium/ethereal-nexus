@@ -20,10 +20,6 @@ export const componentAssetsSchema = createSelectSchema(componentAssets);
 export const componentVersionsSchema = createSelectSchema(componentVersions);
 export type ComponentVersion = z.infer<typeof componentVersionsSchema>;
 
-export const componentsWithVersions = componentsSchema.extend({
-  versions: z.array(componentVersionsSchema.pick({ version: true }))
-});
-
 export const componentVersionsCreateSchema = createInsertSchema(
   componentVersions
 )

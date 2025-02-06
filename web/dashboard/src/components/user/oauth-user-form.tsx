@@ -69,7 +69,7 @@ export default function OauthUserForm({ onComplete }: UserInviteFormProps) {
             <FormItem>
               <FormLabel>Issuer</FormLabel>
               <FormControl>
-                <Input placeholder="https://oauth.server.com" {...field} />
+                <Input placeholder="https://oauth.server.com/.well-known/openid-configuration" {...field} />
               </FormControl>
               <FormDescription>
                 Issuer of the OAuth service.

@@ -2,18 +2,16 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import { Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
 import { auth } from '@/auth';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { columns } from '@/components/components/table/columns';
+import { Button } from '@/components/ui/button';
 import { getComponents } from '@/data/components/actions';
-import { Button, buttonVariants } from '@/components/ui/button';
-import process from 'node:process';
 
 export default async function Components() {
   const session = await auth();
-  const components = await getComponents();
 
+  const components = await getComponents();
   if (!components.success) {
     notFound();
   }

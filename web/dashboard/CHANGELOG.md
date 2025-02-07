@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 1.7.0
+
+### Minor Changes
+
+- 3df4ac2: feat: added service users auth for API calls
+
 ## 1.6.0
 
 ### Minor Changes

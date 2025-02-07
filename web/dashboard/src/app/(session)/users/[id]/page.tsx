@@ -26,13 +26,9 @@ export default async function UserPage(props: any) {
   const { name, email } = user.data;
 
   return (
-    <div className="container h-full flex-1 flex-col space-y-8 p-8 md:flex">
-      <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Welcome {user.data.name}</h2>
-          <p className="text-muted-foreground">User Settings</p>
-        </div>
-      </div>
+    <>
+      <h1 className="text-4xl font-semibold">Hi, {user.data.name}</h1>
+      <p className="mb-10">Manage your projects here</p>
       <Separator />
       <Tabs defaultValue={tab ?? 'profile'} className="space-y-4">
         <TabsList>
@@ -56,6 +52,6 @@ export default async function UserPage(props: any) {
           <ApiKeyList />
         </TabsContent>
       </Tabs>
-    </div>
+    </>
   );
 }

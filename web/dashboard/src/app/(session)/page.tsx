@@ -31,38 +31,38 @@ export default async function Home() {
     );
 
   return (
-    <article className="grid md:grid-cols-4 gap-x-6 gap-y-6 md:gap-y-16">
-      <h1 className="text-4xl md:col-span-4">Hi, {session.user.name}</h1>
-        <Link href="/components">
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-normal">Available components</CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center gap-3">
-            <span className="p-2 rounded-xl border text-black-80 dark:text-white border-black-10 bg-black-05 dark:border-black-60 dark:bg-black-90">
-              <LayoutGrid color="currentColor"/>
+    <div className="grid md:grid-cols-4 gap-x-6 gap-y-6 md:gap-y-16">
+      <h1 className="text-4xl font-semibold md:col-span-4">Hi, {session.user.name}</h1>
+      <Link href="/components">
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-normal">Available components</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center gap-3">
+          <span className="p-2 rounded-xl border text-black-80 dark:text-white border-black-10 bg-black-05 dark:border-black-60 dark:bg-black-90">
+            <LayoutGrid color="currentColor"/>
+          </span>
+            <span className="text-4xl font-semibold text-orange-120">
+            {components[0].count}
+          </span>
+          </CardContent>
+        </Card>
+      </Link>
+      <Link href="/projects">
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-normal">Available projects</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center gap-3">
+          <span className="p-2 rounded-xl border text-black-80 dark:text-white border-black-10 bg-black-05 dark:border-black-60 dark:bg-black-90">
+              <Folder color="currentColor"/>
             </span>
-              <span className="text-4xl font-semibold text-orange-120">
-              {components[0].count}
+            <span className="text-4xl font-semibold text-orange-120">
+              {projects[0].count}
             </span>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/projects">
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-normal">Available projects</CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center gap-3">
-            <span className="p-2 rounded-xl border text-black-80 dark:text-white border-black-10 bg-black-05 dark:border-black-60 dark:bg-black-90">
-                <Folder color="currentColor"/>
-              </span>
-              <span className="text-4xl font-semibold text-orange-120">
-                {projects[0].count}
-              </span>
-            </CardContent>
-          </Card>
-        </Link>
-    </article>
+          </CardContent>
+        </Card>
+      </Link>
+    </div>
   );
 }

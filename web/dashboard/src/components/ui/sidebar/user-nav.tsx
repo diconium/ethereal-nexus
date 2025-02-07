@@ -96,7 +96,7 @@ export function NavUser({ user }: NavUserProps) {
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator className="my-3 mx-0 bg-black-60" />
+            <DropdownMenuSeparator className="my-3 mx-0 bg-black-20 dark:bg-black-60" />
             <DropdownMenuGroup>
               <DropdownMenuItem
                 className="flex gap-2 items-center"

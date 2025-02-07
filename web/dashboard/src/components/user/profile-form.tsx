@@ -24,11 +24,14 @@ export default function ProfileForm({ name, email, onComplete }: ProfileFormProp
   const router = useRouter();
   const { toast } = useToast()
 
-  const form = useForm<PublicUser>({
-    resolver: zodResolver(userPublicSchema.pick({name: true, email: true})),
+  const form = useForm({
+    resolver: zodResolver(
+      userPublicSchema
+        .pick({name: true, email: true})
+    ),
     defaultValues: {
-      name,
-      email,
+      name: name ?? '',
+      email: email ?? '',
     }
   });
 

@@ -25,8 +25,8 @@ export default function UserForm({ onComplete, providers }: UserFormProps) {
   const router = useRouter();
   const { toast } = useToast();
 
-  const form = useForm<NewUser>({
-    resolver: zodResolver(newUserSchema)
+  const form = useForm({
+    resolver: zodResolver(newUserSchema),
   });
 
   async function handler(formdata) {

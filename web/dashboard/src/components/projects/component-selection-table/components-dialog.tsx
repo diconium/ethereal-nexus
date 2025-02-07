@@ -102,97 +102,96 @@ export function ComponentsDialog({ components, environment, project, environment
 
 
   return (
-    <div className="flex justify-between">
-      <div className="flex gap-2">
-        <Popover open={isEnvironmentOpen} onOpenChange={setEnvironmentOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="secondary" className="flex justify-between min-w-[125px]">
-              {selected!.name}
-              <ChevronDownIcon className="ml-2 h-4 w-4 text-muted-foreground" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="p-0" align="start">
-            <Command>
-              <CommandInput placeholder="Select environment..." />
-              <CommandList>
-                <CommandGroup>
-                  {
-                    environments
-                      .map(env => (
-                          <CommandItem
-                            key={env.id}
-                            value={env.name}
-                            onSelect={handleEnvironment(env.id)}
-                            className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
-                          >
-                      <span
-                        className="flex items-center">
-                          {
-                            environment === env.id ?
-                              <Check className="mr-2 h-4 w-4 text-muted-foreground" /> :
-                              null
-                          }
-                        <p>{env.name}</p>
-                      </span>
-                          </CommandItem>
-                        )
-                      )
-                  }
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-        <Popover open={isLaunchOpen} onOpenChange={setLaunchOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              disabled={!hasWritePermissions}
-              size="sm"
-            >
-              <Rocket className="mr-2 h-4 w-4" />
-              <span>Launch</span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="p-0" align="start">
-            <Command>
-              <CommandInput placeholder="Select environment..." />
-              <CommandList>
-                <CommandGroup>
-                  {environments
-                    .filter(env => env.id !== environment)
+    <div className="ml-2 w-full flex gap-2 justify-between">
+      <Popover open={isEnvironmentOpen} onOpenChange={setEnvironmentOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="secondary" className="flex justify-between min-w-[125px]">
+            {selected!.name}
+            <ChevronDownIcon className="ml-2 h-4 w-4 text-muted-foreground" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0" align="start">
+          <Command>
+            <CommandInput placeholder="Select environment..." />
+            <CommandList>
+              <CommandGroup>
+                {
+                  environments
                     .map(env => (
                         <CommandItem
                           key={env.id}
                           value={env.name}
-                          onSelect={handleLaunch(env.id)}
+                          onSelect={handleEnvironment(env.id)}
                           className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
                         >
-                          <span className="flex items-center">
-                            {environment === env.id ?
-                              <Check className="mr-2 h-4 w-4 text-muted-foreground" /> :
-                              null
-                            }
-                            <span>{selected?.name}...{env.name}</span>
-                          </span>
+                    <span
+                      className="flex items-center">
+                        {
+                          environment === env.id ?
+                            <Check className="mr-2 h-4 w-4 text-muted-foreground" /> :
+                            null
+                        }
+                      <p>{env.name}</p>
+                    </span>
                         </CommandItem>
                       )
                     )
-                  }
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={copyProjectUrl}>
-          <ClipboardCopy className="mr-2 h-4 w-4" />
-          <span>Copy URL</span>
-        </Button>
-      </div>
+                }
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+      <Popover open={isLaunchOpen} onOpenChange={setLaunchOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            disabled={!hasWritePermissions}
+            size="sm"
+          >
+            <Rocket className="mr-2 h-4 w-4" />
+            <span>Launch</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0" align="start">
+          <Command>
+            <CommandInput placeholder="Select environment..." />
+            <CommandList>
+              <CommandGroup>
+                {environments
+                  .filter(env => env.id !== environment)
+                  .map(env => (
+                      <CommandItem
+                        key={env.id}
+                        value={env.name}
+                        onSelect={handleLaunch(env.id)}
+                        className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
+                      >
+                        <span className="flex items-center">
+                          {environment === env.id ?
+                            <Check className="mr-2 h-4 w-4 text-muted-foreground" /> :
+                            null
+                          }
+                          <span>{selected?.name}...{env.name}</span>
+                        </span>
+                      </CommandItem>
+                    )
+                  )
+                }
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={copyProjectUrl}>
+        <ClipboardCopy className="mr-2 h-4 w-4" />
+        <span>Copy URL</span>
+      </Button>
       <Button
         size="base"
+        className="ml-auto"
         onClick={() => setIsOpen(true)}
         disabled={!hasWritePermissions}
       >

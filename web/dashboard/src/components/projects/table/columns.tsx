@@ -10,7 +10,7 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader className="font-bold" column={column} title="Name" />
     ),
-    cell: ({ row }) => <Link className="text-xl font-bold" href={`/projects/${row.original.id}`}>{row.getValue("name")}</Link>,
+    cell: ({ row }) => <Link className="font-semibold" href={`/projects/${row.original.id}`}>{row.getValue("name")}</Link>,
     enableSorting: false,
     enableHiding: true,
   },

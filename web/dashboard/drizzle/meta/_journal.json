@@ -22,6 +22,13 @@
       "when": 1738842163649,
       "tag": "0002_fearless_tinkerer",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1738939096173,
+      "tag": "0003_odd_rafael_vega",
+      "breakpoints": true
     }
   ]
 }

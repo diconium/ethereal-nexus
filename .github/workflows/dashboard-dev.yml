@@ -50,7 +50,7 @@ jobs:
           echo "${{ secrets.DRIZZLE_DATABASE_URL }}" >> .env
           corepack enable && corepack prepare pnpm@9.15.2 --activate
           pnpm i --frozen-lockfile
-          pnpm --filter "@ethereal-nexus/dashboard" run db:push --force
+          pnpm --filter "@ethereal-nexus/dashboard" run db:push
           sed -i '/^DRIZZLE_DATABASE_URL/d' .env
 
       - name: Build and push container image to registry

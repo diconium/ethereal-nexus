@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
 import { z } from 'zod';
-import { apiKeyPermissionsSchema } from '@/data/users/dto';
+import { apiPermissionsSchema } from '@/data/users/dto';
 import { ApiKeyForm } from '@/components/user/api-key-table/api-key-form';
 
 type ProjectLabels = {

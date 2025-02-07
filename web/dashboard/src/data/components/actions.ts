@@ -2,7 +2,7 @@
 
 import { ActionResponse, Result } from '@/data/action';
 import { z } from 'zod';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, getTableColumns, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import {
@@ -11,7 +11,6 @@ import {
   componentAssetsSchema,
   componentsSchema,
   componentsUpsertSchema,
-  componentsWithVersions,
   ComponentToUpsert,
   componentVersionsCreateSchema,
   componentVersionsSchema,
@@ -33,6 +32,7 @@ import { EtherealStorage } from '@/storage/ethereal-storage';
 import { auth } from "@/auth";
 
 const storage = new EtherealStorage();
+const NS_PER_SEC = 1e9;
 
 async function upsertComponentVersion(version: NewComponentVersion) {
   const safeVersion = componentVersionsCreateSchema.safeParse(version);
@@ -281,25 +281,18 @@ export async function upsertAssets(
   }
 }
 
-export async function getComponents(): ActionResponse<
-  z.infer<typeof componentsWithVersions>[]
-> {
+export async function getComponents(): ActionResponse<Array<Component & { versions: string[]}>> {
   try {
-    const select = await db.query.components.findMany({
-      with: {
-        versions: true
-      }
-    });
+    const select = await db
+      .select({
+        ...getTableColumns(components),
+        versions: sql`ARRAY_AGG(${componentVersions.version})`,
+      })
+      .from(components)
+      .leftJoin(componentVersions, eq(componentVersions.component_id, components.id))
+      .groupBy(components.id)
 
-    const safe = componentsWithVersions.array().safeParse(select);
-    if (!safe.success) {
-      return actionZodError(
-        'There\'s an issue with the components records.',
-        safe.error
-      );
-    }
-
-    return actionSuccess(safe.data);
+    return actionSuccess(select);
   } catch (error) {
     console.error(error);
     return actionError('Failed to fetch components from database.');

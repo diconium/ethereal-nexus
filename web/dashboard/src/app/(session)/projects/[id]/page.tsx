@@ -6,14 +6,14 @@ import { ProjectMemberList } from '@/components/projects/members-table/member-li
 import { ProjectComponentsList } from '@/components/projects/component-selection-table/components-list';
 import Link from 'next/link';
 import ProjectsForm from '@/components/projects/project-form';
-import { getResourceEvents } from '@/data/events/actions';
 import { ProjectEvents } from '@/components/projects/project-events/project-events';
 import { EnvironmentsList } from '@/components/projects/environments-table/environment-list';
 import { auth } from '@/auth';
 
 export default async function EditProject(props: any) {
   const {
-    tab, env
+    tab = 'components',
+    env
   } = await props.searchParams;
 
   const {
@@ -24,8 +24,6 @@ export default async function EditProject(props: any) {
   const hasWritePermissions = session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[id] || '');
 
   const project = await getProjectById(id);
-  const events = await getResourceEvents(id);
-
   if (!project.success) {
     notFound();
   }
@@ -67,33 +65,34 @@ export default async function EditProject(props: any) {
             </TabsTrigger>
           </> : null}
         </TabsList>
-        <TabsContent value="components" className="space-y-4">
-          <ProjectComponentsList
-            key={env}
-            id={id}
-            environment={env}
-          />
+        <TabsContent value={tab} className="space-y-4">
+          {(() => {
+            switch (tab) {
+              case 'components':
+                return   <ProjectComponentsList
+                  key={env}
+                  id={id}
+                  environment={env}
+                />
+              case 'users':
+                return <ProjectMemberList
+                  id={id}
+                />
+              case 'environments':
+                return  <EnvironmentsList
+                  id={id}
+                />
+              case 'settings':
+                return <ProjectsForm
+                  project={project.data}
+                />
+              case 'activity':
+                return <ProjectEvents id={id} />
+              default:
+                return null
+            }
+          })()}
         </TabsContent>
-        <TabsContent value="users" className="space-y-4">
-          <ProjectMemberList
-            id={id}
-          />
-        </TabsContent>
-        <TabsContent value="environments" className="space-y-4">
-          <EnvironmentsList
-            id={id}
-          />
-        </TabsContent>
-        {hasWritePermissions ? <>
-          <TabsContent value="settings">
-            <ProjectsForm
-              project={project.data}
-            />
-          </TabsContent>
-          <TabsContent value="activity">
-            <ProjectEvents events={events} />
-          </TabsContent>
-        </> : null}
       </Tabs>
     </div>);
 }

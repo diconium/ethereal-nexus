@@ -10,7 +10,7 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
     ),
-    cell: ({ row }) => row.getValue("name"),
+    cell: ({ row }) => <span className="font-semibold">{row.getValue("name")}</span>,
     enableSorting: true,
   },
   {

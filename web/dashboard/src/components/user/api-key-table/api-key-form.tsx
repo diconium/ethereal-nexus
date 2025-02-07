@@ -11,7 +11,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ApiKey, ApiKeyPermissions, NewApiKey, newApiKeySchema } from '@/data/users/dto';
+import { ApiKey, ApiPermissions, NewApiKey, newApiKeySchema } from '@/data/users/dto';
 import { useSession } from 'next-auth/react';
 import { notFound } from 'next/navigation';
 import { ShieldBan } from 'lucide-react';
@@ -36,7 +36,7 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
 
   const defaultValues = apyKey ?? {
     alias: '', user_id: session?.user?.id, permissions: {
-      ...session?.permissions as ApiKeyPermissions, components: 'read'
+      ...session?.permissions as ApiPermissions, components: 'read'
     }
   };
 

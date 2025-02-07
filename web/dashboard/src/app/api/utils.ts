@@ -1,11 +1,13 @@
-import { getApiKeyByKey } from '@/data/users/actions';
+import { getApiKeyByKey, getServiceUser } from '@/data/users/actions';
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
+import { decodeJwt } from 'jose';
+import * as client from 'openid-client';
 
 export const DEFAULT_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Content-Type": "application/json",
-  "Access-Control-Allow-Headers":"Authorization, Origin, X-Requested-With, Content-Type, Accept",
+  'Access-Control-Allow-Origin': '*',
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Headers': 'Authorization, Origin, X-Requested-With, Content-Type, Accept'
 };
 
 export enum HttpStatus {
@@ -20,14 +22,27 @@ export enum HttpStatus {
 }
 
 export async function authenticatedWithApiKeyUser() {
-  let key = '';
   const headersList = await headers();
   const authorization = headersList.get('authorization');
-  if (authorization && authorization.split(' ')[0] === 'apikey') {
-    key = authorization.split(' ')[1];
+
+  if (!authorization) {
+    return null;
   }
 
-  const apiKey = await getApiKeyByKey(key);
+  const [type, token] = authorization.split(' ');
+
+  switch (type.toLowerCase()) {
+    case 'apikey':
+      return handleApiKeyAuthentication(token);
+    case 'bearer':
+      return handleBearerAuthentication(token);
+    default:
+      return null;
+  }
+}
+
+async function handleApiKeyAuthentication(token: string) {
+  const apiKey = await getApiKeyByKey(token);
   if (!apiKey.success) {
     NextResponse.json(apiKey.error, {
       status: HttpStatus.FORBIDDEN
@@ -35,8 +50,60 @@ export async function authenticatedWithApiKeyUser() {
     return;
   }
 
-  return  {
+  return {
     id: apiKey.data.user_id,
-    permissions: apiKey.data.permissions,
+    permissions: apiKey.data.permissions
   };
+}
+
+async function handleBearerAuthentication(token: string) {
+  try {
+    const { iss, sub } = decodeJwt(token);
+    if (!iss || !sub) {
+      NextResponse.json('Invalid OAuth credentials.', {
+        status: HttpStatus.FORBIDDEN
+      });
+      return;
+    }
+
+    const serviceUser = await getServiceUser(iss, sub);
+    if(!serviceUser.success) {
+      NextResponse.json('User not found.', {
+        status: HttpStatus.NOT_FOUND
+      });
+      return;
+    }
+
+    const { id, client_id, client_secret, permissions } = serviceUser.data;
+    const config = await client.discovery(
+      new URL(iss),
+      client_id,
+      {
+        client_secret: client_secret ?? undefined,
+      },
+      undefined,
+      {
+        execute: [
+          client.allowInsecureRequests
+        ],
+      }
+    );
+    const introspection = await client.tokenIntrospection(config, token);
+    if (!introspection.active) {
+      NextResponse.json('Token is not active.', {
+        status: HttpStatus.UNAUTHORIZED
+      });
+      return;
+    }
+    return {
+      id,
+      permissions,
+    };
+  } catch (error) {
+    console.error(error);
+    NextResponse.json(error, {
+      status: HttpStatus.FORBIDDEN
+    });
+    return;
+  }
 }

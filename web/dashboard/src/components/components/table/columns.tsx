@@ -13,7 +13,7 @@ export const columns = [
       <DataTableColumnHeader column={column} title="Name" />
     ),
     cell: ({ row }) => <div>
-      <Link href={`/components/${row.original.id}`}>{row.getValue("name")}</Link>
+      <Link className="font-semibold" href={`/components/${row.original.id}`}>{row.getValue("name")}</Link>
       {row.original.is_ai_generated && (
           <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 relative overflow-hidden group">
             <Sparkles className="w-3 h-3 mr-1 text-orange-500" />
@@ -35,7 +35,7 @@ export const columns = [
   },
   {
     id: 'version',
-    accessorFn: row => row.versions[0].version,
+    accessorFn: row => row.versions[0],
     header: ({ column }) => (
       <DataTableColumnHeader className="font-bold" column={column} title="Version" />
     ),

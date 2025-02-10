@@ -1,0 +1,113 @@
+---
+title: Access Management
+description: Documentation on how to grant users access to Ethereal Nexus projects.
+sidebar:
+  badge:
+    text: New
+    variant: tip
+  order: 1
+
+---
+
+## User Access Management in Ethereal Nexus
+
+Ethereal Nexus provides two primary methods for granting access to project APIs:
+1. **User-based access using API Keys**
+2. **OAuth authentication using Client ID, Client Secret, Subject, and Issuer**
+
+Both methods ensure secure communication between clients and the Ethereal Nexus platform.
+
+### **Choosing the Right Authentication Method**
+
+| Method  | Best For | Authentication Header |
+|---------|---------|----------------------|
+| **API Keys** | User-based authentication, CLI, and CMS connectors | `Authorization: apikey <your-api-key>` |
+| **OAuth (Client Credentials)** | Secure system-to-system authentication | `Authorization: Bearer <access-token>` |
+
+## 1. User-Based Access with API Keys
+
+API Keys provide a simple and effective way to authenticate users for interacting with the Ethereal Nexus API. These keys are linked to a specific user account and allow fine-grained access control.
+
+### **Generating an API Key**
+
+Follow these steps to generate an API key for a user:
+
+1. Log in to the **Ethereal Nexus Dashboard**.
+2. Navigate to **User Settings** by clicking on your profile.
+3. Select the **API Keys** tab.
+4. Click on **Create New API Key**.
+5. Enter an alias for the API Key and define the required permissions.
+6. Select the projects the API Key should have access to.
+7. Click **Generate Key** and securely store it, as it will only be shown once.
+
+### **Manually using an API Key**
+
+To authenticate API requests using an API Key, include it in the request header:
+
+```http
+Authorization: apikey <your-api-key>
+```
+
+**Example request using `curl`**:
+
+```sh
+curl -H "Authorization: apikey your-api-key" \
+     -X GET https://api.ethereal-nexus.com/projects
+```
+
+---
+
+## 2. OAuth Authentication
+
+OAuth provides a secure way to authenticate and authorize requests using a **Client ID, Client Secret, Subject, and Issuer**. This method is recommended for system-to-system authentication and external applications.
+
+### **OAuth Configuration**
+
+To use OAuth authentication, you need the following details:
+
+- **Issuer** – The Issuer URL of the OAuth server.
+- **Client ID** – The identifier for the application requesting access.
+- **Client Secret** – A secure secret used to authenticate the client.
+- **Issuer** – The URL of the OAuth server (e.g., Keycloak).
+- **Subject** – The identity that is being authenticated.
+
+### **Setting Up OAuth Access**
+
+1. Obtain the **Client ID** and **Client Secret** from your OAuth provider.
+2. Configure the **OAuth Service** in Ethereal Nexus:
+   - Create a new user, under **Users** > **Invite User**.
+   - Select Service User.
+   - Fill the details and click Create user.
+
+### **Assign the service user to the project**
+1. Navigate to the project settings.
+2. Under the **Users** tab, click on **Add User**.
+3. Click **Add User** and select the service user you created.
+4. Assign the **Can Read** permissions to the service user.
+
+### **Manually using OAuth for API Requests**
+
+To authenticate API requests using OAuth, obtain an access token and include it in the request header:
+
+```http
+Authorization: Bearer <access-token>
+```
+
+**Example request using `curl`**:
+
+```sh
+curl -H "Authorization: Bearer your-access-token" \
+     -X GET https://api.ethereal-nexus.com/projects
+```
+
+
+## **Security Considerations**
+
+> ⚠️ **Warning:** Never expose API Keys or Client Secrets in public repositories or frontend applications.
+
+- **Use short-lived access tokens** whenever possible for OAuth authentication.
+- **Restrict API Key permissions** to the minimum necessary for the user’s role.
+
+---
+
+By following these guidelines, you can securely manage user access to Ethereal Nexus projects. 🚀

@@ -26,6 +26,13 @@ For instance, if you have an external application or service that needs to perfo
 These API keys are used on the CLI and on the CMS connectors, since these tools consume the API and this is their only authentication method.
 
 
+## Bearer Tokens (OAuth)
+
+Instead of using an API key, you can create a Bearer token using OAuth (e.g., from Keycloak) to establish a secure connection between Ethereal Nexus and the connector. This method provides an additional authentication option that integrates with identity providers for enhanced security.
+
+ > Note: Using OAuth requires an extra connector package to be installed.
+
+
 ### Create an API Key
 
 To create an API key, navigate to your user page and follow the instructions to generate a new key.

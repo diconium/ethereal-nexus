@@ -1,6 +1,11 @@
 ---
 title: AEM
 description: Integrate with Adobe Experience Manager
+sidebar:
+  order: 2
+  badge:
+    text: New
+    variant: tip
 ---
 
 # Installation on AEM
@@ -46,3 +51,83 @@ description: Integrate with Adobe Experience Manager
 ```
 4. Configure the endpoint to you Ethereal Nexus Dashboard.
 5. Assign your configuration to a sites project.
+
+# Configuration
+
+You need to configure the AEM instances to recognize and interact with the Ethereal Nexus connector.
+Steps to Configure Ethereal Nexus in AEM
+
+
+### Steps to Configure Ethereal Nexus in AEM
+
+#### 1. Configure Ethereal Nexus in Cloud Services
+1. In **AEM**, navigate to **Tools > Cloud Services > Legacy Cloud Services**.
+2. Under **Third Party Services**, select **Ethereal Nexus Configuration**.
+3. Add a **new configuration** for each environment you want to connect to.
+4. Fill in the details for **All Components Configuration** (this will be used in template policies).
+
+#### 2. Set Permissions for the Service User
+1. Navigate to **Tools > Security > Permissions**.
+2. Find the user **`remote-components-resolver`** and click **Add ACE**.
+3. Under **Path**, enter `/content` and select the permissions you want to assign.
+4. Under **Privileges**, select **`jcr:read`**.
+5. Click **Add** to save the changes.
+
+#### 3. Assign the Configuration to Your Site
+1. In **AEM**, go to **Sites** and select your site (`/content/your-site`).
+2. Open **Page Properties** for your site.
+3. Under **Cloud Services Configurations**, select the **Ethereal Nexus configuration** you created previously.
+
+### Configure OAuth
+> ℹ️ **Info:** This requires configuration on Ethereal Nexus dashboard. For more details, refer to the [Access Management documentation](/ethereal-nexus/dashboard/access-management/#2-oauth-authentication).
+
+##### Requirements:
+- **ServerUrl**
+- **Realm**
+- **Client ID**
+- **Client Secret**
+- **Subject**
+
+
+#### 1. Update the pom.xml to include the auth bundle:
+
+1. Add the embedded vault package definition on module: all file: pom.xml
+```xml
+<embedded>
+    <groupId>com.diconium</groupId>
+    <artifactId>ethereal-nexus-bundle-auth</artifactId>
+    <target>/apps/REPLACE_WITH_YOUR_CUSTOM_NAME-vendor-packages/remote-components/install</target>
+    <type>jar</type>
+</embedded>
+```
+
+2. Under Dependencies, add the following Maven dependency:
+```xml
+<dependency>
+    <groupId>com.diconium</groupId>
+    <artifactId>ethereal-nexus-bundle-auth</artifactId>
+    <version>8.3.11</version>
+</dependency>
+```
+
+
+#### 2. Create the OSGI configuration :
+
+1. Crete a Osgi configuration for Persistent Identity (PID): `com.diconium.keycloak.services.OAuthService`
+- serverUrl: `https://your-keycloak-server`
+- realm: `your-realm`
+- clientId: `your-client-id`
+- clientSecret: `your-client-secret`
+- cacheDuration: `300`
+- sslRequired: `true`
+2. Click Save.
+
+#### 3. Update or create a new Ethereal Nexus configuration in the Cloud Services
+1. Navigate to Tools > Cloud Services > Legacy Cloud Services
+2. update or create a new Ethereal Nexus configuration.
+  - Ensure the Authentication Type is set to Bearer.
+
+#### 4. Assign the Configuration to Your Site
+1. In **AEM**, go to **Sites** and select your site (`/content/your-site`).
+2. Open **Page Properties** for your site.
+3. Under **Cloud Services Configurations**, select the **Ethereal Nexus configuration** you created previously.

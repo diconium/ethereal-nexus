@@ -49,6 +49,11 @@ export default defineConfig({
         autogenerate: {
           directory: 'reference'
         }
+      },{
+        label: 'Dialogs',
+        autogenerate: {
+          directory: 'dialogs'
+        }
       }],
     customCss: ['./src/tailwind.css']
   }), tailwind({

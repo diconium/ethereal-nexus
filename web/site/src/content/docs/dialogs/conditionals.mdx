@@ -1,0 +1,77 @@
+---
+title: Conditionals
+description: This documentation covers the use of conditionals in the Ethereal Nexus project.
+sidebar:
+  order: 16
+---
+
+In the Ethereal Nexus project, conditionals can be used to control the visibility and behavior of fields based on the values of other fields. This allows for dynamic and context-sensitive author dialogs.
+
+### Conditional Properties
+
+#### Conditions
+
+To define conditions for a field, use the `conditions` method. This method takes an object where the keys are the field names and the values are functions that define the conditions.
+
+#### Examples
+
+##### Example with just one condition
+
+* The subtitle field is only visible when the showSubtitle checkbox is checked.
+
+```typescript
+import { component, dialog, text, checkbox } from '@ethereal-nexus/core';
+
+const dialogSchema = dialog({
+  title: text({
+    label: 'Title',
+    placeholder: 'Enter a title',
+  }),
+  subtitle: text({
+    label: 'Subtitle',
+    placeholder: 'Enter a subtitle',
+  }),
+  showSubtitle: checkbox({
+    label: 'Show Subtitle',
+    defaultValue: false,
+  }),
+}).conditions({
+  subtitle: ({ eq }) => eq('showSubtitle', true),
+});
+```
+
+##### Example with multiple conditions
+
+* Banners fields are only visible when the showLinks checkbox is checked.
+* Link field is only visible when the showLinks checkbox is checked and the title field exists.
+
+```typescript
+const dialogSchema = dialog({
+    checkbox: checkbox({
+    label: 'Show Links',
+    defaultValue: false
+  }),
+    banners: multifield({
+    label: 'Banners',
+    children: object({
+      title: text({
+        label: 'Title',
+        placeholder: 'Title'
+      }),
+      link: pathbrowser({
+        label: 'Link',
+        placeholder: 'Link',
+        defaultValue: "/content/default-value"
+      })
+    })
+  }),
+}).conditions({
+    banners: {
+          $this: ({ eq }) => eq('checkbox', true),
+          link: ({ eq, and, exists }) => and(
+            eq('checkbox', true),
+            exists('title'),
+          ),
+    }
+});
+```

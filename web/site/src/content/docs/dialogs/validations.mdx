@@ -1,0 +1,42 @@
+---
+title: Validations
+description: This documentation covers the general field validations available in the Ethereal Nexus project.
+sidebar:
+  order: 15
+---
+
+In the Ethereal Nexus project, fields can be validated to ensure that the input meets certain criteria. This includes making fields required, validating against a regular expression, and setting custom validation error messages.
+
+### Validation Properties
+
+#### Required
+
+To make a field required, set the `required` property to `true`. This ensures that the field must be filled out before the form can be submitted.
+
+#### Regular Expression
+
+To validate a field against a regular expression, use the `validationRegex` property. This property takes a string representing the regular expression pattern.
+
+#### Validation Error Message
+
+To provide a custom error message when validation fails, use the `validationErrorMessage` property. This property takes a string that will be displayed if the validation fails.
+
+### Example
+
+* The title field is required.
+* The title field must match the regular expression ^Hello World$.
+* If the validation fails, the error message "The text must be 'Hello World'" will be displayed.
+
+```typescript
+{
+  title: text({
+    label: 'Title',
+    placeholder: 'Any title',
+    tooltip: 'The title of the component',
+    defaultValue: 'Hello World',
+    required: true,
+    validationRegex: '^Hello World$',
+    validationErrorMessage: 'The text must be "Hello World"',
+  })
+}
+```

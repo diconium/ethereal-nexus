@@ -4,7 +4,7 @@ type SlotProps = HTMLAttributes<HTMLSlotElement> & {
   [key: string]: any; // Spreadable props for the slotted element
 }
 
-const CLASS_IN_EDIT_MODE = "cq-Editable-dom--container";
+const CLASS_IN_EDIT_MODE = "cq-Editable-dom";
 
 export const Slot: React.FC<SlotProps> = ({ name, ...props }) => {
   const slotRef = useRef<HTMLSlotElement>(null);

@@ -15,7 +15,7 @@ export const Slot: React.FC<SlotProps> = ({ name, ...props }) => {
       const dynamicZone = slot.assignedElements();
       Array.from(dynamicZone[0].children)
         // workaround for cq-Editable-dom in AEM editor mode that generates a new div for the Editor components
-        .map(el => el.classList.value.includes("section") ? Array.from(el.children) : el)
+        .map(el => el.classList.value.includes("cq-Editable-dom--container") ? Array.from(el.children) : el)
         .flat()
         .filter(el => el.tagName.includes("-"))
         .forEach(el =>

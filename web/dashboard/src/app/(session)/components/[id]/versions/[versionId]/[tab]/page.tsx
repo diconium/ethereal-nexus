@@ -9,15 +9,32 @@ import { getResourceEvents } from '@/data/events/actions';
 
 export default async function EditComponentVersion(props: any) {
   const {
-    id, versionId, tab
+    id, 
+    versionId, 
+    tab,
   } = await props.params;
 
-  const session = await auth();
+  const {
+    userFilter,
+    componentFilter,
+    initialDateFilter,
+    finalDateFilter
+  } = await props.searchParams;
 
+  const session = await auth();
   const component = await getComponentById(id);
   const versions = await getComponentVersions(id);
   const dependents = await getComponentDependentsProjects(id, session?.user?.id);
-  const events = await getResourceEvents(id);
+
+  const filter = {
+    userFilter,
+    componentFilter,
+    initialDateFilter,
+    finalDateFilter,
+    isComponentView: true
+  }
+
+  const events = await getResourceEvents(id, 100, filter);
 
   if (!versions.success || !component.success || !dependents.success) {
     notFound();

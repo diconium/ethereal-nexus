@@ -60,7 +60,7 @@ const ComponentVersionTabs = ({activeTab, component, versions, selectedVersion, 
                 </ul>
             </TabsContent>
             <TabsContent value="activity">
-                <Events events={events.data}></Events>
+                <Events events={events.data} isComponentView={true}></Events>
             </TabsContent>
         </Tabs>
     );

@@ -9,13 +9,19 @@ import {
 } from '@/data/events/dto';
 import { events, eventsTypeEnum } from '@/data/events/schema';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, gte, lte, sql } from 'drizzle-orm';
 import { users } from '@/data/users/schema';
 import { components, componentVersions } from '@/data/components/schema';
 import { ActionResponse } from '@/data/action';
 import { projects } from '@/data/projects/schema';
 import { alias } from 'drizzle-orm/pg-core';
 
+interface EventFilterProps {
+  userFilter: string;
+  initialDateFilter: string;
+  finalDateFilter: string;
+  componentFilter: String;
+}
 
 export const insertEvent = async (event: NewEvent) => {
   try {
@@ -30,12 +36,14 @@ export const insertEvent = async (event: NewEvent) => {
 export async function getResourceEvents(
   resourceId: string,
   limit = 50,
+  filter : EventFilterProps,
 ): ActionResponse<EventWithDiscriminatedUnions[]> {
 
   if (!resourceId) {
     return actionError('No resource id provided.');
   }
 
+  console.log(filter);
   try {
     const members = alias(users, 'members');
     const select = await db
@@ -58,8 +66,14 @@ export async function getResourceEvents(
       .leftJoin(componentVersions, sql`(${events.data}->>'version_id')::uuid =  ${componentVersions.id}`)
       .leftJoin(components, sql`(${events.data}->>'component_id')::uuid = ${components.id}`)
       .leftJoin(members, sql`(${events.data}->>'member_id')::uuid = ${members.id}`)
+      .where(and(
+        filter.userFilter ? eq(users.name, filter.userFilter) : undefined,
+        filter.componentFilter ? eq(components.name, filter.componentFilter) : undefined,
+        filter.initialDateFilter ? gte(events.timestamp, new Date(filter.initialDateFilter)) : undefined,
+        filter.finalDateFilter ? lte(events.timestamp, new Date(filter.finalDateFilter)) : undefined,
+        eq(events.resource_id, resourceId)
+      ))
       .limit(limit)
-      .where(eq(events.resource_id, resourceId));
 
     const modifiedSelect = select.map(event => {
       if (event.data?.version?.id === null) {

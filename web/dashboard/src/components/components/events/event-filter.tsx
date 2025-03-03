@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { addDays, format } from "date-fns";
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon, ChevronsUpDown, Check } from "lucide-react"
 import { DateRange } from "react-day-picker";
 
 import { Calendar } from "@/components/ui/calendar"
@@ -16,17 +16,31 @@ import {
 } from "@/components/ui/popover"
 import { Component } from '@/data/components/dto';
 
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { ActionResponse } from '@/data/action';
+import { ProjectComponent } from '@/data/projects/dto';
+
 interface EventFilterComponentProps {
   isComponentView: boolean;
-  components: Component[];
+  components: ProjectComponent[];
 }
 
 const EventFilter: React.FC<EventFilterComponentProps> = ({isComponentView, components}) => {
   const router = useRouter();
   const pathname = usePathname();
+  const [isComponentDialogOpen, setIsComponentDialogOpen] = React.useState<boolean>()
   const [date, setDate] = React.useState<DateRange | undefined>()
   const [component, setComponent] = React.useState<string | undefined>()
   const [user, setUser] = React.useState<string | undefined>()
+
+  useEffect(() => {
+    applyFilter();
+  }, [component, date, user]);
   
   const applyFilter = () => {
     
@@ -49,10 +63,11 @@ const EventFilter: React.FC<EventFilterComponentProps> = ({isComponentView, comp
     } 
 
     router.push(`${pathname}?tab=activity&${params.toString()}`);  
+
   }
 
   return (
-    <div className="">
+    <div className="mb-4">
       <div className="max-w-4xl">
       <div className="" id="filter-section">
         <div className="flex flex-col md:flex-row md:space-x-4">
@@ -103,16 +118,52 @@ const EventFilter: React.FC<EventFilterComponentProps> = ({isComponentView, comp
           <label className="block text-sm font-medium text-gray-700">
           Filter by Component
           </label>
-          <input onChange={(e) => setComponent(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm sm:text-sm p-2" id="user-filter" placeholder="Component name" type="text"/>
+          <Popover open={isComponentDialogOpen} onOpenChange={setIsComponentDialogOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                className="w-[200px] justify-between mt-1"
+              >
+                 {component
+                  ? components.find((item) => item.id === component)?.name
+                  : "Select component..."}
+                <ChevronsUpDown className="opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+              <Command>
+                <CommandList>
+                  <CommandGroup>
+                    {components.map((mapComponent) => (
+                      <CommandItem
+                        key={mapComponent.id}
+                        value={mapComponent.id}
+                        onSelect={(currentValue) => {
+                          setComponent(currentValue === component ? "" : currentValue);
+                          setIsComponentDialogOpen(false);
+                        }}
+                      >
+                        {mapComponent.name}
+                        <Check
+                          className={cn(
+                            "ml-auto",
+                            component === mapComponent.id ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>}
         <div>
           <label className="block text-sm font-medium text-gray-700" >
           Filter by User
           </label>
           <input onChange={(e) => setUser(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2" id="user-filter" placeholder="Username" type="text"/>
-        </div>
-        <div className='mb-6 w-xl'>
-          <Button onClick={applyFilter} className="m-6 p-2 border rounded">Apply Filter</Button>
         </div>
         </div>
       </div>

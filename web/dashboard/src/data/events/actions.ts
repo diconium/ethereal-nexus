@@ -68,7 +68,7 @@ export async function getResourceEvents(
       .leftJoin(members, sql`(${events.data}->>'member_id')::uuid = ${members.id}`)
       .where(and(
         filter.userFilter ? eq(users.name, filter.userFilter) : undefined,
-        filter.componentFilter ? eq(components.name, filter.componentFilter) : undefined,
+        filter.componentFilter ? eq(components.id, filter.componentFilter) : undefined,
         filter.initialDateFilter ? gte(events.timestamp, new Date(filter.initialDateFilter)) : undefined,
         filter.finalDateFilter ? lte(events.timestamp, new Date(filter.finalDateFilter)) : undefined,
         eq(events.resource_id, resourceId)

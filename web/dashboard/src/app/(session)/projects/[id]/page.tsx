@@ -98,7 +98,7 @@ export default async function EditProject(props: any) {
                   finalDateFilter,
                   
                 }
-                return <ProjectEvents id={id} filter={filter}/>
+                return <ProjectEvents id={id} filter={filter} environment={env}/>
               default:
                 return null
             }

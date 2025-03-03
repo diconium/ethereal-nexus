@@ -14,12 +14,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { Component } from '@/data/components/dto';
 
 interface EventFilterComponentProps {
   isComponentView: boolean;
+  components: Component[];
 }
 
-const EventFilter: React.FC<EventFilterComponentProps> = ({isComponentView}) => {
+const EventFilter: React.FC<EventFilterComponentProps> = ({isComponentView, components}) => {
   const router = useRouter();
   const pathname = usePathname();
   const [date, setDate] = React.useState<DateRange | undefined>()
@@ -36,6 +38,14 @@ const EventFilter: React.FC<EventFilterComponentProps> = ({isComponentView}) => 
 
     if(date && date.to) {
       params.set("finalDateFilter", format(date.to, "MM-dd-yyyy 23:59:59"));
+    } 
+
+    if(component) {
+      params.set("componentFilter", component);
+    } 
+
+    if(user) {
+      params.set("userFilter", user);
     } 
 
     router.push(`${pathname}?tab=activity&${params.toString()}`);  

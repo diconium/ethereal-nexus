@@ -3,16 +3,18 @@ import EventComponent from "@/components/components/events/event";
 import { EventWithDiscriminatedUnions, EventWithUsername } from '@/data/events/dto';
 import Empty from '@/components/components/table/empty';
 import EventFilter from '@/components/components/events/event-filter';
+import { Component } from '@/data/components/dto';
 
 interface EventProps {
     events: EventWithDiscriminatedUnions[];
     isComponentView: boolean;
+    components: Component[];
 }
 
-const Events: React.FC<EventProps> = ({events=[], isComponentView}) => {
+const Events: React.FC<EventProps> = ({events=[], isComponentView, components}) => {
     return (
         <div className="w-full">
-          {events.length !== 0 && (<EventFilter isComponentView={isComponentView} />)}
+          {events.length !== 0 && (<EventFilter isComponentView={isComponentView} components={components}/>)}
           <ul className="space-y-4">
             {events.length === 0 && (<Empty itemsName={'events'}></Empty>)}
             {events.map((event, index) => (

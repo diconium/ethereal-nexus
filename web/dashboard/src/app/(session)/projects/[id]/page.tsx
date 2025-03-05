@@ -17,7 +17,8 @@ export default async function EditProject(props: any) {
     userFilter,
     componentFilter,
     initialDateFilter,
-    finalDateFilter
+    finalDateFilter,
+    onlyActive
   } = await props.searchParams;
 
   const {
@@ -96,7 +97,7 @@ export default async function EditProject(props: any) {
                   componentFilter,
                   initialDateFilter,
                   finalDateFilter,
-                  
+                  onlyActive
                 }
                 return <ProjectEvents id={id} filter={filter} environment={env}/>
               default:

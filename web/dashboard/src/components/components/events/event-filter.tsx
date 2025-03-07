@@ -214,7 +214,7 @@ const EventFilter: React.FC<EventFilterComponentProps> = ({isComponentView, comp
               </PopoverContent>
             </Popover>
           </div>
-          <div>
+          {!isComponentView && <div>
             <label className="block text-sm font-medium text-gray-700 items-center" >
             Filter by Status
             </label>
@@ -224,7 +224,7 @@ const EventFilter: React.FC<EventFilterComponentProps> = ({isComponentView, comp
                 Active only
               </label>
             </div>
-          </div>
+          </div>}
         </div>
       </div>
       </div>

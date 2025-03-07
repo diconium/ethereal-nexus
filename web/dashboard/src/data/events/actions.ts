@@ -39,7 +39,7 @@ export async function getResourceEvents(
   resourceId: string,
   limit = 50,
   filter : EventFilterProps,
-  environment: Environment
+  environment?: Environment
 ): ActionResponse<EventWithDiscriminatedUnions[]> {
 
   if (!resourceId) {
@@ -71,7 +71,7 @@ export async function getResourceEvents(
       .leftJoin(members, sql`(${events.data}->>'member_id')::uuid = ${members.id}`)
       .leftJoin(projectComponentConfig, 
         and(
-          eq(projectComponentConfig.environment_id, environment.id),
+          environment ? eq(projectComponentConfig.environment_id, environment.id) : undefined,
           eq(projectComponentConfig.component_id, components.id)
         )
       )

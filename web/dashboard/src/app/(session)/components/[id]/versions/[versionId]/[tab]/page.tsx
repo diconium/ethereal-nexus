@@ -6,6 +6,7 @@ import ComponentVersionHeader from '@/components/components/component/version/he
 import ComponentVersionTabs from '@/components/components/component/version/tabs';
 import { auth } from '@/auth';
 import { getResourceEvents } from '@/data/events/actions';
+import { getEnvironmentsById } from '@/data/projects/actions';
 
 export default async function EditComponentVersion(props: any) {
   const {
@@ -18,7 +19,8 @@ export default async function EditComponentVersion(props: any) {
     userFilter,
     componentFilter,
     initialDateFilter,
-    finalDateFilter
+    finalDateFilter,
+    onlyActive
   } = await props.searchParams;
 
   const session = await auth();
@@ -31,7 +33,8 @@ export default async function EditComponentVersion(props: any) {
     componentFilter,
     initialDateFilter,
     finalDateFilter,
-    isComponentView: true
+    isComponentView: true,
+    onlyActive
   }
 
   const events = await getResourceEvents(id, 100, filter);

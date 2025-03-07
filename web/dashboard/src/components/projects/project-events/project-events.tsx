@@ -4,6 +4,7 @@ import { getResourceEvents } from '@/data/events/actions';
 import { getEnvironmentComponents, getEnvironmentsByProject } from '@/data/projects/actions';
 import { getMembersByResourceId } from '@/data/member/actions';
 import { getUsers } from '@/data/users/actions';
+import { notFound } from 'next/navigation';
 
 export const ProjectEvents = async ({ id, filter, environment }) => {  
   const environments = await getEnvironmentsByProject(id);
@@ -12,6 +13,10 @@ export const ProjectEvents = async ({ id, filter, environment }) => {
   }
   const selected = environment || environments.data[0].id;
   const components = await getEnvironmentComponents(selected);
+
+    if (!components.success) {
+      notFound();
+    }
 
   const members = await getMembersByResourceId(id);
   const users = await getUsers()

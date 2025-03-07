@@ -5,9 +5,7 @@ import { getEnvironmentComponents, getEnvironmentsByProject } from '@/data/proje
 import { getMembersByResourceId } from '@/data/member/actions';
 import { getUsers } from '@/data/users/actions';
 
-export const ProjectEvents = async ({ id, filter, environment }) => {
-  const events = await getResourceEvents(id, 20, filter);
-  
+export const ProjectEvents = async ({ id, filter, environment }) => {  
   const environments = await getEnvironmentsByProject(id);
   if (!environments.success) {
     throw new Error(environments.error.message);
@@ -15,12 +13,14 @@ export const ProjectEvents = async ({ id, filter, environment }) => {
   const selected = environment || environments.data[0].id;
   const components = await getEnvironmentComponents(selected);
 
-  const members = await getMembersByResourceId(id)
-    const users = await getUsers()
-  
-    if(!members.success || !users.success) {
-      throw new Error('Users are not available.')
-    }
+  const members = await getMembersByResourceId(id);
+  const users = await getUsers()
+
+  if(!members.success || !users.success) {
+    throw new Error('Users are not available.')
+  }
+
+  const events = await getResourceEvents(id, 20, filter, environment || environments.data[0]);
 
   //FIXME: components.data is giving a lint error
   return <Events isComponentView={false} events={events.success ? events.data : []} components={components.data} members={members.data}></Events>;

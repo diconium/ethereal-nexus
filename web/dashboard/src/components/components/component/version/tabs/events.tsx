@@ -17,7 +17,7 @@ const Events: React.FC<EventProps> = ({events=[], isComponentView, components, m
 
   return (
       <div className="w-full">
-        <EventFilter isComponentView={isComponentView} components={components} members={members}/>
+        {!isComponentView && <EventFilter isComponentView={isComponentView} components={components} members={members}/>}
         <ul className="space-y-4">
           {events.length === 0 && (<Empty itemsName={'events'}></Empty>)}
           {events.map((event, index) => (

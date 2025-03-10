@@ -77,7 +77,7 @@ export async function getResourceEvents(
       )
       .where(and(
         filter.userFilter ? eq(users.id, filter.userFilter) : undefined,
-        filter.componentFilter ? eq(components.id, filter.componentFilter) : undefined,
+        filter.componentFilter ? eq(components.id, filter.componentFilter.toString()) : undefined,
         filter.onlyActive ? eq(projectComponentConfig.is_active, true) : undefined,
         filter.initialDateFilter ? gte(events.timestamp, new Date(filter.initialDateFilter)) : undefined,
         filter.finalDateFilter ? lte(events.timestamp, new Date(filter.finalDateFilter)) : undefined,

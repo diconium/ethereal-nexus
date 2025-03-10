@@ -24,7 +24,6 @@ import {
 import { ProjectComponent } from '@/data/projects/dto';
 import { MemberWithPublicUser } from '@/data/member/dto';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 
 interface EventFilterComponentProps {
   isComponentView: boolean;
@@ -47,8 +46,6 @@ const EventFilter: React.FC<EventFilterComponentProps> = ({isComponentView, comp
   }, [component, date, user, onlyActive]);
   
   const applyFilter = () => {
-
-    console.log(onlyActive);
     
     const params = new URLSearchParams();
     
@@ -83,7 +80,7 @@ const EventFilter: React.FC<EventFilterComponentProps> = ({isComponentView, comp
         <div className="flex flex-col md:flex-row md:space-x-4">
           <div className="mb-4 md:mb-0">
             <label className="block text-sm font-medium text-gray-700">
-            Filter by Date
+              Filter by Date
             </label>
             <div className={cn("grid gap-2 mt-1")}>
               <Popover>
@@ -216,7 +213,7 @@ const EventFilter: React.FC<EventFilterComponentProps> = ({isComponentView, comp
           </div>
           {!isComponentView && <div>
             <label className="block text-sm font-medium text-gray-700 items-center" >
-            Filter by Status
+              Filter by Status
             </label>
             <div className='flex items-center'>
               <Checkbox className="mt-2" checked={onlyActive} id="active" onCheckedChange={(checked : boolean) => setOnlyActive(checked)}/>

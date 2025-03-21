@@ -5,13 +5,24 @@ import { auth } from '@/auth';
 import { EnvironmentWithComponents } from '@/data/projects/dto';
 import { notFound } from 'next/navigation';
 import { EnvironmentPicker } from './picker';
+import { db } from '@/db';
+import { eq, sql } from 'drizzle-orm';
+import { componentVersions } from '@/data/components/schema';
 
-function compareEnvironments(from: EnvironmentWithComponents, to: EnvironmentWithComponents): ComparisonResult[] {
+const latestQuery = async (id: string) => db.select()
+  .from(componentVersions)
+  .orderBy(sql`string_to_array(${componentVersions.version}, '.')::int[] DESC`)
+  .where(eq(componentVersions.component_id, id));
+
+async function compareEnvironments(from: EnvironmentWithComponents, to: EnvironmentWithComponents): Promise<ComparisonResult[]> {
   const result: ComparisonResult[] = [];
 
-  from.components.forEach((compFrom) => {
-    const compTo = to.components.find((c) => c.id === compFrom.id);
+  for (const compFrom of from.components) {
+    if(to.secure) {
+      compFrom.version = (await latestQuery(compFrom.id))[0].version;
+    }
 
+    const compTo = to.components.find((c) => c.id === compFrom.id);
     if (compTo) {
       result.push({
         id: compFrom.id,
@@ -43,7 +54,7 @@ function compareEnvironments(from: EnvironmentWithComponents, to: EnvironmentWit
         }
       });
     }
-  });
+  }
 
   return result;
 }
@@ -64,7 +75,7 @@ export default async function NewLaunch(props: any) {
   }
 
   const environments = await getEnvironmentsByProject(from.data.project_id);
-  const comparison = compareEnvironments(from.data, to.data);
+  const comparison = await compareEnvironments(from.data, to.data);
 
   return (
     <div className="container h-full flex-1 flex-col space-y-8 p-8 md:flex">

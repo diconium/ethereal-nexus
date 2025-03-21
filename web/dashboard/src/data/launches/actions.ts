@@ -6,9 +6,21 @@ import { getEnvironmentsById, upsertComponentConfig } from '@/data/projects/acti
 import { EnvironmentWithComponents, ProjectComponentConfigInput } from '@/data/projects/dto';
 import { projectComponentConfig } from '@/data/projects/schema';
 import { db } from '@/db';
-import { eq } from 'drizzle-orm';
+import { eq, getTableColumns, sql } from 'drizzle-orm';
+import { components, componentVersions } from '@/data/components/schema';
 
-const query = async (id: string) => db.select().from(projectComponentConfig).where(eq(projectComponentConfig.id, id));
+const query = async (id: string) => db.select()
+  .from(projectComponentConfig)
+  .where(eq(projectComponentConfig.id, id));
+
+const latestQuery = async (id: string) => db.select({
+    ...getTableColumns(projectComponentConfig),
+    component_version: sql`coalesce(${projectComponentConfig.component_version}, ${componentVersions.id})`,
+  })
+  .from(projectComponentConfig)
+  .leftJoin(componentVersions, eq(componentVersions.component_id, projectComponentConfig.component_id))
+  .orderBy(sql`string_to_array(${componentVersions.version}, '.')::int[] DESC`)
+  .where(eq(projectComponentConfig.id, id));
 
 async function merge(from: EnvironmentWithComponents['components'], to: EnvironmentWithComponents) {
   const result: (ProjectComponentConfigInput & { event: string })[] = [];
@@ -26,10 +38,15 @@ async function merge(from: EnvironmentWithComponents['components'], to: Environm
     }
 
     if (event) {
-      const configFrom = (await query(compFrom.config_id))[0];
+      let configFrom;
+      if(to.secure) {
+        configFrom = (await latestQuery(compFrom.config_id))[0];
+      } else {
+        configFrom = (await query(compFrom.config_id))[0];
+      }
 
       if (compTo) {
-        const configTo = (await query(compTo.config_id))[0];
+        const configTo = (await query(compTo.config_id));
         result.push({
           ...configTo,
           component_version: configFrom.component_version,

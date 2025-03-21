@@ -10,7 +10,8 @@
     "format": "prettier --write \"{,!(.next)/**/}*.{ts, tsx}\"",
     "test": "set TZ=UTC && jest --coverage --max-workers=75%",
     "db:push": "drizzle-kit push --config=drizzle.config.ts --force",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.40",

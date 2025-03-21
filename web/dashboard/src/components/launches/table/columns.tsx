@@ -3,7 +3,8 @@
 import * as React from 'react';
 import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ShieldAlert } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const columns = [
   {
@@ -67,9 +68,17 @@ export const columns = [
           row.original.is_active.to === row.original.is_active.from ?
             <span className="text-muted-foreground">{row.original.is_active.to ? 'Active' : 'Inactive'}</span> :
             <>
-              <Badge variant={'destructive'}>{row.getValue('active').to ? 'Active' : 'Inactive'}</Badge>
-              <ArrowRight className="text-slate-300" size={20} />
-              <Badge variant={'success'}>{row.getValue('active').from ? 'Active' : 'Inactive'}</Badge>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <ShieldAlert className="text-slate-300" size={20} />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Launch keeps the state on the target environment.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <Badge variant="warning">{row.getValue('active').to ? 'Active' : 'Inactive'}</Badge>
             </>
         }
       </div>,

@@ -1,5 +1,15 @@
 # @ethereal-nexus/dashboard
 
+## 1.8.0
+
+### Minor Changes
+
+- e752096: feat: update launch to lock versions when launching into secure environments
+
+### Patch Changes
+
+- 14f27e2: fix: remove access control on project forms if it's new form
+
 ## 1.7.0
 
 ### Minor Changes

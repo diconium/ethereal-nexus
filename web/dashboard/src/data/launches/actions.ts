@@ -28,11 +28,9 @@ async function merge(from: EnvironmentWithComponents['components'], to: Environm
 
   for (const compFrom of from) {
     const compTo = to.components.find((c) => c.id === compFrom.id);
-
     if (compTo?.is_active !== compFrom.is_active) {
       event = 'project_component_activated';
     }
-
     if (compTo?.version !== compFrom.version) {
       event = 'project_component_version_updated';
     }
@@ -46,11 +44,11 @@ async function merge(from: EnvironmentWithComponents['components'], to: Environm
       }
 
       if (compTo) {
-        const configTo = (await query(compTo.config_id));
+        const configTo = (await query(compTo.config_id))[0];
         result.push({
           ...configTo,
           component_version: configFrom.component_version,
-          is_active: configFrom.is_active,
+          is_active: configTo.is_active,
           event
         });
       } else {

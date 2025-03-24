@@ -18,7 +18,7 @@ async function compareEnvironments(from: EnvironmentWithComponents, to: Environm
   const result: ComparisonResult[] = [];
 
   for (const compFrom of from.components) {
-    if(to.secure) {
+    if(to.secure && !compFrom.version) {
       compFrom.version = (await latestQuery(compFrom.id))[0].version;
     }
 

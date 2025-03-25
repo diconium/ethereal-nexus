@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 1.8.1
+
+### Patch Changes
+
+- 6ba2a73: fix: use latest query only when coming from a latest component
+
 ## 1.8.0
 
 ### Minor Changes

@@ -7,6 +7,8 @@ on:
     types: [opened, synchronize]
     branches:
       - main
+    branches-ignore:
+      - dependabot
     paths:
       - 'web/dashboard/**'
       - '.github/workflows/dashboard-preview.yml'

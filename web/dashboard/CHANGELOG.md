@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 1.8.2
+
+### Patch Changes
+
+- 73ed202: fix: updated dependencies for security reasons]
+
 ## 1.8.1
 
 ### Patch Changes

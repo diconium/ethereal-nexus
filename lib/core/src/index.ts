@@ -13,6 +13,7 @@ export * from "./schema/datasource";
 export * from "./schema/group";
 export * from "./schema/datamodel";
 export * from "./schema/navigation";
+export * from "./schema/tags";
 
 export * from "./schema/hidden";
 export * from "./schema/optional";

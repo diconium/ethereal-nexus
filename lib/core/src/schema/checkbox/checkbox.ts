@@ -1,6 +1,6 @@
 import { BaseFieldInput, type BaseSchema } from '../../types';
 
-export interface CheckBoxSchema<TOutput extends boolean = boolean> extends BaseSchema<TOutput> {
+export interface CheckBoxSchema<TOutput extends string = string> extends BaseSchema<TOutput> {
   /**
    * The schema type.
    */
@@ -9,7 +9,7 @@ export interface CheckBoxSchema<TOutput extends boolean = boolean> extends BaseS
 
 interface CheckBoxInput extends BaseFieldInput {
   showastoggle?: boolean
-  defaultValue?: boolean;
+  defaultValue?: boolean | String;
 }
 
 export function checkbox(input: CheckBoxInput): CheckBoxSchema {

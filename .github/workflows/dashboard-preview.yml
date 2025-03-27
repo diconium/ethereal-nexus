@@ -6,9 +6,8 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches:
-      - main
-    branches-ignore:
-      - dependabot
+      - 'main'
+      - '!dependabot/**'
     paths:
       - 'web/dashboard/**'
       - '.github/workflows/dashboard-preview.yml'

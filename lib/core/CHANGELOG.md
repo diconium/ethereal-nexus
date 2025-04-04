@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.8.0
+
+### Minor Changes
+
+- e3161c4: Include tags on the dialog schema.
+
 ## 1.7.2
 
 ### Patch Changes

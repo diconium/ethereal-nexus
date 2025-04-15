@@ -4,8 +4,19 @@ import fs from 'node:fs';
 import path from 'path';
 
 const config = await getConfig()
+
+const getAuthHeader = (auth: string | undefined): string => {
+  if (auth?.startsWith("bearer")) {
+    return auth;
+  }
+  if (auth?.startsWith("apikey")) {
+    return auth;
+  }
+  return `apikey ${auth}`;
+};
+
 const nexusApi = wretch(config?.url)
-  .auth(`apikey ${config?.auth}`)
+  .auth(getAuthHeader(config?.auth));
 
 const publish = async (filePath: string) => {
   const form = new FormData();

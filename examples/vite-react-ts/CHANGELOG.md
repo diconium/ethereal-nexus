@@ -1,5 +1,14 @@
 # remote-components-vite-react-ts
 
+## 0.3.6
+
+### Patch Changes
+
+- Updated dependencies [3bc5e62]
+- Updated dependencies [205469c]
+  - @ethereal-nexus/core@1.9.0
+  - @ethereal-nexus/react@0.1.2
+
 ## 0.3.5
 
 ### Patch Changes

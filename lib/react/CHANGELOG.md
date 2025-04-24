@@ -1,5 +1,11 @@
 # @ethereal-nexus/react
 
+## 0.1.2
+
+### Patch Changes
+
+- 205469c: Changed slot to allow the prop drill to nexus components inside experience fragments
+
 ## 0.1.1
 
 ### Patch Changes

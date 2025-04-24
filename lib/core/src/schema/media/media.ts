@@ -17,11 +17,12 @@ type ImageTypes = 'image/gif' | 'image/jpeg' | 'image/png' | 'image/tiff' | 'ima
 type VideoTypes = 'video/mp4' | 'video/webm' | 'video/ogg';
 type PDFTypes = 'application/pdf';
 type ZipTypes = 'application/zip' | 'application/x-zip-compressed' | 'application/x-zip' | 'application/x-compressed' | 'multipart/x-zip';
+type CSVType = 'text/csv';
 
 
 interface MediaInput extends BaseFieldInput {
   defaultValue?: string;
-  allowedMimeTypes?: ( PDFTypes | ZipTypes | ImageTypes | VideoTypes )[];
+  allowedMimeTypes?: ( PDFTypes | ZipTypes | ImageTypes | VideoTypes | CSVType)[];
 }
 
 export function media(input: MediaInput): MediaSchema {

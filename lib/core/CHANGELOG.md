@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.9.0
+
+### Minor Changes
+
+- 3bc5e62: add support for CSV mime type in MediaInput allowedMimeTypes
+
 ## 1.8.0
 
 ### Minor Changes

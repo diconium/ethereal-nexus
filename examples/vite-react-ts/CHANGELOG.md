@@ -1,5 +1,18 @@
 # remote-components-vite-react-ts
 
+## 0.4.0
+
+### Minor Changes
+
+- 956422d: Introduced configurable options in the pathbrowser to enable folder-only selection.
+
+### Patch Changes
+
+- 956422d: Resolved an issue where the calendar did not display the date in the specified format.
+- Updated dependencies [956422d]
+- Updated dependencies [956422d]
+  - @ethereal-nexus/core@1.10.0
+
 ## 0.3.6
 
 ### Patch Changes

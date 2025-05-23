@@ -12,7 +12,6 @@ import {
   inviteSchema,
   NewApiKey,
   newApiKeySchema,
-  NewCredentialsUser,
   newCredentialsUserSchema,
   NewInvite,
   newInviteSchema,
@@ -39,10 +38,25 @@ import { lowestPermission } from '@/data/users/permission-utils';
 import { auth, signIn, signOut } from '@/auth';
 import process from 'node:process';
 import { AuthError } from 'next-auth';
+import { cookies } from 'next/headers';
 
-type Providers = 'credentials' | 'github' | 'microsoft-entra-id' | 'azure-communication-service';
+type Providers = 'credentials' | 'github' | 'microsoft-entra-id' | 'azure-communication-service' | 'keycloak';
 
 export async function login(provider: Providers, login?: UserLogin) {
+
+  // Check for 'cli-callback' cookie and use its value for redirectTo if present
+  let redirectTo = '/';
+  try {
+    const cookieStore = await cookies();
+    const cliCallback = cookieStore.get('cli-callback');
+    console.log('cli-callback cookie:', cliCallback);
+    if (cliCallback?.value) {
+      redirectTo = "/api/v1/cli-auth/callback";
+    }
+  } catch (e) {
+    // fallback to default redirectTo
+  }
+
   try {
     await signIn(
       provider,
@@ -50,7 +64,7 @@ export async function login(provider: Providers, login?: UserLogin) {
         email: login?.email,
         identifier: login?.email,
         password: login?.password,
-        redirectTo: '/'
+        redirectTo
       },
       {
         signin_type: 'login'
@@ -161,23 +175,67 @@ export async function insertInvitedCredentialsUser(
 export async function insertInvitedSsoUser(
   user: any
 ): ActionResponse<PublicUser> {
-  const safeUser = newUserSchema.safeParse(user);
-  if (!safeUser.success) {
-    return actionZodError('Failed to parse user input.', safeUser.error);
+  console.log("insertInvitedSsoUser input:", user);
+
+  try {
+    const safeUser = newUserSchema.safeParse(user);
+    if (!safeUser.success) {
+      console.error("Failed to parse user input:", safeUser.error);
+
+      // Try to create a valid user object with the available data
+      const email = user.email;
+      if (!email) {
+        return actionError('Email is required for SSO login.');
+      }
+
+      const validUser = {
+        email,
+        name: user.name || user.preferred_username || email.split('@')[0],
+        image: user.image || user.avatar_url || user.picture,
+        type: 'oauth',
+        emailVerified: new Date()
+      };
+
+      console.log("Created valid user object:", validUser);
+
+      // Try again with the valid user object
+      const retryParse = newUserSchema.safeParse(validUser);
+      if (!retryParse.success) {
+        console.error("Still failed to parse user input:", retryParse.error);
+        return actionZodError('Failed to parse user input.', retryParse.error);
+      }
+
+      // Use the valid user object
+      user = retryParse.data;
+    } else {
+      user = safeUser.data;
+    }
+
+    const email = user.email;
+
+    // Check for an invite
+    const invite = await db
+      .select({ id: invites.id, email: invites.email, key: invites.key })
+      .from(invites)
+      .where(eq(invites.email, email!));
+
+    if (invite.length > 0) {
+      console.log("Found invite for email:", email);
+      await deleteInvite(invite[0].key);
+    } else {
+      console.log("No invite found for email:", email);
+      // For Keycloak, we might want to allow users without invites
+      // Check if this is a Keycloak login
+      if (process.env.ALLOW_SSO_WITHOUT_INVITE !== 'true') {
+        return actionError('No invite matches the email.');
+      }
+    }
+
+    return insertUser(user);
+  } catch (error) {
+    console.error("Error in insertInvitedSsoUser:", error);
+    return actionError('Failed to process SSO login.');
   }
-  const email = safeUser.data.email;
-
-  const invite = await db
-    .select({ id: invites.id, email: invites.email, key: invites.key })
-    .from(invites)
-    .where(eq(invites.email, email!));
-
-  if (invite.length === 0) {
-    return actionError('No invite matches the email.');
-  }
-  await deleteInvite(invite[0].key);
-
-  return insertUser(safeUser.data);
 }
 
 export async function insertServiceUser(
@@ -465,7 +523,8 @@ export async function upsertApiKey(
 }
 
 export async function getApiKeys(
-  userId?: string
+  userId?: string,
+  omitKey: boolean = true
 ): ActionResponse<z.infer<typeof apiKeyPublicSchema>[]> {
   const input = userIdSchema.safeParse({ id: userId });
   if (!input.success) {
@@ -479,8 +538,10 @@ export async function getApiKeys(
       .from(apiKeys)
       .where(eq(apiKeys.user_id, id));
 
-    const safe = z.array(apiKeyPublicSchema).safeParse(select);
+    const safe = z.array(omitKey?apiKeyPublicSchema:apiKeySchema).safeParse(select);
+
     if (!safe.success) {
+      console.error('Failed to parse API keys:', safe.error);
       return actionZodError(
         'There\'s an issue with the api keys records.',
         safe.error

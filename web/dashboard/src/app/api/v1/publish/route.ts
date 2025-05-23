@@ -13,7 +13,7 @@ const storage = new EtherealStorage();
 export const POST = async (request) => {
   let conflictingAssets = false;
   const filesMap = new Map<string, string>()
-  const user = await authenticatedWithApiKeyUser();
+  const user = await authenticatedWithApiKeyUser(request);
 
   const userId = user?.id;
   if (!userId) {

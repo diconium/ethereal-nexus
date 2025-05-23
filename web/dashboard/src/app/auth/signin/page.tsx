@@ -10,6 +10,7 @@ export default async function AuthenticationPage() {
     process.env.AUTH_GITHUB_SECRET ? 'github' : false,
     process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET ? 'microsoft-entra-id' : false,
     process.env.COMMUNICATION_SERVICES_CONNECTION_STRING ? 'azure-communication-service' : false,
+    process.env.KEYCLOAK_CLIENT_ID && process.env.KEYCLOAK_CLIENT_SECRET && process.env.KEYCLOAK_ISSUER ? 'keycloak' : false,
   ]
     .filter(Boolean) as ('credentials' | 'github' | 'microsoft-entra-id' | 'azure-communication-service' | false)[]
 

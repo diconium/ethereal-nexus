@@ -15,7 +15,7 @@ import { MagicWandIcon } from '@radix-ui/react-icons';
 
 type UserFormProps = {
   onComplete?: () => void
-  providers: ('credentials' | 'github' | 'microsoft-entra-id' | 'azure-communication-service' | false)[]
+  providers: ('credentials' | 'github' | 'microsoft-entra-id' | 'azure-communication-service'| 'keycloak' | false)[]
 }
 
 export default function LoginForm({ providers }: UserFormProps) {
@@ -160,6 +160,23 @@ export default function LoginForm({ providers }: UserFormProps) {
               Microsoft
         </span>
         </Button>
+
+        {providers.includes('keycloak') ?
+
+          <Button
+            disabled={!providers.includes('keycloak')}
+            variant="outline"
+            className="flex space-x-2 items-center justify-start"
+            type="submit"
+            onClick={() => login('keycloak')}
+          >
+            {/*<Microsoft className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />*/}
+            <span className="text-neutral-700 dark:text-neutral-300 text-sm">
+              SSO
+        </span>
+          </Button> :
+          null
+        }
       </div>
     </>
   );

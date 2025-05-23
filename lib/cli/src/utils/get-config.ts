@@ -1,6 +1,7 @@
 import path from "path"
 import { cosmiconfig } from "cosmiconfig"
 import { z } from "zod"
+import { promises as fs } from 'fs'
 
 export const DEFAULT_PATH = "./dist/.ethereal"
 
@@ -10,8 +11,10 @@ export const configSchema = z
   .object({
     $schema: z.string().optional(),
     url: z.string(),
-    auth: z.string(),
-    path: z.string().optional()
+    auth: z.string().optional(),
+    token: z.string().optional(),
+    path: z.string().optional(),
+    authType: z.enum(['keycloak']).optional(),
   })
   .strict()
 
@@ -26,6 +29,7 @@ export async function getRawConfig(cwd: string): Promise<Config | null> {
 
     return configSchema.parse(configResult.config)
   } catch (error) {
+    console.error(error.message)
     throw new Error(`Invalid configuration found in ${cwd}/components.json.`)
   }
 }
@@ -47,4 +51,11 @@ export async function getConfig() {
   }
 
   return await resolveConfigPaths(cwd, config)
+}
+
+export async function saveConfig(config: Config) {
+  const cwd = path.resolve(process.cwd())
+  const targetPath = path.resolve(cwd, ".etherealrc")
+  await fs.writeFile(targetPath, JSON.stringify(config, null, 2), "utf8")
+  return config
 }

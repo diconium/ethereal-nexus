@@ -1,13 +1,16 @@
 import { getApiKeyByKey, getServiceUser } from '@/data/users/actions';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { decodeJwt } from 'jose';
 import * as client from 'openid-client';
+import { auth } from '@/auth';
+import { getToken, decode } from 'next-auth/jwt';
+import process from 'node:process';
 
 export const DEFAULT_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Headers': 'Authorization, Origin, X-Requested-With, Content-Type, Accept'
+  'Access-Control-Allow-Headers': 'Authorization, Origin, X-Requested-With, Content-Type, Accept',
 };
 
 export enum HttpStatus {
@@ -21,7 +24,36 @@ export enum HttpStatus {
   INTERNAL_SERVER_ERROR = 500,
 }
 
-export async function authenticatedWithApiKeyUser() {
+export async function keyCloakIntrospect(token: JWT | null) {
+  const config = await client.discovery(
+    new URL(process.env.KEYCLOAK_ISSUER),
+    process.env.KEYCLOAK_CLIENT_ID,
+    {
+      client_secret: process.env.KEYCLOAK_CLIENT_SECRET,
+    },
+  );
+
+
+  const introspection = await client.tokenIntrospection(config, token.access_token);
+  return introspection;
+}
+
+export async function keyCloakRefresh(token: JWT | null) {
+  const config = await client.discovery(
+    new URL(process.env.KEYCLOAK_ISSUER),
+    process.env.KEYCLOAK_CLIENT_ID,
+    {
+      client_secret: process.env.KEYCLOAK_CLIENT_SECRET,
+    },
+  );
+
+
+  const refresh = await client.refreshTokenGrant(config, token.refresh_token);
+  console.log('refreshTokenGrant', refresh);
+  return refresh;
+}
+
+export async function authenticatedWithApiKeyUser(req?: NextRequest) {
   const headersList = await headers();
   const authorization = headersList.get('authorization');
 
@@ -29,30 +61,63 @@ export async function authenticatedWithApiKeyUser() {
     return null;
   }
 
-  const [type, token] = authorization.split(' ');
+  if (req && process.env.KEYCLOAK_CLIENT_ID && process.env.KEYCLOAK_CLIENT_SECRET && process.env.KEYCLOAK_ISSUER) {
+    console.log('Keycloak instance must validate user');
 
-  switch (type.toLowerCase()) {
-    case 'apikey':
-      return handleApiKeyAuthentication(token);
-    case 'bearer':
-      return handleBearerAuthentication(token);
-    default:
+    const session = await auth();
+    if (!session) {
+      console.log('No session found');
       return null;
+    }
+
+    // const token = await getToken({ req, secret: process.env.AUTH_SECRET });
+  //
+  //   console.log('my Token', token);
+  //   console.log('my session', session);
+  //   const introspection = await keyCloakIntrospect(token);
+  //
+  //   console.log('introspection', introspection);
+  //
+  //   if (!introspection.active) {
+  //     NextResponse.json('Token is not active.', {
+  //       status: HttpStatus.UNAUTHORIZED,
+  //     });
+  //     return;
+  //   }
+  //
+  //   if (!token) {
+  //     console.log('No token found');
+  //     return null;
+  //   }
+  //
+  //   console.log('Session', session);
   }
+
+    const [type, token] = authorization.split(' ');
+
+    switch (type.toLowerCase()) {
+      case 'apikey':
+        return handleApiKeyAuthentication(token);
+      case 'bearer':
+        return handleBearerAuthentication(token);
+      default:
+        return null;
+    }
+
 }
 
 async function handleApiKeyAuthentication(token: string) {
   const apiKey = await getApiKeyByKey(token);
   if (!apiKey.success) {
     NextResponse.json(apiKey.error, {
-      status: HttpStatus.FORBIDDEN
+      status: HttpStatus.FORBIDDEN,
     });
     return;
   }
 
   return {
     id: apiKey.data.user_id,
-    permissions: apiKey.data.permissions
+    permissions: apiKey.data.permissions,
   };
 }
 
@@ -61,15 +126,15 @@ async function handleBearerAuthentication(token: string) {
     const { iss, sub } = decodeJwt(token);
     if (!iss || !sub) {
       NextResponse.json('Invalid OAuth credentials.', {
-        status: HttpStatus.FORBIDDEN
+        status: HttpStatus.FORBIDDEN,
       });
       return;
     }
 
     const serviceUser = await getServiceUser(iss, sub);
-    if(!serviceUser.success) {
+    if (!serviceUser.success) {
       NextResponse.json('User not found.', {
-        status: HttpStatus.NOT_FOUND
+        status: HttpStatus.NOT_FOUND,
       });
       return;
     }
@@ -84,14 +149,14 @@ async function handleBearerAuthentication(token: string) {
       undefined,
       {
         execute: [
-          client.allowInsecureRequests
+          client.allowInsecureRequests,
         ],
-      }
+      },
     );
     const introspection = await client.tokenIntrospection(config, token);
     if (!introspection.active) {
       NextResponse.json('Token is not active.', {
-        status: HttpStatus.UNAUTHORIZED
+        status: HttpStatus.UNAUTHORIZED,
       });
       return;
     }
@@ -102,7 +167,7 @@ async function handleBearerAuthentication(token: string) {
   } catch (error) {
     console.error(error);
     NextResponse.json(error, {
-      status: HttpStatus.FORBIDDEN
+      status: HttpStatus.FORBIDDEN,
     });
     return;
   }

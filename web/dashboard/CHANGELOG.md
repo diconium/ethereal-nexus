@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 2.0.0
+
+### Major Changes
+
+- 9f1d2bf: Removed the information about component and version from the asset url that is deployed to the bucket.
+
 ## 1.8.2
 
 ### Patch Changes

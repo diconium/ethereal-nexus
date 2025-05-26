@@ -16,6 +16,11 @@ export async function GET(req: NextRequest) {
   if (token) {
     const redirectUrl = new URL(callbackUrl);
     redirectUrl.searchParams.set('token', token);
+
+    // Delete the cli-callback cookie as it's no longer needed
+    const cookieStore = await cookies();
+    cookieStore.delete('cli-callback');
+
     return NextResponse.redirect(redirectUrl);
   } else {
     // Not Signed in

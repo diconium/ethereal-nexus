@@ -4,8 +4,11 @@ import { headers } from 'next/headers';
 import { decodeJwt } from 'jose';
 import * as client from 'openid-client';
 import { auth } from '@/auth';
-import { getToken, decode } from 'next-auth/jwt';
 import process from 'node:process';
+
+const KEYCLOAK_ISSUER = process.env.KEYCLOAK_ISSUER;
+const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID;
+const KEYCLOAK_CLIENT_SECRET = process.env.KEYCLOAK_CLIENT_SECRET;
 
 export const DEFAULT_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -25,25 +28,36 @@ export enum HttpStatus {
 }
 
 export async function keyCloakIntrospect(token: JWT | null) {
+  if (!KEYCLOAK_ISSUER) {
+    throw new Error('KEYCLOAK_ISSUER environment variable is not defined');
+  }
+  if (!KEYCLOAK_CLIENT_ID) {
+    throw new Error('KEYCLOAK_CLIENT_ID environment variable is not defined');
+  }
   const config = await client.discovery(
-    new URL(process.env.KEYCLOAK_ISSUER),
-    process.env.KEYCLOAK_CLIENT_ID,
+    new URL(KEYCLOAK_ISSUER),
+    KEYCLOAK_CLIENT_ID,
     {
-      client_secret: process.env.KEYCLOAK_CLIENT_SECRET,
+      client_secret: KEYCLOAK_CLIENT_SECRET,
     },
   );
 
 
-  const introspection = await client.tokenIntrospection(config, token.access_token);
-  return introspection;
+  return await client.tokenIntrospection(config, token.access_token);
 }
 
 export async function keyCloakRefresh(token: JWT | null) {
+  if (!KEYCLOAK_ISSUER) {
+    throw new Error('KEYCLOAK_ISSUER environment variable is not defined');
+  }
+  if (!KEYCLOAK_CLIENT_ID) {
+    throw new Error('KEYCLOAK_CLIENT_ID environment variable is not defined');
+  }
   const config = await client.discovery(
-    new URL(process.env.KEYCLOAK_ISSUER),
-    process.env.KEYCLOAK_CLIENT_ID,
+    new URL(KEYCLOAK_ISSUER),
+    KEYCLOAK_CLIENT_ID,
     {
-      client_secret: process.env.KEYCLOAK_CLIENT_SECRET,
+      client_secret: KEYCLOAK_CLIENT_SECRET,
     },
   );
 
@@ -61,7 +75,7 @@ export async function authenticatedWithApiKeyUser(req?: NextRequest) {
     return null;
   }
 
-  if (req && process.env.KEYCLOAK_CLIENT_ID && process.env.KEYCLOAK_CLIENT_SECRET && process.env.KEYCLOAK_ISSUER) {
+  if (req && KEYCLOAK_CLIENT_SECRET && KEYCLOAK_CLIENT_SECRET && KEYCLOAK_ISSUER) {
     console.log('Keycloak instance must validate user');
 
     const session = await auth();
@@ -69,29 +83,6 @@ export async function authenticatedWithApiKeyUser(req?: NextRequest) {
       console.log('No session found');
       return null;
     }
-
-    // const token = await getToken({ req, secret: process.env.AUTH_SECRET });
-  //
-  //   console.log('my Token', token);
-  //   console.log('my session', session);
-  //   const introspection = await keyCloakIntrospect(token);
-  //
-  //   console.log('introspection', introspection);
-  //
-  //   if (!introspection.active) {
-  //     NextResponse.json('Token is not active.', {
-  //       status: HttpStatus.UNAUTHORIZED,
-  //     });
-  //     return;
-  //   }
-  //
-  //   if (!token) {
-  //     console.log('No token found');
-  //     return null;
-  //   }
-  //
-  //   console.log('Session', session);
-  }
 
     const [type, token] = authorization.split(' ');
 
@@ -104,6 +95,7 @@ export async function authenticatedWithApiKeyUser(req?: NextRequest) {
         return null;
     }
 
+  }
 }
 
 async function handleApiKeyAuthentication(token: string) {

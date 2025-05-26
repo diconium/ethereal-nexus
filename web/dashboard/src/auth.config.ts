@@ -130,6 +130,9 @@ export const authConfig = {
               return user.data
             }
           }
+          else {
+            console.log('User not found or password not set');
+          }
         }
         return null;
       }
@@ -149,6 +152,7 @@ export const authConfig = {
       from: process.env.EMAIL_FROM,
     }),
     KeycloakProvider({
+      allowDangerousEmailAccountLinking: true,
       clientId: process.env.KEYCLOAK_CLIENT_ID,
       clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
       issuer: process.env.KEYCLOAK_ISSUER,
@@ -171,28 +175,24 @@ export const authConfig = {
     },
     async jwt(t) {
       const { token, user, account } = t;
-
-      // console.log('jwt', t);
-
       if (token?.access_token) {
-        console.log('validating access_token');
+        console.debug('validating access_token', token.sub);
         const introspectionResponse = await keyCloakIntrospect(token);
         if (!introspectionResponse.active) {
-          console.log('token is not valid');
-          console.log('trying to use refresh token');
+          console.debug('token is not valid', token.sub);
+          console.debug('trying to use refresh token', token.sub);
           const refreshResponse = await keyCloakRefresh(token);
 
           if(!refreshResponse.access_token) {
-            console.log('refresh token is not valid');
-            return false;
+            console.debug('refresh token is not valid');
+            return null;
           }
           token.access_token = refreshResponse.access_token;
           return token;
         }
-        console.log('token is valid');
+        console.debug('token is valid', token.sub);
       }
 
-      //TODO: introspect if keycloak
 
       const dbUser = await getUserByEmail(token.email);
       if (user && dbUser.success) {

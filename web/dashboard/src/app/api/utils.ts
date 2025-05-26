@@ -5,6 +5,7 @@ import { decodeJwt } from 'jose';
 import * as client from 'openid-client';
 import { auth } from '@/auth';
 import process from 'node:process';
+import { JWT } from 'next-auth/jwt';
 
 const KEYCLOAK_ISSUER = process.env.KEYCLOAK_ISSUER;
 const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID;
@@ -42,8 +43,12 @@ export async function keyCloakIntrospect(token: JWT | null) {
     },
   );
 
-
-  return await client.tokenIntrospection(config, token.access_token);
+  if (token) {
+    if (token.access_token && typeof token.access_token === 'string') {
+      return await client.tokenIntrospection(config, token.access_token);
+    }
+  }
+  throw new Error('Token is required for introspection');
 }
 
 export async function keyCloakRefresh(token: JWT | null) {

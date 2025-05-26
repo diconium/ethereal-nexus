@@ -63,7 +63,7 @@ export async function keyCloakRefresh(token: JWT | null) {
 
 
   const refresh = await client.refreshTokenGrant(config, token.refresh_token);
-  console.log('refreshTokenGrant', refresh);
+  console.log('token refreshed');
   return refresh;
 }
 

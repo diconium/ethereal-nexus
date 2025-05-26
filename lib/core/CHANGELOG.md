@@ -1,5 +1,15 @@
 # @ethereal-nexus/core
 
+## 1.11.0
+
+### Minor Changes
+
+- 06f5b7d: Introduced configurable options in the pathbrowser to enable folder-only selection.
+
+### Patch Changes
+
+- 06f5b7d: Resolved an issue where the calendar did not display the date in the specified format.
+
 ## 1.10.0
 
 ### Minor Changes

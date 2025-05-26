@@ -85,7 +85,7 @@ export async function authenticatedWithApiKeyUser(req?: NextRequest) {
     return null;
   }
 
-  if (req && KEYCLOAK_CLIENT_SECRET && KEYCLOAK_CLIENT_SECRET && KEYCLOAK_ISSUER) {
+  if (req && KEYCLOAK_CLIENT_SECRET && KEYCLOAK_CLIENT_ID && KEYCLOAK_ISSUER) {
     console.log('Keycloak instance must validate user');
 
     const session = await auth();

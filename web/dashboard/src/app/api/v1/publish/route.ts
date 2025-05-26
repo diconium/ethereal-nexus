@@ -83,7 +83,7 @@ export const POST = async (request) => {
       if (fileName.endsWith('.js') || fileName.endsWith('.css')) {
         const urlObject = await storage.uploadToStorage(
           content,
-          `${slug}/${version.version}`,
+          ``,
           fileName
         );
 

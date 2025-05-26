@@ -67,9 +67,14 @@ export async function keyCloakRefresh(token: JWT | null) {
   );
 
 
-  const refresh = await client.refreshTokenGrant(config, token.refresh_token);
-  console.log('token refreshed');
-  return refresh;
+  if (token) {
+    if (token.refresh_token && typeof token.refresh_token === 'string') {
+      const refresh = await client.refreshTokenGrant(config, token.refresh_token);
+      console.log('token refreshed');
+      return refresh;
+    }
+  }
+  throw new Error('Token is required for introspection');
 }
 
 export async function authenticatedWithApiKeyUser(req?: NextRequest) {

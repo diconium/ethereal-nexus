@@ -7,6 +7,9 @@
     "dev": "vite",
     "preview": "vite preview --port 8080",
     "build": "vite build",
+    "login": "ethereal auth login --port 3004",
+    "keys": "ethereal authkeys keys",
+    "logout": "ethereal auth logout",
     "publish": "ethereal publish --all",
     "build+publish": "vite build && ethereal publish --all"
   },
@@ -14,7 +17,7 @@
     "@ethereal-nexus/core": "workspace:*",
     "@ethereal-nexus/react": "workspace:*",
     "@vidstack/react": "^1.12.12",
-    "react": "^18.3.0",
+    "react": "^18.3.1",
     "react-dom": "^18.3.0"
   },
   "devDependencies": {

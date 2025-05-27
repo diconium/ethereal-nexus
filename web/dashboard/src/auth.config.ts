@@ -3,6 +3,7 @@ import * as bcrypt from 'bcryptjs';
 import Credential from 'next-auth/providers/credentials';
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 import GitHubProvider from 'next-auth/providers/github';
+import KeycloakProvider from "next-auth/providers/keycloak";
 import { User, userLoginSchema } from '@/data/users/dto';
 import { getUserByEmail, getUserById, insertInvitedSsoUser } from '@/data/users/actions';
 import { getMembersByUser } from '@/data/member/actions';
@@ -14,6 +15,7 @@ import Azure from '@/utils/providers/azure';
 import { accounts, users, verificationTokens } from '@/data/users/schema';
 import process from 'node:process';
 import { AdapterUser } from "next-auth/adapters";
+import { keyCloakIntrospect, keyCloakRefresh } from '@/app/api/utils';
 
 declare module "next-auth/jwt" {
   /** Returned by the `jwt` callback and `auth`, when using JWT sessions */
@@ -38,19 +40,45 @@ declare module "next-auth" {
 }
 
 async function handleSSOLogin(user: AdapterUser, profile?: Profile) {
+  console.log("handleSSOLogin", {user, profile});
+
+  // More detailed logging for debugging
+  console.log("Profile details:", {
+    email: profile?.email,
+    name: profile?.name,
+    image: profile?.avatar_url || profile?.picture,
+    profile_keys: profile ? Object.keys(profile) : [],
+    user_exists: !!user
+  });
+
   if (!user && profile) {
-    const insert = await insertInvitedSsoUser({
-      email: profile.email,
-      name: profile.name,
-      image: profile.avatar_url,
-      email_verified: new Date()
-    });
-    return insert.success;
+    try {
+      // For Keycloak, the profile structure might be different
+      const email = profile.email;
+      const name = profile.name || profile.preferred_username;
+      const image = profile.avatar_url || profile.picture;
+
+      console.log("Attempting to insert SSO user:", { email, name, image });
+
+      const insert = await insertInvitedSsoUser({
+        email,
+        name,
+        image,
+        email_verified: new Date()
+      });
+
+      console.log("Insert result:", insert);
+      return insert.success;
+    } catch (error) {
+      console.error("Error in handleSSOLogin:", error);
+      return false;
+    }
   }
   return true;
 }
 
 function handleCredentialsLogin(user: AdapterUser) {
+  console.log("handleCredentialsLogin", {user})
   if(!user) {
     return false;
   }
@@ -63,6 +91,7 @@ function handleCredentialsLogin(user: AdapterUser) {
 
 export const authConfig = {
   trustHost: true,
+  debug: true,
   session: {
     strategy: 'jwt',
   },
@@ -101,6 +130,9 @@ export const authConfig = {
               return user.data
             }
           }
+          else {
+            console.log('User not found or password not set');
+          }
         }
         return null;
       }
@@ -119,6 +151,12 @@ export const authConfig = {
       connectionString: process.env.COMMUNICATION_SERVICES_CONNECTION_STRING,
       from: process.env.EMAIL_FROM,
     }),
+    KeycloakProvider({
+      allowDangerousEmailAccountLinking: true,
+      clientId: process.env.KEYCLOAK_CLIENT_ID,
+      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
+      issuer: process.env.KEYCLOAK_ISSUER,
+    })
   ],
   callbacks: {
     async signIn({user, profile, account}) {
@@ -129,16 +167,43 @@ export const authConfig = {
           return handleCredentialsLogin(user as AdapterUser);
         case "github":
         case "microsoft-entra-id":
+        case "keycloak":
           return await handleSSOLogin(user as AdapterUser, profile);
         default:
           return false;
       }
     },
-    async jwt({ token, user }) {
+    async jwt(t) {
+      const { token, user, account } = t;
+      if (token?.access_token) {
+        console.debug('validating access_token', token.sub);
+        const introspectionResponse = await keyCloakIntrospect(token);
+        if (!introspectionResponse.active) {
+          console.debug('token is not valid', token.sub);
+          console.debug('trying to use refresh token', token.sub);
+          const refreshResponse = await keyCloakRefresh(token);
+
+          if(!refreshResponse.access_token) {
+            console.debug('refresh token is not valid');
+            return null;
+          }
+          token.access_token = refreshResponse.access_token;
+          return token;
+        }
+        console.debug('token is valid', token.sub);
+      }
+
+
       const dbUser = await getUserByEmail(token.email);
       if (user && dbUser.success) {
         token.sub = dbUser.data.id;
       }
+
+      if(account?.provider==="keycloak") {
+        token.access_token = account.access_token;
+        token.refresh_token = account.refresh_token;
+      }
+
       return token
     },
     async session({ session, token }) {

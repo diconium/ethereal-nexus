@@ -1,5 +1,11 @@
 # @ethereal-nexus/cli
 
+## 1.1.0
+
+### Minor Changes
+
+- 372fe63: Keycloak integration with CLI
+
 ## 1.0.2
 
 ### Patch Changes

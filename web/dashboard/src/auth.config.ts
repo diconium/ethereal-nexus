@@ -151,12 +151,14 @@ export const authConfig = {
       connectionString: process.env.COMMUNICATION_SERVICES_CONNECTION_STRING,
       from: process.env.EMAIL_FROM,
     }),
-    KeycloakProvider({
-      allowDangerousEmailAccountLinking: true,
-      clientId: process.env.KEYCLOAK_CLIENT_ID,
-      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
-      issuer: process.env.KEYCLOAK_ISSUER,
-    })
+    ...(process.env.KEYCLOAK_CLIENT_ID && process.env.KEYCLOAK_CLIENT_SECRET && process.env.KEYCLOAK_ISSUER ? [
+      KeycloakProvider({
+        allowDangerousEmailAccountLinking: true,
+        clientId: process.env.KEYCLOAK_CLIENT_ID,
+        clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
+        issuer: process.env.KEYCLOAK_ISSUER,
+      })
+    ] : [])
   ],
   callbacks: {
     async signIn({user, profile, account}) {

@@ -1,5 +1,11 @@
 # remote-components-vite-react-ts
 
+## 0.6.0
+
+### Minor Changes
+
+- 372fe63: Keycloak integration with CLI
+
 ## 0.5.0
 
 ### Minor Changes

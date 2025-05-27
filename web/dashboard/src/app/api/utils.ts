@@ -93,7 +93,7 @@ export async function authenticatedWithApiKeyUser(req?: NextRequest) {
       console.log('No session found');
       return null;
     }
-
+  }
     const [type, token] = authorization.split(' ');
 
     switch (type.toLowerCase()) {
@@ -103,8 +103,6 @@ export async function authenticatedWithApiKeyUser(req?: NextRequest) {
         return handleBearerAuthentication(token);
       default:
         return null;
-    }
-
   }
 }
 

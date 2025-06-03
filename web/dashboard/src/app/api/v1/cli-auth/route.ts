@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { auth, signIn } from '@/auth';
 
 export async function GET(req: NextRequest) {
+  const baseUrl = process.env.NEXTAUTH_URL || req.nextUrl;
   const searchParams = req.nextUrl.searchParams;
   const callbackUrl = searchParams.get('callback');
 
@@ -25,5 +26,5 @@ export async function GET(req: NextRequest) {
     return await signIn();
   }
 
-  return NextResponse.redirect(new URL('/api/v1/cli-auth/callback', req.url));
+  return NextResponse.redirect(new URL('/api/v1/cli-auth/callback', baseUrl));
 }

@@ -9,11 +9,14 @@ export async function GET(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.AUTH_SECRET, raw: true });
   const callbackUrl = (await cookies()).get('cli-callback')?.value;
 
+  console.log('Callback URL:', callbackUrl);
+
   if (!callbackUrl) {
     return NextResponse.json({ error: 'Callback URL is missing' }, { status: 400 });
   }
 
   if (token) {
+    console.log('Token found:', token);
     const redirectUrl = new URL(callbackUrl);
     redirectUrl.searchParams.set('token', token);
 
@@ -21,6 +24,7 @@ export async function GET(req: NextRequest) {
     const cookieStore = await cookies();
     cookieStore.delete('cli-callback');
 
+    console.log('Redirecting to:', redirectUrl);
     return NextResponse.redirect(redirectUrl);
   } else {
     // Not Signed in

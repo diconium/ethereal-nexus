@@ -9,18 +9,19 @@ export async function GET(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.AUTH_SECRET, raw: true });
   const callbackUrl = (await cookies()).get('cli-callback')?.value;
 
+  console.log('request:', req);
   console.log('Callback URL:', callbackUrl);
+  console.log('token:', token);
 
   if (!callbackUrl) {
     return NextResponse.json({ error: 'Callback URL is missing' }, { status: 400 });
   }
 
   if (token) {
-    console.log('Token found:', token);
     const redirectUrl = new URL(callbackUrl);
     redirectUrl.searchParams.set('token', token);
 
-    // Delete the cli-callback cookie as it's no longer needed
+    // Delete the cli-callback cookie as it's no longer necessary
     const cookieStore = await cookies();
     cookieStore.delete('cli-callback');
 

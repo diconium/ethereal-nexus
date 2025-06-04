@@ -6,7 +6,9 @@ import { getToken } from 'next-auth/jwt';
 import process from 'node:process';
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET, raw: true });
+  const secret = process.env.AUTH_SECRET;
+  console.log('AUTH_SECRET:', secret);
+  const token = await getToken({ req, secret: secret, raw: true, secureCookie: true });
   const callbackUrl = (await cookies()).get('cli-callback')?.value;
 
   console.log('request:', req);

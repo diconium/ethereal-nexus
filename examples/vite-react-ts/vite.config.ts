@@ -22,7 +22,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        chunkFileNames: "[hash:16].js",
+        chunkFileNames: "[hash:16]-[name].js",
         manualChunks: {
           react: ['react']
         }

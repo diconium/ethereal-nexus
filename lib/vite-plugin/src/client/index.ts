@@ -1,7 +1,6 @@
 import { EmitFile, OutputBundle, OutputChunk, ParseAst, ProgramNode, RenderedChunk } from 'rollup';
 import MagicString from 'magic-string';
 import { simple } from 'acorn-walk';
-import { createHash } from 'crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getConfig } from '../config';
@@ -56,19 +55,14 @@ export function createClientCode(code: string, name: string, id: string, ast: Pr
 
 export function bundleClient(code: string, exposed: Map<string, string>, id: string, ast: ProgramNode, name: string, emitFile: EmitFile) {
   const clientCode = createClientCode(code, exposed.get(id)!, id, ast);
-  const fileId = `.ethereal/tmp/__etherealHelper__${name}`;
+  const fileId = `.ethereal/tmp/__etherealHelper__client__${name}`;
 
   setVirtual(fileId, clientCode.toString())
 
-  const hash = createHash('sha256')
-    .update(code)
-    .digest('hex')
-    .slice(0, 16);
-
   emitFile({
     type: 'chunk',
-    fileName: `.ethereal/${name}/${hash}-index.js`,
-    id: fileId
+    name: 'index',
+    id: fileId,
   });
 }
 
@@ -153,4 +147,16 @@ export function adjustChunkImport(chunk: RenderedChunk, code: string, parse: Par
   }
 
   return null;
+}
+
+export function moveNexusFileToFolder(bundle: OutputBundle) {
+  Object.values(bundle)
+    .filter(value => value.type === 'chunk' && value.facadeModuleId?.includes('.ethereal/tmp/__etherealHelper__client__'))
+    .forEach(value => {
+      const chunk = bundle[value.fileName];
+      if (chunk.type === 'chunk' && chunk.facadeModuleId?.includes('__etherealHelper__client__')) {
+        const name = chunk.facadeModuleId.split('.ethereal/tmp/__etherealHelper__client__')[1];
+        chunk.fileName = `.ethereal/${name}/${chunk.fileName}`;
+      }
+    });
 }

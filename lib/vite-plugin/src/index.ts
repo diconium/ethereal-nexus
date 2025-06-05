@@ -2,7 +2,7 @@ import { Plugin } from 'vite';
 import { EtherealPluginOptions } from './types';
 import { bundleSSR } from './server';
 import { extractDialog, generateManifest } from './manifest';
-import { adjustChunkImport, bundleClient, copyChunkFiles } from './client';
+import { adjustChunkImport, bundleClient, copyChunkFiles, moveNexusFileToFolder } from './client';
 import { cleanTemporary } from './utils';
 import { extractExposeInto } from './options';
 import { getConfig, setConfig } from './config';
@@ -61,7 +61,7 @@ export default function rollupEthereal(opts: EtherealPluginOptions): Plugin {
       return adjustChunkImport(chunk, code, this.parse);
     },
     async generateBundle(_, bundle) {
-      //Remove exposed component files
+      moveNexusFileToFolder(bundle);
       for (const entry of exposed.keys()) {
         delete bundle[entry.substring(1)];
       }

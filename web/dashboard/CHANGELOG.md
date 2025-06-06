@@ -1,5 +1,12 @@
 # @ethereal-nexus/dashboard
 
+## 2.2.0
+
+### Minor Changes
+
+- 41160bc: Adds more logs on cli auth
+- 9da1478: update redirect logic to use base URL from environment variables
+
 ## 2.1.0
 
 ### Minor Changes

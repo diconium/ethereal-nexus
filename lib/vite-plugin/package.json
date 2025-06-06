@@ -1,6 +1,6 @@
 {
   "name": "@ethereal-nexus/vite-plugin-ethereal-nexus",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "",
   "keywords": [
     "rollup-plugin"

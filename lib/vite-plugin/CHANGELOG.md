@@ -1,5 +1,11 @@
 # @ethereal-nexus/vite-plugin-ethereal-nexus
 
+## 1.0.15
+
+### Patch Changes
+
+- af42e26: fix: root nexus component file now update on chunk change
+
 ## 1.0.14
 
 ### Patch Changes

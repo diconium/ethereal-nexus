@@ -1,5 +1,11 @@
 # @ethereal-nexus/vite-plugin-ethereal-nexus
 
+## 1.0.16
+
+### Patch Changes
+
+- 77f613e: fix: added correct dependencies to the tar file
+
 ## 1.0.15
 
 ### Patch Changes

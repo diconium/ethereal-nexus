@@ -8,8 +8,14 @@ let nexusApi = wretch(config?.url)
 
 // If authType is keycloak and token exists, set the cookie
 if (config?.authType === 'keycloak' && config?.token) {
+  // Determine if the URL is using HTTPS
+  const isHttps = config?.url?.startsWith('https://');
+
+  // Set the appropriate cookie name based on the protocol
+  const cookieName = isHttps ? '__Secure-authjs.session-token' : 'authjs.session-token';
+
   nexusApi = nexusApi.headers({
-    'Cookie': `authjs.session-token=${config.token}`
+    'Cookie': `${cookieName}=${config.token}; Secure; HttpOnly; SameSite=Strict`
   })
 }
 

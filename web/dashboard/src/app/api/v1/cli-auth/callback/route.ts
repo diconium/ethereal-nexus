@@ -8,7 +8,7 @@ import process from 'node:process';
 export async function GET(req: NextRequest) {
   const secret = process.env.AUTH_SECRET;
   console.log('AUTH_SECRET:', secret);
-  const token = await getToken({ req, secret: secret, raw: true, secureCookie: true });
+  const token = await getToken({ req, secret: secret, raw: true, secureCookie: process.env.NODE_ENV === 'production' });
   const callbackUrl = (await cookies()).get('cli-callback')?.value;
 
   console.log('request:', req);

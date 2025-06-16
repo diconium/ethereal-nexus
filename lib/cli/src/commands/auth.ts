@@ -217,9 +217,15 @@ export const authKeys = new Command()
         : `${baseUrl}/api/v1/cli/apikeys`;
 
       try {
+        // Determine if the API keys URL is using HTTPS
+        const isHttps = apiKeysUrl.startsWith('https://');
+
+        // Set the appropriate cookie name based on the protocol
+        const cookieName = isHttps ? '__Secure-authjs.session-token' : 'authjs.session-token';
+
         const response = await fetch(apiKeysUrl, {
           headers: {
-            'Cookie': `authjs.session-token=${config.token}`
+            'Cookie': `${cookieName}=${config.token}; Secure; HttpOnly; SameSite=Strict`
           }
         });
 

@@ -1,5 +1,11 @@
 # @ethereal-nexus/cli
 
+## 1.2.0
+
+### Minor Changes
+
+- 61a6731: enhance cookie handling for secure API key retrieval based on protocol
+
 ## 1.1.0
 
 ### Minor Changes

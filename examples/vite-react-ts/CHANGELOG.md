@@ -1,5 +1,11 @@
 # remote-components-vite-react-ts
 
+## 0.7.0
+
+### Minor Changes
+
+- 61a6731: enhance cookie handling for secure API key retrieval based on protocol
+
 ## 0.6.0
 
 ### Minor Changes

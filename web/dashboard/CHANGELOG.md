@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 2.3.0
+
+### Minor Changes
+
+- 61a6731: enhance cookie handling for secure API key retrieval based on protocol
+
 ## 2.2.0
 
 ### Minor Changes

@@ -114,11 +114,6 @@ export type ProjectComponent = z.infer<typeof projectComponentsSchema>;
 
 export const projectComponentsWithDialogSchema = projectComponentsSchema
   .omit({ versions: true, config_id: true })
-  .extend(
-    {
-      dialog: componentVersionsSchema.shape.dialog.nullable()
-    }
-  );
 export const projectWithOwners = projectSchema
   .extend({
     has_access: z.boolean(),

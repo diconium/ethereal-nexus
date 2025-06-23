@@ -6,6 +6,7 @@ import { simple } from 'acorn-walk';
 import path from 'node:path';
 import { getConfig } from '../config';
 import svgr from 'esbuild-plugin-svgr'
+import { createHash } from 'node:crypto';
 
 const ignoreCssPlugin: EsbuildPlugin  = {
   name: 'empty-css-imports',
@@ -76,9 +77,15 @@ export async function bundleSSR(code: string, id: string, ast: ProgramNode, name
     write: false, // Do not write to disk
   });
 
+  const hash = createHash('sha256')
+    .update(code)
+    .digest('hex')
+    .slice(0, 16);
+
+
   emitFile({
     type: 'prebuilt-chunk',
-    fileName: `.ethereal/${name}/server.js`,
+    fileName: `.ethereal/${name}/${hash}-server.js`,
     code: result.outputFiles[0].text
   });
 }

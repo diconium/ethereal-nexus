@@ -417,8 +417,6 @@ export async function getActiveEnvironmentComponents(
         is_active: projectComponentConfig.is_active,
         version: sql`coalesce
             (${componentVersions.version}, ${latest_version.version})`,
-        dialog: sql`coalesce
-            (${componentVersions.dialog}, ${latest_version.dialog})`
       })
       .from(components)
       .leftJoin(

@@ -1,5 +1,11 @@
 # @ethereal-nexus/vite-plugin-ethereal-nexus
 
+## 1.1.0
+
+### Minor Changes
+
+- dfb413a: feat: implement hash-based file naming for prebuilt chunks
+
 ## 1.0.16
 
 ### Patch Changes

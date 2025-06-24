@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 2.4.0
+
+### Minor Changes
+
+- 9894831: removes dialog information from all components endpoint
+
 ## 2.3.0
 
 ### Minor Changes

@@ -7,7 +7,7 @@ on:
     branches: 
       [ main ]
     paths:
-    - '**'
+    - 'web/az-serve-static-assets-fn/**'
     - '.github/workflows/demo-ethereal-nexus-AutoDeployTrigger-d44f9c35-7929-4f9f-a7f5-d65966b9bd33.yml'
 
   # Allow manual trigger 

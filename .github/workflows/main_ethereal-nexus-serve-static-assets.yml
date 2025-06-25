@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'web/az-serve-static-assets-fn' # path to the Azure Function app
   NODE_VERSION: '22.x' # set this to the node version to use (supports 8.x, 10.x, 12.x)
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: read #This is required for actions/checkout
-      
+
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
@@ -41,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
 
   deploy:
     runs-on: windows-latest
@@ -55,7 +55,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -69,5 +69,4 @@ jobs:
         with:
           app-name: 'ethereal-nexus-serve-static-assets'
           slot-name: 'Production'
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          
+          package: '.'

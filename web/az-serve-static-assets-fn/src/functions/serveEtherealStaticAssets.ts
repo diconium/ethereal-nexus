@@ -1,6 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { BlobServiceClient } from '@azure/storage-blob';
-// import { DefaultAzureCredential } from '@azure/identity';
 
 const STORAGE_ACCOUNT_NAME = process.env.STORAGE_ACCOUNT_NAME;
 const CONTAINER_NAME = process.env.CONTAINER_NAME;
@@ -21,10 +20,8 @@ if (CONNECTION_STRING) {
 }
 
 
-export async function httpTrigger1(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export async function serveEtherealStaticAssets(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   console.log(`Http function processed request for url "${request.url}"`);
-
-
 
   // Extract the path after the function route
   // Example: /api/serve-static-asset/some/path/file.txt
@@ -89,9 +86,9 @@ export async function httpTrigger1(request: HttpRequest, context: InvocationCont
 
 };
 
-app.http('httpTrigger1', {
+app.http('serveEtherealStaticAssets', {
   methods: ['GET'],
   authLevel: 'anonymous',
   route: 'assets/{*assetPath}',
-  handler: httpTrigger1
+  handler: serveEtherealStaticAssets
 });

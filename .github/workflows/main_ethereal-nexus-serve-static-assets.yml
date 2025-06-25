@@ -20,15 +20,15 @@ jobs:
       contents: read #This is required for actions/checkout
 
     steps:
-      - name: 'Checkout GitHub Action'
+      - name: 'Checkout ethereal-nexus-serve-static-assets repository'
         uses: actions/checkout@v4
 
-      - name: Setup Node ${{ env.NODE_VERSION }} Environment
+      - name: Setup Node ${{ env.NODE_VERSION }} Environment for ethereal-nexus-serve-static-assets
         uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: 'Resolve Project Dependencies Using Npm'
+      - name: 'Resolve ethereal-nexus-serve-static-assets Dependencies Using Npm'
         shell: pwsh
         run: |
           pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
@@ -37,7 +37,7 @@ jobs:
           npm run test --if-present
           popd
 
-      - name: Upload artifact for deployment job
+      - name: Upload ethereal-nexus-serve-static-assets artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
@@ -51,21 +51,21 @@ jobs:
       contents: read #This is required for actions/checkout
 
     steps:
-      - name: Download artifact from build job
+      - name: Download ethereal-nexus-serve-static-assets artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: node-app
 
-      - name: Login to Azure
+      - name: Login to Azure for ethereal-nexus-serve-static-assets deployment
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_EC5E70A7063145CBB34CF1AABB18834E }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_8FB13116882B4EDEBA6D49C9E7BC480F }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_5BC33A588A19471E83381531FA6C9048 }}
 
-      - name: 'Run Azure Functions Action'
+      - name: 'Deploy ethereal-nexus-serve-static-assets to Azure Functions'
         uses: Azure/functions-action@v1
-        id: fa
+        id: ethereal-nexus-serve-static-assets
         with:
           app-name: 'ethereal-nexus-serve-static-assets'
           slot-name: 'Production'

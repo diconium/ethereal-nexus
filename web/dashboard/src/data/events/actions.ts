@@ -7,15 +7,23 @@ import {
   eventWithDiscriminatedUnions,
   NewEvent,
 } from '@/data/events/dto';
-import { events, eventsTypeEnum } from '@/data/events/schema';
+import { events } from '@/data/events/schema';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
-import { eq, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
 import { users } from '@/data/users/schema';
 import { components, componentVersions } from '@/data/components/schema';
 import { ActionResponse } from '@/data/action';
-import { projects } from '@/data/projects/schema';
+import { projectComponentConfig, projects } from '@/data/projects/schema';
 import { alias } from 'drizzle-orm/pg-core';
+import { Environment } from '../projects/dto';
 
+interface EventFilterProps {
+  userFilter: string;
+  initialDateFilter: string;
+  finalDateFilter: string;
+  componentFilter: String;
+  onlyActive: String;
+}
 
 export const insertEvent = async (event: NewEvent) => {
   try {
@@ -30,6 +38,8 @@ export const insertEvent = async (event: NewEvent) => {
 export async function getResourceEvents(
   resourceId: string,
   limit = 50,
+  filter : EventFilterProps,
+  environment?: Environment
 ): ActionResponse<EventWithDiscriminatedUnions[]> {
 
   if (!resourceId) {
@@ -48,6 +58,7 @@ export async function getResourceEvents(
           component: components,
           member: members,
           permissions:  sql`(${events.data}->>'permissions')::text`,
+          projectComponentConfig: projectComponentConfig,
         },
       })
       .from(events)
@@ -58,8 +69,24 @@ export async function getResourceEvents(
       .leftJoin(componentVersions, sql`(${events.data}->>'version_id')::uuid =  ${componentVersions.id}`)
       .leftJoin(components, sql`(${events.data}->>'component_id')::uuid = ${components.id}`)
       .leftJoin(members, sql`(${events.data}->>'member_id')::uuid = ${members.id}`)
+      .leftJoin(projectComponentConfig, 
+        and(
+          environment ? eq(projectComponentConfig.environment_id, environment.id) : undefined,
+          eq(projectComponentConfig.component_id, components.id)
+        )
+      )
+      .where(and(
+        filter.userFilter ? eq(users.id, filter.userFilter) : undefined,
+        filter.componentFilter ? eq(components.id, filter.componentFilter.toString()) : undefined,
+        filter.onlyActive ? eq(projectComponentConfig.is_active, true) : undefined,
+        filter.initialDateFilter ? gte(events.timestamp, new Date(filter.initialDateFilter)) : undefined,
+        filter.finalDateFilter ? lte(events.timestamp, new Date(filter.finalDateFilter)) : undefined,
+        eq(events.resource_id, resourceId)
+      ))
       .limit(limit)
-      .where(eq(events.resource_id, resourceId));
+      .orderBy(
+        desc(events.timestamp)
+      );
 
     const modifiedSelect = select.map(event => {
       if (event.data?.version?.id === null) {

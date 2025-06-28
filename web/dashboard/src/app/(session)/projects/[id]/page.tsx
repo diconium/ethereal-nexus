@@ -13,11 +13,16 @@ import { auth } from '@/auth';
 export default async function EditProject(props: any) {
   const {
     tab = 'components',
-    env
+    env,
+    userFilter,
+    componentFilter,
+    initialDateFilter,
+    finalDateFilter,
+    onlyActive
   } = await props.searchParams;
 
   const {
-    id
+    id,
   } = await props.params;
 
   const session = await auth();
@@ -87,7 +92,14 @@ export default async function EditProject(props: any) {
                   project={project.data}
                 />
               case 'activity':
-                return <ProjectEvents id={id} />
+                const filter = {
+                  userFilter,
+                  componentFilter,
+                  initialDateFilter,
+                  finalDateFilter,
+                  onlyActive
+                }
+                return <ProjectEvents id={id} filter={filter} environment={env}/>
               default:
                 return null
             }

@@ -230,6 +230,25 @@ importers:
         specifier: ^3.24.1
         version: 3.24.1
 
+  web/az-serve-static-assets-fn:
+    dependencies:
+      '@azure/functions':
+        specifier: ^4.7.3-beta.0
+        version: 4.7.3
+      '@azure/functions-extensions-blob':
+        specifier: 0.1.0-preview
+        version: 0.1.0-preview
+    devDependencies:
+      '@types/node':
+        specifier: ^20.x
+        version: 20.16.5
+      rimraf:
+        specifier: ^5.0.0
+        version: 5.0.9
+      typescript:
+        specifier: ^4.0.0
+        version: 4.9.5
+
   web/dashboard:
     dependencies:
       '@ai-sdk/openai':
@@ -481,13 +500,13 @@ importers:
         version: 4.2.0(@types/node@22.9.0)(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(jiti@1.21.7)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(terser@5.32.0)(yaml@2.7.0)
       '@astrojs/starlight':
         specifier: ^0.31.1
-        version: 0.31.1(astro@5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))
+        version: 0.31.1(astro@5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))
       '@astrojs/starlight-tailwind':
         specifier: ^3.0.0
-        version: 3.0.0(@astrojs/starlight@0.31.1(astro@5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)))(@astrojs/tailwind@6.0.0(astro@5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))(tailwindcss@3.4.11))(tailwindcss@3.4.11)
+        version: 3.0.0(@astrojs/starlight@0.31.1(astro@5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)))(@astrojs/tailwind@6.0.0(astro@5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))(tailwindcss@3.4.11))(tailwindcss@3.4.11)
       '@astrojs/tailwind':
         specifier: ^6.0.0
-        version: 6.0.0(astro@5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))(tailwindcss@3.4.11)
+        version: 6.0.0(astro@5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))(tailwindcss@3.4.11)
       '@types/react':
         specifier: ^19.0.8
         version: 19.0.8
@@ -496,7 +515,7 @@ importers:
         version: 19.0.3(@types/react@19.0.8)
       astro:
         specifier: ^5.2.5
-        version: 5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)
+        version: 5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -758,12 +777,20 @@ packages:
     resolution: {integrity: sha512-FPwHpZywuyasDSLMqJ6fhbOK3TqUdviZNF8OqRGA4W5Ewib2lEEZ+pBsYcBa88B2NGO/SEnYPGhyBqNlE8ilSw==}
     engines: {node: '>=18.0.0'}
 
+  '@azure/core-client@1.10.0':
+    resolution: {integrity: sha512-O4aP3CLFNodg8eTHXECaH3B3CjicfzkxVtnrfLkOq0XNP7TIECGfHpK/C6vADZkWP75wzmdBnsIA8ksuJMk18g==}
+    engines: {node: '>=20.0.0'}
+
   '@azure/core-client@1.9.2':
     resolution: {integrity: sha512-kRdry/rav3fUKHl/aDLd/pDLcB+4pOFwPPTVEExuMyaI5r+JBbMWqRbCY1pn5BniDaU3lRxO9eaQ1AmSMehl/w==}
     engines: {node: '>=18.0.0'}
 
   '@azure/core-http-compat@2.1.2':
     resolution: {integrity: sha512-5MnV1yqzZwgNLLjlizsU3QqOeQChkIXw781Fwh1xdAqJR5AA32IUaq6xv1BICJvfbHoa+JYcaij2HFkhLbNTJQ==}
+    engines: {node: '>=18.0.0'}
+
+  '@azure/core-http-compat@2.3.0':
+    resolution: {integrity: sha512-qLQujmUypBBG0gxHd0j6/Jdmul6ttl24c8WGiLXIk7IHXdBlfoBqW27hyz3Xn6xbfdyVSarl1Ttbk0AwnZBYCw==}
     engines: {node: '>=18.0.0'}
 
   '@azure/core-lro@2.7.2':
@@ -778,6 +805,10 @@ packages:
     resolution: {integrity: sha512-IkTf/DWKyCklEtN/WYW3lqEsIaUDshlzWRlZNNwSYtFcCBQz++OtOjxNpm8rr1VcbMS6RpjybQa3u6B6nG0zNw==}
     engines: {node: '>=18.0.0'}
 
+  '@azure/core-rest-pipeline@1.22.0':
+    resolution: {integrity: sha512-OKHmb3/Kpm06HypvB3g6Q3zJuvyXcpxDpCS1PnU8OV6AJgSFaee/covXBcPbWc6XDDxtEPlbi3EMQ6nUiPaQtw==}
+    engines: {node: '>=20.0.0'}
+
   '@azure/core-tracing@1.2.0':
     resolution: {integrity: sha512-UKTiEJPkWcESPYJz3X5uKRYyOcJD+4nYph+KpfdPRnQJVrZfk0KJgdnaAWKfhsBBtAf/D58Az4AvCJEmWgIBAg==}
     engines: {node: '>=18.0.0'}
@@ -790,13 +821,54 @@ packages:
     resolution: {integrity: sha512-J4FYAqakGXcbfeZjwjMzjNcpcH4E+JtEBv+xcV1yL0Ydn/6wbQfeFKTCHh9wttAi0lmajHw7yBbHPRG+YHckZQ==}
     engines: {node: '>=18.0.0'}
 
+  '@azure/core-xml@1.5.0':
+    resolution: {integrity: sha512-D/sdlJBMJfx7gqoj66PKVmhDDaU6TKA49ptcolxdas29X7AfvLTmfAGLjAcIMBK7UZ2o4lygHIqVckOlQU3xWw==}
+    engines: {node: '>=20.0.0'}
+
+  '@azure/functions-extensions-base@0.1.0-preview':
+    resolution: {integrity: sha512-Bl94Xst8UpUoSMrJ70ZuFA9E+sIH5v1siKAAkgle7BETdWyn2Aq5USQ7np7LuJtVgUp3+6PeiP7/Fw8gPpzrZQ==}
+    engines: {node: '>=18.0'}
+
+  '@azure/functions-extensions-blob@0.1.0-preview':
+    resolution: {integrity: sha512-SRNw9juBhKQkljHETVyx88HAs8t98oiMFq3womQVb2dGoUpm8PjF8OY48sDWHFEXaDFHiF9IkMp89y9Fbgj6tw==}
+    engines: {node: '>=18.0'}
+
+  '@azure/functions@4.7.3':
+    resolution: {integrity: sha512-NwizjL8qcujVq+Yl3iL6TvtEC9v4CWZgipd0UPa5PvM2a5Uiqd1Uk8wGCYPhfskGy+1YpBLyQje1SRdlLzB6Jw==}
+    engines: {node: '>=18.0'}
+    deprecated: Incompatible with Node 18
+
+  '@azure/identity@4.11.1':
+    resolution: {integrity: sha512-0ZdsLRaOyLxtCYgyuqyWqGU5XQ9gGnjxgfoNTt1pvELGkkUFrMATABZFIq8gusM7N1qbqpVtwLOhk0d/3kacLg==}
+    engines: {node: '>=20.0.0'}
+
   '@azure/logger@1.1.4':
     resolution: {integrity: sha512-4IXXzcCdLdlXuCG+8UKEwLA1T1NHqUfanhXYHiQTn+6sfWCZXduqbtXDGceg3Ce5QxTGo7EqmbV6Bi+aqKuClQ==}
     engines: {node: '>=18.0.0'}
 
+  '@azure/msal-browser@4.21.0':
+    resolution: {integrity: sha512-vgzhz1F3DIB8qcjeJ3DLxMAha4iEaV2BDd1nxPP0ovTjIrpFUGlbhI+Z0pnK+GXctf2UmCwujH2L8xd8CdlMvw==}
+    engines: {node: '>=0.8.0'}
+
+  '@azure/msal-common@15.12.0':
+    resolution: {integrity: sha512-4ucXbjVw8KJ5QBgnGJUeA07c8iznwlk5ioHIhI4ASXcXgcf2yRFhWzYOyWg/cI49LC9ekpFJeQtO3zjDTbl6TQ==}
+    engines: {node: '>=0.8.0'}
+
+  '@azure/msal-node@3.7.2':
+    resolution: {integrity: sha512-pZ4GdPL9sBqgbdlQOIBDOrcqoFtCHkOVvvDYdhZOGHzpXp/nEwcL0PZt+qCHyy21fnK2GavvnFA4PeNb1ZGpDg==}
+    engines: {node: '>=16'}
+
   '@azure/storage-blob@12.26.0':
     resolution: {integrity: sha512-SriLPKezypIsiZ+TtlFfE46uuBIap2HeaQVS78e1P7rz5OSbq0rsd52WE1mC5f7vAeLiXqv7I7oRhL3WFZEw3Q==}
     engines: {node: '>=18.0.0'}
+
+  '@azure/storage-blob@12.28.0':
+    resolution: {integrity: sha512-VhQHITXXO03SURhDiGuHhvc/k/sD2WvJUS7hqhiVNbErVCuQoLtWql7r97fleBlIRKHJaa9R7DpBjfE0pfLYcA==}
+    engines: {node: '>=20.0.0'}
+
+  '@azure/storage-common@12.0.0':
+    resolution: {integrity: sha512-QyEWXgi4kdRo0wc1rHum9/KnaWZKCdQGZK1BjU4fFL6Jtedp7KLbQihgTTVxldFy1z1ZPtuDPx8mQ5l3huPPbA==}
+    engines: {node: '>=20.0.0'}
 
   '@babel/code-frame@7.24.7':
     resolution: {integrity: sha512-BcYH1CVJBO9tvyIZ2jVeXgSIMvGZ2FDRvDdOIVQyuklNKSsx+eppDEBq/g47Ayw+RqNFE+URvOShmf+f/qwAlA==}
@@ -3620,6 +3692,10 @@ packages:
     resolution: {integrity: sha512-c6EIQRHhcpl6+tO8EMR+kjkkV+ugUNXOmeASA1rlzkd8EPIriavpWoiEz1HR/VLhbVIdhqnV6E7JZm00cBDx2A==}
     engines: {node: ^16.0.0 || >=18.0.0}
 
+  '@typespec/ts-http-runtime@0.3.0':
+    resolution: {integrity: sha512-sOx1PKSuFwnIl7z4RN0Ls7N9AQawmR9r66eI5rFCzLDIs8HTIYrIpH9QjYWoX0lkgGrkLxXhi4QnK7MizPRrIg==}
+    engines: {node: '>=20.0.0'}
+
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
 
@@ -5074,6 +5150,10 @@ packages:
     resolution: {integrity: sha512-y655CeyUQ+jj7KBbYMc4FG01V8ZQqjN+gDYGJ50RtfsUB8iG9AmwmwoAgeKLJdmueKKMrH1RJ7yXHTSoczdv5w==}
     hasBin: true
 
+  fast-xml-parser@5.2.5:
+    resolution: {integrity: sha512-pfX9uG9Ki0yekDHx2SiuRIyFdyAr1kMIMitPvb0YBo8SUfKvia7w7FIyd/l6av85pFYRhZscS75MwMnbvY+hcQ==}
+    hasBin: true
+
   fastq@1.19.0:
     resolution: {integrity: sha512-7SFSRCNjBQIZH/xZR3iy5iQYR8aGBE0h3VG6/cwlbrpdciNYBMotQav8c1XI3HjHH+NikUpP53nPdlZSdWmFzA==}
 
@@ -6067,12 +6147,22 @@ packages:
   jsonfile@6.1.0:
     resolution: {integrity: sha512-5dgndWOriYSm5cnYaJNhalLNDKOqFwyDB/rr1E9ZsGciGvKPs8R2xYGCacuf3z6K1YKDz182fd+fY3cn3pMqXQ==}
 
+  jsonwebtoken@9.0.2:
+    resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
+    engines: {node: '>=12', npm: '>=6'}
+
   jsx-ast-utils@3.3.5:
     resolution: {integrity: sha512-ZZow9HBI5O6EPgSJLUb8n2NKgmVWTwCvHGwFuJlMjvLFqlGG6pjirPhtdsseaLZjSibD8eegzmYpUZwoIlj2cQ==}
     engines: {node: '>=4.0'}
 
+  jwa@1.4.2:
+    resolution: {integrity: sha512-eeH5JO+21J78qMvTIDdBXidBd6nG2kZjg5Ohz/1fpa28Z4CcsWUzJ1ZZyFq/3z3N17aZy+ZuBoHljASbL1WfOw==}
+
   jwa@2.0.0:
     resolution: {integrity: sha512-jrZ2Qx916EA+fq9cEAeCROWPTfCwi1IVHqT2tapuqLEVVDKFDENFw1oL+MwrTvH6msKxsd1YTDVw6uKEcsrLEA==}
+
+  jws@3.2.2:
+    resolution: {integrity: sha512-YHlZCB6lMTllWDtSPHz/ZXTsi8S00usEV6v1tjq8tOUZzw7DpSDWVXjXDre6ed1w/pd495ODpHZYSdkRTsa0HA==}
 
   jws@4.0.0:
     resolution: {integrity: sha512-KDncfTmOZoOMTFG4mBlG0qUIOlc03fmzH+ru6RgYVZhPkyiy/92Owlt/8UEN+a4TXR1FQetfIpJE8ApdvdVxTg==}
@@ -6147,15 +6237,36 @@ packages:
     resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
     deprecated: This package is deprecated. Use the optional chaining (?.) operator instead.
 
+  lodash.includes@4.3.0:
+    resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
+
+  lodash.isboolean@3.0.3:
+    resolution: {integrity: sha512-Bz5mupy2SVbPHURB98VAcw+aHh4vRV5IPNhILUCsOzRmsTmSQ17jIuqopAentWoehktxGd9e/hbIXq980/1QJg==}
+
   lodash.isequal@4.5.0:
     resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
     deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
+
+  lodash.isinteger@4.0.4:
+    resolution: {integrity: sha512-DBwtEWN2caHQ9/imiNeEA5ys1JoRtRfY3d7V9wkqtbycnAmTvRRmbHKDV4a0EYc678/dia0jrte4tjYwVBaZUA==}
+
+  lodash.isnumber@3.0.3:
+    resolution: {integrity: sha512-QYqzpfwO3/CWf3XP+Z+tkQsfaLL/EnUlXWVkIk5FUPc4sBdTehEqZONuyRt2P67PXAk+NXmTBcc97zw9t1FQrw==}
+
+  lodash.isplainobject@4.0.6:
+    resolution: {integrity: sha512-oSXzaWypCMHkPC3NvBEaPHf0KsA5mvPrOPgQWDsbg8n7orZ290M0BmC/jgRZ4vcJ6DTAhjrsSYgdsW/F+MFOBA==}
+
+  lodash.isstring@4.0.1:
+    resolution: {integrity: sha512-0wJxfxH1wgO3GrbuP+dTTk7op+6L41QCXbGINEmD+ny/G/eCqGzxyCsh7159S+mgDDcoarnBw6PC1PS5+wUGgw==}
 
   lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
 
   lodash.mergewith@4.6.2:
     resolution: {integrity: sha512-GK3g5RPZWTRSeLSpgP8Xhra+pnjBC56q9FZYe1d5RN3TJ35dbkGy3YqBSMbyCrlbi+CM9Z3Jk5yTL7RCsqboyQ==}
+
+  lodash.once@4.1.1:
+    resolution: {integrity: sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==}
 
   lodash.sortby@4.7.0:
     resolution: {integrity: sha512-HDWXG8isMntAyRF5vZ7xKuEvOhT4AhlRt/3czTSjvGUxjYCBVRQY48ViDHyfYz9VIoBkW4TMGQNapx+l3RUwdA==}
@@ -6177,6 +6288,9 @@ packages:
   logform@2.7.0:
     resolution: {integrity: sha512-TFYA4jnP7PVbmlBIfhlSe+WKxs9dklXMTEGcBCIvLhE/Tn3H6Gk1norupVW7m5Cnd4bLcr08AytbyV/xj7f/kQ==}
     engines: {node: '>= 12.0.0'}
+
+  long@4.0.0:
+    resolution: {integrity: sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA==}
 
   longest-streak@3.1.0:
     resolution: {integrity: sha512-9Ri+o0JYgehTaVBBDoMqIl8GXtbWg711O3srftcHhZ0dqnETqLaoIK0x17fUw9rFSlK/0NlsKe0Ahhyl5pXE2g==}
@@ -7888,6 +8002,9 @@ packages:
   strnum@1.0.5:
     resolution: {integrity: sha512-J8bbNyKKXl5qYcR36TIO8W3mVGVHrmmxsd5PAItGkmyzwJvybiw2IVq5nqd0i4LSNSkB/sx9VHllbfFdr9k1JA==}
 
+  strnum@2.1.1:
+    resolution: {integrity: sha512-7ZvoFTiCnGxBtDqJ//Cu6fWtZtc7Y3x+QOirG15wztbdngGSkht27o2pyGWrVy0b4WAy3jbKmnoK6g5VlVNUUw==}
+
   stubs@3.0.0:
     resolution: {integrity: sha512-PdHt7hHUJKxvTCgbKX9C1V/ftOcjJQgz8BZwNfV5c4B6dcGqlpelTbJ999jBGZ2jYiPAwcX5dP6oBwVlBlUbxw==}
 
@@ -8270,6 +8387,11 @@ packages:
   typescript-auto-import-cache@0.3.3:
     resolution: {integrity: sha512-ojEC7+Ci1ij9eE6hp8Jl9VUNnsEKzztktP5gtYNRMrTmfXVwA1PITYYAkpxCvvupdSYa/Re51B6KMcv1CTZEUA==}
 
+  typescript@4.9.5:
+    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
+
   typescript@5.6.2:
     resolution: {integrity: sha512-NW8ByodCSNCwZeghjN3o+JX5OFH0Ojg6sadjEKY4huZ52TqbJTJnDo5+Tw98lSy63NZvi4n+ez5m2u5d4PkZyw==}
     engines: {node: '>=14.17'}
@@ -8290,6 +8412,10 @@ packages:
 
   undici-types@6.19.8:
     resolution: {integrity: sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==}
+
+  undici@7.15.0:
+    resolution: {integrity: sha512-7oZJCPvvMvTd0OlqWsIxTuItTpJBpU1tcbVl24FMn3xt3+VSunwUasmfPJRE57oNO1KsZ4PgA1xTdAX4hq8NyQ==}
+    engines: {node: '>=20.18.1'}
 
   unified@11.0.5:
     resolution: {integrity: sha512-xKvGhPWw3k84Qjh8bI3ZeJjqnyadK+GEFtazSfZv/rKeTkTjOJho6mFqh2SM96iIcZokxiOpg78GazTSg8+KHA==}
@@ -9045,12 +9171,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/mdx@4.0.8(astro@5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))':
+  '@astrojs/mdx@4.0.8(astro@5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))':
     dependencies:
       '@astrojs/markdown-remark': 6.1.0
       '@mdx-js/mdx': 3.1.0(acorn@8.14.0)
       acorn: 8.14.0
-      astro: 5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)
+      astro: 5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)
       es-module-lexer: 1.6.0
       estree-util-visit: 2.0.0
       hast-util-to-html: 9.0.4
@@ -9097,22 +9223,22 @@ snapshots:
       stream-replace-string: 2.0.0
       zod: 3.24.1
 
-  '@astrojs/starlight-tailwind@3.0.0(@astrojs/starlight@0.31.1(astro@5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)))(@astrojs/tailwind@6.0.0(astro@5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))(tailwindcss@3.4.11))(tailwindcss@3.4.11)':
+  '@astrojs/starlight-tailwind@3.0.0(@astrojs/starlight@0.31.1(astro@5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)))(@astrojs/tailwind@6.0.0(astro@5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))(tailwindcss@3.4.11))(tailwindcss@3.4.11)':
     dependencies:
-      '@astrojs/starlight': 0.31.1(astro@5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))
-      '@astrojs/tailwind': 6.0.0(astro@5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))(tailwindcss@3.4.11)
+      '@astrojs/starlight': 0.31.1(astro@5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))
+      '@astrojs/tailwind': 6.0.0(astro@5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))(tailwindcss@3.4.11)
       tailwindcss: 3.4.11
 
-  '@astrojs/starlight@0.31.1(astro@5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))':
+  '@astrojs/starlight@0.31.1(astro@5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))':
     dependencies:
-      '@astrojs/mdx': 4.0.8(astro@5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))
+      '@astrojs/mdx': 4.0.8(astro@5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))
       '@astrojs/sitemap': 3.2.1
       '@pagefind/default-ui': 1.3.0
       '@types/hast': 3.0.4
       '@types/js-yaml': 4.0.9
       '@types/mdast': 4.0.4
-      astro: 5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)
-      astro-expressive-code: 0.40.1(astro@5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))
+      astro: 5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)
+      astro-expressive-code: 0.40.1(astro@5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))
       bcp-47: 2.1.0
       hast-util-from-html: 2.0.3
       hast-util-select: 6.0.2
@@ -9133,9 +9259,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/tailwind@6.0.0(astro@5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))(tailwindcss@3.4.11)':
+  '@astrojs/tailwind@6.0.0(astro@5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0))(tailwindcss@3.4.11)':
     dependencies:
-      astro: 5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)
+      astro: 5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)
       autoprefixer: 10.4.20(postcss@8.5.1)
       postcss: 8.5.1
       postcss-load-config: 4.0.2(postcss@8.5.1)
@@ -9229,6 +9355,18 @@ snapshots:
       '@azure/core-util': 1.11.0
       tslib: 2.8.1
 
+  '@azure/core-client@1.10.0':
+    dependencies:
+      '@azure/abort-controller': 2.1.2
+      '@azure/core-auth': 1.9.0
+      '@azure/core-rest-pipeline': 1.22.0
+      '@azure/core-tracing': 1.2.0
+      '@azure/core-util': 1.11.0
+      '@azure/logger': 1.1.4
+      tslib: 2.8.1
+    transitivePeerDependencies:
+      - supports-color
+
   '@azure/core-client@1.9.2':
     dependencies:
       '@azure/abort-controller': 2.1.2
@@ -9246,6 +9384,14 @@ snapshots:
       '@azure/abort-controller': 2.1.2
       '@azure/core-client': 1.9.2
       '@azure/core-rest-pipeline': 1.18.2
+    transitivePeerDependencies:
+      - supports-color
+
+  '@azure/core-http-compat@2.3.0':
+    dependencies:
+      '@azure/abort-controller': 2.1.2
+      '@azure/core-client': 1.10.0
+      '@azure/core-rest-pipeline': 1.22.0
     transitivePeerDependencies:
       - supports-color
 
@@ -9273,6 +9419,18 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@azure/core-rest-pipeline@1.22.0':
+    dependencies:
+      '@azure/abort-controller': 2.1.2
+      '@azure/core-auth': 1.9.0
+      '@azure/core-tracing': 1.2.0
+      '@azure/core-util': 1.11.0
+      '@azure/logger': 1.1.4
+      '@typespec/ts-http-runtime': 0.3.0
+      tslib: 2.8.1
+    transitivePeerDependencies:
+      - supports-color
+
   '@azure/core-tracing@1.2.0':
     dependencies:
       tslib: 2.8.1
@@ -9287,9 +9445,58 @@ snapshots:
       fast-xml-parser: 4.5.1
       tslib: 2.8.1
 
+  '@azure/core-xml@1.5.0':
+    dependencies:
+      fast-xml-parser: 5.2.5
+      tslib: 2.8.1
+
+  '@azure/functions-extensions-base@0.1.0-preview': {}
+
+  '@azure/functions-extensions-blob@0.1.0-preview':
+    dependencies:
+      '@azure/functions-extensions-base': 0.1.0-preview
+      '@azure/identity': 4.11.1
+      '@azure/storage-blob': 12.28.0
+    transitivePeerDependencies:
+      - supports-color
+
+  '@azure/functions@4.7.3':
+    dependencies:
+      cookie: 0.7.2
+      long: 4.0.0
+      undici: 7.15.0
+
+  '@azure/identity@4.11.1':
+    dependencies:
+      '@azure/abort-controller': 2.1.2
+      '@azure/core-auth': 1.9.0
+      '@azure/core-client': 1.9.2
+      '@azure/core-rest-pipeline': 1.18.2
+      '@azure/core-tracing': 1.2.0
+      '@azure/core-util': 1.11.0
+      '@azure/logger': 1.1.4
+      '@azure/msal-browser': 4.21.0
+      '@azure/msal-node': 3.7.2
+      open: 10.1.2
+      tslib: 2.8.1
+    transitivePeerDependencies:
+      - supports-color
+
   '@azure/logger@1.1.4':
     dependencies:
       tslib: 2.8.1
+
+  '@azure/msal-browser@4.21.0':
+    dependencies:
+      '@azure/msal-common': 15.12.0
+
+  '@azure/msal-common@15.12.0': {}
+
+  '@azure/msal-node@3.7.2':
+    dependencies:
+      '@azure/msal-common': 15.12.0
+      jsonwebtoken: 9.0.2
+      uuid: 8.3.2
 
   '@azure/storage-blob@12.26.0':
     dependencies:
@@ -9303,6 +9510,39 @@ snapshots:
       '@azure/core-tracing': 1.2.0
       '@azure/core-util': 1.11.0
       '@azure/core-xml': 1.4.4
+      '@azure/logger': 1.1.4
+      events: 3.3.0
+      tslib: 2.8.1
+    transitivePeerDependencies:
+      - supports-color
+
+  '@azure/storage-blob@12.28.0':
+    dependencies:
+      '@azure/abort-controller': 2.1.2
+      '@azure/core-auth': 1.9.0
+      '@azure/core-client': 1.10.0
+      '@azure/core-http-compat': 2.3.0
+      '@azure/core-lro': 2.7.2
+      '@azure/core-paging': 1.6.2
+      '@azure/core-rest-pipeline': 1.22.0
+      '@azure/core-tracing': 1.2.0
+      '@azure/core-util': 1.11.0
+      '@azure/core-xml': 1.5.0
+      '@azure/logger': 1.1.4
+      '@azure/storage-common': 12.0.0
+      events: 3.3.0
+      tslib: 2.8.1
+    transitivePeerDependencies:
+      - supports-color
+
+  '@azure/storage-common@12.0.0':
+    dependencies:
+      '@azure/abort-controller': 2.1.2
+      '@azure/core-auth': 1.9.0
+      '@azure/core-http-compat': 2.3.0
+      '@azure/core-rest-pipeline': 1.22.0
+      '@azure/core-tracing': 1.2.0
+      '@azure/core-util': 1.11.0
       '@azure/logger': 1.1.4
       events: 3.3.0
       tslib: 2.8.1
@@ -10317,7 +10557,7 @@ snapshots:
   '@jest/console@29.7.0':
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       chalk: 4.1.2
       jest-message-util: 29.7.0
       jest-util: 29.7.0
@@ -10330,14 +10570,14 @@ snapshots:
       '@jest/test-result': 29.7.0
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       ci-info: 3.9.0
       exit: 0.1.2
       graceful-fs: 4.2.11
       jest-changed-files: 29.7.0
-      jest-config: 29.7.0(@types/node@20.4.0)
+      jest-config: 29.7.0(@types/node@20.16.5)
       jest-haste-map: 29.7.0
       jest-message-util: 29.7.0
       jest-regex-util: 29.6.3
@@ -10362,7 +10602,7 @@ snapshots:
     dependencies:
       '@jest/fake-timers': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       jest-mock: 29.7.0
 
   '@jest/expect-utils@29.7.0':
@@ -10380,7 +10620,7 @@ snapshots:
     dependencies:
       '@jest/types': 29.6.3
       '@sinonjs/fake-timers': 10.3.0
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       jest-message-util: 29.7.0
       jest-mock: 29.7.0
       jest-util: 29.7.0
@@ -10402,7 +10642,7 @@ snapshots:
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
       '@jridgewell/trace-mapping': 0.3.25
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       chalk: 4.1.2
       collect-v8-coverage: 1.0.2
       exit: 0.1.2
@@ -10472,7 +10712,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       '@types/yargs': 17.0.33
       chalk: 4.1.2
 
@@ -12273,11 +12513,11 @@ snapshots:
 
   '@types/graceful-fs@4.1.9':
     dependencies:
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
 
   '@types/gunzip-maybe@1.4.2':
     dependencies:
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
 
   '@types/hast@2.3.10':
     dependencies:
@@ -12311,7 +12551,7 @@ snapshots:
 
   '@types/jsdom@20.0.1':
     dependencies:
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       '@types/tough-cookie': 4.0.5
       parse5: 7.2.1
 
@@ -12358,7 +12598,7 @@ snapshots:
 
   '@types/pg@8.6.6':
     dependencies:
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       pg-protocol: 1.7.0
       pg-types: 2.2.0
 
@@ -12381,7 +12621,7 @@ snapshots:
   '@types/request@2.48.12':
     dependencies:
       '@types/caseless': 0.12.5
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       '@types/tough-cookie': 4.0.5
       form-data: 2.5.2
 
@@ -12401,7 +12641,7 @@ snapshots:
 
   '@types/tar-stream@3.1.3':
     dependencies:
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
 
   '@types/through@0.0.33':
     dependencies:
@@ -12511,6 +12751,14 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 7.2.0
       eslint-visitor-keys: 3.4.3
+
+  '@typespec/ts-http-runtime@0.3.0':
+    dependencies:
+      http-proxy-agent: 7.0.2
+      https-proxy-agent: 7.0.6
+      tslib: 2.8.1
+    transitivePeerDependencies:
+      - supports-color
 
   '@ungap/structured-clone@1.3.0': {}
 
@@ -12853,12 +13101,12 @@ snapshots:
 
   astring@1.8.6: {}
 
-  astro-expressive-code@0.40.1(astro@5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)):
+  astro-expressive-code@0.40.1(astro@5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)):
     dependencies:
-      astro: 5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)
+      astro: 5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0)
       rehype-expressive-code: 0.40.1
 
-  astro@5.2.5(@azure/storage-blob@12.26.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0):
+  astro@5.2.5(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)(@types/node@22.9.0)(jiti@1.21.7)(rollup@4.40.0)(terser@5.32.0)(typescript@5.6.2)(yaml@2.7.0):
     dependencies:
       '@astrojs/compiler': 2.10.3
       '@astrojs/internal-helpers': 0.5.1
@@ -12908,7 +13156,7 @@ snapshots:
       tsconfck: 3.1.4(typescript@5.6.2)
       ultrahtml: 1.5.3
       unist-util-visit: 5.0.0
-      unstorage: 1.14.4(@azure/storage-blob@12.26.0)
+      unstorage: 1.14.4(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0)
       vfile: 6.0.3
       vite: 6.3.3(@types/node@22.9.0)(jiti@1.21.7)(terser@5.32.0)(yaml@2.7.0)
       vitefu: 1.0.5(vite@6.3.3(@types/node@22.9.0)(jiti@1.21.7)(terser@5.32.0)(yaml@2.7.0))
@@ -13959,7 +14207,7 @@ snapshots:
       '@typescript-eslint/parser': 7.2.0(eslint@8.44.0)(typescript@5.6.2)
       eslint: 8.44.0
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.7.0(eslint-plugin-import@2.31.0)(eslint@8.44.0)
+      eslint-import-resolver-typescript: 3.7.0(eslint-plugin-import@2.31.0(@typescript-eslint/parser@7.2.0(eslint@8.44.0)(typescript@5.6.2))(eslint@8.44.0))(eslint@8.44.0)
       eslint-plugin-import: 2.31.0(@typescript-eslint/parser@7.2.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-typescript@3.7.0)(eslint@8.44.0)
       eslint-plugin-jsx-a11y: 6.10.2(eslint@8.44.0)
       eslint-plugin-react: 7.37.4(eslint@8.44.0)
@@ -13979,7 +14227,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.31.0)(eslint@8.44.0):
+  eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.31.0(@typescript-eslint/parser@7.2.0(eslint@8.44.0)(typescript@5.6.2))(eslint@8.44.0))(eslint@8.44.0):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.0
@@ -13995,14 +14243,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.0(@typescript-eslint/parser@7.2.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.31.0)(eslint@8.44.0))(eslint@8.44.0):
+  eslint-module-utils@2.12.0(@typescript-eslint/parser@7.2.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.31.0(@typescript-eslint/parser@7.2.0(eslint@8.44.0)(typescript@5.6.2))(eslint@8.44.0))(eslint@8.44.0))(eslint@8.44.0):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 7.2.0(eslint@8.44.0)(typescript@5.6.2)
       eslint: 8.44.0
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.7.0(eslint-plugin-import@2.31.0)(eslint@8.44.0)
+      eslint-import-resolver-typescript: 3.7.0(eslint-plugin-import@2.31.0(@typescript-eslint/parser@7.2.0(eslint@8.44.0)(typescript@5.6.2))(eslint@8.44.0))(eslint@8.44.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -14017,7 +14265,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.44.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@7.2.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.31.0)(eslint@8.44.0))(eslint@8.44.0)
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@7.2.0(eslint@8.44.0)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.31.0(@typescript-eslint/parser@7.2.0(eslint@8.44.0)(typescript@5.6.2))(eslint@8.44.0))(eslint@8.44.0))(eslint@8.44.0)
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -14272,6 +14520,10 @@ snapshots:
   fast-xml-parser@4.5.1:
     dependencies:
       strnum: 1.0.5
+
+  fast-xml-parser@5.2.5:
+    dependencies:
+      strnum: 2.1.1
 
   fastq@1.19.0:
     dependencies:
@@ -15212,7 +15464,7 @@ snapshots:
       '@jest/expect': 29.7.0
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       chalk: 4.1.2
       co: 4.6.0
       dedent: 1.5.3
@@ -15250,6 +15502,36 @@ snapshots:
       - babel-plugin-macros
       - supports-color
       - ts-node
+
+  jest-config@29.7.0(@types/node@20.16.5):
+    dependencies:
+      '@babel/core': 7.26.7
+      '@jest/test-sequencer': 29.7.0
+      '@jest/types': 29.6.3
+      babel-jest: 29.7.0(@babel/core@7.26.7)
+      chalk: 4.1.2
+      ci-info: 3.9.0
+      deepmerge: 4.3.1
+      glob: 7.2.3
+      graceful-fs: 4.2.11
+      jest-circus: 29.7.0
+      jest-environment-node: 29.7.0
+      jest-get-type: 29.6.3
+      jest-regex-util: 29.6.3
+      jest-resolve: 29.7.0
+      jest-runner: 29.7.0
+      jest-util: 29.7.0
+      jest-validate: 29.7.0
+      micromatch: 4.0.8
+      parse-json: 5.2.0
+      pretty-format: 29.7.0
+      slash: 3.0.0
+      strip-json-comments: 3.1.1
+    optionalDependencies:
+      '@types/node': 20.16.5
+    transitivePeerDependencies:
+      - babel-plugin-macros
+      - supports-color
 
   jest-config@29.7.0(@types/node@20.4.0):
     dependencies:
@@ -15306,7 +15588,7 @@ snapshots:
       '@jest/fake-timers': 29.7.0
       '@jest/types': 29.6.3
       '@types/jsdom': 20.0.1
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       jest-mock: 29.7.0
       jest-util: 29.7.0
       jsdom: 20.0.3
@@ -15320,7 +15602,7 @@ snapshots:
       '@jest/environment': 29.7.0
       '@jest/fake-timers': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       jest-mock: 29.7.0
       jest-util: 29.7.0
 
@@ -15330,7 +15612,7 @@ snapshots:
     dependencies:
       '@jest/types': 29.6.3
       '@types/graceful-fs': 4.1.9
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.11
@@ -15369,7 +15651,7 @@ snapshots:
   jest-mock@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       jest-util: 29.7.0
 
   jest-pnp-resolver@1.2.3(jest-resolve@29.7.0):
@@ -15404,7 +15686,7 @@ snapshots:
       '@jest/test-result': 29.7.0
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       chalk: 4.1.2
       emittery: 0.13.1
       graceful-fs: 4.2.11
@@ -15432,7 +15714,7 @@ snapshots:
       '@jest/test-result': 29.7.0
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       chalk: 4.1.2
       cjs-module-lexer: 1.4.3
       collect-v8-coverage: 1.0.2
@@ -15478,7 +15760,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -15497,7 +15779,7 @@ snapshots:
     dependencies:
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       emittery: 0.13.1
@@ -15506,7 +15788,7 @@ snapshots:
 
   jest-worker@29.7.0:
     dependencies:
-      '@types/node': 20.4.0
+      '@types/node': 20.16.5
       jest-util: 29.7.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
@@ -15623,6 +15905,19 @@ snapshots:
     optionalDependencies:
       graceful-fs: 4.2.11
 
+  jsonwebtoken@9.0.2:
+    dependencies:
+      jws: 3.2.2
+      lodash.includes: 4.3.0
+      lodash.isboolean: 3.0.3
+      lodash.isinteger: 4.0.4
+      lodash.isnumber: 3.0.3
+      lodash.isplainobject: 4.0.6
+      lodash.isstring: 4.0.1
+      lodash.once: 4.1.1
+      ms: 2.1.3
+      semver: 7.7.1
+
   jsx-ast-utils@3.3.5:
     dependencies:
       array-includes: 3.1.8
@@ -15630,10 +15925,21 @@ snapshots:
       object.assign: 4.1.7
       object.values: 1.2.1
 
+  jwa@1.4.2:
+    dependencies:
+      buffer-equal-constant-time: 1.0.1
+      ecdsa-sig-formatter: 1.0.11
+      safe-buffer: 5.2.1
+
   jwa@2.0.0:
     dependencies:
       buffer-equal-constant-time: 1.0.1
       ecdsa-sig-formatter: 1.0.11
+      safe-buffer: 5.2.1
+
+  jws@3.2.2:
+    dependencies:
+      jwa: 1.4.2
       safe-buffer: 5.2.1
 
   jws@4.0.0:
@@ -15695,11 +16001,25 @@ snapshots:
 
   lodash.get@4.4.2: {}
 
+  lodash.includes@4.3.0: {}
+
+  lodash.isboolean@3.0.3: {}
+
   lodash.isequal@4.5.0: {}
+
+  lodash.isinteger@4.0.4: {}
+
+  lodash.isnumber@3.0.3: {}
+
+  lodash.isplainobject@4.0.6: {}
+
+  lodash.isstring@4.0.1: {}
 
   lodash.merge@4.6.2: {}
 
   lodash.mergewith@4.6.2: {}
+
+  lodash.once@4.1.1: {}
 
   lodash.sortby@4.7.0: {}
 
@@ -15725,6 +16045,8 @@ snapshots:
       ms: 2.1.3
       safe-stable-stringify: 2.5.0
       triple-beam: 1.4.1
+
+  long@4.0.0: {}
 
   longest-streak@3.1.0: {}
 
@@ -17952,6 +18274,8 @@ snapshots:
 
   strnum@1.0.5: {}
 
+  strnum@2.1.1: {}
+
   stubs@3.0.0: {}
 
   style-to-object@0.4.4:
@@ -18471,6 +18795,8 @@ snapshots:
     dependencies:
       semver: 7.7.1
 
+  typescript@4.9.5: {}
+
   typescript@5.6.2: {}
 
   ufo@1.5.4: {}
@@ -18487,6 +18813,8 @@ snapshots:
   uncrypto@0.1.3: {}
 
   undici-types@6.19.8: {}
+
+  undici@7.15.0: {}
 
   unified@11.0.5:
     dependencies:
@@ -18552,7 +18880,7 @@ snapshots:
 
   unraw@3.0.0: {}
 
-  unstorage@1.14.4(@azure/storage-blob@12.26.0):
+  unstorage@1.14.4(@azure/identity@4.11.1)(@azure/storage-blob@12.28.0):
     dependencies:
       anymatch: 3.1.3
       chokidar: 3.6.0
@@ -18563,7 +18891,8 @@ snapshots:
       ofetch: 1.4.1
       ufo: 1.5.4
     optionalDependencies:
-      '@azure/storage-blob': 12.26.0
+      '@azure/identity': 4.11.1
+      '@azure/storage-blob': 12.28.0
 
   update-browserslist-db@1.1.2(browserslist@4.24.4):
     dependencies:

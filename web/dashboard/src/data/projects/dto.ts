@@ -6,8 +6,6 @@ import {
   componentVersionsSchema
 } from '@/data/components/dto';
 import { number, z } from 'zod';
-import { users } from '@/data/users/schema';
-import { members } from '@/data/member/schema';
 import { userSchema } from '@/data/users/dto';
 
 /**
@@ -172,3 +170,14 @@ export const environmentWithComponentsSchema = environmentsSchema.extend({
   }).array()
 });
 export type EnvironmentWithComponents = z.infer<typeof environmentWithComponentsSchema>;
+
+export const featureFlagInputSchema = z.object({
+  id: z.string().optional(),
+  project_id: z.string(),
+  environment_id: z.string(),
+  component_id: z.string().optional(),
+  flag_name: z.string().min(2, 'Flag name must be at least 2 characters'),
+  description: z.string().optional(),
+  enabled: z.boolean(),
+});
+export type FeatureFlagInput = z.infer<typeof featureFlagInputSchema>;

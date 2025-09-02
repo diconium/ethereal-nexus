@@ -10,7 +10,7 @@ import {
   environmentInputSchema,
   environmentsSchema,
   EnvironmentWithComponents,
-  environmentWithComponentsSchema,
+  environmentWithComponentsSchema, FeatureFlagInput,
   type Project,
   ProjectComponent,
   ProjectComponentConfig,
@@ -25,11 +25,11 @@ import {
   projectSchema,
   projectWithComponentAssetsSchema,
   type ProjectWithComponentId,
-  projectWithComponentIdSchema
+  projectWithComponentIdSchema,
 } from './dto';
 import * as console from 'console';
 import { and, countDistinct, desc, eq, exists, getTableColumns, isNull, sql } from 'drizzle-orm';
-import { environments, projectComponentConfig, projects } from './schema';
+import { environments, projectComponentConfig, projects, featureFlags } from './schema';
 import { insertMembers, userIsMember } from '@/data/member/actions';
 import { componentAssets, components, componentVersions } from '@/data/components/schema';
 import { revalidatePath } from 'next/cache';
@@ -209,7 +209,15 @@ export async function getEnvironmentComponents(
         config_id: projectComponentConfig.id,
         is_active: projectComponentConfig.is_active,
         version: componentVersions.version,
-        versions: sql`ARRAY_AGG(jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`
+        versions: sql`ARRAY_AGG(jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`,
+        feature_flag_count: sql`(
+          SELECT COUNT(*) FROM ${featureFlags}
+          WHERE ${featureFlags.environment_id} = ${id}
+            AND (
+              ${featureFlags.component_id} = ${components.id}
+              OR ${featureFlags.component_id} IS NULL
+            )
+        )`
       })
       .from(projectComponentConfig)
       .leftJoin(
@@ -605,6 +613,10 @@ export async function getEnvironmentComponentConfig(
 
     const result = component[0];
 
+    if (!result) {
+      return actionError('Component not found in the environment.');
+    }
+
     result['assets'] = await db
       .select({
         id: componentAssets.id,
@@ -614,6 +626,19 @@ export async function getEnvironmentComponentConfig(
       .from(componentAssets)
       .where(and(
         eq(componentAssets.version_id, result.versionId)
+      ));
+
+    // Join feature_flag table and add flags array
+    result['featureFlags'] = await db
+      .select({
+        id: featureFlags.id,
+        name: featureFlags.flag_name,
+        enabled: featureFlags.enabled
+      })
+      .from(featureFlags)
+      .where(and(
+        eq(featureFlags.environment_id, id),
+        eq(featureFlags.component_id, result.id)
       ));
 
     return actionSuccess(result);
@@ -920,6 +945,7 @@ export async function upsertEnvironment(
 export async function deleteComponentConfig(
   id: string,
   projectId: string,
+  componentId: string,
 ): ActionResponse<ProjectComponentConfig[]> {
   const session = await auth()
   if (!session?.user?.id) {
@@ -953,6 +979,12 @@ export async function deleteComponentConfig(
         safe.error
       );
     }
+
+
+    const deletedFeatureFlag = await db.delete(featureFlags).where(and(
+      eq(featureFlags.project_id, projectId),
+      eq(featureFlags.component_id, componentId)
+    )).returning();
 
     await logEvent({
       type: 'project_component_removed',
@@ -1003,5 +1035,77 @@ export async function deleteEnvironment(
   } catch (error) {
     console.error(error);
     return actionError('Failed to delete config from database.');
+  }
+}
+
+export async function getFeatureFlagsByEnvAndProject(
+  environmentId: string,
+  projectId: string,
+  componentId?: string
+) {
+  try {
+    const whereClause = [
+      eq(featureFlags.environment_id, environmentId),
+      eq(featureFlags.project_id, projectId)
+    ];
+    if (componentId) {
+      whereClause.push(eq(featureFlags.component_id, componentId));
+    }
+    return await db
+      .select({
+        id: featureFlags.id,
+        flag_name: featureFlags.flag_name,
+        description: featureFlags.description,
+        enabled: featureFlags.enabled,
+        component_id: featureFlags.component_id,
+        component_name: components.name
+      })
+      .from(featureFlags)
+      .leftJoin(components, eq(featureFlags.component_id, components.id))
+      .where(and(...whereClause));
+
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+export async function upsertFeatureFlag(
+  input: FeatureFlagInput
+) {
+  try {
+    let result;
+    if (input.id) {
+      // Update existing feature flag
+      result = await db
+        .update(featureFlags)
+        .set({
+          flag_name: input.flag_name,
+          description: input.description,
+          enabled: input.enabled,
+          project_id: input.project_id,
+          environment_id: input.environment_id,
+          component_id: input.component_id,
+        })
+        .where(eq(featureFlags.id, input.id))
+        .returning();
+    } else {
+      // Create new feature flag
+      result = await db
+        .insert(featureFlags)
+        .values({
+          flag_name: input.flag_name,
+          description: input.description,
+          enabled: input.enabled,
+          project_id: input.project_id,
+          environment_id: input.environment_id,
+          component_id: input.component_id,
+        })
+        .returning();
+    }
+    return { success: true, data: result[0] };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error };
   }
 }

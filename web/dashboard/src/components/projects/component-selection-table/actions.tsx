@@ -28,7 +28,8 @@ export function ProjectsComponentsRowActions({ table, row }) {
     setDeleteDialogOpen(false)
 
     if (component) {
-      const deleted = await deleteComponentConfig(component.config_id, project)
+
+      const deleted = await deleteComponentConfig(component.config_id, project, component.id)
 
       if(deleted.success) {
         toast({

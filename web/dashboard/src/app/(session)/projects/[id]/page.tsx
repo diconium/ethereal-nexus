@@ -9,11 +9,13 @@ import ProjectsForm from '@/components/projects/project-form';
 import { ProjectEvents } from '@/components/projects/project-events/project-events';
 import { EnvironmentsList } from '@/components/projects/environments-table/environment-list';
 import { auth } from '@/auth';
+import { FeatureFlagList } from '@/components/projects/feature-flags-table/feature-flag-list';
 
 export default async function EditProject(props: any) {
   const {
     tab = 'components',
-    env
+    env,
+    component
   } = await props.searchParams;
 
   const {
@@ -58,6 +60,11 @@ export default async function EditProject(props: any) {
                 Settings
               </Link>
             </TabsTrigger>
+            <TabsTrigger value="settings" asChild>
+              <Link href={`/projects/${id}?tab=featureFlags`}>
+                Feature Flags
+              </Link>
+            </TabsTrigger>
             <TabsTrigger value="activity" asChild>
               <Link href={`/projects/${id}?tab=activity`}>
                 Activity
@@ -85,6 +92,13 @@ export default async function EditProject(props: any) {
               case 'settings':
                 return <ProjectsForm
                   project={project.data}
+                />
+              case 'featureFlags':
+                return <FeatureFlagList
+                  key={env}
+                  id={id}
+                  environmentId={env}
+                  componentId={component}
                 />
               case 'activity':
                 return <ProjectEvents id={id} />

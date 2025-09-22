@@ -1,22 +1,32 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
-import { BlobServiceClient } from '@azure/storage-blob';
+import { BlobServiceClient, StorageSharedKeyCredential } from '@azure/storage-blob';
+import { DefaultAzureCredential } from "@azure/identity";
 
 const STORAGE_ACCOUNT_NAME = process.env.STORAGE_ACCOUNT_NAME;
 const CONTAINER_NAME = process.env.CONTAINER_NAME;
 const CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING;
+const USE_SHARED_KEY = process.env.USE_SHARED_KEY;
 
 
 // Create the BlobServiceClient using local connection string or managed identity
 let blobServiceClient;
 
-if (CONNECTION_STRING) {
+if (CONNECTION_STRING && !USE_SHARED_KEY) {
+  console.log('🔐 Using connection string to access Blob Storage with BlobServiceClient.fromConnectionString');
   blobServiceClient = BlobServiceClient.fromConnectionString(CONNECTION_STRING);
-  console.log('🔐 Using connection string to access Blob Storage (local dev)');
-} else {
+} else if(USE_SHARED_KEY === 'true' && CONNECTION_STRING) {
+  console.log('🔐 Using connection string to access Blob Storage with StorageSharedKeyCredential');
+  const sharedKeyCredential = new StorageSharedKeyCredential(STORAGE_ACCOUNT_NAME, CONNECTION_STRING);
   blobServiceClient = new BlobServiceClient(
-    `https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net`
+    `https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net`,
+    sharedKeyCredential,
   );
+} else {
+  const credential = new DefaultAzureCredential();
+  const url = `https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net`;
   console.log('🔐 Using DefaultAzureCredential for Blob Storage access');
+  console.log('🔐 DefaultAzureCredential details: ', credential);
+  blobServiceClient = new BlobServiceClient(url, credential);
 }
 
 
@@ -36,6 +46,8 @@ export async function serveEtherealStaticAssets(request: HttpRequest, context: I
   }
 
   try {
+    console.log(`[servestaticasset] Using connection type: ${USE_SHARED_KEY ? 'Shared Key' : CONNECTION_STRING ? 'Connection String' : 'DefaultAzureCredential'}`);
+
     console.log(`[servestaticasset] Getting container client for: "${CONTAINER_NAME}"`);
     const containerClient = blobServiceClient.getContainerClient(CONTAINER_NAME);
     console.log(`[servestaticasset] Getting blob client for assetPath: "${assetPath}"`);

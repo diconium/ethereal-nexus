@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Meta package to build dialog-ui-core, dialog-ui-example, and dialog-ui-spectrum.",
   "scripts": {
-    "release": "echo \"This is a meta package. Run the release command in the individual packages.\" && exit 1"
+    "release": "pnpm --filter \"...{packages/**}\" publish --access public"
   },
   "private": true,
   "workspaces": [

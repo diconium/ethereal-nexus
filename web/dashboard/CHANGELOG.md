@@ -1,5 +1,14 @@
 # @ethereal-nexus/dashboard
 
+## 3.0.0
+
+### Major Changes
+
+- 3923391: feat: implement feature flag management with CRUD operations and UI components.
+
+  This allows projects to have feature flag configurations.
+  Because of this there were breaking changes since the dashboard now displays feature flags and their states.
+
 ## 2.4.0
 
 ### Minor Changes

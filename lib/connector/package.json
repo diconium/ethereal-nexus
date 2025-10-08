@@ -1,0 +1,11 @@
+{
+  "name": "@ethereal-nexus/dialog-ui-packages",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Meta package to build dialog-ui-core, dialog-ui-example, and dialog-ui-spectrum.",
+  "workspaces": [
+    "packages/dialog-ui-core",
+    "packages/dialog-ui-example",
+    "packages/dialog-ui-spectrum"
+  ]
+}

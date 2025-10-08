@@ -4,7 +4,7 @@
   "scripts": {
     "postinstall": "turbo run build --filter='./lib/*'",
     "build": "turbo run build",
-    "release": "turbo run publish --filter=\"...{lib/**}\""
+    "release": "turbo run publish --filter=\"...{lib/**,dialog-ui/**}\""
   },
   "devDependencies": {
     "@changesets/cli": "^2.28.1",

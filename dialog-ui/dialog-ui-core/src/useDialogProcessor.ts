@@ -77,13 +77,13 @@ export function useDialogProcessor(config: DialogConfig, initialValues: any): Us
     }, [validateField]);
 
     const updateField = useCallback((fieldName: string, value: any) => {
-        setFormData(prev => ({...prev, [fieldName]: value}));
+        setFormData((prev: FormData) => ({...prev, [fieldName]: value}));
 
         // Validate the field - use consistent field identification
         const field = config.fields.find(f => (f.id || f.name) === fieldName);
         if (field) {
             const error = validateField(field, value);
-            setErrors(prev => ({...prev, [fieldName]: error}));
+            setErrors((prev: ValidationErrors) => ({...prev, [fieldName]: error}));
         }
     }, [config.fields, validateField]);
 

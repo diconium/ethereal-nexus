@@ -4,7 +4,7 @@
   "scripts": {
     "postinstall": "turbo run build --filter='./lib/*'",
     "build": "turbo run build",
-    "release": "pnpm --filter \"...{lib/**}\" publish --access public && pnpm --filter './lib/connector' run release"
+    "release": "pnpm --filter \"...{lib/**,dialog-ui/dialog-ui-core,dialog-ui/dialog-ui-spectrum}\" publish --access public"
   },
   "devDependencies": {
     "@changesets/cli": "^2.28.1",

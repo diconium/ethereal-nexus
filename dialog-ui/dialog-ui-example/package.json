@@ -51,15 +51,15 @@
     "@storybook/react": "^9.1.10",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
-    "lucide-react": "^0.263.1",
+    "lucide-react": "^0.469.0",
     "react-hook-form": "^7.63.0",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/react": "^18.2.20",
-    "@types/react-dom": "^18.2.7",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.8",
     "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "^10.4.15",
     "postcss": "^8.4.29",

@@ -325,4 +325,3 @@ export const Default: Story = {};
 export const Standalone: Story = {
   render: () => <StandaloneToggleGroupDemo />
 };
-

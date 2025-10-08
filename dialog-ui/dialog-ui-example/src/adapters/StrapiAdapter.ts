@@ -45,10 +45,8 @@ export interface StrapiAdapterConfig extends CMSAdapterConfig {
  * Strapi adapter implementation (mock for demo)
  */
 export class StrapiAdapter implements CMSAdapter {
-  private config: StrapiAdapterConfig;
-
-  constructor(config: StrapiAdapterConfig) {
-    this.config = config;
+  constructor(_config: StrapiAdapterConfig) {
+    // Config parameter is reserved for future use
   }
 
   async getDialogStructure(): Promise<DialogStructure> {

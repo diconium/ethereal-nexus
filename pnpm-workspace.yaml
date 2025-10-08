@@ -4,3 +4,4 @@ packages:
   - 'lib/*'
   - 'examples/**'
   - 'test/*'
+  - 'dialog-ui/*'

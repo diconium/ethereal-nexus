@@ -17,48 +17,43 @@ interface CMSAdapter {
 }
 
 /**
- * Configuration for the Typo3 adapter
+ * Configuration for the Mock AEM adapter (simulates web component data attributes)
  */
-export interface Typo3AdapterConfig extends CMSAdapterConfig {
+export interface MockAEMAdapterConfig extends CMSAdapterConfig {
   /**
-   * The base URL for Typo3
+   * The base URL for AEM (optional for mock)
    */
-  baseUrl: string;
+  baseUrl?: string;
 
   /**
-   * The table name in Typo3
+   * The dialog structure from data attributes
    */
-  tableName: string;
+  dialogData?: string;
 
   /**
-   * The record UID
+   * The field values from data attributes
    */
-  recordUid: string;
-
-  /**
-   * The field name for the dialog configuration
-   */
-  fieldName: string;
+  valuesData?: string;
 }
 
 /**
- * Typo3 adapter implementation (mock for demo)
+ * Mock AEM adapter implementation (simulates getting data from web component data attributes)
  */
-export class Typo3Adapter implements CMSAdapter {
-  private config: Typo3AdapterConfig;
+export class MockAEMAdapter implements CMSAdapter {
+  // @ts-ignore
+  private config: MockAEMAdapterConfig;
 
-  constructor(config: Typo3AdapterConfig) {
+  constructor(config: MockAEMAdapterConfig) {
     this.config = config;
   }
 
   async getDialogStructure(): Promise<DialogStructure> {
-    // Mock API call to Typo3
-    console.log('🔧 [Typo3Adapter] Fetching dialog structure from Typo3...');
+    console.log('🔧 [MockAEMAdapter] Getting dialog structure from data attributes...');
 
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // Simulate reading from data attributes
+    await new Promise(resolve => setTimeout(resolve, 200));
 
-    const mockTypo3Response = {
+    const mockDataAttribute = {
       "dialog": [
         {
           "id": "tabs",
@@ -182,22 +177,22 @@ export class Typo3Adapter implements CMSAdapter {
       ]
     };
 
-    return this.transformDialogStructure(mockTypo3Response);
+    return this.transformDialogStructure(mockDataAttribute);
   }
 
   async getFieldValues(): Promise<FieldValues> {
-    console.log('🔧 [Typo3Adapter] Fetching field values from Typo3...');
+    console.log('🔧 [MockAEMAdapter] Getting field values from data attributes...');
 
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Simulate reading from data attributes
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     const mockValues = {
-      toplabel: "Welcome to Typo3",
-      title: "Typo3 Content",
-      description: "This content comes from Typo3 CMS",
+      toplabel: "AEM Web Component",
+      title: "Adobe Experience Manager",
+      description: "Content from AEM data attributes",
       group: {
-        staticdropdownsingle: "two",
-        ctalabel: "Learn More"
+        staticdropdownsingle: "one",
+        ctalabel: "Explore AEM"
       }
     };
 
@@ -205,20 +200,20 @@ export class Typo3Adapter implements CMSAdapter {
   }
 
   async saveFieldValues(values: FieldValues): Promise<void> {
-    console.log('🔧 [Typo3Adapter] Saving field values to Typo3:', values);
+    console.log('🔧 [MockAEMAdapter] Saving field values via AEM API:', values);
 
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Simulate API call to AEM servlet
+    await new Promise(resolve => setTimeout(resolve, 1200));
 
-    console.log('✅ [Typo3Adapter] Values saved successfully');
+    console.log('✅ [MockAEMAdapter] Values saved successfully');
   }
 
-  transformDialogStructure(typo3Dialog: any): DialogStructure {
-    return typo3Dialog.dialog || [];
+  transformDialogStructure(aemDialog: any): DialogStructure {
+    return aemDialog.dialog || [];
   }
 
-  transformFieldValues(typo3Data: any): FieldValues {
-    return typo3Data;
+  transformFieldValues(aemData: any): FieldValues {
+    return aemData;
   }
 
   transformFieldValuesForCMS(values: FieldValues): any {

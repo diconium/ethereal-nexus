@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { DialogDemo } from './DialogDemo';
 
-const meta = {
+const meta: Meta<typeof DialogDemo> = {
   title: 'Components/DialogDemo',
   component: DialogDemo,
   parameters: {
@@ -21,7 +21,7 @@ const meta = {
       defaultValue: 'aem'
     },
   },
-} satisfies Meta<typeof DialogDemo>;
+};
 
 export default meta;
 type Story = StoryObj<typeof meta>;

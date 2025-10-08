@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { DialogRenderer } from '../components/DialogRenderer.tsx';
 
-const meta = {
+const meta: Meta<typeof DialogRenderer> = {
   title: 'Components/DialogRenderer',
   component: DialogRenderer,
   parameters: {
@@ -20,7 +20,7 @@ const meta = {
       defaultValue: 'World'
     },
   },
-} satisfies Meta<typeof DialogRenderer>;
+};
 
 export default meta;
 type Story = StoryObj<typeof meta>;

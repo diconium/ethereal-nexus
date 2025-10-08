@@ -30,6 +30,7 @@
     "spectrum",
     "ui"
   ],
+  "private": false,
   "author": "",
   "license": "ISC",
   "peerDependencies": {

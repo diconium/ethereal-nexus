@@ -125,6 +125,8 @@ importers:
         specifier: ^4.18.2
         version: 4.26.1
 
+  lib/connector: {}
+
   lib/core:
     dependencies:
       '@r2wc/react-to-web-component':

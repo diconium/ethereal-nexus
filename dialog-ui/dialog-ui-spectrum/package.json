@@ -21,7 +21,7 @@
     "type-check": "tsc --noEmit",
     "test": "vitest",
     "storybook": "storybook dev -p 6006",
-    "publish": "pnpm publish --access public"
+    "publish": "pnpm publish --access public --no-git-checks"
   },
   "keywords": [
     "react",

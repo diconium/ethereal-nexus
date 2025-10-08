@@ -46,7 +46,7 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: pnpm release
+          publish: pnpm release --access public
           commit: "chore: release version"
           title: "[ci] Release version"
         env:

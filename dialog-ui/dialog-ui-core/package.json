@@ -20,7 +20,7 @@
     "build": "tsc && vite build",
     "type-check": "tsc --noEmit",
     "test": "vitest",
-    "publish": "pnpm publish --access public --no-git-checks"
+    "publish": "pnpm publish --access public"
   },
   "keywords": ["react", "aem", "dialog", "headless"],
   "author": "",

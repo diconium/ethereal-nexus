@@ -1,5 +1,5 @@
 {
-  "name": "@ethereal/dialog-ui-spectrum",
+  "name": "@ethereal-nexus/dialog-ui-spectrum",
   "version": "1.0.0",
   "type": "module",
   "description": "React UI package using Adobe React Spectrum components",

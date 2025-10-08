@@ -2,6 +2,10 @@
   "name": "@ethereal-nexus/dialog-ui-packages",
   "version": "1.0.0",
   "description": "Meta package to build dialog-ui-core, dialog-ui-example, and dialog-ui-spectrum.",
+  "scripts": {
+    "publish": "pnpm --filter \"...{packages/**}\" publish --access public"
+  },
+  "private": true,
   "workspaces": [
     "packages/dialog-ui-core",
     "packages/dialog-ui-example",

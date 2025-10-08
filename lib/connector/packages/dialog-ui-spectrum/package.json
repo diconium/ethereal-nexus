@@ -1,0 +1,48 @@
+{
+  "name": "@ethereal/dialog-ui-spectrum",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "React UI package using Adobe React Spectrum components",
+  "main": "dist/index.esm.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.esm.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite dev",
+    "build": "tsc && vite build",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "storybook": "storybook dev -p 6006"
+  },
+  "keywords": [
+    "react",
+    "aem",
+    "dialog",
+    "spectrum",
+    "ui"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@r2wc/react-to-web-component": "^2.0.4",
+    "@ethereal-nexus/dialog-ui-core": "workspace:*",
+    "@adobe/react-spectrum": "^3.43.0",
+    "@spectrum-icons/workflow": "^4.2.23",
+    "@internationalized/date": "^3.5.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.2",
+    "vite": "^7.0.4",
+    "vite-plugin-dts": "^4.5.4",
+    "@vitejs/plugin-react": "^4.6.0",
+    "vitest": "^3.2.4"
+  }
+}

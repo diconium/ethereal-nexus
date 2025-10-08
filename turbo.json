@@ -9,6 +9,11 @@
         ".astro/**",
         ".dist/**"
       ]
+    },
+    "publish": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "outputs": []
     }
   }
 }

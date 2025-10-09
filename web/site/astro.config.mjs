@@ -1,8 +1,9 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
-import tailwind from '@astrojs/tailwind';
 
 import react from '@astrojs/react';
+
+import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
@@ -14,9 +15,13 @@ export default defineConfig({
       Hero: './src/components/starlight/Hero.astro'
     },
     title: 'Ethereal Nexus Repo',
-    social: {
-      github: 'https://github.com/diconium/ethereal-nexus'
-    },
+    social: [
+      {
+        label: 'GitHub',
+        href: 'https://github.com/diconium/ethereal-nexus',
+        icon: 'github'
+      }
+    ],
     sidebar: [
       {
         label: 'Getting Started',
@@ -56,7 +61,9 @@ export default defineConfig({
         }
       }],
     customCss: ['./src/tailwind.css']
-  }), tailwind({
-    applyBaseStyles: false
-  }), react()]
+  }), react()],
+
+  vite: {
+    plugins: [tailwindcss({})]
+  }
 });

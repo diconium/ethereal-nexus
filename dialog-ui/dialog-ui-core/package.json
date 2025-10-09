@@ -29,9 +29,8 @@
     "react": "^19.0.0"
   },
   "publishConfig": {
-    "provenance": true,
     "access": "public"
-},
+  },
   "devDependencies": {
     "@types/react": "^19.0.8",
     "typescript": "^5.4.2",

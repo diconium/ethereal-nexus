@@ -13,8 +13,8 @@
     }
   },
   "publishConfig": {
-     "access": "public"
-   },
+    "access": "public"
+  },
   "files": [
     "dist"
   ],

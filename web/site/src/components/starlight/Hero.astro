@@ -9,9 +9,8 @@ interface Action {
   link: string;
   [key: string]: any; // Define other attributes that might be passed to CallToAction
 }
-
-const { data } = Astro.props.entry;
-const { title = data.title, tagline, image, actions = [] as Action[]} = data.hero || {};
+const { data } = Astro.locals.starlightRoute.entry;
+const { title = data.hero, tagline, image, actions = [] as Action[]} = data.hero || {};
 
 const imageAttrs = {
   loading: 'eager' as const,

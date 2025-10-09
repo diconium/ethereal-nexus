@@ -23,8 +23,7 @@
     "build": "tsc && vite build",
     "type-check": "tsc --noEmit",
     "test": "vitest",
-    "storybook": "storybook dev -p 6006",
-    "publish": "pnpm publish --access public"
+    "storybook": "storybook dev -p 6006"
   },
   "keywords": [
     "react",

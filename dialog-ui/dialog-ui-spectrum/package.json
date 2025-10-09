@@ -12,6 +12,9 @@
       "import": "./dist/index.esm.js"
     }
   },
+  "publishConfig": {
+     "access": "public"
+   },
   "files": [
     "dist"
   ],

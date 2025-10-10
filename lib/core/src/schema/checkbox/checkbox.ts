@@ -1,6 +1,6 @@
 import { BaseFieldInput, type BaseSchema } from '../../types';
 
-export interface CheckBoxSchema<TOutput extends string = string> extends BaseSchema<TOutput> {
+export interface CheckBoxSchema<TOutput extends boolean = boolean> extends BaseSchema<TOutput> {
   /**
    * The schema type.
    */

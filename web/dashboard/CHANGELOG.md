@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 3.0.1
+
+### Patch Changes
+
+- d7ceedf: fix: implement LRU caching for dynamic imports and improve error handling
+
 ## 3.0.0
 
 ### Major Changes

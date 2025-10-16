@@ -1,5 +1,11 @@
 import vm from 'vm';
 import {builtinModules} from 'module';
+import {LRUCache} from "@/lib/cache/LRUCache";
+
+
+
+const cache = new LRUCache<string, any>(100); // Set the cache capacity to 100
+
 
 /**
  * @param {string} url - URL of a source code file.
@@ -39,22 +45,37 @@ sandbox = {},
 
 
 
-
 /**
  * @param {string} url - URL of a source code file.
  * @returns {Promise<string>} Raw source code.
  */
 // @ts-ignore
 
-async function fetchCode(url) {
+async function fetchCode(url: string) {
+  const cached = cache.get(url);
+  if (typeof cached === 'string') {
+    return cached;
+  }
+  if (cached) {
+    // In-progress promise
+    return cached;
+  }
+  // Start fetch and cache the promise immediately
+  const fetchPromise = (async () => {
     const response = await fetch(url);
+
     if (response.ok) {
-        return response.text();
+      const text = await response.text();
+      cache.set(url, text); // Store final result
+      return text;
     } else {
-        throw new Error(
-            `Error fetching ${url}: ${response.statusText}`,
-        );
+      cache.delete(url); // Remove failed promise
+      console.error("Failed to fetch", url, response.status, response.statusText);
+      throw new Error(`Error fetching ${url}: ${response.statusText}`);
     }
+  })();
+  cache.set(url, fetchPromise);
+  return fetchPromise;
 }
 
 /**
@@ -72,6 +93,7 @@ async function createModuleFromURL(url, context) {
     ) {
         // Download the code (naive implementation!)
         const source = await fetchCode(identifier);
+
         // Instantiate a ES module from raw source code.
         return new vm.SourceTextModule(source, {
             identifier,
@@ -142,4 +164,3 @@ async function linkWithImportMap({imports}) {
         );
     };
 }
-

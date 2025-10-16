@@ -111,7 +111,7 @@ export const projectComponentsSchema = componentsSchema.extend({
 export type ProjectComponent = z.infer<typeof projectComponentsSchema>;
 
 export const projectComponentsWithDialogSchema = projectComponentsSchema
-  .omit({ versions: true, config_id: true })
+  .omit({ versions: true, config_id: true , is_ai_generated: true, is_active: true})
 export const projectWithOwners = projectSchema
   .extend({
     has_access: z.boolean(),

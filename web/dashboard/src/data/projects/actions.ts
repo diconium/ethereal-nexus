@@ -617,7 +617,8 @@ export async function getEnvironmentComponentConfig(
         latest_version.component_id,
         latest_version.version,
         latest_version.dialog,
-      );
+      )
+      .$withCache();
 
     const result = component[0];
 
@@ -634,20 +635,21 @@ export async function getEnvironmentComponentConfig(
       .from(componentAssets)
       .where(and(
         eq(componentAssets.version_id, result.versionId)
-      ));
+      )).$withCache();
 
-    // Join feature_flag table and add flags array
-    result['featureFlags'] = await db
-      .select({
-        id: featureFlags.id,
-        name: featureFlags.flag_name,
-        enabled: featureFlags.enabled
-      })
-      .from(featureFlags)
-      .where(and(
-        eq(featureFlags.environment_id, id),
-        eq(featureFlags.component_id, result.id)
-      ));
+      // Join feature_flag table and add flags array
+      result['featureFlags'] = await db
+        .select({
+          id: featureFlags.id,
+          name: featureFlags.flag_name,
+          enabled: featureFlags.enabled
+        })
+        .from(featureFlags)
+        .where(and(
+          eq(featureFlags.environment_id, id),
+          eq(featureFlags.component_id, result.id)
+        )).$withCache();
+
 
     return actionSuccess(result);
   } catch (error) {

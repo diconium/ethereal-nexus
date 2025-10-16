@@ -9,6 +9,7 @@ import * as projects from '@/data/projects/schema';
 import * as member from '@/data/member/schema';
 import * as components from '@/data/components/schema';
 import * as events from "@/data/events/schema";
+import {InMemoryCache, IN_MEMORY_CACHE_TTL} from "@/db/in-memory-cache";
 
 const schema = {
   ...users,
@@ -17,6 +18,9 @@ const schema = {
   ...components,
   ...events,
 }
+
+
+const cache = new InMemoryCache(IN_MEMORY_CACHE_TTL);
 
 function clientFactory() {
   let drizzle, client;
@@ -39,6 +43,7 @@ function clientFactory() {
   }
 
   return drizzle(client, {
+    cache: cache,
     schema
   })
 }

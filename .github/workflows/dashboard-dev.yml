@@ -29,9 +29,7 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_EC5E70A7063145CBB34CF1AABB18834E }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_8FB13116882B4EDEBA6D49C9E7BC480F }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_5BC33A588A19471E83381531FA6C9048 }}
+          creds: ${{ secrets.DEMOETHEREALNEXUS_AZURE_CREDENTIALS }}
 
       - name: Log in to Docker Hub
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
@@ -58,7 +56,7 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: .
+          appSourcePath: ${{ github.workspace }}
           dockerfilePath: web/dashboard/Dockerfile
           containerAppName: demo-ethereal-nexus
           resourceGroup: RG-Ethereal-Nexus

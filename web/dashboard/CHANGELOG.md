@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 3.0.2
+
+### Patch Changes
+
+- c4b6624: chore: enhance dynamic import performance with timing logs
+
 ## 3.0.1
 
 ### Patch Changes

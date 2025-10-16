@@ -35,4 +35,11 @@ export class LRUCache<K, V> {
         this.cache.set(key, value);
         this.order.set(key, key);
     }
+
+    delete(key: K): void {
+        if (this.cache.has(key)) {
+            this.cache.delete(key);
+            this.order.delete(key);
+        }
+    }
 }

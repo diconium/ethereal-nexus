@@ -5,7 +5,7 @@ import { callSSR } from '@/lib/ssr/ssr';
 import crypto from 'crypto';
 import { LRUCache } from '@/lib/cache/LRUCache';
 
-const cache = new LRUCache<string, any>(100); // Set the cache capacity to 100
+const cache = new LRUCache<string, any>(10000); // Set the cache capacity to 100
 
 export const POST =
   async (

@@ -19,7 +19,7 @@ export async function callSSR(componentType, componentProps = {}, assets) {
                         props: {...componentProps},
                     }
                 }
-            console.log("[SSR] calling SSR with: ", sandbox.ethereal.props)
+            console.debug("[SSR] calling SSR with: ", sandbox.ethereal.props)
             await dynamicImport(jsAsset[0].filePath, sandbox);
             console.debug("[SSR] loaded: ", sandbox?.ethereal?.output)
             if (sandbox?.ethereal?.serverSideProps) {
@@ -29,7 +29,7 @@ export async function callSSR(componentType, componentProps = {}, assets) {
             return {output: sandbox?.ethereal?.output, serverSideProps: sandbox?.ethereal?.serverSideProps}
 
         } catch (e) {
-            console.log("[SSR] There was a error rendering ssr: ", e)
+            console.error("[SSR] There was a error rendering ssr: ", e)
         }
 
     }

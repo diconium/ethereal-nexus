@@ -1,0 +1,45 @@
+name: Trigger auto deployment for demo-ethereal-nexus
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/demo-ethereal-nexus-AutoDeployTrigger-f40fd3d8-f268-4d2f-9a24-ebb8f4096973.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.DEMOETHEREALNEXUS_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}/web/dashboard
+          _dockerfilePathKey_: _dockerfilePath_
+          _targetLabelKey_: _targetLabel_
+          registryUrl: etherealnexus.azurecr.io
+          registryUsername: ${{ secrets.DEMOETHEREALNEXUS_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.DEMOETHEREALNEXUS_REGISTRY_PASSWORD }}
+          containerAppName: demo-ethereal-nexus
+          resourceGroup: RG-Ethereal-Nexus
+          imageToBuild: etherealnexus.azurecr.io/demo-ethereal-nexus:${{ github.sha }}
+          
+            
+
+     
+

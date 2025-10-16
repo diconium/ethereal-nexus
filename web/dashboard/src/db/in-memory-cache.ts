@@ -34,7 +34,7 @@ interface Entry {
 export class InMemoryCache extends CustomCache {
   private store = new Map<string, Entry>();
 
-  constructor(private defaultTtlMs = 60 * 1000) {
+  constructor() {
     super();
   }
 
@@ -67,10 +67,9 @@ export class InMemoryCache extends CustomCache {
 
     try {
       let expireAt: number | undefined = undefined;
+
       if (config?.px != null) {
         expireAt = Date.now() + config.px;
-      } else {
-        expireAt = Date.now() + this.defaultTtlMs;
       }
 
       if (!response) {

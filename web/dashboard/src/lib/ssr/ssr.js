@@ -7,7 +7,6 @@ export async function callSSR(componentType, componentProps = {}, assets) {
 
     if (jsAsset.length > 0) {
         try {
-            console.debug("[SSR] Loading dynamic js from: ", jsAsset[0].filePath)
 
             const sandbox =
                 {
@@ -19,9 +18,9 @@ export async function callSSR(componentType, componentProps = {}, assets) {
                         props: {...componentProps},
                     }
                 }
-            console.debug("[SSR] calling SSR with: ", sandbox.ethereal.props)
+
             await dynamicImport(jsAsset[0].filePath, sandbox);
-            console.debug("[SSR] loaded: ", sandbox?.ethereal?.output)
+
             if (sandbox?.ethereal?.serverSideProps) {
                 console.debug("[SSR] pre loaded this data:  ", sandbox?.ethereal?.serverSideProps)
             }

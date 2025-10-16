@@ -453,7 +453,7 @@ export async function getActiveEnvironmentComponents(
           eq(projectComponentConfig.environment_id, id)
         )
       );
-console.log("select", select)
+
     const safe = projectComponentsWithDialogSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(

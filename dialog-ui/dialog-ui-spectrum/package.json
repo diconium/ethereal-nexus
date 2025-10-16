@@ -19,10 +19,6 @@
     "dist",
     "README.md"
   ],
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
   "scripts": {
     "dev": "vite dev",
     "build": "tsc && vite build",

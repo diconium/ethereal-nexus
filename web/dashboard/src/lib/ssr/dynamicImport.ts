@@ -15,28 +15,30 @@ const cache = new LRUCache<string, any>(100); // Set the cache capacity to 100
  */
 // @ts-ignore
 export default async function dynamicImport(
-// @ts-ignore
-specifier,
-sandbox = {},
-{imports = {}} = {imports: {}},
+  specifier,
+  sandbox = {},
+  {imports = {}} = {imports: {}},
 ) {
-    // Take a specifier from the import map or use it directly. The
-    // specifier must be a valid URL.
+    console.time('dynamicImport-url');
     const url =
-        specifier in imports
-            // @ts-ignore
-            ? new URL(imports[specifier])
-            : new URL(specifier);
-    // Create an execution context that provides global variables.
-    const context = vm.createContext({...sandbox});
+      specifier in imports
+        ? new URL(imports[specifier])
+        : new URL(specifier);
+    console.timeEnd('dynamicImport-url');
 
-    // Create the ES module.
+    console.time('dynamicImport-createContext');
+    const context = vm.createContext({...sandbox});
+    console.timeEnd('dynamicImport-createContext');
+
     const mod = await createModuleFromURL(url, context);
 
-    // Create a "link" function that uses an optional import map.
+    console.time('dynamicImport-linker');
     const linker = await linkWithImportMap({imports});
-    // Resolve additional imports in the module.
+    console.timeEnd('dynamicImport-linker');
+
+    console.time('dynamicImport-link');
     await mod.link(linker);
+    console.timeEnd('dynamicImport-link');
     // Execute any imperative statements in the module's code.
     await mod.evaluate();
     // The namespace includes the exports of the ES module.
@@ -54,16 +56,19 @@ sandbox = {},
 async function fetchCode(url: string) {
   const cached = cache.get(url);
   if (typeof cached === 'string') {
+    console.debug("Using cached fetch for", url);
     return cached;
   }
   if (cached) {
+    console.debug("Using in-progress fetch for", url);
     // In-progress promise
     return cached;
   }
   // Start fetch and cache the promise immediately
   const fetchPromise = (async () => {
+    console.time("fetch server.js");
     const response = await fetch(url);
-
+    console.timeEnd("fetch server.js");
     if (response.ok) {
       const text = await response.text();
       cache.set(url, text); // Store final result

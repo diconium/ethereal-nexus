@@ -35,14 +35,20 @@ export const POST =
       }
 
       const req = await request.json();
+
+      console.time("get-env-component-config");
       const response = await getEnvironmentComponentConfig(id, name, userId);
+      console.timeEnd("get-env-component-config");
 
       const reqHash = crypto.createHash('sha256').update(JSON.stringify(req) + JSON.stringify(response)).digest('hex');
 
 
       if (cache.get(reqHash)) {
+          console.debug("Cache hit for hash:",name );
           return NextResponse.json(cache.get(reqHash), { status: HttpStatus.OK });
       }
+
+      console.debug("Cache miss for hash:", name );
 
       if (!response.success) {
           return NextResponse.json(response.error, {

@@ -19,8 +19,9 @@ export async function callSSR(componentType, componentProps = {}, assets) {
                     }
                 }
 
+            console.time("[SSR])   render time");
             await dynamicImport(jsAsset[0].filePath, sandbox);
-
+            console.timeEnd("[SSR])   render time");
             if (sandbox?.ethereal?.serverSideProps) {
                 console.debug("[SSR] pre loaded this data:  ", sandbox?.ethereal?.serverSideProps)
             }

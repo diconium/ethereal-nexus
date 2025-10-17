@@ -18,8 +18,9 @@ export const POST =
               status: HttpStatus.BAD_REQUEST,
           });
       }
-
+      console.time("authenticatedWithApiKeyUser");
       const user = await authenticatedWithApiKeyUser();
+      console.timeEnd("authenticatedWithApiKeyUser");
       const userId = user?.id;
       if (!userId) {
           return NextResponse.json('Api key not provided or invalid.', {
@@ -55,8 +56,10 @@ export const POST =
               status: HttpStatus.BAD_REQUEST,
           });
       }
-      const {output, serverSideProps } = await callSSR(response.data.name, req, response.data.assets);
 
+      console.time("call-ssr");
+      const {output, serverSideProps } = await callSSR(response.data.name, req, response.data.assets);
+      console.timeEnd("call-ssr");
       if (output !== "") {
           const result = {output, serverSideProps};
           cache.set(reqHash, result);

@@ -20,7 +20,7 @@ export abstract class CustomCache {
     tables: string[],
     config?: CacheConfig
   ): Promise<void>;
-  abstract invalidate(options: { tables?: string[]; tags?: string | string[] }): Promise<void>;
+  abstract onMutate(options: { tables?: string[]; tags?: string | string[] }): Promise<void>;
 }
 
 
@@ -82,7 +82,7 @@ export class InMemoryCache extends CustomCache {
     }
   }
 
-  async invalidate({ tables, tags }: { tables?: string[]; tags?: string | string[] }): Promise<void> {
+  async onMutate({ tables, tags }: { tables?: string[]; tags?: string | string[] }): Promise<void> {
     for (const [key, entry] of this.store.entries()) {
       if (tables) {
         // if any table in entry.tables is in the “tables” to invalidate, remove entry

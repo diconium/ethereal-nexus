@@ -8,8 +8,8 @@ import * as users from '@/data/users/schema';
 import * as projects from '@/data/projects/schema';
 import * as member from '@/data/member/schema';
 import * as components from '@/data/components/schema';
-import * as events from "@/data/events/schema";
-import {InMemoryCache, IN_MEMORY_CACHE_TTL} from "@/db/in-memory-cache";
+import * as events from '@/data/events/schema';
+import { InMemoryCache } from '@/db/in-memory-cache';
 
 const schema = {
   ...users,
@@ -17,10 +17,10 @@ const schema = {
   ...member,
   ...components,
   ...events,
-}
+};
 
 
-const cache = new InMemoryCache(IN_MEMORY_CACHE_TTL);
+const cache = new InMemoryCache();
 
 function clientFactory() {
   let drizzle, client;
@@ -33,21 +33,21 @@ function clientFactory() {
     default:
       drizzle = drizzlePg;
       let connectionString =
-      client = postgres(
-        process.env.DRIZZLE_DATABASE_URL!,
-        {
-          max: process.env.DRIZZLE_DATABASE_MAX_CONNECTIONS ? parseInt(process.env.DRIZZLE_DATABASE_MAX_CONNECTIONS) : 25,
-          idle_timeout: 20,
-        }
-      );
+        client = postgres(
+          process.env.DRIZZLE_DATABASE_URL!,
+          {
+            max: process.env.DRIZZLE_DATABASE_MAX_CONNECTIONS ? parseInt(process.env.DRIZZLE_DATABASE_MAX_CONNECTIONS) : 25,
+            idle_timeout: 20,
+          },
+        );
   }
 
   return drizzle(client, {
     cache: cache,
-    schema
-  })
+    schema,
+  });
 }
 
 export const db = remember('db', () =>
-  clientFactory()
+  clientFactory(),
 );

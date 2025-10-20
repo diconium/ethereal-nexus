@@ -7,6 +7,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'web/az-serve-static-assets-fn/**'
+      - '.github/workflows/main_ethereal-nexus-serve-static-assets.yml'
   workflow_dispatch:
 
 env:

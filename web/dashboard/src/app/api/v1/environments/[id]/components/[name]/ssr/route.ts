@@ -61,10 +61,10 @@ export const POST =
       const {output, serverSideProps } = await callSSR(response.data.name, req, response.data.assets);
       console.timeEnd("call-ssr");
       if (output !== "") {
-          const result = {output, serverSideProps};
+          const result = {output, serverSideProps, version: response.data.version};
           cache.set(reqHash, result);
           return NextResponse.json(result, { status: HttpStatus.OK });
       }
 
-      return NextResponse.json({output, serverSideProps}, { status: HttpStatus.OK });
+      return NextResponse.json({output, serverSideProps, version: response.data.version}, { status: HttpStatus.OK });
   }

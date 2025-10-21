@@ -405,26 +405,34 @@ export async function getActiveEnvironmentComponents(
     return actionError('No user provided.');
   }
 
-  const latest_version = db.select()
+  const latest_version = db
+    .select({
+      component_id: componentVersions.component_id,
+      version: componentVersions.version,
+      dialog: componentVersions.dialog,
+      id: componentVersions.id,
+      row_number: sql`row_number() over (partition by ${componentVersions.component_id} order by ${componentVersions.created_at} desc)`.as('rn')
+    })
     .from(componentVersions)
-    .orderBy(desc(componentVersions.created_at))
-    .groupBy(
-      componentVersions.id,
-      componentVersions.version,
-      componentVersions.component_id,
-      componentVersions.created_at,
-      componentVersions.component_id
-    )
-    .limit(1)
     .as('latest_version');
+
+  const latest_only = db
+    .select({
+      component_id: latest_version.component_id,
+      version: latest_version.version,
+      dialog: latest_version.dialog,
+      id: latest_version.id
+    })
+    .from(latest_version)
+    .where(eq(latest_version.row_number, 1))
+    .as('latest_only');
 
   try {
     const select = await db
       .select({
         ...getTableColumns(components),
         is_active: projectComponentConfig.is_active,
-        version: sql`coalesce
-            (${componentVersions.version}, ${latest_version.version})`,
+        version: sql`coalesce(${componentVersions.version}, ${latest_only.version})`,
       })
       .from(components)
       .leftJoin(
@@ -436,8 +444,8 @@ export async function getActiveEnvironmentComponents(
         eq(componentVersions.id, projectComponentConfig.component_version)
       )
       .leftJoin(
-        latest_version,
-        eq(latest_version.component_id, projectComponentConfig.component_id)
+        latest_only,
+        eq(latest_only.component_id, components.id)
       )
       .where(
         and(
@@ -609,7 +617,8 @@ export async function getEnvironmentComponentConfig(
         latest_version.component_id,
         latest_version.version,
         latest_version.dialog,
-      );
+      )
+      .$withCache();
 
     const result = component[0];
 
@@ -626,20 +635,21 @@ export async function getEnvironmentComponentConfig(
       .from(componentAssets)
       .where(and(
         eq(componentAssets.version_id, result.versionId)
-      ));
+      )).$withCache();
 
-    // Join feature_flag table and add flags array
-    result['featureFlags'] = await db
-      .select({
-        id: featureFlags.id,
-        name: featureFlags.flag_name,
-        enabled: featureFlags.enabled
-      })
-      .from(featureFlags)
-      .where(and(
-        eq(featureFlags.environment_id, id),
-        eq(featureFlags.component_id, result.id)
-      ));
+      // Join feature_flag table and add flags array
+      result['featureFlags'] = await db
+        .select({
+          id: featureFlags.id,
+          name: featureFlags.flag_name,
+          enabled: featureFlags.enabled
+        })
+        .from(featureFlags)
+        .where(and(
+          eq(featureFlags.environment_id, id),
+          eq(featureFlags.component_id, result.id)
+        )).$withCache();
+
 
     return actionSuccess(result);
   } catch (error) {

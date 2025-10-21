@@ -470,7 +470,8 @@ export async function getApiKeyByKey(
         ),
       )
       .where(and(eq(apiKeys.key, id), isNotNull(members.id)))
-      .groupBy(apiKeys.id);
+      .groupBy(apiKeys.id)
+      .$withCache();
 
     const safe = apiKeyValidPermissions.array().safeParse(result);
     if (!safe.success) {

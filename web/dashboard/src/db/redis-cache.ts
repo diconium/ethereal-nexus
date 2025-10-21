@@ -64,8 +64,7 @@ export class RedisCache extends Cache {
 
   async get(key: string) {
     const value = await this.redisClient.get(key);
-    const parsed = value ? JSON.parse(value) : undefined;
-    return parsed;
+    return value ? JSON.parse(value) : undefined;
   }
 
   async put(key: string, response: any, tables: string[]) {

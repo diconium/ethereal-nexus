@@ -10,6 +10,7 @@ import * as member from '@/data/member/schema';
 import * as components from '@/data/components/schema';
 import * as events from "@/data/events/schema";
 import { RedisCache } from "@/db/redis-cache";
+import {InMemoryCache} from "@/db/in-memory-cache";
 
 
 const schema = {
@@ -20,7 +21,9 @@ const schema = {
   ...events,
 };
 
-const cache = remember("redis-cache", () => new RedisCache());
+const redisEnabled = process.env.DB_CACHE_STRATEGY === 'redis';
+
+const cache = remember("redis-cache", () => redisEnabled ? new RedisCache() : new InMemoryCache());
 
 function clientFactory() {
   let drizzle, client;

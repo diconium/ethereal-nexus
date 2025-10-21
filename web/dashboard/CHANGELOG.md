@@ -1,5 +1,16 @@
 # @ethereal-nexus/dashboard
 
+## 3.1.0
+
+### Minor Changes
+
+- 17350e7: implemented optional in-memory cache to improve SSR call
+- c260624: feat: implement Redis cache for improved data handling and performance
+
+### Patch Changes
+
+- 639f570: optimize database queries for component version retrieval and update schema
+
 ## 3.0.2
 
 ### Patch Changes

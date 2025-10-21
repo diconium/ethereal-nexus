@@ -1,5 +1,5 @@
-import { drizzle as drizzlePg, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
+import { drizzle as drizzlePg } from 'drizzle-orm/postgres-js';
+import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
 import postgres from 'postgres';
 import { neon } from '@neondatabase/serverless';
 import { remember } from '@epic-web/remember';
@@ -8,8 +8,10 @@ import * as users from '@/data/users/schema';
 import * as projects from '@/data/projects/schema';
 import * as member from '@/data/member/schema';
 import * as components from '@/data/components/schema';
-import * as events from '@/data/events/schema';
-import { InMemoryCache } from '@/db/in-memory-cache';
+import * as events from "@/data/events/schema";
+import { RedisCache } from "@/db/redis-cache";
+import {InMemoryCache} from "@/db/in-memory-cache";
+
 
 const schema = {
   ...users,
@@ -19,8 +21,9 @@ const schema = {
   ...events,
 };
 
+const redisEnabled = process.env.DB_CACHE_STRATEGY === 'redis';
 
-const cache = new InMemoryCache();
+const cache = remember("redis-cache", () => redisEnabled ? new RedisCache() : new InMemoryCache());
 
 function clientFactory() {
   let drizzle, client;
@@ -43,9 +46,9 @@ function clientFactory() {
   }
 
   return drizzle(client, {
-    cache: cache,
-    schema,
-  });
+    cache,
+    schema
+  })
 }
 
 export const db = remember('db', () =>

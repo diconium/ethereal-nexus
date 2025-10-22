@@ -21,9 +21,18 @@ const schema = {
   ...events,
 };
 
-const redisEnabled = process.env.DB_CACHE_STRATEGY === 'redis';
+const redisEnabled = process.env.DB_CACHE_STRATEGY;
 
-const cache = remember("redis-cache", () => redisEnabled ? new RedisCache() : new InMemoryCache());
+const cache = remember("redis-cache", () => {
+  switch (redisEnabled) {
+    case 'redis':
+      console.log("Using Redis Cache for DB");
+      return new RedisCache();
+    default:
+      console.log("Using In-Memory Cache for DB. If no ENV variables are set then no caching is used.");
+      return new InMemoryCache();
+  }
+});
 
 function clientFactory() {
   let drizzle, client;

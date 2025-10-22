@@ -29,7 +29,7 @@ export async function callSSR(componentType, componentProps = {}, assets) {
             return {output: sandbox?.ethereal?.output, serverSideProps: sandbox?.ethereal?.serverSideProps}
 
         } catch (e) {
-            console.error("[SSR] There was a error rendering ssr: ", e)
+            console.error("[SSR] There was a error rendering ssr ", componentType, JSON.stringify(componentProps, null, 2),  e)
         }
 
     }

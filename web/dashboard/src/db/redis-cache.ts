@@ -1,26 +1,23 @@
-import { Table, getTableName, is } from "drizzle-orm";
 import Redis from "ioredis";
-import {CacheConfig} from "drizzle-orm/cache/core/types";
+import {Cache, MutationOption} from "drizzle-orm/cache/core/cache"
+import type {CacheConfig} from "drizzle-orm/cache/core/types";
 
-export abstract class Cache {
-  /** “explicit” means only queries with `.$withCache()` will be cached; “all” means all queries will cache by default */
-  strategy(): "explicit" | "all" {
-    return "all";
-  }
-
-  abstract get(key: string): Promise<any[] | undefined>;
-  abstract put(
-    key: string,
-    response: any[],
-    tables: string[],
-    config?: CacheConfig
-  ): Promise<void>;
-  abstract onMutate(options: { tables?: string[]; tags?: string | string[] }): Promise<void>;
+const redisConfig = {
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6380,
+  password: process.env.REDIS_PASSWORD,
+  cacheStrategy: process.env.REDIS_CACHE_STRATEGY || "explicit",
+  localCacheTTL: process.env.IN_MEMORY_CACHE_TTL ? parseInt(process.env.IN_MEMORY_CACHE_TTL) : 3600,
+  redisCacheTTL: process.env.REDIS_CACHE_TTL ? parseInt(process.env.REDIS_CACHE_TTL) * 24 * 60 * 60 : 30 * 24 * 60 * 60,
 }
 
+interface Entry {
+  value: any[];
+  expireAt?: number;
+}
 
 export class RedisCache extends Cache {
-  private usedTablesPerKey: Record<string, string[]> = {};
+  private store = new Map<string, Entry>();
 
   private redisClient: Redis;
   private subscriberClient: Redis;
@@ -29,79 +26,120 @@ export class RedisCache extends Cache {
   constructor() {
     super();
 
+    const { host, port, password } = redisConfig;
+
     this.redisClient = new Redis({
-      host: process.env.REDIS_HOST,
-      port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6380,
-      password: process.env.REDIS_PASSWORD,
+      host,
+      port,
+      password,
       tls: {}
     });
 
     this.subscriberClient = new Redis({
-      host: process.env.REDIS_HOST,
-      port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6380,
-      password: process.env.REDIS_PASSWORD,
+      host,
+      port,
+      password,
       tls: {}
     });
 
-    this.subscriberClient.subscribe('cache:mutate', (err, count) => {
-      if (err) {
-        console.error('Redis subscribe error:', err);
-      } else {
-        console.log("Subscribed to Redis channel 'cache:mutate', subscription count:", count);
-      }
-    });
+    this.subscriberClient.subscribe('cache:mutate');
 
     this.subscriberClient.on('message', (channel, message) => {
       if (channel === 'cache:mutate') {
-        console.log("Processing cache:mutate message:", message);
+        const parsed = JSON.parse(message);
+        console.debug("Deleting cache keys from local store:", parsed);
+
+        const arrayOfKeys = Array.isArray(parsed) ? parsed : [];
+
+        for (const key of arrayOfKeys) {
+          this.store.delete(key);
+        }
       }
     });
   }
 
   override strategy(): "explicit" | "all" {
-    return "explicit";
+    return redisConfig.cacheStrategy  === "all" ? "all" :  "explicit";
   }
 
-  async get(key: string) {
-    const value = await this.redisClient.get(key);
-    return value ? JSON.parse(value) : undefined;
+
+  private buildStructuredKey(key: string, tables?: string[]) {
+    const tablesPart = tables?.sort().join(",") ?? "";
+    return `cache:${tablesPart}:${key}`;
   }
 
-  async put(key: string, response: any, tables: string[]) {
-    await this.redisClient.set(key, JSON.stringify(response), "EX", 600); // 5 minutes TTL
-    for (const table of tables) {
-      if (!this.usedTablesPerKey[table]) this.usedTablesPerKey[table] = [];
-      this.usedTablesPerKey[table].push(key);
+  override async get(key: string, tables: string[], isTag: boolean, isAutoInvalidate?: boolean) {
+
+    const redisKey = this.buildStructuredKey(key, tables);
+
+    const entry = this.store.get(redisKey);
+
+    if (entry && (!entry.expireAt || entry.expireAt > Date.now())) {
+      console.log("Local Cache Hit for key:", redisKey, entry.value);
+      return entry.value;
     }
+
+    const redisValue = await this.redisClient.get(redisKey);
+
+    if (!redisValue) {
+      return undefined;
+    }
+
+    const value = JSON.parse(redisValue);
+
+    this.store.set(redisKey, { value, expireAt: Date.now() + (redisConfig.localCacheTTL * 1000) });
+
+    return value;
+
+  }
+
+
+  override async put(key: string, response: any, tables: string[], isTag: boolean, config?: CacheConfig) {
+    const value = JSON.stringify(response);
+    const structuredKey = this.buildStructuredKey(key, tables);
+
+    await this.redisClient.set(structuredKey, value, "EX", redisConfig.redisCacheTTL);
 
     try {
-      const pubResult = await this.redisClient.publish('cache:mutate', JSON.stringify({ keys: [key] }));
-      console.log('Published cache:mutate event for key', key, 'result:', pubResult);
+      let expireAt: number | undefined = undefined;
+      if (redisConfig.localCacheTTL != null) {
+        expireAt = Date.now() + redisConfig.localCacheTTL * 1000;
+      }
+
+      if (!response) {
+        return;
+      }
+      this.store.set(structuredKey, {value: response, expireAt});
     } catch (e) {
-      console.error('Error publishing cache:mutate event:', e);
+      console.error("Error storing cache entry:", e);
     }
   }
 
-  async onMutate({tables}: { tables?: string[]; tags?: string | string[] }) {
-    const tablesArray = Array.isArray(tables) ? tables : [tables];
-    let keysToDelete: string[] = [];
-    for (const table of tablesArray) {
-      const tableName = is(table, Table) ? getTableName(table) : table;
-      const keys = this.usedTablesPerKey[tableName! as string] ?? [];
-      for (const key of keys) {
-        await this.redisClient.del(key);
-        keysToDelete.push(key);
+  override async onMutate(params: MutationOption): Promise<void>  {
+    const tables = Array.isArray(params.tables)
+      ? params.tables
+      : [params.tables];
+
+    for (const table of tables) {
+      const stream = this.redisClient.scanStream({match: `cache:*${table}*:*`, count: 100});
+      const keys: string[] = [];
+      stream.on("data", async (resultKeys: string[]) => {
+        if (resultKeys.length === 0) {
+          return;
+        }
+        await this.redisClient.del(...resultKeys);
+        keys.push(...resultKeys)
+      });
+      await new Promise((resolve) => stream.on("end", resolve));
+
+      if (keys.length > 0) {
+        await this.redisClient.publish(
+          "cache:mutate",
+          JSON.stringify(keys)
+        );
       }
-      this.usedTablesPerKey[tableName!] = [];
     }
-    // Publish mutation event
-    if (keysToDelete.length > 0) {
-      try {
-        const pubResult = await this.redisClient.publish('cache:mutate', JSON.stringify({ keys: keysToDelete }));
-        console.log('Published cache:mutate event for keys', keysToDelete, 'result:', pubResult);
-      } catch (e) {
-        console.error('Error publishing cache:mutate event:', e);
-      }
-    }
+
+    return;
   }
 }

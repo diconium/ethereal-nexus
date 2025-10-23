@@ -272,7 +272,7 @@ export async function POST(request: Request) {
                 type Props = Output<typeof schema>;
                 - Output should be imported from @ethereal-nexus/core as a type. Like this: import { type Output } from '@ethereal-nexus/core';
             - Define the component to accept Props as its parameter
-            - Replace the src attribute of each IMG tag with the corresponding imageDialog prop value
+            - Replace the src attribute of each <img> tag with the corresponding imageDialog prop value
             - For HTML-rendering elements, use the rte prop value within dangerouslySetInnerHTML
             - Replace boolean values and conditional rendering with the corresponding checkboxes prop value
             - Replace dropdown or multi-select elements with the corresponding dropdowns prop value

@@ -7,6 +7,21 @@ import { HttpStatus } from "@/app/api/utils";
 import process from 'node:process';
 import { notFound } from 'next/navigation';
 
+// Define tool separately and cast to any to prevent deep type instantiation errors from generic inference
+const generateEtherealNexusJSXTool: any = {
+  description: 'Generate JSX code, with the ethereal nexus structure, to create a React component',
+  inputSchema: z.object({
+    etherealNexusFileCode: z.string(),
+    fileName: z.string(),
+    componentName: z.string(),
+    description: z.string(),
+    etherealNexusComponentMockedProps: z.unknown(),
+  }),
+  execute: async function ({ id, etherealNexusFileCode, componentName, fileName, description, etherealNexusComponentMockedProps }: any) {
+    return { id, etherealNexusFileCode, componentName, fileName, etherealNexusComponentMockedProps, description, updated: false };
+  },
+};
+
 export async function POST(request: Request) {
     const session = await auth();
 
@@ -23,7 +38,7 @@ export async function POST(request: Request) {
     const { messages } = await request.json();
 
     const response = await streamText({
-        model: openai("gpt-4"),
+        model: openai("gpt-4") as any,
         messages,
         toolChoice: "required",
         system:`
@@ -48,7 +63,7 @@ export async function POST(request: Request) {
             - Implement proper accessibility attributes
             - Use Tailwind CSS, @tailwind base, @tailwind components and @tailwind utilities for styling, and make sure every component that is returned to the user is styled. DON´T use or create any other css classes, only used what Tailwind provides. Tailwind imports must no be inclued in the file.
             - Ensure the component is responsive
-            - Use 'https://placehold.co/' to generate dummy placeholder images and each <img> tag should have an crossOrigin="anonymous" attribute
+            - Use 'https://placehold.co/' to generate dummy placeholder images and each IMG tag should have an crossOrigin="anonymous" attribute
             - Include brief comments explaining complex logic
             - Use TypeScript for type safety
             - If the user specifies that the component needs to render formatted text in a div element, use a div with dangerouslySetInnerHTML. dangerouslySetInnerHTML prop should only be used on div tags
@@ -72,7 +87,7 @@ export async function POST(request: Request) {
                         };
                       - datamodel must be imported from @ethereal-nexus/core
 
-            - For each <img> tag:
+            - For each IMG tag:
                 - Create or update a constant named 'imageDialog' at the top of the file
                 - add an entry to the imageDialog constant like this:
                     const imageDialog = {
@@ -257,7 +272,7 @@ export async function POST(request: Request) {
                 type Props = Output<typeof schema>;
                 - Output should be imported from @ethereal-nexus/core as a type. Like this: import { type Output } from '@ethereal-nexus/core';
             - Define the component to accept Props as its parameter
-            - Replace the src attribute of each <img> tag with the corresponding imageDialog prop value
+            - Replace the src attribute of each IMG tag with the corresponding imageDialog prop value
             - For HTML-rendering elements, use the rte prop value within dangerouslySetInnerHTML
             - Replace boolean values and conditional rendering with the corresponding checkboxes prop value
             - Replace dropdown or multi-select elements with the corresponding dropdowns prop value
@@ -283,21 +298,7 @@ export async function POST(request: Request) {
             Ensure created files are complete, standalone components with all necessary code.
             Do not use placeholders or incomplete code sections. Write out all code in full, even if repeating from previous examples.
             `,
-        tools: { // Record<string, tool>
-            generateEtherealNexusJSX: {
-                description: 'Generate JSX code, with the ethereal nexus structure, to create a React component',
-                parameters: z.object({
-                    etherealNexusFileCode: z.string().describe('The JSX code for the ethereal nexus file that will be generated'),
-                    fileName: z.string().describe('The name of the file where the component will be saved'),
-                    componentName: z.string().describe('The name of the new generated React component'),
-                    description: z.string().describe('A detailed description of the component'),
-                    etherealNexusComponentMockedProps: z.any().describe('An object with the needed mock props that have to be passed to the created component'), // TODO check typing
-                }),
-                execute: async function ({ id, etherealNexusFileCode, componentName, fileName, description, etherealNexusComponentMockedProps }) {
-                    return { id, etherealNexusFileCode, componentName, fileName, etherealNexusComponentMockedProps, description, updated: false };
-                },
-            },
-        },
+        tools: { generateEtherealNexusJSX: generateEtherealNexusJSXTool } as any,
     });
-    return response.toDataStreamResponse();
+    return response.toTextStreamResponse();
 };

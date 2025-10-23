@@ -14,7 +14,7 @@ import {
     createIndexFileTemplate,
     getWebContainerInstance,
 } from "@/lib/web-container";
-import { useChat } from "ai/react";
+import { useChat } from "@ai-sdk/react";
 import {
     upsertNewComponent,
 } from "@/data/components/actions";
@@ -231,7 +231,7 @@ export default function Chat({ chatId }: ChatProps) {
                 setIsComponentDetailsContainerOpen(true);
             });
         } else scrollToBottom();
-    }, [messages.length, setCurrentMessage, setIsComponentDetailsContainerOpen]);
+    }, [messages, messages.length, setCurrentMessage, setIsComponentDetailsContainerOpen]);
 
     const downloadEtherealNexusFile = async (result: ToolCallingResult) => {
         const file = new File([result.etherealNexusFileCode], result.fileName, {

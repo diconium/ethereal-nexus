@@ -84,10 +84,7 @@ export default async function EditProject(props: any) {
                   environment={env}
                 />;
               case 'users':
-                return;
-                <ProjectMemberList
-                  id={id}
-                />;
+                return <ProjectMemberList id={id} />;
               case 'environments':
                 return <EnvironmentsList
                   id={id}

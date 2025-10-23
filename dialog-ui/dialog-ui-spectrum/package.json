@@ -1,6 +1,6 @@
 {
   "name": "@ethereal-nexus/dialog-ui-spectrum",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "type": "module",
   "description": "React UI package using Adobe React Spectrum components",
   "main": "dist/index.esm.js",

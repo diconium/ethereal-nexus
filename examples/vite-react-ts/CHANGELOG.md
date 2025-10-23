@@ -1,5 +1,17 @@
 # remote-components-vite-react-ts
 
+## 0.8.0
+
+### Minor Changes
+
+- 90cf802: Update dependencies
+
+### Patch Changes
+
+- Updated dependencies [90cf802]
+  - @ethereal-nexus/react@0.2.0
+  - @ethereal-nexus/core@1.12.0
+
 ## 0.7.0
 
 ### Minor Changes

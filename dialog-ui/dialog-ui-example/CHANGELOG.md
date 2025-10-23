@@ -1,4 +1,4 @@
-# @ethereal-nexus/dialog-ui-spectrum
+# @ethereal-nexus/dialog-ui-example
 
 ## 1.1.0
 
@@ -10,9 +10,3 @@
 
 - Updated dependencies [90cf802]
   - @ethereal-nexus/dialog-ui-core@1.1.0
-
-## 1.0.4
-
-### Patch Changes
-
-- c4b6624: chore: enhance dynamic import performance with timing logs

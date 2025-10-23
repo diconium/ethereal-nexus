@@ -63,7 +63,7 @@ export async function POST(request: Request) {
             - Implement proper accessibility attributes
             - Use Tailwind CSS, @tailwind base, @tailwind components and @tailwind utilities for styling, and make sure every component that is returned to the user is styled. DON´T use or create any other css classes, only used what Tailwind provides. Tailwind imports must no be inclued in the file.
             - Ensure the component is responsive
-            - Use 'https://placehold.co/' to generate dummy placeholder images and each IMG tag should have an crossOrigin="anonymous" attribute
+            - Use 'https://placehold.co/' to generate dummy placeholder images and each <img> tag should have an crossOrigin="anonymous" attribute
             - Include brief comments explaining complex logic
             - Use TypeScript for type safety
             - If the user specifies that the component needs to render formatted text in a div element, use a div with dangerouslySetInnerHTML. dangerouslySetInnerHTML prop should only be used on div tags

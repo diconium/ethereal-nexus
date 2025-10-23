@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 3.2.1
+
+### Patch Changes
+
+- 1aa516c: fix: downgrade cmdk version to 0.2.1 and fix ProjectMemberList rendering
+
 ## 3.2.0
 
 ### Minor Changes

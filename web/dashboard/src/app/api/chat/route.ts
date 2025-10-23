@@ -87,7 +87,7 @@ export async function POST(request: Request) {
                         };
                       - datamodel must be imported from @ethereal-nexus/core
 
-            - For each IMG tag:
+            - For each <img> tag:
                 - Create or update a constant named 'imageDialog' at the top of the file
                 - add an entry to the imageDialog constant like this:
                     const imageDialog = {

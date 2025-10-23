@@ -1,5 +1,16 @@
 # @ethereal-nexus/vite-plugin-ethereal-nexus
 
+## 1.2.0
+
+### Minor Changes
+
+- 90cf802: Update dependencies
+
+### Patch Changes
+
+- Updated dependencies [90cf802]
+  - @ethereal-nexus/core@1.12.0
+
 ## 1.1.0
 
 ### Minor Changes

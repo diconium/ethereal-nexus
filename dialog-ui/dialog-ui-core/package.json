@@ -1,6 +1,6 @@
 {
   "name": "@ethereal-nexus/dialog-ui-core",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "type": "module",
   "description": "Headless React package with hooks and logic for AEM dialog processing",
   "main": "dist/index.esm.js",
@@ -22,7 +22,12 @@
     "type-check": "tsc --noEmit",
     "test": "vitest"
   },
-  "keywords": ["react", "aem", "dialog", "headless"],
+  "keywords": [
+    "react",
+    "aem",
+    "dialog",
+    "headless"
+  ],
   "author": "",
   "license": "ISC",
   "peerDependencies": {

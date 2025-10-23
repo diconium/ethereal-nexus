@@ -1,5 +1,12 @@
 # @ethereal-nexus/dashboard
 
+## 3.2.0
+
+### Minor Changes
+
+- 85a894c: feat: add Redis cache configuration and enhance caching logic
+- 90cf802: Update dependencies
+
 ## 3.1.0
 
 ### Minor Changes

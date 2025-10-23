@@ -1,5 +1,11 @@
 # @ethereal-nexus/site
 
+## 1.1.0
+
+### Minor Changes
+
+- 90cf802: Update dependencies
+
 ## 1.0.2
 
 ### Patch Changes

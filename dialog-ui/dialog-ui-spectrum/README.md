@@ -31,6 +31,27 @@ This package requires React and React DOM as peer dependencies:
 npm install react react-dom
 ```
 
+### Importing Styles
+
+To use the components with their default styles, import the CSS file in your project:
+
+```tsx
+// In your main entry file (e.g., main.tsx, index.tsx, or App.tsx)
+import '@ethereal-nexus/dialog-ui-spectrum/styles.css';
+```
+
+Or in your CSS/SCSS file:
+
+```css
+@import '@ethereal-nexus/dialog-ui-spectrum/styles.css';
+```
+
+For vanilla HTML projects:
+
+```html
+<link rel="stylesheet" href="node_modules/@ethereal-nexus/dialog-ui-spectrum/dist/dialog-ui-spectrum.css">
+```
+
 ## Quick Start
 
 ```tsx

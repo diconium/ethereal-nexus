@@ -26,11 +26,11 @@ export default defineConfig(({mode}) => ({
                 index: resolve(__dirname, 'src/index.ts'),
             },
             name: 'EtherealNexusUISpectrum',
-            formats: ['es'], // Only build ESM format
+            formats: ['umd'],
             fileName: (format, entryName) => `${entryName}.esm.js`,
         },
-        sourcemap: true, // Enable source maps for debugging
-        minify: false, // Do not minify JS for easier debugging
+        sourcemap: false, // Enable source maps for debugging
+        minify: true, // Do not minify JS for easier debugging
         rollupOptions: {
             // Don't externalize anything - bundle everything for standalone web components
             external: [],

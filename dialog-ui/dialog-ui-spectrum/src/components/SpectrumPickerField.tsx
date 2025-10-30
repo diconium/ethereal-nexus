@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {Picker, Item, ComboBox, TagGroup, Flex} from "@adobe/react-spectrum";
 import {FieldRendererProps} from '@ethereal-nexus/dialog-ui-core';
 import {handleIsolationCSS} from "./popoverUtils";
-import {useI18n} from '../providers';
+import {useI18n} from '@/providers';
 
 export interface SpectrumPickerFieldProps extends FieldRendererProps {
     field: any;

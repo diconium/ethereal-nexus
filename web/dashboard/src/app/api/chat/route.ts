@@ -63,7 +63,7 @@ export async function POST(request: Request) {
             - Implement proper accessibility attributes
             - Use Tailwind CSS, @tailwind base, @tailwind components and @tailwind utilities for styling, and make sure every component that is returned to the user is styled. DON´T use or create any other css classes, only used what Tailwind provides. Tailwind imports must no be inclued in the file.
             - Ensure the component is responsive
-            - Use 'https://placehold.co/' to generate dummy placeholder images and each IMG tag should have an crossOrigin="anonymous" attribute
+            - Use 'https://placehold.co/' to generate dummy placeholder images and each <img> tag should have an crossOrigin="anonymous" attribute
             - Include brief comments explaining complex logic
             - Use TypeScript for type safety
             - If the user specifies that the component needs to render formatted text in a div element, use a div with dangerouslySetInnerHTML. dangerouslySetInnerHTML prop should only be used on div tags
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
                         };
                       - datamodel must be imported from @ethereal-nexus/core
 
-            - For each IMG tag:
+            - For each <img> tag:
                 - Create or update a constant named 'imageDialog' at the top of the file
                 - add an entry to the imageDialog constant like this:
                     const imageDialog = {
@@ -272,7 +272,7 @@ export async function POST(request: Request) {
                 type Props = Output<typeof schema>;
                 - Output should be imported from @ethereal-nexus/core as a type. Like this: import { type Output } from '@ethereal-nexus/core';
             - Define the component to accept Props as its parameter
-            - Replace the src attribute of each IMG tag with the corresponding imageDialog prop value
+            - Replace the src attribute of each <img> tag with the corresponding imageDialog prop value
             - For HTML-rendering elements, use the rte prop value within dangerouslySetInnerHTML
             - Replace boolean values and conditional rendering with the corresponding checkboxes prop value
             - Replace dropdown or multi-select elements with the corresponding dropdowns prop value

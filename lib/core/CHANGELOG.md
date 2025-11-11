@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.13.0
+
+### Minor Changes
+
+- 5034f35: feat: enhance pathbrowser and navigation interfaces to support new pageProperties structure, ensuring backward compatibility with the latest connector version.
+
 ## 1.12.0
 
 ### Minor Changes

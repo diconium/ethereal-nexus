@@ -1,6 +1,6 @@
 import { BaseFieldInput, type BaseSchema } from '../../types';
 
-export interface PathBrowserSchema<TOutput extends string = string> extends BaseSchema<TOutput> {
+export interface PathBrowserSchema<TOutput extends string | { url: string } = string | { url: string }> extends BaseSchema<TOutput> {
   /**
    * The schema type.
    */
@@ -12,10 +12,11 @@ interface PathBrowserInput extends BaseFieldInput {
   defaultValue?: string;
   folder?: boolean;
   path?: string;
+  pageProperties?: string[];
 }
 
 export function pathbrowser(input: PathBrowserInput): PathBrowserSchema {
-  const {placeholder, label, tooltip, required, defaultValue, folder = false, path} = input;
+  const {placeholder, label, tooltip, required, defaultValue, folder = false, path, pageProperties} = input;
 
   return {
     type: 'pathbrowser',
@@ -28,11 +29,12 @@ export function pathbrowser(input: PathBrowserInput): PathBrowserSchema {
         required,
         defaultValue,
         folder,
+        pageProperties,
         path
       }
     },
     _primitive() {
-      return 'string'
+      return 'json'
     },
     ...input,
   }

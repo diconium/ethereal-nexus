@@ -14,16 +14,17 @@ export interface NavigationItemSchema {
   title: string;
 }
 
+/**
+ * @deprecated Use string[] instead of { value, label }[] for pageProperties. The goal is to keep these fields hidden from the end user.
+ */
+export interface DeprecatedPagePropertyObject { value: string; label: string; }
 
 interface DataModelInput extends BaseFieldInput {
   placeholder?: string;
   showChildrenCheckbox?: boolean;
   showRootLevel?: boolean;
   defaultValue?: string;
-  pageProperties?:{
-    value: string;
-    label: string;
-  }[]
+  pageProperties?: string[] | DeprecatedPagePropertyObject[];
 }
 
 export function navigation(input: DataModelInput): NavigationSchema {

@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.13.1
+
+### Patch Changes
+
+- db39d55: update PathBrowserSchema to support new path structure
+
 ## 1.13.0
 
 ### Minor Changes

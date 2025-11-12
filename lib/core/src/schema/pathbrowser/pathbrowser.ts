@@ -1,6 +1,6 @@
 import { BaseFieldInput, type BaseSchema } from '../../types';
 
-export interface PathBrowserSchema<TOutput extends string | { url: string } = string | { url: string }> extends BaseSchema<TOutput> {
+export interface PathBrowserSchema<TOutput extends string | { path: string, [key: string]: string } = string | { path: string, [key: string]: string }> extends BaseSchema<TOutput> {
   /**
    * The schema type.
    */

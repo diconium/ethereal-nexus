@@ -10,6 +10,7 @@ import {
     FieldConfig
 } from '@ethereal-nexus/dialog-ui-core';
 import {SpectrumFieldRendererComponent} from './SpectrumFieldRenderer';
+import {getFieldName} from "@/components/getFieldName.ts";
 
 interface DialogBodyProps {
     dialog: DialogConfig;
@@ -32,11 +33,11 @@ export const DialogBody: React.FC<DialogBodyProps> = ({
                 <Flex direction="column" gap="size-300">
                     {dialog.fields.map((field: FieldConfig) => (
                         <SpectrumFieldRendererComponent
-                            key={field.id}
+                            key={getFieldName(field)}
                             field={field}
-                            value={field.type === "group" ? formData[field.id]?.active : formData[field.id]}
-                            onChange={(value: any) => updateField(field.id, value)}
-                            error={errors[field.id] || undefined}
+                            value={field.type === "group" ? formData[field.id]?.active : formData[getFieldName(field)]}
+                            onChange={(value: any) => updateField(getFieldName(field), value)}
+                            error={errors[getFieldName(field)] || undefined}
                         />
                     ))}
                 </Flex>

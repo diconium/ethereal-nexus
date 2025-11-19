@@ -120,6 +120,7 @@ const transformAEMFields = (aemFields: any[]): DialogConfig => {
             url: field.url || undefined,
             method: field.method || undefined,
             body: field.body || undefined,
+            itemLabelKey: field.itemLabelKey ?? undefined,
             showastoggle: field.showastoggle || false, // Add showastoggle property from AEM config
             children: field.children ? field.children.map(transformField) : undefined,
             options: field.options || field.values ? (field.options || field.values).map((value: any) => ({

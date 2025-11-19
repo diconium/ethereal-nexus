@@ -323,6 +323,95 @@ export const ComplexMultifield: Story = {
     },
 };
 
+
+export const NavigationInsideMultifield: Story = {
+    args: {
+        'data-config': JSON.stringify([
+            {
+                "type": "multifield",
+                "id": "navigationItems",
+                "label": "Navigation Items",
+                "required": false,
+                "itemLabelKey": "item_name",
+                "children": [
+                      {
+                        "id": "item_name",
+                        "name": "item_name",
+                        "type": "textfield",
+                        "label": "nexus.item_name.label"
+                      },
+                      {
+                        "id": "entry_point",
+                        "name": "entry_point",
+                        "type": "navigation",
+                        "label": "nexus.top-navigation.navigation",
+                        "tooltip": "nexus.top-navigation.navigation.tooltip",
+                        "showRootLevel": true,
+                        "pageProperties": [
+                          {
+                            "label": "nexus.top-navigation.teaser.information",
+                            "value": "teaser.*"
+                          },
+                          {
+                            "label": "nexus.top-navigation.teaser.image",
+                            "value": "cq:teaserImage.*"
+                          },
+                          {
+                            "label": "nexus.top-navigation.subtitle",
+                            "value": "subtitle"
+                          },
+                          {
+                            "label": "nexus.top-navigation.hide_overview_page",
+                            "value": "hidePageOverview"
+                          },
+                          {
+                            "label": "nexus.top-navigation.new_tab",
+                            "value": "openInNewTab"
+                          },
+                          {
+                            "label": "nexus.top-navigation.is_new",
+                            "value": "isNew"
+                          },
+                          {
+                            "label": "nexus.top-navigation.is_new_expiry_date",
+                            "value": "isNewExpiryDate"
+                          }
+                        ],
+                        "showChildrenCheckbox": true
+                      }
+                    ]
+            }
+        ]),
+        'content-resource': JSON.stringify({
+            "remote": {
+                "navigationItems": {
+                    "item0": {
+                      "item_name": "Navigation Item 1",
+                      "nav_entry_point" : {
+                        "structureDepth" : "3",
+                        "collectAllPages" : "true",
+                        "structureStart" : "1",
+                        "navigationRoot" : "/content/page1",
+                        "jcr:primaryType" : "nt:unstructured"
+                      },
+                    },
+                   "item2": {
+                      "item_name": "Navigation Item 2",
+                      "nav_entry_point" : {
+                        "structureDepth" : "3",
+                        "collectAllPages" : "false",
+                        "structureStart" : "1",
+                        "navigationRoot" : "/content/page2",
+                        "jcr:primaryType" : "nt:unstructured"
+                      },
+                  },
+
+                }
+            }
+        })
+    },
+};
+
 // Error state - invalid config
 export const InvalidConfig: Story = {
     args: {

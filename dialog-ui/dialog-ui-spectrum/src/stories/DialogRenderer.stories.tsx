@@ -412,6 +412,268 @@ export const NavigationInsideMultifield: Story = {
     },
 };
 
+
+export const WithRichTextEditor: Story = {
+  args: {
+    'data-config': JSON.stringify({
+      "fields": [
+        {
+          "id": "text",
+          "name": "text",
+          "type": "richtexteditor",
+          "label": "nexus.text.label",
+          "tooltip": "nexus.003.text.tooltip",
+          "placeholder": "nexus.text.placeholder"
+        },
+        {
+          "id": "type",
+          "name": "type",
+          "type": "select",
+          "label": "nexus.type_size.label",
+          "values": [
+            {
+              "label": "SP3",
+              "value": "SP3"
+            },
+            {
+              "label": "SP4",
+              "value": "SP4"
+            },
+            {
+              "label": "SP5",
+              "value": "SP5"
+            },
+            {
+              "label": "SP6",
+              "value": "SP6"
+            }
+          ],
+          "tooltip": "nexus.003.type.tooltip",
+          "multiple": false,
+          "defaultValue": "SP6"
+        },
+        {
+          "id": "color",
+          "url": "/bin/api/filter-by-tenant",
+          "body": {
+            "scs": [
+              {
+                "label": "nexus.color.blue",
+                "value": "blue"
+              },
+              {
+                "label": "nexus.color.turquoise",
+                "value": "turquoise"
+              },
+              {
+                "label": "nexus.color.red",
+                "value": "red"
+              },
+              {
+                "label": "nexus.color.white",
+                "value": "white"
+              },
+              {
+                "label": "nexus.color.black",
+                "value": "black"
+              },
+              {
+                "label": "nexus.color.dark-gray-2",
+                "value": "dark-gray-2"
+              }
+            ],
+            "smm": [
+              {
+                "label": "nexus.color.blue",
+                "value": "blue"
+              },
+              {
+                "label": "nexus.color.turquoise",
+                "value": "turquoise"
+              },
+              {
+                "label": "nexus.color.red",
+                "value": "red"
+              },
+              {
+                "label": "nexus.color.white",
+                "value": "white"
+              },
+              {
+                "label": "nexus.color.black",
+                "value": "black"
+              },
+              {
+                "label": "nexus.color.dark-gray-2",
+                "value": "dark-gray-2"
+              }
+            ],
+            "sms": [
+              {
+                "label": "nexus.color.sky",
+                "value": "sky"
+              },
+              {
+                "label": "nexus.color.dark-blue",
+                "value": "dark-blue"
+              },
+              {
+                "label": "nexus.color.fountain",
+                "value": "fountain"
+              },
+              {
+                "label": "nexus.color.red",
+                "value": "red"
+              },
+              {
+                "label": "nexus.color.white",
+                "value": "white"
+              },
+              {
+                "label": "nexus.color.black",
+                "value": "black"
+              },
+              {
+                "label": "nexus.color.dark-gray-2",
+                "value": "dark-gray-2"
+              }
+            ],
+            "spa": [
+              {
+                "label": "nexus.color.violet",
+                "value": "violet"
+              },
+              {
+                "label": "nexus.color.orange",
+                "value": "orange"
+              },
+              {
+                "label": "nexus.color.yellow",
+                "value": "yellow"
+              },
+              {
+                "label": "nexus.color.red",
+                "value": "red"
+              },
+              {
+                "label": "nexus.color.white",
+                "value": "white"
+              },
+              {
+                "label": "nexus.color.black",
+                "value": "black"
+              },
+              {
+                "label": "nexus.color.dark-gray-2",
+                "value": "dark-gray-2"
+              }
+            ],
+            "sps": [
+              {
+                "label": "nexus.color.green",
+                "value": "green"
+              },
+              {
+                "label": "nexus.color.emerald",
+                "value": "emerald"
+              },
+              {
+                "label": "nexus.color.purple",
+                "value": "purple"
+              },
+              {
+                "label": "nexus.color.red",
+                "value": "red"
+              },
+              {
+                "label": "nexus.color.white",
+                "value": "white"
+              },
+              {
+                "label": "nexus.color.black",
+                "value": "black"
+              },
+              {
+                "label": "nexus.color.dark-gray-2",
+                "value": "dark-gray-2"
+              }
+            ],
+            "default": [
+              {
+                "label": "nexus.color.blue",
+                "value": "blue"
+              },
+              {
+                "label": "nexus.color.dark-blue",
+                "value": "dark-blue"
+              },
+              {
+                "label": "nexus.color.sky",
+                "value": "sky"
+              },
+              {
+                "label": "nexus.color.purple",
+                "value": "purple"
+              },
+              {
+                "label": "nexus.color.emerald",
+                "value": "emerald"
+              },
+              {
+                "label": "nexus.color.violet",
+                "value": "violet"
+              },
+              {
+                "label": "nexus.color.orange",
+                "value": "orange"
+              },
+              {
+                "label": "nexus.color.yellow",
+                "value": "yellow"
+              },
+              {
+                "label": "nexus.color.green",
+                "value": "green"
+              },
+              {
+                "label": "nexus.color.fountain",
+                "value": "fountain"
+              },
+              {
+                "label": "nexus.color.turquoise",
+                "value": "turquoise"
+              },
+              {
+                "label": "nexus.color.red",
+                "value": "red"
+              },
+              {
+                "label": "nexus.color.white",
+                "value": "white"
+              },
+              {
+                "label": "nexus.color.black",
+                "value": "black"
+              },
+              {
+                "label": "nexus.color.dark-gray-2",
+                "value": "dark-gray-2"
+              }
+            ]
+          },
+          "name": "color",
+          "type": "datasource",
+          "label": "nexus.color.label",
+          "method": "POST",
+          "tooltip": "nexus.003.color.tooltip",
+          "multiple": false,
+          "defaultValue": "dark-gray-2"
+        }
+      ]
+    })
+  },
+};
+
 // Error state - invalid config
 export const InvalidConfig: Story = {
     args: {

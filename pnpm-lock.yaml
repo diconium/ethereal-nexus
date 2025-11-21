@@ -164,7 +164,7 @@ importers:
         specifier: ^2.0.4
         version: 2.1.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@spectrum-icons/workflow':
-        specifier: ^4.2.23
+        specifier: ^4.2.25
         version: 4.2.25(@react-spectrum/provider@3.10.11(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       react:
         specifier: ^19.0.0
@@ -335,7 +335,7 @@ importers:
         version: 19.2.2
       tsup:
         specifier: ^8.3.5
-        version: 8.3.5(@microsoft/api-extractor@7.53.1(@types/node@24.9.1))(@swc/core@1.7.26)(jiti@2.6.1)(postcss@8.5.6)(typescript@5.6.2)(yaml@2.7.0)
+        version: 8.3.5(@microsoft/api-extractor@7.53.1(@types/node@24.9.1))(@swc/core@1.7.26(@swc/helpers@0.5.17))(jiti@2.6.1)(postcss@8.5.6)(typescript@5.6.2)(yaml@2.7.0)
       typescript:
         specifier: ^5.6.2
         version: 5.6.2
@@ -378,7 +378,7 @@ importers:
         version: 4.52.4
       tsup:
         specifier: ^8.3.5
-        version: 8.3.5(@microsoft/api-extractor@7.53.1(@types/node@24.9.1))(@swc/core@1.7.26)(jiti@2.6.1)(postcss@8.5.6)(typescript@5.6.2)(yaml@2.7.0)
+        version: 8.3.5(@microsoft/api-extractor@7.53.1(@types/node@24.9.1))(@swc/core@1.7.26(@swc/helpers@0.5.17))(jiti@2.6.1)(postcss@8.5.6)(typescript@5.6.2)(yaml@2.7.0)
       type-fest:
         specifier: ^4.18.2
         version: 4.33.0
@@ -21360,7 +21360,7 @@ snapshots:
       - tsx
       - yaml
 
-  tsup@8.3.5(@microsoft/api-extractor@7.53.1(@types/node@24.9.1))(@swc/core@1.7.26)(jiti@2.6.1)(postcss@8.5.6)(typescript@5.6.2)(yaml@2.7.0):
+  tsup@8.3.5(@microsoft/api-extractor@7.53.1(@types/node@24.9.1))(@swc/core@1.7.26(@swc/helpers@0.5.17))(jiti@2.6.1)(postcss@8.5.6)(typescript@5.6.2)(yaml@2.7.0):
     dependencies:
       bundle-require: 5.1.0(esbuild@0.25.10)
       cac: 6.7.14

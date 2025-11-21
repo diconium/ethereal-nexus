@@ -1,14 +1,36 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
-    View,
-    Text,
-    Flex,
-    Button,
-    ButtonGroup,
-    Divider,
-    ContextualHelp, Heading, Content
+  View,
+  Flex,
+  Divider, Text,
+  ContextualHelp, Heading, Content, ActionButton, ActionGroup, Item, TextField, Key, Checkbox,
 } from "@adobe/react-spectrum";
 import {useI18n} from '../providers';
+import {getFieldName} from "@/components/getFieldName.ts";
+import TextSvg from "@spectrum-icons/workflow/TextBold";
+import TextAlignLeft from "@spectrum-icons/workflow/TextAlignLeft";
+import ViewListSvg from "@spectrum-icons/workflow/ViewList";
+import FileHTML from "@spectrum-icons/workflow/FileHTML";
+import TextEdit from "@spectrum-icons/workflow/TextEdit";
+import TagBold from "@spectrum-icons/workflow/TagBold";
+import Underline from "@spectrum-icons/workflow/Underline";
+import TagItalic from "@spectrum-icons/workflow/TagItalic";
+import TextNumbered from "@spectrum-icons/workflow/TextNumbered";
+import TextBulleted from "@spectrum-icons/workflow/TextBulleted";
+import TextAlignCenter from "@spectrum-icons/workflow/TextAlignCenter";
+import TextAlignRight from "@spectrum-icons/workflow/TextAlignRight";
+import TextAlignJustify from "@spectrum-icons/workflow/TextAlignJustify";
+import LinkSvg from "@spectrum-icons/workflow/Link";
+import Unlink from "@spectrum-icons/workflow/Unlink";
+import {SpectrumPathbrowserField} from "@/components/SpectrumPathbrowserField.tsx";
+import CheckmarkCircle from "@spectrum-icons/workflow/CheckmarkCircle";
+import {alignSelection} from "@/components/utils/align-selection.ts";
+import {insertList} from "@/components/utils/insert-list.ts";
+import {toggleInlineStyle} from "@/components/utils/align-format.ts";
+import {useLinkEditor} from "@/components/utils/useLinkEditor.ts";
+import TextIndentIncrease from "@spectrum-icons/workflow/TextIndentIncrease";
+import TextIndentDecrease from "@spectrum-icons/workflow/TextIndentDecrease";
+import { indentIncrease, indentDecrease } from '@/components/utils/list-indent.ts';
 
 interface SpectrumRichTextEditorFieldProps {
     field: any;
@@ -29,10 +51,22 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
     const [isEditorFocused, setIsEditorFocused] = useState<boolean>(false);
     const [isSourceMode, setIsSourceMode] = useState<boolean>(false);
     const [sourceContent, setSourceContent] = useState<string>(value || '');
+    const [showToolbar, setShowToolbar] = useState<string>("format");
+
+
+  const handleContentChange = () => {
+    if (editorRef.current) {
+      const newContent = editorRef.current.innerHTML;
+      setContent(newContent);
+      setSourceContent(newContent);
+      onChange(newContent);
+    }
+  };
+
+    const { link, setLink, removeLink, clearLinkHighlight, highlightSelectionForLink, createLink, linkHighlightEl } = useLinkEditor(editorRef, handleContentChange, showToolbar === "link");
+
 
     useEffect(() => {
-        setContent(value || '');
-        setSourceContent(value || '');
         if (editorRef.current && value !== editorRef.current.innerHTML) {
             editorRef.current.innerHTML = value || '';
         }
@@ -46,14 +80,6 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
         }
     }, [isSourceMode]);
 
-    const handleContentChange = () => {
-        if (editorRef.current) {
-            const newContent = editorRef.current.innerHTML;
-            setContent(newContent);
-            setSourceContent(newContent);
-            onChange(newContent);
-        }
-    };
 
     const handleSourceChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const newContent = e.target.value;
@@ -113,13 +139,13 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
 
         switch (command) {
             case 'bold':
-                toggleInlineStyle(range, 'bold');
+                toggleInlineStyle('bold', editorRef);
                 break;
             case 'italic':
-                toggleInlineStyle(range, 'italic');
+                toggleInlineStyle('italic', editorRef);
                 break;
             case 'underline':
-                toggleInlineStyle(range, 'underline');
+                toggleInlineStyle('underline', editorRef);
                 break;
             case 'insertUnorderedList':
                 insertList('ul');
@@ -127,124 +153,56 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
             case 'insertOrderedList':
                 insertList('ol');
                 break;
+            case 'insertIndentIncrease':
+                indentIncrease(editorRef);
+                break;
+            case 'insertIndentDecrease':
+                indentDecrease(editorRef);
+                break;
+            case 'alignLeft':
+                alignSelection('left');
+                break;
+            case 'alignCenter':
+                alignSelection('center');
+                break;
+            case 'alignRight':
+                alignSelection('right');
+                break;
+            case 'justify':
+                alignSelection('justify');
+                break;
             default:
                 break;
         }
-
         editorRef.current.focus();
         handleContentChange();
     };
 
-    const toggleInlineStyle = (range: Range, command: string) => {
-        if (range.collapsed) {
-            // If no text is selected, just focus the editor
-            return;
-        }
 
-        const selectedText = range.toString();
-        if (!selectedText) return;
-
-        // Create the appropriate HTML element based on command
-        let targetTagName: string;
-        switch (command) {
-            case 'bold':
-                targetTagName = 'strong';
-                break;
-            case 'italic':
-                targetTagName = 'em';
-                break;
-            case 'underline':
-                targetTagName = 'u';
-                break;
-            default:
-                return;
-        }
-
-        // Simple approach: Check if the current selection's start node has the formatting
-        const startContainer = range.startContainer;
-        const parentElement = startContainer.nodeType === Node.TEXT_NODE
-            ? startContainer.parentElement
-            : startContainer as Element;
-
-        // Check if any parent element matches our target tag
-        let isFormatted = false;
-        let formattedElement: Element | null = null;
-        let currentElement = parentElement;
-
-        while (currentElement && currentElement !== editorRef.current) {
-            if (currentElement.tagName && currentElement.tagName.toLowerCase() === targetTagName.toLowerCase()) {
-                isFormatted = true;
-                formattedElement = currentElement;
-                break;
-            }
-            currentElement = currentElement.parentElement;
-        }
-
-        if (isFormatted && formattedElement) {
-            // Remove formatting by unwrapping the element
-            const parent = formattedElement.parentNode;
-            if (parent) {
-                while (formattedElement.firstChild) {
-                    parent.insertBefore(formattedElement.firstChild, formattedElement);
-                }
-                parent.removeChild(formattedElement);
-            }
-        } else {
-            // Apply formatting
-            const element = document.createElement(targetTagName);
-            try {
-                range.surroundContents(element);
-            } catch (e) {
-                // Fallback: extract contents, wrap in element, and insert back
-                const contents = range.extractContents();
-                element.appendChild(contents);
-                range.insertNode(element);
-            }
-        }
-
-        // Clear and restore selection to maintain cursor position
-        const selection = window.getSelection();
-        if (selection) {
-            selection.removeAllRanges();
-            // Create a new range at the end of the modified content
-            const newRange = document.createRange();
-            newRange.selectNodeContents(editorRef.current!);
-            newRange.collapse(false);
-            selection.addRange(newRange);
-        }
-    };
-
-    const insertList = (listType: 'ul' | 'ol') => {
-        const selection = window.getSelection();
-        if (!selection || !editorRef.current) return;
-
-        const range = selection.getRangeAt(0);
-        const list = document.createElement(listType);
-        const listItem = document.createElement('li');
-
-        if (range.collapsed) {
-            // No selection, just insert an empty list item
-            listItem.innerHTML = '<br>';
-        } else {
-            // Move selected content into the list item
-            const contents = range.extractContents();
-            listItem.appendChild(contents);
-        }
-
-        list.appendChild(listItem);
-        range.insertNode(list);
-
-        // Position cursor at the end of the list item
-        const newRange = document.createRange();
-        newRange.setStartAfter(listItem);
-        newRange.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(newRange);
-    };
-
-    const handleToolbarAction = (command: string) => {
+  const handleToolbarAction = (command: string) => {
         applyFormatting(command);
     };
+
+
+    const onShowToolbar = (action: string) => {
+      switch (action) {
+        case 'sourceToggle':
+          toggleSourceMode();
+          break;
+        case 'link':
+          setShowToolbar(action);
+          highlightSelectionForLink();
+          break;
+        default:
+          if (showToolbar === 'link') {
+            setLink({target: '_self'});
+            clearLinkHighlight();
+          }
+          setShowToolbar(action);
+      }
+    }
+
+
 
     return (
         <View>
@@ -256,7 +214,7 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
 
                 {field.tooltip && (
                     <ContextualHelp variant="info">
-                        <Heading>{t('spectrum.richtext.help') || 'Help'}</Heading>
+                        <Heading>{t('spectrum.richtext.help', undefined, undefined, 'Help')}</Heading>
                         <Content>
                             <Text>{t(field.tooltip ?? '')}</Text>
                         </Content>
@@ -286,80 +244,140 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
             >
                 {/* Toolbar */}
                 <View padding="size-100" backgroundColor="gray-75">
-                    <Flex gap="size-50" alignItems="center" justifyContent="space-between">
-                        <Flex gap="size-50" alignItems="center">
-                            <ButtonGroup>
-                                <Button
-                                    variant="secondary"
-                                    onPress={() => handleToolbarAction('bold')}
-                                    isDisabled={isSourceMode}
-                                    UNSAFE_style={{
-                                        minWidth: '32px',
-                                        padding: '4px 8px',
-                                        fontWeight: 'bold',
-                                        fontSize: '14px'
-                                    }}
-                                >
-                                    {t('spectrum.richtext.bold') || 'B'}
-                                </Button>
-                                <Button
-                                    variant="secondary"
-                                    onPress={() => handleToolbarAction('italic')}
-                                    isDisabled={isSourceMode}
-                                    UNSAFE_style={{
-                                        minWidth: '32px',
-                                        padding: '4px 8px',
-                                        fontStyle: 'italic',
-                                        fontSize: '14px'
-                                    }}
-                                >
-                                    {t('spectrum.richtext.italic') || 'I'}
-                                </Button>
-                                <Button
-                                    variant="secondary"
-                                    onPress={() => handleToolbarAction('underline')}
-                                    isDisabled={isSourceMode}
-                                    UNSAFE_style={{
-                                        minWidth: '32px',
-                                        padding: '4px 8px',
-                                        textDecoration: 'underline',
-                                        fontSize: '14px'
-                                    }}
-                                >
-                                    {t('spectrum.richtext.underline') || 'U'}
-                                </Button>
-                            </ButtonGroup>
 
-                            <Divider orientation="vertical" size="S"/>
+                <Flex gap="size-100" alignItems="center" >
+                  <ActionGroup isDisabled={isSourceMode} selectionMode={"single"} isQuiet defaultSelectedKeys={['format']} disallowEmptySelection onAction={(action: Key) => onShowToolbar(action?.toString())}>
+                    <Item key={"format"} >
+                      <TextSvg />
+                    </Item>
+                    <Item key={"justify"}>
+                      <TextAlignLeft />
+                    </Item>
+                    <Item key={"list"}>
+                      <ViewListSvg />
+                    </Item>
+                    <Item key={"link"} >
+                      <LinkSvg/>
+                    </Item>
+                  </ActionGroup>
+                  <ActionButton onPress={removeLink} isDisabled={isSourceMode}>
+                    <Unlink />
+                  </ActionButton>
+                  <ActionButton onPress={() => setIsSourceMode((prev) => !prev)} >
+                    {isSourceMode ? <TextEdit/> : <FileHTML />}
+                  </ActionButton>
+                </Flex>
 
-                            <ButtonGroup>
-                                <Button
-                                    variant="secondary"
-                                    onPress={() => handleToolbarAction('insertUnorderedList')}
-                                    isDisabled={isSourceMode}
-                                    UNSAFE_style={{fontSize: '12px', padding: '4px 8px'}}
-                                >
-                                    {t('spectrum.richtext.bulletList') || '• List'}
-                                </Button>
-                                <Button
-                                    variant="secondary"
-                                    onPress={() => handleToolbarAction('insertOrderedList')}
-                                    isDisabled={isSourceMode}
-                                    UNSAFE_style={{fontSize: '12px', padding: '4px 8px'}}
-                                >
-                                    {t('spectrum.richtext.numberedList') || '1. List'}
-                                </Button>
-                            </ButtonGroup>
-                        </Flex>
+                  {showToolbar === "justify" && (
+                    <Flex minHeight={"size-500"} alignItems="center" justifyContent="left" gap={"size-100"}>
+                      {/* Justify Left */}
+                      <ActionButton isQuiet
+                        onPress={() => handleToolbarAction('alignLeft')}
+                        isDisabled={isSourceMode}
+                      >
+                        <TextAlignLeft />
+                      </ActionButton>
+                      {/* Justify Center */}
+                      <ActionButton isQuiet
+                        onPress={() => handleToolbarAction('alignCenter')}
+                        isDisabled={isSourceMode}
+                      >
+                        <TextAlignCenter />
+                      </ActionButton>
+                      {/* Justify Right */}
+                      <ActionButton isQuiet
+                        onPress={() => handleToolbarAction('alignRight')}
+                        isDisabled={isSourceMode}
+                      >
+                        <TextAlignRight />
+                      </ActionButton>
+                      <ActionButton isQuiet
+                        onPress={() => handleToolbarAction('justify')}
+                        isDisabled={isSourceMode}
+                      >
+                        <TextAlignJustify />
+                      </ActionButton>
 
-                        <Button
-                            variant={isSourceMode ? "accent" : "secondary"}
-                            onPress={toggleSourceMode}
-                            UNSAFE_style={{fontSize: '12px', padding: '4px 8px'}}
-                        >
-                            {isSourceMode ? t('spectrum.richtext.visualMode') || 'Visual' : t('spectrum.richtext.sourceMode') || 'Source'}
-                        </Button>
                     </Flex>
+                  )}
+                  {showToolbar === "list" && (
+                    <Flex minHeight={"size-500"} alignItems="center" justifyContent="left" gap={"size-100"}>
+                      <ActionButton isQuiet
+                        onPress={() => handleToolbarAction('insertUnorderedList')}
+                        isDisabled={isSourceMode}
+                      >
+                        <TextBulleted />
+                      </ActionButton>
+                      <ActionButton isQuiet
+                        onPress={() => handleToolbarAction('insertOrderedList')}
+                        isDisabled={isSourceMode}
+                      >
+                        <TextNumbered />
+                      </ActionButton>
+                      <ActionButton isQuiet
+                                    onPress={() => handleToolbarAction('insertIndentIncrease')}
+                                    isDisabled={isSourceMode}
+                      >
+                        <TextIndentIncrease />
+                      </ActionButton>
+                      <ActionButton isQuiet
+                                    onPress={() => handleToolbarAction('insertIndentDecrease')}
+                                    isDisabled={isSourceMode}
+                      >
+                        <TextIndentDecrease />
+                      </ActionButton>
+                    </Flex>
+                  )}
+                  {showToolbar === "unlink" && (<Flex minHeight={"size-500"} children={undefined} /> )}
+                  {showToolbar === "link" && (
+                    <Flex minHeight={"size-500"} alignItems="end" justifyContent="left" gap={"size-100"}>
+                      <SpectrumPathbrowserField
+                        value={link?.href || ''}
+                        key={"navigationRoot"}
+                        field={{ label: t("spectrum.richtext.linkPathLabel", undefined, undefined, "Link Path"), required: false}}
+                        error={error}
+                        onChange={(value) => setLink((prev) => ({...prev, href: value}))}
+                      />
+                      <TextField
+                        label={t("spectrum.richtext.alternativeText", undefined, undefined, "Alternative Text")}
+                        value={link?.alt}
+                        onChange={(value) => setLink((prev) => ({...prev, alt: value}))}
+                      />
+                      <Checkbox
+                        isSelected={link?.target === '_blank'}
+                        onChange={(isSelected) => setLink((prev) => ({...prev, target: isSelected ? '_blank' : '_self'}))}
+                      >
+                        {t("spectrum.richtext.openInNewTab", undefined, undefined, "Open in new tab")}
+                      </Checkbox>
+                      <ActionButton
+                        isDisabled={!link?.target || (!linkHighlightEl && !window.getSelection()?.toString())}
+                        onPress={createLink}
+                      >
+                        <CheckmarkCircle color={"positive"} />
+                      </ActionButton>
+                    </Flex>
+                  )}
+                  {showToolbar === "format" && (
+                    <Flex minHeight={"size-500"} alignItems="center" justifyContent="left" gap={"size-100"}>
+                        <ActionButton isQuiet
+                          onPress={() => handleToolbarAction('bold')}
+                          isDisabled={isSourceMode}
+                        >
+                          <TagBold />
+                        </ActionButton>
+                        <ActionButton isQuiet
+                          onPress={() => handleToolbarAction('italic')}
+                          isDisabled={isSourceMode}
+                        >
+                          <TagItalic />
+                        </ActionButton>
+                        <ActionButton isQuiet
+                          onPress={() => handleToolbarAction('underline')}
+                          isDisabled={isSourceMode}
+                        >
+                          <Underline />
+                        </ActionButton>
+                    </Flex> )}
                 </View>
 
                 <Divider size="S"/>
@@ -384,7 +402,7 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
                             color: 'var(--spectrum-global-color-gray-900)',
                             backgroundColor: 'white'
                         }}
-                        placeholder={t('spectrum.richtext.sourcePlaceholder') || 'Enter HTML source code...'}
+                        placeholder={t('spectrum.richtext.sourcePlaceholder', undefined, undefined, 'Enter HTML source code...') }
                     />
                 ) : (
                     <div
@@ -405,7 +423,7 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
                             color: 'var(--spectrum-global-color-gray-900)',
                             backgroundColor: 'white'
                         }}
-                        data-placeholder={t(field.placeholder ?? '') || t('spectrum.richtext.placeholder') || 'Enter your text here...'}
+                        data-placeholder={t(field.placeholder) || t('spectrum.richtext.placeholder', undefined, undefined, 'Enter your text here...')}
                     />
                 )}
             </View>
@@ -413,7 +431,7 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
             {/* Hidden input for form submission */}
             <input
                 type="hidden"
-                name={field.name || field.id}
+                name={getFieldName(field)}
                 value={content}
                 readOnly
             />

@@ -1,7 +1,7 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
 
 interface I18nContextType {
-    t: (key: string, variables?: any[], hint?: string) => string;
+    t: (key: string, variables?: any[], hint?: string, defaultValue?: string) => string;
     isInitialized: boolean;
     locale: string;
 }
@@ -33,11 +33,13 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({
         }
     }, [fallbackLocale]);
 
-    const t = (key: string, variables: any[] = [], hint: string = ''): string => {
-        if (!isInitialized || !window.Granite?.I18n) {
-            return key; // fallback to key if not initialized
+    const t = (key: string, variables: any[] = [], hint: string = '', defaultValue?: string): string => {
+
+      if (!isInitialized || !window.Granite?.I18n) {
+            return defaultValue ?? key; // fallback to key if not initialized
         }
-        return window.Granite.I18n.get(key, variables, hint);
+      const text = window.Granite.I18n.get(key, variables, hint);
+      return text === key && defaultValue ? defaultValue : text;
     };
 
     return (

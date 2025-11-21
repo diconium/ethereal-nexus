@@ -17,6 +17,7 @@ export interface FieldConfig {
     children?: FieldConfig[];
     options?: Array<{ value: string; label: string }>;
     showastoggle?: boolean;
+    itemLabelKey?: string;
 }
 
 // Dialog configuration

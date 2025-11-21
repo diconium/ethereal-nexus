@@ -45,7 +45,7 @@
     "@ethereal-nexus/dialog-ui-core": "workspace:*",
     "@internationalized/date": "^3.5.4",
     "@r2wc/react-to-web-component": "^2.0.4",
-    "@spectrum-icons/workflow": "^4.2.23"
+    "@spectrum-icons/workflow": "^4.2.25"
   },
   "devDependencies": {
     "@storybook/react-vite": "^9.1.10",

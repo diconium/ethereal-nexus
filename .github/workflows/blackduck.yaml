@@ -1,0 +1,41 @@
+name: Blackduck
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+
+jobs:
+  build:
+    runs-on: [ ubuntu-latest ]
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          run_install: false
+
+      - name: Install Dependencies
+        run: pnpm i --frozen-lockfile
+
+      - name: Black Duck Scan
+        uses: blackduck-inc/black-duck-security-scan@v2.0.0
+
+        env:
+          DETECT_PROJECT_NAME: diconium-Ethereal_Nexus-nexus
+          DETECT_MAVEN_BUILD_COMMAND: install --settings ${GITHUB_WORKSPACE}/settings.xml
+          DETECT_MAVEN_EXCLUDED_SCOPES: test
+
+        with:
+          blackducksca_url: ${{ vars.BLACKDUCK_URL }}
+          blackducksca_token: ${{ secrets.BLACKDUCK_TOKEN }}
+          blackducksca_scan_failure_severities: 'BLOCKER,CRITICAL,MAJOR'

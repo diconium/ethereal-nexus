@@ -36,6 +36,6 @@ jobs:
           DETECT_MAVEN_EXCLUDED_SCOPES: test
 
         with:
-          blackducksca_url: ${{ vars.BLACKDUCK_URL }}
+          blackducksca_url: ${{ secrets.BLACKDUCK_URL }}
           blackducksca_token: ${{ secrets.BLACKDUCK_TOKEN }}
           blackducksca_scan_failure_severities: 'BLOCKER,CRITICAL,MAJOR'

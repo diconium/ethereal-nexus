@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.2.0
+
+### Minor Changes
+
+- bcb44e8: update imports and improve build configuration for SpectrumPickerField
+
 ## 1.1.0
 
 ### Minor Changes

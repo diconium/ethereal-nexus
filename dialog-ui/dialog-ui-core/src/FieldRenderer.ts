@@ -16,6 +16,7 @@ export interface MultifieldRendererProps {
   error?: string | null;
   path: string;
   page?: string;
+  itemLabelKey?: string;
 }
 
 // Core render logic - platform agnostic

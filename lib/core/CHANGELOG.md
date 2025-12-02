@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.14.0
+
+### Minor Changes
+
+- f2fb267: add SpectrumNavigation component and integrate with field rendering
+
 ## 1.13.1
 
 ### Patch Changes

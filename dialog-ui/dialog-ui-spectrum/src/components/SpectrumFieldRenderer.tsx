@@ -8,9 +8,9 @@ import {
     Flex,
 } from "@adobe/react-spectrum";
 import {
-    BaseFieldRenderer,
-    FieldRendererProps,
-    MultifieldRendererProps
+  BaseFieldRenderer,
+  FieldRendererProps,
+  MultifieldRendererProps
 } from '@ethereal-nexus/dialog-ui-core';
 import {SpectrumMediaField} from './SpectrumMediaField';
 import {SpectrumPathbrowserField} from './SpectrumPathbrowserField';
@@ -23,6 +23,8 @@ import SpectrumPickerField from "./SpectrumPickerField";
 import {SpectrumRichTextEditorField} from "./SpectrumRichTextEditorField";
 import {SpectrumDataSourceField} from "./SpectrumDataSourceField";
 import {useI18n} from '../providers';
+import {SpectrumNavigation} from "@/components/SpectrumNavigation.tsx";
+import {getFieldName} from "@/components/getFieldName.ts";
 
 const useFieldI18n = () => {
     const {t} = useI18n();
@@ -101,7 +103,7 @@ export class SpectrumFieldRenderer extends BaseFieldRenderer<React.ReactElement>
         const {getFieldTooltip} = this.i18nHelpers;
 
         console.log(`🎨 [SpectrumFieldRenderer] TAB renderTab called:`, {
-            fieldId: field.id || field.name,
+            fieldId: getFieldName(field),
             fieldLabel: field.label,
             value: value,
             hasChildren: !!field.children,
@@ -122,11 +124,11 @@ export class SpectrumFieldRenderer extends BaseFieldRenderer<React.ReactElement>
                 <Flex direction="column" gap="size-100">
                     {field.children?.map((childField: any) => (
                         <SpectrumFieldRendererComponent
-                            key={childField.id || childField.name}
+                            key={getFieldName(childField)}
                             field={childField}
-                            value={value[childField.id || childField.name]}
+                            value={value?.[getFieldName(childField)]}
                             onChange={childValue => {
-                                onChange({...value, [childField.id || childField.name]: childValue});
+                                onChange({...value, [getFieldName(childField)]: childValue});
                             }}
                             path={path}
                             page={page}
@@ -213,6 +215,9 @@ export class SpectrumFieldRenderer extends BaseFieldRenderer<React.ReactElement>
                 return <SpectrumRichTextEditorField {...props} />;
             case 'datasource':
                 return <SpectrumDataSourceField {...props} />;
+          case "navigation": {
+            return <SpectrumNavigation {...props} />;
+          }
             default:
                 return this.renderUnsupportedField(field.type);
         }

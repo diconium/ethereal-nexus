@@ -13,6 +13,7 @@ import {
 import {SpectrumFieldRendererComponent} from './SpectrumFieldRenderer';
 import {useSpectrumAEMAdapter, SpectrumAEMAdapterConfig} from '../adapters';
 import {setDialogMinWidth} from './dialogUtils';
+import {getFieldName} from "@/components/getFieldName.ts";
 
 interface EnhancedDialogBodyProps {
     dialog: DialogConfig;
@@ -66,7 +67,7 @@ export const EnhancedDialogBody: React.FC<EnhancedDialogBodyProps> = ({
 
     // Helper function to get field value with proper nested structure handling
     const getFieldValue = (field: FieldConfig, formData: any): any => {
-        const fieldId = field.id || field.name;
+        const fieldId = getFieldName(field);
 
         console.log(`🔍 [EnhancedDialogBody] getFieldValue called for field:`, {
             fieldType: field.type,
@@ -207,9 +208,9 @@ export const EnhancedDialogBody: React.FC<EnhancedDialogBodyProps> = ({
 
                         {/* Form Fields */}
                         <Flex direction="column" gap="size-300">
-                            {dialog.fields.map((field: FieldConfig) => (
+                            {dialog?.fields?.map((field: FieldConfig) => (
                                 <SpectrumFieldRendererComponent
-                                    key={field.id || field.name}
+                                    key={getFieldName(field)}
                                     field={field}
                                     value={getFieldValue(field, formData)}
                                     page={adapterConfig?.containingPage}
@@ -228,11 +229,13 @@ export const EnhancedDialogBody: React.FC<EnhancedDialogBodyProps> = ({
 
                                             // We need to manually trigger the form data update since tabs/tab don't call updateField
                                             // Find what actually changed and update those fields
-                                            Object.keys(value).forEach(key => {
-                                                if (formData[key] !== value[key]) {
-                                                    // Find the field definition to check if it's a datamodel
-                                                    const fieldDef = findFieldInDialog(dialog, key);
+                                            Object.keys(value).forEach(fieldKey => {
 
+                                              const fieldDef = findFieldInDialog(dialog, fieldKey);
+                                              const key = fieldDef ? getFieldName(fieldDef) : fieldKey;
+
+                                              if (formData[key] !== value[key]) {
+                                                // Find the field definition to check if it's a datamodel
                                                     if (fieldDef?.type === 'datamodel') {
                                                         const datamodelKey = `cf_${key}`;
                                                         console.log(`🔍 [EnhancedDialogBody] Datamodel field ${key} changed, updating with cf_ prefix:`, datamodelKey, value[key]);
@@ -246,8 +249,11 @@ export const EnhancedDialogBody: React.FC<EnhancedDialogBodyProps> = ({
 
                                             return;
                                         }
-                                        console.log(`🔍 [EnhancedDialogBody] Calling updateField for ${field.type} field:`, field.id || field.name, value);
-                                        updateField(field.id || field.name, value);
+
+                                        const fieldName = getFieldName(field);
+
+                                        console.log(`🔍 [EnhancedDialogBody] Calling updateField for ${field.type} field:`, fieldName, value);
+                                        updateField(fieldName, value);
                                     }}
                                     error={errors[field.id || field.name]}
                                 />

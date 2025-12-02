@@ -16,6 +16,7 @@ import ChevronDown from '@spectrum-icons/workflow/ChevronDown';
 import {FieldRenderLogic, MultifieldRendererProps} from '@ethereal-nexus/dialog-ui-core';
 import {SpectrumFieldRendererComponent} from './SpectrumFieldRenderer';
 import {useI18n} from '../providers';
+import {getFieldName} from "@/components/getFieldName.ts";
 
 const SpectrumMultifieldRenderer: React.FC<MultifieldRendererProps> = ({field, value, onChange, error, path, page }) => {
     const {t} = useI18n();
@@ -32,7 +33,7 @@ const SpectrumMultifieldRenderer: React.FC<MultifieldRendererProps> = ({field, v
     };
 
     const updateItem = (index: number, childName: string, childValue: any) => {
-        const childField = field.children?.find(f => (f.id || f.name) === childName);
+        const childField = field.children?.find(f => (getFieldName(f)) === childName);
 
         let actualFieldName = childName;
         let actualFieldValue = childValue;
@@ -71,8 +72,9 @@ const SpectrumMultifieldRenderer: React.FC<MultifieldRendererProps> = ({field, v
     };
 
     const getMultifieldValue = (item: any, childField: any) => {
-        console.log(`🔹 [SpectrumMultifieldRenderer] getMultifieldValue called for childField:`, childField, item);
-        const childFieldKey = childField.id || childField.name;
+        const childFieldKey = getFieldName(childField);
+        console.log(`🔹 [SpectrumMultifieldRenderer] getMultifieldValue called for childField:`, childFieldKey, item);
+
         return childField.type === 'datamodel'
             ? item[`cf_${childFieldKey}`]
             : item[childFieldKey];
@@ -121,7 +123,7 @@ const SpectrumMultifieldRenderer: React.FC<MultifieldRendererProps> = ({field, v
                             <DisclosureTitle level={4}>
                                 <Flex justifyContent="space-between" alignItems="center" width="100%">
                                     <Text UNSAFE_style={{fontSize: '14px'}}>
-                                        {item.itemTitle || item.title || `Item ${index + 1}`}
+                                        {item[field.itemLabelKey as string] || item.itemTitle || item.title || `Item ${index + 1}`}
                                     </Text>
                                     <Flex alignItems="center" gap="size-50">
                                         {arrayValue.length > 1 && (
@@ -148,11 +150,11 @@ const SpectrumMultifieldRenderer: React.FC<MultifieldRendererProps> = ({field, v
                             <DisclosurePanel>
                                 <View padding="size-100" UNSAFE_style={{paddingTop: '8px'}}>
                                     {field.children?.map((childField: any) => (
-                                        <View key={childField.id || childField.name} marginBottom="size-100">
+                                        <View key={getFieldName(childField)} marginBottom="size-100">
                                             <SpectrumFieldRendererComponent
                                                 field={childField}
                                                 value={getMultifieldValue(item, childField)}
-                                                onChange={(childValue: any) => updateItem(index, childField.id || childField.name, childValue)}
+                                                onChange={(childValue: any) => updateItem(index, getFieldName(childField), childValue)}
                                                 path={`${path}[${index}]`}
                                                 page={page}
                                             />

@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Text, Tabs, TabList, TabPanels, Item} from '@adobe/react-spectrum';
 import {SpectrumFieldRendererComponent, FieldRendererProps} from './SpectrumFieldRenderer';
 import {useI18n} from '../providers';
+import {getFieldName} from "@/components/getFieldName.ts";
 
 const SpectrumFieldTabs: React.FC<FieldRendererProps> = ({field, value, onChange, error, path, page}) => {
     const {t} = useI18n();
@@ -51,7 +52,7 @@ const SpectrumFieldTabs: React.FC<FieldRendererProps> = ({field, value, onChange
                         const tabValue: any = {};
                         if (Array.isArray(tab.children)) {
                             tab.children.forEach((child: any) => {
-                                const fieldKey = child.id || child.name;
+                                const fieldKey = getFieldName(child);
 
                                 if (value) {
                                     if (child.type === 'datamodel') {

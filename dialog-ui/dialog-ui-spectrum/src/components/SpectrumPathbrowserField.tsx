@@ -30,20 +30,13 @@ export const SpectrumPathbrowserField: React.FC<SpectrumPathbrowserFieldProps> =
 
     return (
         <View>
+
             <Text UNSAFE_style={{fontSize: '12px', marginBottom: '8px'}}>
                 {t(field.label ?? '')}
             </Text>
-            {field.tooltip && (
-                <Text UNSAFE_style={{fontSize: '12px', color: '#666', marginBottom: '8px'}}>
-                    {t(field.tooltip ?? '')}
-                </Text>
-            )}
-            {error && (
-                <Text UNSAFE_style={{color: 'red', fontSize: '12px', marginBottom: '8px'}}>
-                    {error}
-                </Text>
-            )}
-            <Flex gap="size-100" alignItems="center">
+
+
+            <Flex gap="size-100" direction={"column"}>
                 {/*TODO: add support for assets*/}
                 <foundation-autocomplete
                     className="spectrum-pathbrowser"
@@ -71,6 +64,18 @@ export const SpectrumPathbrowserField: React.FC<SpectrumPathbrowserFieldProps> =
                         <coral-tag value={value}></coral-tag>
                     </coral-taglist>
                 </foundation-autocomplete>
+
+              {field.tooltip && (
+                <Text UNSAFE_style={{fontSize: '12px', color: '#666', marginBottom: '8px'}}>
+                  {t(field.tooltip ?? '')}
+                </Text>
+              )}
+
+              {error && (
+                <Text UNSAFE_style={{color: 'red', fontSize: '12px', marginBottom: '8px'}}>
+                  {error}
+                </Text>
+              )}
             </Flex>
             <style>{`
                 .spectrum-pathbrowser input[is="coral-textfield"] {

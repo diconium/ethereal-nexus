@@ -1,5 +1,16 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.3.0
+
+### Minor Changes
+
+- f2fb267: add SpectrumNavigation component and integrate with field rendering
+
+### Patch Changes
+
+- Updated dependencies [f2fb267]
+  - @ethereal-nexus/dialog-ui-core@1.2.0
+
 ## 1.2.0
 
 ### Minor Changes

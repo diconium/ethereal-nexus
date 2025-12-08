@@ -22,7 +22,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.22",
     "mini-svg-data-uri": "^1.4.4",
-    "react": "^19.2.0",
+    "react": "19.2.1",
     "react-dom": "^19.2.0",
     "sharp": "^0.34.4",
     "tailwind-merge": "^3.3.1",

@@ -36,8 +36,8 @@
   "author": "",
   "license": "ISC",
   "peerDependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1"
   },
   "dependencies": {
     "@ethereal-nexus/dialog-ui-core": "workspace:*",

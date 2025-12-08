@@ -1,5 +1,11 @@
 # @ethereal-nexus/site
 
+## 1.1.1
+
+### Patch Changes
+
+- d8b9d65: update react and react-dom versions in package.json [CVE-2025-66478]
+
 ## 1.1.0
 
 ### Minor Changes

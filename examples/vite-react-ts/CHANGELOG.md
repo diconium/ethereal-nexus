@@ -1,5 +1,15 @@
 # remote-components-vite-react-ts
 
+## 0.8.3
+
+### Patch Changes
+
+- d8b9d65: update react and react-dom versions in package.json [CVE-2025-66478]
+- Updated dependencies [f2fb267]
+- Updated dependencies [d8b9d65]
+  - @ethereal-nexus/core@1.14.0
+  - @ethereal-nexus/react@0.2.1
+
 ## 0.8.2
 
 ### Patch Changes

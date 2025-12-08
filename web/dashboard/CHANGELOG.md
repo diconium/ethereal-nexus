@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 3.2.2
+
+### Patch Changes
+
+- d8b9d65: update react and react-dom versions in package.json [CVE-2025-66478]
+
 ## 3.2.1
 
 ### Patch Changes

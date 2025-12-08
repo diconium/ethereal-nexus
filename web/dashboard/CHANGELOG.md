@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 3.3.0
+
+### Minor Changes
+
+- ced5b76: Bump version
+
 ## 3.2.2
 
 ### Patch Changes

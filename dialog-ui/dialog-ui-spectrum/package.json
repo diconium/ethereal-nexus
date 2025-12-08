@@ -38,7 +38,7 @@
   "license": "ISC",
   "peerDependencies": {
     "react": "^19.0.1",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.1"
   },
   "dependencies": {
     "@adobe/react-spectrum": "^3.45.0",

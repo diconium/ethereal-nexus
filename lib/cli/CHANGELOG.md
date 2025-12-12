@@ -1,5 +1,11 @@
 # @ethereal-nexus/cli
 
+## 1.2.3
+
+### Patch Changes
+
+- 835d73e: chore: update next, react, and react-dom versions in package.json
+
 ## 1.2.0
 
 ### Minor Changes

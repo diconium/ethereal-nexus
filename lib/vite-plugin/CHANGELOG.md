@@ -1,5 +1,13 @@
 # @ethereal-nexus/vite-plugin-ethereal-nexus
 
+## 1.2.4
+
+### Patch Changes
+
+- 835d73e: chore: update next, react, and react-dom versions in package.json
+- Updated dependencies [835d73e]
+  - @ethereal-nexus/core@1.14.1
+
 ## 1.2.3
 
 ### Patch Changes

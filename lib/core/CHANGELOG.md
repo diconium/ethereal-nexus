@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.14.1
+
+### Patch Changes
+
+- 835d73e: chore: update next, react, and react-dom versions in package.json
+
 ## 1.14.0
 
 ### Minor Changes

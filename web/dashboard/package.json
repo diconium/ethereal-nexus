@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "NODE_OPTIONS=' --experimental-vm-modules --inspect' next dev",
     "build": "next build",
-    "start": "next start:q",
+    "start": "next start",
     "lint": "next lint",
     "format": "prettier --write \"{,!(.next)/**/}*.{ts, tsx}\"",
     "test": "set TZ=UTC && jest --coverage --max-workers=75%",

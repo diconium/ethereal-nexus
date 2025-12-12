@@ -1,5 +1,14 @@
 # remote-components-vite-react-ts
 
+## 0.8.4
+
+### Patch Changes
+
+- 835d73e: chore: update next, react, and react-dom versions in package.json
+- Updated dependencies [835d73e]
+  - @ethereal-nexus/core@1.14.1
+  - @ethereal-nexus/react@0.2.2
+
 ## 0.8.3
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @ethereal-nexus/dialog-ui-example
 
+## 1.1.2
+
+### Patch Changes
+
+- 835d73e: chore: update next, react, and react-dom versions in package.json
+- Updated dependencies [835d73e]
+  - @ethereal-nexus/dialog-ui-core@1.2.1
+
 ## 1.1.1
 
 ### Patch Changes

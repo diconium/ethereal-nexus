@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 3.3.1
+
+### Patch Changes
+
+- 835d73e: chore: update next, react, and react-dom versions in package.json
+
 ## 3.3.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @ethereal-nexus/react
 
+## 0.2.2
+
+### Patch Changes
+
+- 835d73e: chore: update next, react, and react-dom versions in package.json
+
 ## 0.2.1
 
 ### Patch Changes

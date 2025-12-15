@@ -14,11 +14,12 @@ import {SpectrumFieldRendererComponent} from './SpectrumFieldRenderer';
 import {useSpectrumAEMAdapter, SpectrumAEMAdapterConfig} from '../adapters';
 import {setDialogMinWidth} from './dialogUtils';
 import {getFieldName} from "@/components/getFieldName.ts";
+import {FormDataProvider} from "@/components/FormDataContext.tsx";
 
 interface EnhancedDialogBodyProps {
     dialog: DialogConfig;
     initialValues?: any;
-    adapterConfig?: SpectrumAEMAdapterConfig;
+    adapterConfig?: SpectrumAEMAdapterConfig | null;
     onSubmit?: (data: any) => void;
     onCancel?: () => void;
     onSaveSuccess?: (data: any) => void;
@@ -201,6 +202,7 @@ export const EnhancedDialogBody: React.FC<EnhancedDialogBodyProps> = ({
         return searchInFields(dialog.fields);
     };
     return (
+      <FormDataProvider formData={formData}>
         <I18nProvider>
             <SpectrumProvider colorScheme="light">
                 <div ref={rootRef}>
@@ -245,7 +247,7 @@ export const EnhancedDialogBody: React.FC<EnhancedDialogBodyProps> = ({
                                                         updateField(key, value[key]);
                                                     }
                                                 }
-                                            });
+                                        });
 
                                             return;
                                         }
@@ -263,5 +265,6 @@ export const EnhancedDialogBody: React.FC<EnhancedDialogBodyProps> = ({
                 </div>
             </SpectrumProvider>
         </I18nProvider>
+      </FormDataProvider>
     );
 };

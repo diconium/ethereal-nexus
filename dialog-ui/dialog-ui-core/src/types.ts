@@ -1,3 +1,15 @@
+
+export type ConditionType = {
+  field?: string;
+  operator: 'eq' | 'neq' | "and" | "or";
+  value: {
+    "stringValue"?: string,
+    "conditionArray"?: ConditionType[],
+    "booleanValue"?: boolean,
+    "string": string
+  }
+}
+
 // Base field types
 export interface FieldConfig {
     id: string;
@@ -7,6 +19,7 @@ export interface FieldConfig {
     required?: boolean;
     placeholder?: string;
     multiple?: boolean;
+    parentId?: string;
     defaultValue?: boolean | string | number | string[] | number[] | null;
     tooltip?: string | null;
     min?: string;
@@ -18,6 +31,16 @@ export interface FieldConfig {
     options?: Array<{ value: string; label: string }>;
     showastoggle?: boolean;
     itemLabelKey?: string;
+    condition?: {
+      field: string;
+      value: {
+        "stringValue": string,
+        "conditionArray": string[],
+        "booleanValue": boolean,
+        "string": string
+      }
+      operator: 'eq' | 'neq' | "and" | "or";
+    }
 }
 
 // Dialog configuration

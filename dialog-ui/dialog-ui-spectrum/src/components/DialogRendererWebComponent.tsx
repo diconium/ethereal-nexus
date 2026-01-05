@@ -1,6 +1,5 @@
 import React from 'react';
 import r2wc from '@r2wc/react-to-web-component';
-import {DialogBody} from './DialogBody';
 import {EnhancedDialogBody} from './EnhancedDialogBody';
 import {DialogConfig, FieldConfig} from '@ethereal-nexus/dialog-ui-core';
 import {SpectrumAEMAdapterConfig} from '../adapters';
@@ -104,13 +103,32 @@ interface DialogRendererProps {
     onSubmit?: (data: any) => void;
 }
 
+
+const calculateChildFieldParentId = (parentId: string, field: any): string | null => {
+
+
+    const isTabField = field.type === "tab" || field.type === "tabs";
+
+    if (!isTabField) {
+      if (field.type === "multifield") {
+        return parentId ? `${parentId}.${field.id}[$INDEX]` : `${field.id}[$INDEX]`;
+      }
+      return parentId ? `${parentId}.${field.id}` : field.id;
+    } else if (isTabField) {
+      return parentId;
+    }
+
+    return field.id;
+}
+
 // Transform AEM field format to our DialogConfig format
 const transformAEMFields = (aemFields: any[]): DialogConfig => {
-    const transformField = (field: any): FieldConfig => {
+    const transformField = (field: any, parentId: any): FieldConfig => {
         return {
             id: field.id || field.name, // Use 'id' from AEM format, fallback to 'name'
             name: field.name || field.id, // Provide name for backward compatibility
             label: field.label || field.title || field.id,
+            parentId: parentId ?? undefined,
             type: field.type,
             multiple: field.multiple || false,
             defaultValue: field.defaultValue,
@@ -120,9 +138,10 @@ const transformAEMFields = (aemFields: any[]): DialogConfig => {
             url: field.url || undefined,
             method: field.method || undefined,
             body: field.body || undefined,
+            condition: field.condition || undefined,
             itemLabelKey: field.itemLabelKey ?? undefined,
             showastoggle: field.showastoggle || false, // Add showastoggle property from AEM config
-            children: field.children ? field.children.map(transformField) : undefined,
+            children: field.children ? field.children.map((c: any) => transformField(c, calculateChildFieldParentId(parentId, field))) : undefined,
             options: field.options || field.values ? (field.options || field.values).map((value: any) => ({
                 value: value.value || value,
                 label: value.label || value.text || value.value || value
@@ -131,7 +150,7 @@ const transformAEMFields = (aemFields: any[]): DialogConfig => {
     };
 
     return {
-        fields: aemFields.map(transformField)
+        fields: aemFields.map((field) => transformField(field, undefined))
     };
 };
 
@@ -499,31 +518,17 @@ export const DialogRendererReact: React.FC<DialogRendererProps> = (props) => {
         }
     };
 
-    // Use EnhancedDialogBody if AEM integration is enabled, otherwise use regular DialogBody
-    if (aemAdapterConfig) {
-        console.log('Using EnhancedDialogBody with AEM integration:', aemAdapterConfig);
 
-        return (
-            <EnhancedDialogBody
-                dialog={config}
-                initialValues={initialValues}
-                adapterConfig={aemAdapterConfig}
-                onSubmit={handleSubmit}
-                onSaveSuccess={handleSaveSuccess}
-                onSaveError={handleSaveError}
-            />
-        );
-    } else {
-        console.log('Using standard DialogBody without AEM integration');
 
-        return (
-            <DialogBody
-                dialog={config}
-                initialValues={initialValues}
-                onSubmit={handleSubmit}
-            />
-        );
-    }
+  return (<EnhancedDialogBody
+    dialog={config}
+    initialValues={initialValues}
+    adapterConfig={aemAdapterConfig}
+    onSubmit={handleSubmit}
+    onSaveSuccess={handleSaveSuccess}
+    onSaveError={handleSaveError}
+  />)
+
 };
 
 // Convert React component to Web Component

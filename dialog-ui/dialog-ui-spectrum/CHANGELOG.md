@@ -1,5 +1,13 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.3.2
+
+### Patch Changes
+
+- e49033f: Improve dialogs
+- Updated dependencies [e49033f]
+  - @ethereal-nexus/dialog-ui-core@1.2.2
+
 ## 1.3.1
 
 ### Patch Changes

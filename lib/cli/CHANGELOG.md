@@ -1,5 +1,11 @@
 # @ethereal-nexus/cli
 
+## 1.2.4
+
+### Patch Changes
+
+- e49033f: Improve dialogs
+
 ## 1.2.3
 
 ### Patch Changes

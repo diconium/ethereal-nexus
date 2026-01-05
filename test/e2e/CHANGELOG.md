@@ -1,5 +1,11 @@
 # e2e
 
+## 1.0.2
+
+### Patch Changes
+
+- e49033f: Improve dialogs
+
 ## 1.0.1
 
 ### Patch Changes

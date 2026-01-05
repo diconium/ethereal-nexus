@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-core
 
+## 1.2.2
+
+### Patch Changes
+
+- e49033f: Improve dialogs
+
 ## 1.2.1
 
 ### Patch Changes

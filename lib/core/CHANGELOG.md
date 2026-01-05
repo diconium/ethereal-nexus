@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.14.2
+
+### Patch Changes
+
+- e49033f: Improve dialogs
+
 ## 1.14.1
 
 ### Patch Changes

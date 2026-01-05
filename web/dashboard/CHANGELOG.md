@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 3.3.2
+
+### Patch Changes
+
+- e49033f: Improve dialogs
+
 ## 3.3.1
 
 ### Patch Changes

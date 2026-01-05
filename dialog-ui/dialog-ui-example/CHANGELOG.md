@@ -1,5 +1,13 @@
 # @ethereal-nexus/dialog-ui-example
 
+## 1.1.3
+
+### Patch Changes
+
+- e49033f: Improve dialogs
+- Updated dependencies [e49033f]
+  - @ethereal-nexus/dialog-ui-core@1.2.2
+
 ## 1.1.2
 
 ### Patch Changes

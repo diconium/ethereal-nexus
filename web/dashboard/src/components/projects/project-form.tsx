@@ -1,4 +1,5 @@
 'use client';
+import { browserLog } from '@/lib/browser-logger'
 
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -29,22 +30,63 @@ export default function ProjectsForm({ project, onComplete, onCancel }: Projects
     defaultValues: project ?? {}
   });
   const onSubmit = async (data: ProjectInput) => {
-    const projects = await upsertProject({
-      id: project?.id,
-      ...data
+    const isUpdate = !!project?.id;
+
+    browserLog.info(`Project form submission started: ${isUpdate ? 'updating' : 'creating'} project`, {
+      operation: 'project-form-submit',
+      action: isUpdate ? 'update' : 'create',
+      projectId: project?.id,
+      projectName: data.name,
+      hasWritePermissions,
+      userId: session?.user?.id,
     });
-    if (!projects.success) {
-      toast({
-        title: `Failed to ${data.id ? 'update' : 'create'} project "${data.name}"!`
+
+    try {
+      const projects = await upsertProject({
+        id: project?.id,
+        ...data
       });
-    }
 
-    toast({
-      title: `Project ${project?.id ? 'update' : 'create'}d successfully!`
-    });
+      if (!projects.success) {
+        browserLog.warn(`Failed to ${isUpdate ? 'update' : 'create'} project`, {
+          operation: 'project-form-submit',
+          action: isUpdate ? 'update' : 'create',
+          projectId: project?.id,
+          projectName: data.name,
+          errorMessage: projects.error || 'Unknown error',
+        });
 
-    if (onComplete) {
-      onComplete();
+        toast({
+          title: `Failed to ${data.id ? 'update' : 'create'} project "${data.name}"!`
+        });
+        return;
+      }
+
+      browserLog.info(`Project ${isUpdate ? 'updated' : 'created'} successfully`, {
+        operation: 'project-form-submit',
+        action: isUpdate ? 'update' : 'create',
+        projectId: projects.data?.id || project?.id,
+        projectName: data.name,
+      });
+
+      toast({
+        title: `Project ${project?.id ? 'update' : 'create'}d successfully!`
+      });
+
+      if (onComplete) {
+        onComplete();
+      }
+    } catch (error) {
+      browserLog.error(`Unexpected error during project ${isUpdate ? 'update' : 'creation'}`, error as Error, {
+        operation: 'project-form-submit',
+        action: isUpdate ? 'update' : 'create',
+        projectId: project?.id,
+        projectName: data.name,
+      });
+
+      toast({
+        title: `An unexpected error occurred. Please try again.`
+      });
     }
   };
 

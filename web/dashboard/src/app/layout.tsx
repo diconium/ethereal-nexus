@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Poppins } from 'next/font/google'
+import { WebVitalsProvider } from "@/components/web-vitals-provider";
 
 const poppins = Poppins({
   weight: ['600', '400'],
@@ -14,9 +15,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <head>
     </head>
     <body>
+    <WebVitalsProvider>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
         {children}
       </ThemeProvider>
+    </WebVitalsProvider>
     </body>
   </html>;
 }

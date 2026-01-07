@@ -2,13 +2,15 @@ import { defineConfig } from 'vite'
 import ethereal from '@ethereal-nexus/vite-plugin-ethereal-nexus';
 import react from '@vitejs/plugin-react';
 import * as path from 'node:path';
+import { SimpleComponent } from '@/components/SimpleComponent/SimpleComponent';
 
 export default defineConfig({
   plugins: [
     react(),
     ethereal({
       exposes: {
-        ReactHelloWorld: './src/components/ReactHelloWorld/ReactHelloWorld.tsx',
+        SimpleComponent: './src/components/SimpleComponent/SimpleComponent.tsx',
+        // ReactHelloWorld: './src/components/ReactHelloWorld/ReactHelloWorld.tsx',
         // TagComponent: './src/components/TagComponent/TagComponent.tsx',
         //  SimpleReactHelloWorld: './src/components/SimpleReactHelloWorld/SimpleReactHelloWorld.tsx',
         //  DynamicImportVideo: './src/components/DynamicImportVideo/DynamicImportVideo.tsx',

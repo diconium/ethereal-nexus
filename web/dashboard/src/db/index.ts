@@ -3,7 +3,7 @@ import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
 import postgres from 'postgres';
 import { neon } from '@neondatabase/serverless';
 import { remember } from '@epic-web/remember';
-
+import { instrumentDrizzleClient } from "@kubiks/otel-drizzle";
 import * as users from '@/data/users/schema';
 import * as projects from '@/data/projects/schema';
 import * as member from '@/data/member/schema';
@@ -63,3 +63,5 @@ function clientFactory() {
 export const db = remember('db', () =>
   clientFactory(),
 );
+
+instrumentDrizzleClient(db);

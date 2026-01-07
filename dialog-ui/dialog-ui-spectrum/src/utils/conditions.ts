@@ -57,7 +57,6 @@ const validateConditionValue = (condition: any, effectivePath = "", formData: an
 }
 
 export const evaluateConditions = (field: FieldConfig, formData: any, path?: string) => {
-  debugger;
   if (!field.condition) {
     return true;
   }

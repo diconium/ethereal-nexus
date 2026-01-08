@@ -1,4 +1,5 @@
 import {CacheConfig} from "drizzle-orm/cache/core/types";
+import { logger } from '@/lib/logger';
 
 
 export const IN_MEMORY_CACHE_TTL = process.env.IN_MEMORY_CACHE_TTL ? parseInt(process.env.IN_MEMORY_CACHE_TTL) * 1000 : 0; // seconds
@@ -78,7 +79,11 @@ export class InMemoryCache extends CustomCache {
 
       this.store.set(key, {value: response, tables, expireAt});
     } catch (e) {
-     console.error("Error storing cache entry:", e);
+      logger.error('Failed to store cache entry in memory', e as Error, {
+        operation: 'in-memory-cache-put',
+        key,
+        tables: tables?.join(','),
+      });
     }
   }
 

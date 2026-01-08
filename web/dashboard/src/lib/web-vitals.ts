@@ -11,7 +11,7 @@ export function initializeWebVitals() {
   if (typeof window === "undefined" || isInitialized) return;
 
   const resource = resourceFromAttributes({
-    [ATTR_SERVICE_NAME]: "ethereal-nexus-dashboard-frontend",
+    [ATTR_SERVICE_NAME]: process.env.OTEL_PUBLIC_SERVICE_NAME || "ethereal-nexus-dashboard-frontend",
   });
 
   const reader = new PeriodicExportingMetricReader({

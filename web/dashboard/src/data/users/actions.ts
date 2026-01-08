@@ -39,6 +39,7 @@ import { auth, signIn, signOut } from '@/auth';
 import process from 'node:process';
 import { AuthError } from 'next-auth';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/logger';
 
 type Providers = 'credentials' | 'github' | 'microsoft-entra-id' | 'azure-communication-service' | 'keycloak';
 
@@ -69,7 +70,11 @@ export async function login(provider: Providers, login?: UserLogin) {
     );
   } catch (error) {
     if (error instanceof AuthError) {
-      console.error('Authentication error:', error);
+      logger.error('Authentication error during login', error, {
+        operation: 'user-login',
+        provider,
+        errorType: error.type,
+      });
       return actionError(error.message);
     }
     throw error;
@@ -95,7 +100,10 @@ async function insertUser(user: NewUser): ActionResponse<PublicUser> {
 
     return actionSuccess(result.data);
   } catch (error) {
-    console.log('Failed to insert user into database {}', error);
+    logger.error('Failed to insert user into database', error instanceof Error ? error : undefined, {
+      operation: 'user-insert',
+      email: user.email,
+    });
     return actionError('Failed to insert user into database.');
   }
 }
@@ -173,12 +181,20 @@ export async function insertInvitedCredentialsUser(
 export async function insertInvitedSsoUser(
   user: any,
 ): ActionResponse<PublicUser> {
-  console.log('insertInvitedSsoUser input:', user);
+  logger.debug('Processing SSO user invite', {
+    operation: 'user-sso-invite',
+    email: user?.email,
+    provider: 'sso',
+  });
 
   try {
     const safeUser = newUserSchema.safeParse(user);
     if (!safeUser.success) {
-      console.error('Failed to parse user input:', safeUser.error);
+      logger.error('Failed to parse SSO user input', undefined, {
+        operation: 'user-sso-invite',
+        email: user?.email,
+        validationError: safeUser.error.message,
+      });
 
       // Try to create a valid user object with the available data
       const email = user.email;
@@ -194,12 +210,19 @@ export async function insertInvitedSsoUser(
         emailVerified: new Date(),
       };
 
-      console.log('Created valid user object:', validUser);
+      logger.debug('Created valid user object from SSO data', {
+        operation: 'user-sso-invite',
+        email: validUser.email,
+      });
 
       // Try again with the valid user object
       const retryParse = newUserSchema.safeParse(validUser);
       if (!retryParse.success) {
-        console.error('Still failed to parse user input:', retryParse.error);
+        logger.error('Failed to parse SSO user input after retry', undefined, {
+          operation: 'user-sso-invite',
+          email: validUser.email,
+          validationError: retryParse.error.message,
+        });
         return actionZodError('Failed to parse user input.', retryParse.error);
       }
 
@@ -218,10 +241,17 @@ export async function insertInvitedSsoUser(
       .where(eq(invites.email, email!));
 
     if (invite.length > 0) {
-      console.log('Found invite for email:', email);
+      logger.info('Found invite for SSO user', {
+        operation: 'user-sso-invite',
+        email,
+      });
       await deleteInvite(invite[0].key);
     } else {
-      console.log('No invite found for email:', email);
+      logger.info('No invite found for SSO user', {
+        operation: 'user-sso-invite',
+        email,
+        allowWithoutInvite: process.env.ALLOW_SSO_WITHOUT_INVITE === 'true',
+      });
       // For Keycloak, we might want to allow users without invites
       // Check if this is a Keycloak login
       if (process.env.ALLOW_SSO_WITHOUT_INVITE !== 'true') {
@@ -231,7 +261,10 @@ export async function insertInvitedSsoUser(
 
     return insertUser(user);
   } catch (error) {
-    console.error('Error in insertInvitedSsoUser:', error);
+    logger.error('Error processing SSO user invite', error instanceof Error ? error : undefined, {
+      operation: 'user-sso-invite',
+      email: user?.email,
+    });
     return actionError('Failed to process SSO login.');
   }
 }
@@ -250,7 +283,12 @@ export async function insertServiceUser(
       type: 'oauth',
     });
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to insert service user', error instanceof Error ? error : undefined, {
+      operation: 'user-service-insert',
+      subject: safeUser.data.subject,
+      issuer: safeUser.data.issuer,
+      user: safeUser.data,
+    });
     return actionError('Failed to insert service user into database.');
   }
 }
@@ -480,10 +518,13 @@ export async function getApiKeyByKey(
         safe.error,
       );
     }
-    return actionSuccess(safe.data[0]);
+    return actionSuccess(result[0]);
   } catch (error) {
-    console.error(error);
-    return actionError('Failed to fetch user from database.');
+    logger.error('Failed to fetch API key by key', error instanceof Error ? error : undefined, {
+      operation: 'apikey-fetch',
+      keyId: id,
+    });
+    return actionError('Failed to get api key.');
   }
 }
 
@@ -546,7 +587,11 @@ export async function getApiKeys(
     const safe = z.array(omitKey ? apiKeyPublicSchema : apiKeySchema).safeParse(select);
 
     if (!safe.success) {
-      console.error('Failed to parse API keys:', safe.error);
+      logger.error('Failed to parse API keys from database', undefined, {
+        operation: 'apikey-list',
+        userId: id,
+        validationError: safe.error.message,
+      });
       return actionZodError(
         'There\'s an issue with the api keys records.',
         safe.error,
@@ -572,7 +617,9 @@ export async function getUsers(): ActionResponse<PublicUser[]> {
     }
     return actionSuccess(safeUsers.data);
   } catch (error) {
-    console.log('Failed to fetch users from database {}', error);
+    logger.error('Failed to fetch users from database', error instanceof Error ? error : undefined, {
+      operation: 'user-list',
+    });
     return actionError('Failed to fetch users from database.');
   }
 }
@@ -790,7 +837,11 @@ export async function getServiceUser(issuer: string, subject: string): ActionRes
 
     return actionSuccess(user[0]);
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to fetch service user', error instanceof Error ? error : undefined, {
+      operation: 'user-service-fetch',
+      issuer,
+      subject,
+    });
     return actionError('Failed to fetch service user on the database.');
   }
 }

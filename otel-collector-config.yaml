@@ -9,6 +9,17 @@ receivers:
           allowed_headers: ["*"]
       grpc:
         endpoint: 0.0.0.0:4317
+  redis:
+    endpoint: redis:6379
+    collection_interval: 60s
+    password: "your_secure_redis_password_here"
+    tls:
+      insecure: true
+    metrics:
+      redis.maxmemory:
+        enabled: true
+      redis.cmd.latency:
+        enabled: true
 
 processors:
   batch:
@@ -29,11 +40,16 @@ exporters:
 
   #signoz
   otlp:
-    endpoint: ingest.us.signoz.cloud:443
+    endpoint: "${SIGNOZ_ENDPOINT}"
     headers:
-      signoz-ingestion-key: Kyy75tQzJlbEcwuMkAMfHIYaDNvNdS-6AJUg
+      signoz-ingestion-key: "${SIGNOZ_API_KEY}"
     tls:
       insecure: false
+
+  otlphttp:
+    endpoint: "${NEWRELIC_ENDPOINT}"
+    headers:
+      api-key: "${NEWRELIC_API_KEY}"
 
 extensions:
   health_check:
@@ -49,12 +65,12 @@ service:
     traces:
       receivers: [ otlp ]
       processors: [ memory_limiter, batch ]
-      exporters: [ otlp]
+      exporters: [ otlp, otlphttp]
     metrics:
-      receivers: [ otlp ]
+      receivers: [ redis, otlp ]
       processors: [ memory_limiter, batch ]
-      exporters: [ otlp ]
+      exporters: [ otlp, otlphttp ]
     logs:
       receivers: [ otlp ]
       processors: [ memory_limiter, batch ]
-      exporters: [ otlp ]
+      exporters: [ otlp, otlphttp ]

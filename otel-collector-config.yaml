@@ -10,11 +10,11 @@ receivers:
       grpc:
         endpoint: 0.0.0.0:4317
   redis:
-    endpoint: redis:6379
+    endpoint: "${REDIS_ENDPOINT}"
     collection_interval: 60s
-    password: "your_secure_redis_password_here"
+    password: "${REDIS_PASSWORD}"
     tls:
-      insecure: true
+      insecure: false
     metrics:
       redis.maxmemory:
         enabled: true

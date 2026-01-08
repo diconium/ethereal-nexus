@@ -39,6 +39,8 @@ class Logger {
       error,
     }
 
+    // Always export log entries on server-side
+    // The exporter will handle whether to send to OTEL or console
     if (typeof window === 'undefined') {
       exportLogEntry(entry)
     }

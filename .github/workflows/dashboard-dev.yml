@@ -54,17 +54,43 @@ jobs:
           sed -i '/^DRIZZLE_DATABASE_URL/d' .env
 
       - name: Build and push container image to registry
+        run: |
+          docker build -t registry.hub.docker.com/docker19diconium/remote-components:${{ github.sha }} -f web/dashboard/Dockerfile .
+          docker push registry.hub.docker.com/docker19diconium/remote-components:${{ github.sha }}
+
+      - name: Process Template
+        id: process-template
+        run: |
+          python3 -c "
+          import os
+          config_content = open('otel-collector-config.yaml').read()
+          with open('container-app-template.yaml', 'r') as f:
+              template = f.read()
+          
+          # Replace github.sha placeholder
+          template = template.replace("${{ github.sha }}", os.environ.get("GITHUB_SHA", ""))
+          
+          # Replace OTel config content placeholder
+          # In container-app-template.yaml it is: value: ${{ secrets.OTEL_COLLECTOR_CONFIG }}
+          # We replace it with the actual content of the file.
+          
+          template = template.replace("${{ secrets.OTEL_COLLECTOR_CONFIG }}", config_content)
+          
+          with open('deployment.yaml', 'w') as f:
+              f.write(template)
+          "
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+
+      - name: Deploy to Azure Container Apps
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}
-          dockerfilePath: web/dashboard/Dockerfile
+          yamlConfigPath: deployment.yaml
           containerAppName: demo-ethereal-nexus
           resourceGroup: RG-Ethereal-Nexus
           registryUrl: registry.hub.docker.com
-          targetPort: 3000 --registry-server registry.hub.docker.com
           registryUsername: ${{ secrets.DOCKER_USERNAME }}
           registryPassword: ${{ secrets.DOCKER_PASSWORD }}
-          imageToBuild: registry.hub.docker.com/docker19diconium/remote-components:${{ github.sha }}
 
 
 

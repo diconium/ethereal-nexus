@@ -38,18 +38,35 @@ export function initializeLogsExporter() {
     return
   }
 
+  // Check if OTEL endpoint is properly configured
+  if (!LOG_EXPORT_URL || LOG_EXPORT_URL === 'http://localhost:4318') {
+    console.log('⚠️  No OTEL endpoint configured, logs will be printed to console')
+    isInitialized = true
+    return
+  }
+
   loggerProvider = createLoggerProvider()
   logs.setGlobalLoggerProvider(loggerProvider)
   isInitialized = true
-  console.log('✅ OpenTelemetry logs exporter initialized')
+  console.log(`✅ OpenTelemetry logs exporter initialized (endpoint: ${LOG_EXPORT_URL})`)
 }
 
 export function exportLogEntry(entry: LogEntry) {
   if (typeof window !== 'undefined') return
+
+  // If no OTEL endpoint configured, fallback to console logging
+  if (!LOG_EXPORT_URL || LOG_EXPORT_URL === 'http://localhost:4318') {
+    logToConsole(entry)
+    return
+  }
+
   if (!isInitialized) {
     initializeLogsExporter()
   }
-  if (!loggerProvider) return
+  if (!loggerProvider) {
+    logToConsole(entry)
+    return
+  }
 
   const logger = loggerProvider.getLogger(
     process.env.OTEL_SERVICE_NAME ?? 'ethereal-nexus-dashboard'
@@ -77,6 +94,35 @@ export function exportLogEntry(entry: LogEntry) {
   }
 
   logger.emit(logRecord)
+}
+
+function logToConsole(entry: LogEntry) {
+  const timestamp = entry.timestamp
+  const level = entry.level.toUpperCase().padEnd(5)
+  const contextStr = Object.keys(entry.context).length > 0
+    ? ` ${JSON.stringify(entry.context)}`
+    : ''
+
+  const logMessage = `[${timestamp}] ${level} ${entry.message}${contextStr}`
+
+  switch (entry.level) {
+    case 'error':
+      console.error(logMessage)
+      if (entry.error) {
+        console.error(entry.error)
+      }
+      break
+    case 'warn':
+      console.warn(logMessage)
+      break
+    case 'debug':
+      console.debug(logMessage)
+      break
+    case 'info':
+    default:
+      console.log(logMessage)
+      break
+  }
 }
 
 function getSeverityNumber(level: LogEntry['level']): number {

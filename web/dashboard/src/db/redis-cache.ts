@@ -8,7 +8,7 @@ const redisConfig = {
   port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6380,
   password: process.env.REDIS_PASSWORD,
   maxRetriesPerRequest: 3,
-  useTls: process.env.REDIS_USE_TLS !== 'false', // TLS enabled by default, explicitly disable with 'false'
+  useTls: process.env.REDIS_USE_TLS !== 'false',
   cacheStrategy: process.env.REDIS_CACHE_STRATEGY || "explicit",
   localCacheTTL: process.env.IN_MEMORY_CACHE_TTL ? parseInt(process.env.IN_MEMORY_CACHE_TTL) : 3600,
   redisCacheTTL: process.env.REDIS_CACHE_TTL ? parseInt(process.env.REDIS_CACHE_TTL) * 24 * 60 * 60 : 30 * 24 * 60 * 60,

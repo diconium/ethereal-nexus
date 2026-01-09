@@ -1,5 +1,15 @@
 # @ethereal-nexus/dashboard
 
+## 3.4.0
+
+### Minor Changes
+
+- 794f13b: Added Open Telemetry
+
+### Patch Changes
+
+- ad57b45: Improve dialogs
+
 ## 3.3.2
 
 ### Patch Changes

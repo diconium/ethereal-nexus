@@ -1,5 +1,11 @@
 # @ethereal-nexus/site
 
+## 1.1.4
+
+### Patch Changes
+
+- ad57b45: Improve dialogs
+
 ## 1.1.3
 
 ### Patch Changes

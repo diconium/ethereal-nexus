@@ -1,0 +1,56 @@
+location: westeurope
+properties:
+  configuration:
+    ingress:
+      external: true
+      targetPort: 3000
+    registries:
+      - server: registry.hub.docker.com
+        username: ${{ secrets.DOCKER_USERNAME }}
+        passwordSecretRef: docker-password
+    secrets:
+      - name: docker-password
+        value: ${{ secrets.DOCKER_PASSWORD }}
+      - name: redis-password
+        value: ${{ secrets.REDIS_PASSWORD }}
+      - name: signoz-api-key
+        value: ${{ secrets.SIGNOZ_API_KEY }}
+      - name: newrelic-api-key
+        value: ${{ secrets.NEWRELIC_API_KEY }}
+      - name: otel-config
+        value: ${{ secrets.OTEL_COLLECTOR_CONFIG }}
+  template:
+    containers:
+      - image: docker19diconium/remote-components:${{ github.sha }}
+        name: dashboard
+        env:
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: http://localhost:4318
+          - name: OTEL_EXPORTER_OTLP_PROTOCOL
+            value: http/protobuf
+          - name: REDIS_HOST
+            value: ${{ secrets.REDIS_HOST }}
+          - name: REDIS_PORT
+            value: "6380"
+          - name: REDIS_PASSWORD
+            secretRef: redis-password
+          - name: REDIS_USE_TLS
+            value: "true"
+      - image: otel/opentelemetry-collector-contrib:latest
+        name: otel-collector
+        args: ["--config=env:OTEL_COLLECTOR_CONFIG"]
+        env:
+          - name: OTEL_COLLECTOR_CONFIG
+            secretRef: otel-config
+          - name: REDIS_ENDPOINT
+            value: "${{ secrets.REDIS_HOST }}:6380"
+          - name: REDIS_PASSWORD
+            secretRef: redis-password
+          - name: SIGNOZ_ENDPOINT
+            value: ${{ secrets.SIGNOZ_ENDPOINT }}
+          - name: SIGNOZ_API_KEY
+            secretRef: signoz-api-key
+          - name: NEWRELIC_ENDPOINT
+            value: ${{ secrets.NEWRELIC_ENDPOINT }}
+          - name: NEWRELIC_API_KEY
+            secretRef: newrelic-api-key

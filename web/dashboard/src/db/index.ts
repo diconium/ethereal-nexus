@@ -3,7 +3,7 @@ import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
 import postgres from 'postgres';
 import { neon } from '@neondatabase/serverless';
 import { remember } from '@epic-web/remember';
-
+import { instrumentDrizzleClient } from "@kubiks/otel-drizzle";
 import * as users from '@/data/users/schema';
 import * as projects from '@/data/projects/schema';
 import * as member from '@/data/member/schema';
@@ -11,6 +11,7 @@ import * as components from '@/data/components/schema';
 import * as events from "@/data/events/schema";
 import { RedisCache } from "@/db/redis-cache";
 import {InMemoryCache} from "@/db/in-memory-cache";
+import { logger } from '@/lib/logger';
 
 
 const schema = {
@@ -26,10 +27,17 @@ const redisEnabled = process.env.DB_CACHE_STRATEGY;
 const cache = remember("redis-cache", () => {
   switch (redisEnabled) {
     case 'redis':
-      console.log("Using Redis Cache for DB");
+      logger.info("Database cache initialized with Redis", {
+        operation: 'db-init',
+        cacheStrategy: 'redis',
+      });
       return new RedisCache();
     default:
-      console.log("Using In-Memory Cache for DB. If no ENV variables are set then no caching is used.");
+      logger.info("Database cache initialized with in-memory strategy", {
+        operation: 'db-init',
+        cacheStrategy: redisEnabled || 'none',
+        note: 'In-memory cache is used for development. Set DB_CACHE_STRATEGY=redis for production.',
+      });
       return new InMemoryCache();
   }
 });
@@ -63,3 +71,5 @@ function clientFactory() {
 export const db = remember('db', () =>
   clientFactory(),
 );
+
+instrumentDrizzleClient(db);

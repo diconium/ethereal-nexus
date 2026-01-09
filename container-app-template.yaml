@@ -46,7 +46,7 @@ properties:
             value: "true"
       - image: otel/opentelemetry-collector-contrib:latest
         name: otel-collector
-        args: ["--config=env:OTEL_COLLECTOR_CONFIG"]
+        args: ["--config=/etc/otel-collector-config.yaml"]
         env:
           - name: OTEL_COLLECTOR_CONFIG
             secretRef: otel-config

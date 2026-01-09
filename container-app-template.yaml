@@ -19,6 +19,10 @@ properties:
         value: ${{ secrets.NEWRELIC_API_KEY }}
       - name: otel-config
         value: ${{ secrets.OTEL_COLLECTOR_CONFIG }}
+      - name: AZURE_BLOB_STORAGE_SECRET
+        value: ${{ secrets.AZURE_BLOB_STORAGE_SECRET }}
+      - name: AUTH_SECRET
+        value: ${{ secrets.AUTH_SECRET }}
   template:
     containers:
       - image: docker19diconium/remote-components:IMAGE_TAG

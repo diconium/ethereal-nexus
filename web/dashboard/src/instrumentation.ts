@@ -1,5 +1,4 @@
 import { registerOTel } from '@vercel/otel';
-import { initializeLogsExporter } from './lib/logs-exporter';
 
 export function register() {
   registerOTel({

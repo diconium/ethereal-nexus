@@ -12,6 +12,7 @@ const redisConfig = {
   cacheStrategy: process.env.REDIS_CACHE_STRATEGY || "explicit",
   localCacheTTL: process.env.IN_MEMORY_CACHE_TTL ? parseInt(process.env.IN_MEMORY_CACHE_TTL) : 3600,
   redisCacheTTL: process.env.REDIS_CACHE_TTL ? parseInt(process.env.REDIS_CACHE_TTL) * 24 * 60 * 60 : 30 * 24 * 60 * 60,
+  keyPrefix: process.env.REDIS_KEY_PREFIX || process.env.APP_ENV || process.env.NODE_ENV || 'default',
 }
 
 // Log Redis configuration on module load
@@ -23,6 +24,7 @@ logger.info('Redis cache configuration loaded', {
   cacheStrategy: redisConfig.cacheStrategy,
   localCacheTTL: redisConfig.localCacheTTL,
   redisCacheTTL: redisConfig.redisCacheTTL,
+  keyPrefix: redisConfig.keyPrefix,
   hasPassword: !!redisConfig.password,
 });
 
@@ -51,6 +53,7 @@ export class RedisCache extends Cache {
       cacheStrategy: redisConfig.cacheStrategy,
       localCacheTTL: redisConfig.localCacheTTL,
       redisCacheTTL: redisConfig.redisCacheTTL,
+      keyPrefix: redisConfig.keyPrefix,
     });
 
     const redisOptions: RedisOptions = {
@@ -141,7 +144,7 @@ export class RedisCache extends Cache {
 
   private buildStructuredKey(key: string, tables?: string[]) {
     const tablesPart = tables?.sort().join(",") ?? "";
-    return `cache:${tablesPart}:${key}`;
+    return `${redisConfig.keyPrefix}:cache:${tablesPart}:${key}`;
   }
 
   override async get(key: string, tables: string[], isTag: boolean, isAutoInvalidate?: boolean) {
@@ -302,7 +305,7 @@ export class RedisCache extends Cache {
     for (const table of tables) {
       try {
         const tableStartTime = Date.now();
-        const pattern = `cache:*${table}*:*`;
+        const pattern = `${redisConfig.keyPrefix}:cache:*${table}*:*`;
         const stream = this.redisClient.scanStream({ match: pattern, count: 100 });
         const keys: string[] = [];
 

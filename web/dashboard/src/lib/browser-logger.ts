@@ -34,9 +34,21 @@ class BrowserLogger {
   }
 
   private generateSessionId() {
+    // Use cryptographically secure randomness for session identifiers
+    if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+      const bytes = new Uint8Array(16)
+      window.crypto.getRandomValues(bytes)
+      const hex = Array.from(bytes)
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('')
+      return 'session_' + hex
+    }
+
+    // Fallback: non-crypto randomness, only used if crypto APIs are unavailable
     return (
       'session_' +
-      (Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15))
+      (Math.random().toString(36).substring(2, 15) +
+        Math.random().toString(36).substring(2, 15))
     )
   }
 

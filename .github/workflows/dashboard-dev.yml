@@ -8,7 +8,7 @@ on:
       [ main ]
     paths:
       - 'web/dashboard/**'
-      - '.github/workflows/demo-ethereal-nexus-deploy.yml'
+      - '.github/workflows/dashboard-dev.yml'
 
   # Allow manual trigger 
   workflow_dispatch:

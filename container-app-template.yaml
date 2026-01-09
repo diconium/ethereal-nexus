@@ -4,25 +4,6 @@ properties:
     ingress:
       external: true
       targetPort: 3000
-    registries:
-      - server: registry.hub.docker.com
-        username: ${{ secrets.DOCKER_USERNAME }}
-        passwordSecretRef: docker-password
-    secrets:
-      - name: docker-password
-        value: ${{ secrets.DOCKER_PASSWORD }}
-      - name: redis-password
-        value: ${{ secrets.REDIS_PASSWORD }}
-      - name: signoz-api-key
-        value: ${{ secrets.SIGNOZ_API_KEY }}
-      - name: newrelic-api-key
-        value: ${{ secrets.NEWRELIC_API_KEY }}
-      - name: otel-config
-        value: ${{ secrets.OTEL_COLLECTOR_CONFIG }}
-      - name: azure-blob-storage-secret
-        value: ${{ secrets.AZURE_BLOB_STORAGE_SECRET }}
-      - name: auth-secret
-        value: ${{ secrets.AUTH_SECRET }}
   template:
     containers:
       - image: docker19diconium/remote-components:IMAGE_TAG

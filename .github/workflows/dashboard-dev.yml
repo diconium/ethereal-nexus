@@ -60,7 +60,7 @@ jobs:
 
       - name: Prepare deployment configuration
         run: |
-          sed 's|\${{ github.sha }}|${{ github.sha }}|g' container-app-template.yaml > deployment.yaml
+          sed 's|\${{ github.sha }}|'"${{ github.sha }}"'|g' container-app-template.yaml > deployment.yaml
 
       - name: Deploy to Azure Container Apps
         uses: azure/container-apps-deploy-action@v2

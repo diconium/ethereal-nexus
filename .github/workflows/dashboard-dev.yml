@@ -89,6 +89,7 @@ jobs:
           containerAppName: demo-ethereal-nexus
           resourceGroup: RG-Ethereal-Nexus
           registryUrl: registry.hub.docker.com
+          targetPort: 3000 --registry-server registry.hub.docker.com
           registryUsername: ${{ secrets.DOCKER_USERNAME }}
           registryPassword: ${{ secrets.DOCKER_PASSWORD }}
 

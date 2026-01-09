@@ -55,8 +55,8 @@ jobs:
 
       - name: Build and push container image to registry
         run: |
-          docker build -t registry.hub.docker.com/docker19diconium/remote-components:${{ github.sha }} -f web/dashboard/Dockerfile .
-          docker push registry.hub.docker.com/docker19diconium/remote-components:${{ github.sha }}
+          docker build -t docker19diconium/remote-components:${{ github.sha }} -f web/dashboard/Dockerfile .
+          docker push docker19diconium/remote-components:${{ github.sha }}
 
       - name: Process Template
         id: process-template

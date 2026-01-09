@@ -19,9 +19,9 @@ properties:
         value: ${{ secrets.NEWRELIC_API_KEY }}
       - name: otel-config
         value: ${{ secrets.OTEL_COLLECTOR_CONFIG }}
-      - name: azure_blob_storage_secret
+      - name: azure-blob-storage-secret
         value: ${{ secrets.AZURE_BLOB_STORAGE_SECRET }}
-      - name: auth_secret
+      - name: auth-secret
         value: ${{ secrets.AUTH_SECRET }}
   template:
     containers:
@@ -29,9 +29,9 @@ properties:
         name: dashboard
         env:
           - name: AZURE_BLOB_STORAGE_SECRET
-            secretRef: azure_blob_storage_secret
+            secretRef: azure-blob-storage-secret
           - name: AUTH_SECRET
-            secretRef: auth_secret
+            secretRef: auth-secret
           - name: OTEL_EXPORTER_OTLP_PROTOCOL
             value: http/protobuf
           - name: NODE_OPTIONS

@@ -24,14 +24,18 @@ properties:
       - image: docker19diconium/remote-components:${{ github.sha }}
         name: dashboard
         env:
-          - name: OTEL_EXPORTER_OTLP_ENDPOINT
-            value: http://localhost:4318
+          - name: AZURE_BLOB_STORAGE_SECRET
+            secretRef: AZURE_BLOB_STORAGE_SECRET
+          - name: AUTH_SECRET
+            secretRef: AUTH_SECRET
           - name: OTEL_EXPORTER_OTLP_PROTOCOL
             value: http/protobuf
-          - name: REDIS_HOST
-            value: ${{ secrets.REDIS_HOST }}
-          - name: REDIS_PORT
-            value: "6380"
+          - name: NODE_OPTIONS
+            value: "--experimental-vm-modules"
+          - name: IN_MEMORY_CACHE_TTL
+            value: "3600"
+          - name: DB_CACHE_STRATEGY
+            value: "redis"
           - name: REDIS_PASSWORD
             secretRef: redis-password
           - name: REDIS_USE_TLS

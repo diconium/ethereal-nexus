@@ -66,16 +66,13 @@ jobs:
           config_content = open('otel-collector-config.yaml').read()
           with open('container-app-template.yaml', 'r') as f:
               template = f.read()
-          
-          # Replace github.sha placeholder
-          template = template.replace("${{ github.sha }}", os.environ.get("GITHUB_SHA", ""))
-          
+
+          # Replace github.sha placeholder using the environment variable
+          template = template.replace('\${{ github.sha }}', os.environ['GITHUB_SHA'])
+
           # Replace OTel config content placeholder
-          # In container-app-template.yaml it is: value: ${{ secrets.OTEL_COLLECTOR_CONFIG }}
-          # We replace it with the actual content of the file.
-          
-          template = template.replace("${{ secrets.OTEL_COLLECTOR_CONFIG }}", config_content)
-          
+          template = template.replace('\${{ secrets.OTEL_COLLECTOR_CONFIG }}', config_content)
+
           with open('deployment.yaml', 'w') as f:
               f.write(template)
           "

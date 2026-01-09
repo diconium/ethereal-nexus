@@ -21,7 +21,7 @@ properties:
         value: ${{ secrets.OTEL_COLLECTOR_CONFIG }}
   template:
     containers:
-      - image: docker19diconium/remote-components:${{ github.sha }}
+      - image: docker19diconium/remote-components:IMAGE_TAG
         name: dashboard
         env:
           - name: AZURE_BLOB_STORAGE_SECRET

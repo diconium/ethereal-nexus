@@ -1,5 +1,14 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.3.3
+
+### Patch Changes
+
+- ad57b45: fix: remove debugger statement from evaluateConditions function
+- ad57b45: Improve dialogs
+- Updated dependencies [ad57b45]
+  - @ethereal-nexus/dialog-ui-core@1.2.3
+
 ## 1.3.2
 
 ### Patch Changes

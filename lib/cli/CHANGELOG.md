@@ -1,5 +1,11 @@
 # @ethereal-nexus/cli
 
+## 1.2.5
+
+### Patch Changes
+
+- ad57b45: Improve dialogs
+
 ## 1.2.4
 
 ### Patch Changes

@@ -58,26 +58,9 @@ jobs:
           docker build -t docker19diconium/remote-components:${{ github.sha }} -f web/dashboard/Dockerfile .
           docker push docker19diconium/remote-components:${{ github.sha }}
 
-      - name: Process Template
-        id: process-template
+      - name: Prepare deployment configuration
         run: |
-          python3 -c "
-          import os
-          config_content = open('otel-collector-config.yaml').read()
-          with open('container-app-template.yaml', 'r') as f:
-              template = f.read()
-
-          # Replace github.sha placeholder using the environment variable
-          template = template.replace('\${{ github.sha }}', os.environ['GITHUB_SHA'])
-
-          # Replace OTel config content placeholder
-          template = template.replace('\${{ secrets.OTEL_COLLECTOR_CONFIG }}', config_content)
-
-          with open('deployment.yaml', 'w') as f:
-              f.write(template)
-          "
-        env:
-          GITHUB_SHA: ${{ github.sha }}
+          sed 's|\${{ github.sha }}|${{ github.sha }}|g' container-app-template.yaml > deployment.yaml
 
       - name: Deploy to Azure Container Apps
         uses: azure/container-apps-deploy-action@v2

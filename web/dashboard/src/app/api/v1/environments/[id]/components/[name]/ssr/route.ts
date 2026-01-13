@@ -4,6 +4,7 @@ import { getEnvironmentComponentConfig } from '@/data/projects/actions';
 import { callSSR } from '@/lib/ssr/ssr';
 import crypto from 'crypto';
 import { LRUCache } from '@/lib/cache/LRUCache';
+import { logger } from '@/lib/logger';
 
 const cache = new LRUCache<string, any>(10000); // Set the cache capacity to 100
 
@@ -50,6 +51,17 @@ export const POST =
               status: HttpStatus.BAD_REQUEST,
           });
       }
+
+      if(response.data.ssr_active === false){
+          logger.warn("SSR called on a component with SSR disabled", {
+              operation: 'ssr-render',
+              componentType: response.data.name,
+          })
+          const result = {output: "", serverSideProps: {}, version: response.data.version};
+          cache.set(reqHash, result);
+          return NextResponse.json(result, { status: HttpStatus.OK });
+      }
+
 
       const {output, serverSideProps } = await callSSR(response.data.name, req, response.data.assets);
       if (output !== "") {

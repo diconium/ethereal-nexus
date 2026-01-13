@@ -30,6 +30,7 @@ export const projectComponentConfig = pgTable(
     component_version: uuid('component_version')
       .references(() => componentVersions.id, { onDelete: 'set null'}),
     is_active: boolean('is_active').notNull().default(true),
+    ssr_active: boolean('ssr_active').notNull().default(true),
   },
   (table) => {
     return {

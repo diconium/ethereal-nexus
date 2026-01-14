@@ -24,7 +24,7 @@ export function SSRSwitch({componentId, disabled, projectId, environmentId, ssrA
       {environment_id: environmentId, component_id: componentId, ssr_active: data.ssr_active}, projectId, session?.user?.id, data.is_active ? 'project_component_activated' : 'project_component_deactivated')
     if(!update.success){
       toast({
-        title: "Failed to disable SSR on component.",
+        title: "Failed to update SSR setting for component.",
       });
     }
   }

@@ -6,6 +6,7 @@ import { ActiveSwitch } from '@/components/projects/component-selection-table/ac
 import { VersionPicker } from '@/components/projects/component-selection-table/version-picker';
 import Link from 'next/link';
 import { ProjectsComponentsRowActions } from '@/components/projects/component-selection-table/actions';
+import { SSRSwitch } from '@/components/projects/component-selection-table/ssr-switch';
 
 export const columns = [
 	{
@@ -97,6 +98,31 @@ export const columns = [
 					environmentId={environmentId}
 					componentId={id}
 					active={row.getValue('active')}
+				/>
+			);
+		},
+		enableSorting: false,
+		enableHiding: true,
+	},
+	{
+		id: 'ssr_active',
+		accessorFn: (row) => row.ssr_active,
+		header: ({ column }) => (
+			<DataTableColumnHeader className="font-bold" column={column} title="SSR" />
+		),
+		cell: ({ row, table }) => {
+			const { id } = row.original;
+
+			const { projectId, environmentId, permissions } = table.options.meta;
+
+			return (
+				<SSRSwitch
+					disabled={permissions === 'read'}
+					key={id}
+					projectId={projectId}
+					environmentId={environmentId}
+					componentId={id}
+					ssrActive={row.getValue('ssr_active')}
 				/>
 			);
 		},

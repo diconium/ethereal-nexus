@@ -14,10 +14,16 @@ type SSRSwitchProps = {
   environmentId: string,
   ssrActive: boolean,
 }
+
+type SSRFormData = {
+  ssr_active: boolean;
+};
+
+
 export function SSRSwitch({componentId, disabled, projectId, environmentId, ssrActive}:SSRSwitchProps) {
   const router = useRouter();
   const { data: session } = useSession();
-  const form = useForm({defaultValues: {ssr_active: ssrActive}});
+  const form = useForm<SSRFormData>({defaultValues: {ssr_active: ssrActive}});
 
   const onSubmit = async (data) => {
     const update = await upsertComponentConfig(

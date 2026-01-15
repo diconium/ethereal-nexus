@@ -1,5 +1,14 @@
 # remote-components-vite-react-ts
 
+## 0.8.6
+
+### Patch Changes
+
+- ad57b45: Improve dialogs
+- Updated dependencies [ad57b45]
+  - @ethereal-nexus/core@1.14.3
+  - @ethereal-nexus/react@0.2.4
+
 ## 0.8.5
 
 ### Patch Changes

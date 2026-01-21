@@ -117,7 +117,7 @@ function handleCredentialsLogin(user: AdapterUser) {
       userId: user.id,
       email: user.email,
     });
-    throw new AuthError("Email not verified", { type: "Verification"});
+    throw new AuthError("Email not verified");
   }
 
   logger.info('Credentials login successful', {

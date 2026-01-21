@@ -12,7 +12,7 @@ export function setDialogMinWidth(rootElement: HTMLElement | null) {
             el.style.minWidth = '640px';
             el.style.maxWidth = '90vw';
             el.style.minHeight = '230px';
-            el.style.maxHeight = '80vh';
+            el.style.maxHeight = '100vh';
             // Use setTimeout to apply centering after Coral's positioning
             setTimeout(() => {
                 el!.style.position = 'fixed';

@@ -1,5 +1,13 @@
 # @ethereal-nexus/vite-plugin-ethereal-nexus
 
+## 1.2.6
+
+### Patch Changes
+
+- ad57b45: Improve dialogs
+- Updated dependencies [ad57b45]
+  - @ethereal-nexus/core@1.14.3
+
 ## 1.2.5
 
 ### Patch Changes

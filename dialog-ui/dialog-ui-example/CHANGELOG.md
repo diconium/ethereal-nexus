@@ -1,5 +1,13 @@
 # @ethereal-nexus/dialog-ui-example
 
+## 1.1.5
+
+### Patch Changes
+
+- Updated dependencies [216d29d]
+- Updated dependencies [5c9c9a3]
+  - @ethereal-nexus/dialog-ui-core@1.2.4
+
 ## 1.1.4
 
 ### Patch Changes

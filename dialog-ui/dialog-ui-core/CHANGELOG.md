@@ -1,5 +1,12 @@
 # @ethereal-nexus/dialog-ui-core
 
+## 1.2.4
+
+### Patch Changes
+
+- 216d29d: change default value from empty string to undefined for non-multifield items in createMultifieldItem
+- 5c9c9a3: Update tar version due to detected vulnerability
+
 ## 1.2.3
 
 ### Patch Changes

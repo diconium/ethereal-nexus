@@ -51,5 +51,5 @@ properties:
         name: otel-collector
         args: ["--config=/otel/otel-collector-config.yaml"]
         volumeMounts:
-          - name: otel-collector-config-dev
+          - name: otel-collector-config
             mountPath: /otel

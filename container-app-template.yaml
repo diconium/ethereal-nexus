@@ -40,13 +40,15 @@ properties:
           - name: OTEL_PUBLIC_SERVICE_NAME
             value: "ethereal-nexus-dev"
           - name: REDIS_CACHE_STRATEGY
-            value: "redis"
+            value: "explicit"
           - name: REDIS_HOST
             secretRef: "redis-host"
           - name: AZURE_FRONT_DOOR_URL
             secretRef: "azure-frontdoor-url"
           - name: AZURE_CONTAINER_NAME
             secretRef: "azure-container-name"
+          - name: DB_CACHE_STRATEGY
+            secretRef: "redis"
       - image: otel/opentelemetry-collector-contrib:latest
         name: otel-collector
         args: ["--config=/otel/otel-collector-config.yaml"]

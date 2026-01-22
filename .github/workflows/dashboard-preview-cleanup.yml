@@ -1,13 +1,14 @@
 # The name of the deployment
 name: Delete preview environments on PR close
 
+# DISABLED: This workflow is currently disabled
 # When this action will be executed
 on:
-  pull_request:
-    types: [closed]
-    paths:
-      - 'web/dashboard/**'
-      - '.github/workflows/dashboard-preview-cleanup.yml'
+  # pull_request:
+  #   types: [closed]
+  #   paths:
+  #     - 'web/dashboard/**'
+  #     - '.github/workflows/dashboard-preview-cleanup.yml'
   workflow_dispatch:
 
 env:

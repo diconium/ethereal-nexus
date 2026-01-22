@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 3.5.0
+
+### Minor Changes
+
+- 94af8ab: feat: implement SSR toggle functionality and update database schema
+
 ## 3.4.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @ethereal-nexus/cli
 
+## 1.3.0
+
+### Minor Changes
+
+- 4037852: fix: separate negation patterns from regular patterns in tar exclusion logic
+
 ## 1.2.6
 
 ### Patch Changes

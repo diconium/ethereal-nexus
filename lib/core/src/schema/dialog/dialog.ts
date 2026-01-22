@@ -5,6 +5,8 @@ import { WebcomponentPropTypes } from '../../types/webcomponent';
 import { Condition } from './condition';
 import { pathToArray } from '../../utils/pathToArray';
 import { ConditionsArgument, TabsArgument } from './types';
+const RESERVED_DIALOG_KEYS = ['title', 'id', 'name'] as const;
+type ReservedDialogKeys = typeof RESERVED_DIALOG_KEYS[number] | `nav_${string}` | `cf_${string}`;
 
 export interface DialogSchema<TEntries extends ObjectEntries> extends BaseSchema<ObjectOutput<TEntries>> {
   type: 'dialog';
@@ -73,6 +75,14 @@ class DialogBuilder<TEntries extends ObjectEntries> implements DialogSchema<TEnt
   }
 }
 
-export function dialog<TEntries extends ObjectEntries>(entries: TEntries) {
-  return new DialogBuilder(entries)
+type ValidateDialogEntries<T extends ObjectEntries> = {
+  [K in keyof T]: K extends ReservedDialogKeys
+    ? { __error: `Property name '${K & string}' is reserved or starts with 'nav_' or 'cf_' and cannot be used in dialog schema` }
+    : T[K]
+};
+
+export function dialog<TEntries extends ObjectEntries>(
+  entries: ValidateDialogEntries<TEntries>
+): DialogSchema<TEntries> {
+  return new DialogBuilder(entries as unknown as TEntries);
 }

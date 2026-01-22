@@ -91,6 +91,7 @@ export const projectWithComponentAssetsSchema = componentsSchema
   .extend({
     version: componentVersionsSchema.shape.version,
     dialog: componentVersionsSchema.shape.dialog,
+    ssr_active: projectComponentConfigSchema.shape.ssr_active.default(true),
     assets: z.array(
       componentAssetsSchema
         .pick({ url: true, id: true, type: true })
@@ -105,6 +106,7 @@ export const projectWithComponentAssetsSchema = componentsSchema
 export const projectComponentsSchema = componentsSchema.extend({
   config_id: projectComponentConfigSchema.shape.id,
   is_active: projectComponentConfigSchema.shape.is_active.nullable(),
+  ssr_active: projectComponentConfigSchema.shape.ssr_active.default(true),
   version: componentVersionsSchema.shape.version.nullable(),
   versions: componentVersionsSchema.pick({ id: true, version: true }).array()
 });

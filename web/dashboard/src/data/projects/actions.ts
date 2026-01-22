@@ -208,6 +208,7 @@ export async function getEnvironmentComponents(
         ...getTableColumns(components),
         config_id: projectComponentConfig.id,
         is_active: projectComponentConfig.is_active,
+        ssr_active: projectComponentConfig.ssr_active,
         version: componentVersions.version,
         versions: sql`ARRAY_AGG(jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`,
         feature_flag_count: sql`(
@@ -236,7 +237,8 @@ export async function getEnvironmentComponents(
         components.id,
         componentVersions.version,
         projectComponentConfig.id,
-        projectComponentConfig.is_active
+        projectComponentConfig.is_active,
+        projectComponentConfig.ssr_active
       )
       .where(eq(projectComponentConfig.environment_id, id))
       .orderBy(
@@ -590,6 +592,7 @@ export async function getEnvironmentComponentConfig(
             (${componentVersions.version}, ${latest_version.version})`,
         dialog: sql`coalesce
             (${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
+        ssr_active: projectComponentConfig.ssr_active
       })
       .from(projectComponentConfig)
       .leftJoin(components, eq(components.id, projectComponentConfig.component_id))
@@ -758,6 +761,7 @@ export async function upsertComponentConfig(
         ],
         set: {
           is_active: safeInput.data.is_active,
+          ssr_active: safeInput.data.ssr_active,
           component_version: safeInput.data.component_version
         }
       })

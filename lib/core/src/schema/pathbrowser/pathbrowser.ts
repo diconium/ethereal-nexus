@@ -34,7 +34,7 @@ export function pathbrowser(input: PathBrowserInput): PathBrowserSchema {
       }
     },
     _primitive() {
-      return 'json'
+      return pageProperties ? 'json' : 'string'
     },
     ...input,
   }

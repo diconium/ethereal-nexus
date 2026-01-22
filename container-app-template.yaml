@@ -48,7 +48,7 @@ properties:
           - name: AZURE_CONTAINER_NAME
             secretRef: "azure-container-name"
           - name: DB_CACHE_STRATEGY
-            secretRef: "redis"
+            value: "redis"
       - image: otel/opentelemetry-collector-contrib:latest
         name: otel-collector
         args: ["--config=/otel/otel-collector-config.yaml"]

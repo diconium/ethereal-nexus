@@ -8,7 +8,6 @@ CREATE TABLE "feature_flags" (
 	"description" text
 );
 --> statement-breakpoint
-DROP TABLE "feature_flag" CASCADE;--> statement-breakpoint
 ALTER TABLE "project_component_config" ADD COLUMN "ssr_active" boolean DEFAULT true NOT NULL;--> statement-breakpoint
 ALTER TABLE "feature_flags" ADD CONSTRAINT "feature_flags_project_id_project_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."project"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "feature_flags" ADD CONSTRAINT "feature_flags_component_id_component_id_fk" FOREIGN KEY ("component_id") REFERENCES "public"."component"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

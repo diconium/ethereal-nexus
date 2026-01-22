@@ -1,5 +1,17 @@
 # @ethereal-nexus/cli
 
+## 1.2.6
+
+### Patch Changes
+
+- 5c9c9a3: Update tar version due to detected vulnerability
+
+## 1.2.5
+
+### Patch Changes
+
+- ad57b45: Improve dialogs
+
 ## 1.2.4
 
 ### Patch Changes

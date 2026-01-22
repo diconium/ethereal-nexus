@@ -34,7 +34,7 @@ export class FieldRenderLogic {
 
   static createMultifieldItem(field: FieldConfig): any {
     return field.children?.reduce((acc, child) => {
-      acc[child.name] = child.type === 'multifield' ? [] : '';
+      acc[child.name] = child.type === 'multifield' ? [] : undefined;
       return acc;
     }, {} as any) || {};
   }

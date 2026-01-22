@@ -1,5 +1,11 @@
 # @ethereal-nexus/react
 
+## 0.2.4
+
+### Patch Changes
+
+- ad57b45: Improve dialogs
+
 ## 0.2.3
 
 ### Patch Changes

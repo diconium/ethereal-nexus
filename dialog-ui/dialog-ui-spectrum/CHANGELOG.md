@@ -1,5 +1,23 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.3.4
+
+### Patch Changes
+
+- Updated dependencies [216d29d]
+- Updated dependencies [5c9c9a3]
+  - @ethereal-nexus/dialog-ui-core@1.2.4
+
+## 1.3.3
+
+### Patch Changes
+
+- 0115627: increase maximum height of dialog to 100vh
+- ad57b45: fix: remove debugger statement from evaluateConditions function
+- ad57b45: Improve dialogs
+- Updated dependencies [ad57b45]
+  - @ethereal-nexus/dialog-ui-core@1.2.3
+
 ## 1.3.2
 
 ### Patch Changes

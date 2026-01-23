@@ -1,5 +1,12 @@
 # @ethereal-nexus/core
 
+## 1.15.0
+
+### Minor Changes
+
+- 5274689: fix: add validation for reserved dialog entry keys in dialog schema
+- 18c065c: fix: update return type in \_primitive method based on pageProperties
+
 ## 1.14.3
 
 ### Patch Changes

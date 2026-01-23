@@ -1,6 +1,6 @@
 {
   "name": "@ethereal-nexus/dashboard",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS=' --experimental-vm-modules --inspect' next dev",

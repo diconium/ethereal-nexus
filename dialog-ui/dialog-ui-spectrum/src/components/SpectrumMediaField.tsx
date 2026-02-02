@@ -1,16 +1,90 @@
-import React from 'react';
+// @ts-nocheck
+import React, {useEffect, useMemo, useRef} from 'react';
 import {
     View,
     Text,
-    DropZone,
-    IllustratedMessage,
     Heading,
     Content,
     Flex,
     Button,
-    FileTrigger
+    Link, Checkbox, TextField,
+    IllustratedMessage
 } from "@adobe/react-spectrum";
 import ImageAdd from '@spectrum-icons/workflow/ImageAdd';
+import {useI18n} from "@/providers";
+
+
+function getMimeTypeFromPath(path) {
+    if (!path) return 'application/octet-stream';
+
+    const ext = path.split('.').pop()?.toLowerCase();
+
+    switch (ext) {
+      // Images
+        case 'jpg':
+        case 'jpeg':
+            return 'image/jpeg';
+        case 'png':
+            return 'image/png';
+        case 'gif':
+            return 'image/gif';
+        case 'webp':
+            return 'image/webp';
+        case 'svg':
+            return 'image/svg+xml';
+        case 'bmp':
+            return 'image/bmp';
+        case 'tiff':
+        case 'tif':
+            return 'image/tiff';
+
+      // Videos
+        case 'mp4':
+            return 'video/mp4';
+        case 'mov':
+            return 'video/quicktime';
+        case 'avi':
+            return 'video/x-msvideo';
+        case 'mkv':
+            return 'video/x-matroska';
+        case 'webm':
+            return 'video/webm';
+
+      // PDFs
+        case 'pdf':
+            return 'application/pdf';
+
+      // Text / docs
+        case 'txt':
+            return 'text/plain';
+        case 'csv':
+            return 'text/csv';
+        case 'html':
+        case 'htm':
+            return 'text/html';
+        case 'json':
+            return 'application/json';
+
+      // Microsoft Office
+        case 'doc':
+            return 'application/msword';
+        case 'docx':
+            return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        case 'xls':
+            return 'application/vnd.ms-excel';
+        case 'xlsx':
+            return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        case 'ppt':
+            return 'application/vnd.ms-powerpoint';
+        case 'pptx':
+            return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+
+      // Fallback
+        default:
+            return 'application/octet-stream';
+    }
+}
+
 
 export interface SpectrumMediaFieldProps {
     field: any;
@@ -19,253 +93,192 @@ export interface SpectrumMediaFieldProps {
     error?: string | null | undefined
 }
 
-export const SpectrumMediaField: React.FC<SpectrumMediaFieldProps> = ({field, value, onChange, error}) => {
-    interface FileData {
-        type: string;
-        name: string;
-        src: string;
-        size?: number;
-        file?: File;
-        path?: string;
-    }
+interface FileData {
+    type?: string;
+    fileName?: string;
+    fileReference?: string;
+    altValueFromPageImage?: boolean;
+    alt?: string;
+    size?: number;
+    file?: File;
+    path?: string;
+}
 
-    const [filledSrc, setFilledSrc] = React.useState<FileData | null>(value ? {
-        type: value.type || 'image/jpeg',
-        name: value.name || value.fileName || 'Uploaded file',
-        src: value.src || value.url || value,
+
+const PICKER_SRC = "/mnt/overlay/granite/ui/content/coral/foundation/form/pathfield/picker.html?path=%2fcontent%2fdam&root=%2fcontent%2fdam&filter=hierarchyNotFile&selectionCount=single"
+
+export const SpectrumMediaField: React.FC<SpectrumMediaFieldProps> = ({field, value = {}, onChange, error}) => {
+
+    const {t} = useI18n();
+    const inputRef = useRef<any>(null);
+
+    const { allowedMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/svg+xml", "image/tiff", "image/bmp", "image/gif"]  } = field || {};
+
+    useEffect(() => {
+
+        const coralIsReady = () => {
+            window?.Coral.commons.ready(inputRef.current);
+        }
+
+        if (inputRef.current && window?.Coral) {
+            const Coral = window.Coral;
+            const tagList = new Coral.TagList();
+
+            if (tagList) {
+                tagList.setAttribute('foundation-autocomplete-value', '');
+                tagList.removeAttribute('name');
+            }
+
+            if (value?.fileReference) {
+                const tag = new Coral.Tag().set({
+                    value: value.fileReference,
+                    label: {
+                        innerHTML: value.fileReference,
+                    }
+                })
+
+                tagList.items.add(tag)
+            }
+
+            inputRef.current.appendChild(tagList);
+
+            coralIsReady()
+
+        } else {
+            setTimeout(coralIsReady, 50);
+        }
+    }, []);
+
+
+    const [filledSrc, setFilledSrc] = React.useState<FileData>({
+        type: value.type || 'image',
+        fileName: value.fileName || 'Uploaded file',
+        fileReference: value.fileReference,
+        altValueFromPageImage: value.altValueFromPageImage ?? false,
+        alt: value.alt,
         size: value.size,
         path: value.path
-    } : null);
+    });
 
-    React.useEffect(() => {
-        if (value && value !== filledSrc?.src) {
-            setFilledSrc({
-                type: value.type || 'image/jpeg',
-                name: value.name || value.fileName || 'Uploaded file',
-                src: value.src || value.url || value,
-                size: value.size,
-                path: value.path
-            });
-        } else if (!value && filledSrc) {
-            setFilledSrc(null);
-        }
-    }, [value, filledSrc?.src]);
-
-    const acceptedFileTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-
-    const handleDrop = async (e: any) => {
-        e.items.find(async (item: any) => {
-            if (item.kind === 'file') {
-                const acceptedType = acceptedFileTypes.find(type => type === item.type);
-                if (acceptedType) {
-                    const file = await item.getFile();
-                    const fileData = {
-                        type: file.type,
-                        name: file.name,
-                        size: file.size,
-                        src: URL.createObjectURL(file),
-                        file: file
-                    };
-                    setFilledSrc(fileData);
-                    onChange(fileData);
-                }
-            } else if (item.kind === 'text') {
-                const acceptedType = acceptedFileTypes.find(type =>
-                    item.types.includes(type)
-                );
-                if (acceptedType) {
-                    const fileUrl = await item.getText(acceptedType);
-                    const fileData = {
-                        type: acceptedType,
-                        name: fileUrl,
-                        src: fileUrl
-                    };
-                    setFilledSrc(fileData);
-                    onChange(fileData);
-                }
-            }
-        });
-    };
-
-    const handleAEMAssetPicker = () => {
-        const pickerUrl = "/mnt/overlay/dam/gui/content/assetselector.html";
-        const dialog = new (window as any).Coral.Dialog();
-        dialog.id = (window as any).Coral.commons.getUID();
-        dialog.header.innerHTML = "Select an Asset";
-        dialog.classList.add("coral3-Dialog");
-        dialog.content.innerHTML = `
-      <iframe style="width:100%;height:600px;border:none;" src="${pickerUrl}"></iframe>
-    `;
-        dialog.footer.innerHTML = `
-      <button is="coral-button" class="coral3-Button coral3-Button--secondary" type="button" data-dismiss="modal">Cancel</button>
-      <button is="coral-button" class="coral3-Button coral3-Button--primary" type="button" id="select-asset-btn">Select</button>
-    `;
-        document.body.appendChild(dialog);
-        const selectButton = dialog.querySelector('#select-asset-btn');
-        const iframe = dialog.querySelector('iframe');
-        if (selectButton) {
-            selectButton.addEventListener('click', () => {
-                try {
-                    const iframeWindow = iframe?.contentWindow;
-                    if (iframeWindow && iframeWindow.location) {
-                        const selectedItems = iframeWindow.document.querySelectorAll('.foundation-collection-item.is-selected');
-                        if (selectedItems.length > 0) {
-                            const selectedItem = selectedItems[0];
-                            const selectedPath = selectedItem.getAttribute('data-foundation-collection-item-id') ||
-                                selectedItem.getAttribute('data-path');
-                            if (selectedPath) {
-                                const fileName = selectedPath.split('/').pop() || 'Asset';
-                                const assetData = {
-                                    type: 'image/jpeg',
-                                    name: fileName,
-                                    src: selectedPath,
-                                    path: selectedPath,
-                                    size: undefined
-                                };
-                                setFilledSrc(assetData);
-                                onChange(assetData);
-                                dialog.hide();
-                                setTimeout(() => {
-                                    if (document.body.contains(dialog)) {
-                                        document.body.removeChild(dialog);
-                                    }
-                                }, 100);
-                            } else {
-                                alert('Please select an asset first.');
-                            }
-                        } else {
-                            alert('Please select an asset first.');
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error getting selected asset:', error);
-                    alert('Error getting selected asset. Please try again.');
-                }
-            });
-        }
-        dialog.addEventListener('coral-overlay:close', () => {
-            setTimeout(() => {
-                if (document.body.contains(dialog)) {
-                    document.body.removeChild(dialog);
-                }
-            }, 100);
-        });
-        dialog.show();
-    };
-
-    const handleFileSelect = (e: FileList | null) => {
-        if (e && e.length > 0) {
-            const file = Array.from(e).find((file) =>
-                acceptedFileTypes.includes(file.type)
-            );
-            if (file) {
-                const fileData = {
-                    type: file.type,
-                    name: file.name,
-                    size: file.size,
-                    src: URL.createObjectURL(file),
-                    file: file
-                };
-                setFilledSrc(fileData);
-                onChange(fileData);
-            }
-        }
-    };
+    const hasFileReference = useMemo(() => filledSrc?.fileReference, [filledSrc]);
 
     const clearFile = () => {
-        setFilledSrc(null);
-        onChange(null);
+        setFilledSrc({ altValueFromPageImage: false});
     };
+
+    const onClickAlt = () => {
+        setFilledSrc((prev: FileData) => ({
+                ...prev,
+                altValueFromPageImage: !prev.altValueFromPageImage
+        }))
+    }
+
+    const onAltChange = (value: string) => {
+        setFilledSrc((prev: FileData) => ({
+            ...prev,
+            alt: value
+        }))
+    }
+
+    useEffect(() => {
+        onChange(filledSrc)
+    }, [filledSrc]);
+
+
+    const openPicker = () =>{
+        if (!inputRef.current) return;
+
+        const trigger =
+          inputRef.current.querySelector('button[is="coral-button"]') ||
+          inputRef.current.querySelector('coral-button');
+
+        trigger?.click();
+    }
+
+    const mimeTypes = Array.isArray(allowedMimeTypes) ? allowedMimeTypes.join(","): [allowedMimeTypes];
 
     return (
         <View>
-            <Text UNSAFE_style={{fontWeight: 'bold', fontSize: '14px', marginBottom: '8px'}}>
-                {field.label}
-            </Text>
-            {field.tooltip && (
-                <Text UNSAFE_style={{fontSize: '12px', color: '#666', marginBottom: '8px'}}>
-                    {field.tooltip}
-                </Text>
-            )}
-            {error && (
-                <Text UNSAFE_style={{color: 'red', fontSize: '12px', marginBottom: '8px'}}>
-                    {error}
-                </Text>
-            )}
-            <DropZone
-                maxWidth="size-3000"
-                isFilled={!!filledSrc}
-                getDropOperation={(types) =>
-                    acceptedFileTypes.some(type => types.has(type)) ? 'copy' : 'cancel'
-                }
-                onDrop={handleDrop}
-            >
-                <IllustratedMessage>
-                    <ImageAdd/>
-                    <Heading>
-                        {filledSrc
-                            ? `${filledSrc.name}`
-                            : 'Drag and drop an image here'}
-                    </Heading>
-                    <Content>
-                        {filledSrc ? (
-                            <Flex direction="column" gap="size-100" alignItems="center">
-                                <Text UNSAFE_style={{fontSize: '12px', color: '#666'}}>
-                                    {filledSrc.type} {filledSrc.size ? `• ${Math.round(filledSrc.size / 1024)}KB` : ''}
-                                    {filledSrc.path && <><br/>Path: {filledSrc.path}</>}
-                                </Text>
-                                <Flex gap="size-100">
-                                    <Button variant="secondary" onPress={handleAEMAssetPicker}>
-                                        Replace from Assets
-                                    </Button>
-                                    <FileTrigger
-                                        acceptedFileTypes={acceptedFileTypes}
-                                        onSelect={handleFileSelect}
-                                    >
-                                        <Button variant="secondary">Upload New</Button>
-                                    </FileTrigger>
-                                    <Button variant="secondary" onPress={clearFile}>
-                                        Remove
-                                    </Button>
-                                </Flex>
-                            </Flex>
-                        ) : (
-                            <Flex direction="column" gap="size-100" alignItems="center">
-                                <Button variant="primary" onPress={handleAEMAssetPicker}>
-                                    Browse Assets
-                                </Button>
-                                <Text UNSAFE_style={{fontSize: '12px', color: '#666'}}>
-                                    or
-                                </Text>
-                                <FileTrigger
-                                    acceptedFileTypes={acceptedFileTypes}
-                                    onSelect={handleFileSelect}
-                                >
-                                    <Button variant="secondary">Upload New File</Button>
-                                </FileTrigger>
-                            </Flex>
-                        )}
-                    </Content>
-                </IllustratedMessage>
-            </DropZone>
-            {filledSrc?.src && (
-                <View marginTop="size-200">
-                    <Text UNSAFE_style={{fontSize: '12px', fontWeight: 'bold', marginBottom: '8px'}}>
-                        Preview:
+            <Flex direction="column" gap="size-200" >
+                <Flex direction={"column"}>
+                    <Text UNSAFE_style={{fontWeight: 'bold', fontSize: '14px', marginBottom: '8px'}}>
+                        {t(field.label)}
                     </Text>
+                    {field.tooltip && (
+                        <Text UNSAFE_style={{fontSize: '12px', color: '#666', marginBottom: '8px'}}>
+                            {t(field.tooltip)}
+                        </Text>
+                    )}
+                    {error && (
+                        <Text UNSAFE_style={{color: 'red', fontSize: '12px', marginBottom: '8px'}}>
+                            {t(error)}
+                        </Text>
+                    )}
+                </Flex>
+
+                <foundation-autocomplete
+                    ref={inputRef}
+                    pickersrc={PICKER_SRC}
+                    foundation-autocomplete={"block"}
+                    onChange={(e) => {
+                        const value = e?.target?.value || '';
+                        console.log('User selected:', value);
+
+                        const fileName = value?.split("/")?.pop();
+
+                        const type = getMimeTypeFromPath(fileName);
+
+                        if (mimeTypes && mimeTypes.includes(type)) {
+                            setFilledSrc((prev) => ({
+                                ...prev,
+                                fileReference: value,
+                                fileName: value.split('/').pop(),
+                            }));
+                        }
+                    }}
+                    style={{ visibility: 'hidden', position: 'absolute', display: 'none' }}
+                  >
+                  </foundation-autocomplete>
+                {!hasFileReference ?
+                  <IllustratedMessage alignSelf={"start"}>
+                    <ImageAdd size={"XXL"}/>
+                    <Content>
+                        <Heading level={5}>
+                            {t('Drop an asset here.')}
+                        </Heading>
+                        <Flex direction="column" gap="size-100" alignItems="center">
+                            <Button variant={"primary"} onPress={openPicker} height={"size-10"}>
+                                {t("Browse Assets")}
+                            </Button>
+                    </Flex>
+                    </Content>
+                  </IllustratedMessage> :
+                  <Flex direction={"column"} gap="size-200" alignItems={"start"}>
                     <img
-                        src={filledSrc.src}
-                        alt={filledSrc.name}
-                        style={{
-                            maxWidth: '200px',
-                            maxHeight: '200px',
-                            objectFit: 'cover',
-                            border: '1px solid #ccc',
-                            borderRadius: '4px'
-                        }}
+                      src={filledSrc?.fileReference}
+                      alt={filledSrc?.fileName}
+                      style={{
+                          maxWidth: '200px',
+                          maxHeight: '200px',
+                          objectFit: 'cover',
+                          border: '1px solid #ccc',
+                          borderRadius: '4px'
+                      }}
                     />
-                </View>
-            )}
+                    <Flex direction={"row"} gap="size-100" alignContent={"center"}>
+                        <Link variant="primary" onPress={clearFile}>
+                            {t("Clear")}
+                        </Link>
+                        <Link variant="primary" onPress={openPicker}>
+                            {t("Pick")}
+                        </Link>
+                    </Flex>
+                </Flex>}
+                <Flex direction={"column"}>
+                    {!filledSrc?.altValueFromPageImage ? <TextField label={t("Alternative text for accessibility")} onChange={onAltChange} value={filledSrc?.alt}></TextField> : null }
+                    <Checkbox isSelected={filledSrc?.altValueFromPageImage} value={"true"} onChange={onClickAlt}>{t('Inherit alternative text from page')}</Checkbox>
+                </Flex>
+            </Flex>
         </View>
     );
 };

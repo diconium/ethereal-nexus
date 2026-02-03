@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 3.6.0
+
+### Minor Changes
+
+- a9beea6: Enhance SpectrumMediaField component with file type handling and improved UI for asset selection
+
 ## 3.5.0
 
 ### Minor Changes

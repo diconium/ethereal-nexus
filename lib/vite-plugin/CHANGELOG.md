@@ -1,5 +1,16 @@
 # @ethereal-nexus/vite-plugin-ethereal-nexus
 
+## 1.3.0
+
+### Minor Changes
+
+- a9beea6: Enhance SpectrumMediaField component with file type handling and improved UI for asset selection
+
+### Patch Changes
+
+- Updated dependencies [a9beea6]
+  - @ethereal-nexus/core@1.16.0
+
 ## 1.2.7
 
 ### Patch Changes

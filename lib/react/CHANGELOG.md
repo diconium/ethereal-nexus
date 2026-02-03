@@ -1,5 +1,11 @@
 # @ethereal-nexus/react
 
+## 0.3.0
+
+### Minor Changes
+
+- a9beea6: Enhance SpectrumMediaField component with file type handling and improved UI for asset selection
+
 ## 0.2.4
 
 ### Patch Changes

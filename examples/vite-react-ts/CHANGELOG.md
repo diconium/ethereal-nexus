@@ -1,5 +1,17 @@
 # remote-components-vite-react-ts
 
+## 0.9.0
+
+### Minor Changes
+
+- a9beea6: Enhance SpectrumMediaField component with file type handling and improved UI for asset selection
+
+### Patch Changes
+
+- Updated dependencies [a9beea6]
+  - @ethereal-nexus/core@1.16.0
+  - @ethereal-nexus/react@0.3.0
+
 ## 0.8.7
 
 ### Patch Changes

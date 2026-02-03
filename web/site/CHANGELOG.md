@@ -1,5 +1,11 @@
 # @ethereal-nexus/site
 
+## 1.2.0
+
+### Minor Changes
+
+- a9beea6: Enhance SpectrumMediaField component with file type handling and improved UI for asset selection
+
 ## 1.1.4
 
 ### Patch Changes

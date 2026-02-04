@@ -406,7 +406,6 @@ export async function getActiveEnvironmentComponents(
   if (!userId) {
     return actionError('No user provided.');
   }
-
   const latest_version = db
     .select({
       component_id: componentVersions.component_id,
@@ -434,6 +433,7 @@ export async function getActiveEnvironmentComponents(
       .select({
         ...getTableColumns(components),
         is_active: projectComponentConfig.is_active,
+        ssr_active: projectComponentConfig.ssr_active,
         version: sql`coalesce(${componentVersions.version}, ${latest_only.version})`,
       })
       .from(components)

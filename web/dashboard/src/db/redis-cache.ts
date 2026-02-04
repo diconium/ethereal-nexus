@@ -2,6 +2,9 @@ import Redis, { RedisOptions } from "ioredis";
 import {Cache, MutationOption} from "drizzle-orm/cache/core/cache"
 import type {CacheConfig} from "drizzle-orm/cache/core/types";
 import { logger } from '@/lib/logger';
+import { trace, SpanStatusCode } from '@opentelemetry/api';
+
+const tracer = trace.getTracer('redis-cache');
 
 const redisConfig = {
   host: process.env.REDIS_HOST,
@@ -148,43 +151,74 @@ export class RedisCache extends Cache {
   }
 
   override async get(key: string, tables: string[], isTag: boolean, isAutoInvalidate?: boolean) {
-    const redisKey = this.buildStructuredKey(key, tables);
-    const now = Date.now();
+    return tracer.startActiveSpan('cache.get', {
+      attributes: {
+        'cache.key': key,
+        'cache.tables': tables?.join(','),
+        'cache.type': 'redis',
+        'db.system': 'redis'
+      }
+    }, async (span) => {
+      try {
+        const redisKey = this.buildStructuredKey(key, tables);
+        const now = Date.now();
 
-    // Check local cache first
-    const entry = this.store.get(redisKey);
-    if (entry && (!entry.expireAt || entry.expireAt > now)) {
-      logger.debug('Local cache hit', {
-        operation: 'redis-cache-get',
-        cacheLevel: 'local',
-        key: redisKey,
-        tables: tables?.join(','),
-        isTag,
-        isAutoInvalidate,
-        expiresIn: entry.expireAt ? Math.round((entry.expireAt - now) / 1000) : null,
-        localStoreSize: this.store.size,
-      });
-      return entry.value;
-    }
+        // Check local cache first
+        const entry = this.store.get(redisKey);
+        if (entry && (!entry.expireAt || entry.expireAt > now)) {
+          span.setAttribute('cache.hit', true);
+          span.setAttribute('cache.level', 'local');
+          logger.debug('Local cache hit', {
+            operation: 'redis-cache-get',
+            cacheLevel: 'local',
+            key: redisKey,
+            tables: tables?.join(','),
+            isTag,
+            isAutoInvalidate,
+            expiresIn: entry.expireAt ? Math.round((entry.expireAt - now) / 1000) : null,
+            localStoreSize: this.store.size,
+          });
+          return entry.value;
+        }
 
-    if (entry && entry.expireAt && entry.expireAt <= now) {
-      logger.debug('Local cache entry expired', {
-        operation: 'redis-cache-get',
-        cacheLevel: 'local',
-        key: redisKey,
-        expiredAgo: Math.round((now - entry.expireAt) / 1000),
-      });
-      this.store.delete(redisKey);
-    }
+        if (entry && entry.expireAt && entry.expireAt <= now) {
+          logger.debug('Local cache entry expired', {
+            operation: 'redis-cache-get',
+            cacheLevel: 'local',
+            key: redisKey,
+            expiredAgo: Math.round((now - entry.expireAt) / 1000),
+          });
+          this.store.delete(redisKey);
+        }
 
-    // Check Redis cache
-    try {
-      const startTime = Date.now();
-      const redisValue = await this.redisClient.get(redisKey);
-      const duration = Date.now() - startTime;
+        // Check Redis cache
+        const startTime = Date.now();
+        const redisValue = await this.redisClient.get(redisKey);
+        const duration = Date.now() - startTime;
 
-      if (!redisValue) {
-        logger.debug('Cache miss', {
+        if (!redisValue) {
+          span.setAttribute('cache.hit', false);
+          logger.debug('Cache miss', {
+            operation: 'redis-cache-get',
+            cacheLevel: 'redis',
+            key: redisKey,
+            tables: tables?.join(','),
+            isTag,
+            isAutoInvalidate,
+            duration,
+          });
+          return undefined;
+        }
+
+        const value = JSON.parse(redisValue);
+        const expireAt = now + (redisConfig.localCacheTTL * 1000);
+
+        this.store.set(redisKey, { value, expireAt });
+
+        span.setAttribute('cache.hit', true);
+        span.setAttribute('cache.level', 'redis');
+
+        logger.debug('Redis cache hit', {
           operation: 'redis-cache-get',
           cacheLevel: 'redis',
           key: redisKey,
@@ -192,100 +226,100 @@ export class RedisCache extends Cache {
           isTag,
           isAutoInvalidate,
           duration,
+          promotedToLocal: true,
+          localExpiresIn: redisConfig.localCacheTTL,
+          localStoreSize: this.store.size,
+        });
+
+        return value;
+      } catch (err) {
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (err as Error).message });
+        logger.error('Failed to get cache entry from Redis', err as Error, {
+          operation: 'redis-cache-get-error',
+          key: this.buildStructuredKey(key, tables),
+          tables: tables?.join(','),
+          isTag,
+          isAutoInvalidate,
         });
         return undefined;
+      } finally {
+        span.end();
       }
-
-      const value = JSON.parse(redisValue);
-      const expireAt = now + (redisConfig.localCacheTTL * 1000);
-
-      this.store.set(redisKey, { value, expireAt });
-
-      logger.debug('Redis cache hit', {
-        operation: 'redis-cache-get',
-        cacheLevel: 'redis',
-        key: redisKey,
-        tables: tables?.join(','),
-        isTag,
-        isAutoInvalidate,
-        duration,
-        promotedToLocal: true,
-        localExpiresIn: redisConfig.localCacheTTL,
-        localStoreSize: this.store.size,
-      });
-
-      return value;
-    } catch (err) {
-      logger.error('Failed to get cache entry from Redis', err as Error, {
-        operation: 'redis-cache-get-error',
-        key: redisKey,
-        tables: tables?.join(','),
-        isTag,
-        isAutoInvalidate,
-      });
-      return undefined;
-    }
+    });
   }
 
 
   override async put(key: string, response: any, tables: string[], isTag: boolean, config?: CacheConfig) {
-    if (!response) {
-      logger.debug('Skipping cache put - no response', {
-        operation: 'redis-cache-put',
-        key,
-        tables: tables?.join(','),
-        isTag,
-      });
-      return;
-    }
-
-    const value = JSON.stringify(response);
-    const structuredKey = this.buildStructuredKey(key, tables);
-    const ttl = redisConfig.redisCacheTTL;
-
-    try {
-      const startTime = Date.now();
-      await this.redisClient.set(structuredKey, value, "EX", ttl);
-      const duration = Date.now() - startTime;
-
-      logger.debug('Cache entry stored in Redis', {
-        operation: 'redis-cache-put',
-        cacheLevel: 'redis',
-        key: structuredKey,
-        tables: tables?.join(','),
-        isTag,
-        ttl,
-        valueSize: value.length,
-        duration,
-      });
-
-      // Store in local cache
-      let expireAt: number | undefined = undefined;
-      if (redisConfig.localCacheTTL != null) {
-        expireAt = Date.now() + redisConfig.localCacheTTL * 1000;
+    return tracer.startActiveSpan('cache.put', {
+      attributes: {
+        'cache.key': key,
+        'cache.tables': tables?.join(','),
+        'cache.type': 'redis',
+        'db.system': 'redis'
+      }
+    }, async (span) => {
+      if (!response) {
+        logger.debug('Skipping cache put - no response', {
+          operation: 'redis-cache-put',
+          key,
+          tables: tables?.join(','),
+          isTag,
+        });
+        span.end();
+        return;
       }
 
-      this.store.set(structuredKey, { value: response, expireAt });
+      const value = JSON.stringify(response);
+      const structuredKey = this.buildStructuredKey(key, tables);
+      const ttl = redisConfig.redisCacheTTL;
 
-      logger.debug('Cache entry stored in local store', {
-        operation: 'redis-cache-put',
-        cacheLevel: 'local',
-        key: structuredKey,
-        tables: tables?.join(','),
-        isTag,
-        localTTL: redisConfig.localCacheTTL,
-        localStoreSize: this.store.size,
-      });
-    } catch (err) {
-      logger.error('Failed to store cache entry', err as Error, {
-        operation: 'redis-cache-put-error',
-        key: structuredKey,
-        tables: tables?.join(','),
-        isTag,
-        valueSize: value.length,
-        ttl,
-      });
-    }
+      try {
+        const startTime = Date.now();
+        await this.redisClient.set(structuredKey, value, "EX", ttl);
+        const duration = Date.now() - startTime;
+
+        logger.debug('Cache entry stored in Redis', {
+          operation: 'redis-cache-put',
+          cacheLevel: 'redis',
+          key: structuredKey,
+          tables: tables?.join(','),
+          isTag,
+          ttl,
+          valueSize: value.length,
+          duration,
+        });
+
+        // Store in local cache
+        let expireAt: number | undefined = undefined;
+        if (redisConfig.localCacheTTL != null) {
+          expireAt = Date.now() + redisConfig.localCacheTTL * 1000;
+        }
+
+        this.store.set(structuredKey, { value: response, expireAt });
+
+        logger.debug('Cache entry stored in local store', {
+          operation: 'redis-cache-put',
+          cacheLevel: 'local',
+          key: structuredKey,
+          tables: tables?.join(','),
+          isTag,
+          localTTL: redisConfig.localCacheTTL,
+          localStoreSize: this.store.size,
+        });
+      } catch (err) {
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (err as Error).message });
+        logger.error('Failed to store cache entry', err as Error, {
+          operation: 'redis-cache-put-error',
+          key: structuredKey,
+          tables: tables?.join(','),
+          isTag,
+          valueSize: value.length,
+          ttl,
+        });
+      } finally {
+        span.end();
+      }
+    });
   }
 
   override async onMutate(params: MutationOption): Promise<void>  {
@@ -293,105 +327,122 @@ export class RedisCache extends Cache {
       ? params.tables
       : [params.tables];
 
-    logger.info('Starting cache invalidation', {
-      operation: 'redis-cache-mutate-start',
-      tables,
-      tableCount: tables.length,
-    });
-
-    const overallStartTime = Date.now();
-    let totalKeysInvalidated = 0;
-
-    for (const table of tables) {
-      try {
-        const tableStartTime = Date.now();
-        const pattern = `${redisConfig.keyPrefix}:cache:*${table}*:*`;
-        const stream = this.redisClient.scanStream({ match: pattern, count: 100 });
-        const keys: string[] = [];
-
-        stream.on("data", async (resultKeys: string[]) => {
-          if (resultKeys.length === 0) {
-            return;
-          }
-
-          logger.debug('Found keys to invalidate', {
-            operation: 'redis-cache-mutate-scan',
-            table,
-            pattern,
-            keysFound: resultKeys.length,
-            keys: resultKeys,
-          });
-
-          try {
-            await this.redisClient.del(...resultKeys);
-            keys.push(...resultKeys);
-            totalKeysInvalidated += resultKeys.length;
-
-            logger.debug('Keys deleted from Redis', {
-              operation: 'redis-cache-mutate-delete',
-              table,
-              deletedCount: resultKeys.length,
-            });
-          } catch (err) {
-            logger.error('Failed to delete keys from Redis', err as Error, {
-              operation: 'redis-cache-mutate-delete-error',
-              table,
-              keys: resultKeys,
-            });
-          }
-        });
-
-        await new Promise((resolve) => stream.on("end", resolve));
-
-        const tableDuration = Date.now() - tableStartTime;
-
-        if (keys.length > 0) {
-          try {
-            await this.redisClient.publish(
-              "cache:mutate",
-              JSON.stringify(keys)
-            );
-
-            logger.info('Published cache invalidation message', {
-              operation: 'redis-cache-mutate-publish',
-              table,
-              pattern,
-              keysInvalidated: keys.length,
-              duration: tableDuration,
-            });
-          } catch (err) {
-            logger.error('Failed to publish cache invalidation message', err as Error, {
-              operation: 'redis-cache-mutate-publish-error',
-              table,
-              keys,
-            });
-          }
-        } else {
-          logger.debug('No keys found to invalidate', {
-            operation: 'redis-cache-mutate-scan',
-            table,
-            pattern,
-            duration: tableDuration,
-          });
-        }
-      } catch (err) {
-        logger.error('Failed to invalidate cache for table', err as Error, {
-          operation: 'redis-cache-mutate-table-error',
-          table,
-        });
+    return tracer.startActiveSpan('cache.onMutate', {
+      attributes: {
+        'cache.tables': tables?.join(','),
+        'cache.type': 'redis',
+        'db.system': 'redis'
       }
-    }
+    }, async (span) => {
+      try {
+        logger.info('Starting cache invalidation', {
+          operation: 'redis-cache-mutate-start',
+          tables,
+          tableCount: tables.length,
+        });
 
-    const overallDuration = Date.now() - overallStartTime;
+        const overallStartTime = Date.now();
+        let totalKeysInvalidated = 0;
 
-    logger.info('Cache invalidation completed', {
-      operation: 'redis-cache-mutate-complete',
-      tables,
-      tableCount: tables.length,
-      totalKeysInvalidated,
-      duration: overallDuration,
+        for (const table of tables) {
+          try {
+            const tableStartTime = Date.now();
+            const pattern = `${redisConfig.keyPrefix}:cache:*${table}*:*`;
+            const stream = this.redisClient.scanStream({ match: pattern, count: 100 });
+            const keys: string[] = [];
+
+            stream.on("data", async (resultKeys: string[]) => {
+              if (resultKeys.length === 0) {
+                return;
+              }
+
+              logger.debug('Found keys to invalidate', {
+                operation: 'redis-cache-mutate-scan',
+                table,
+                pattern,
+                keysFound: resultKeys.length,
+                keys: resultKeys,
+              });
+
+              try {
+                await this.redisClient.del(...resultKeys);
+                keys.push(...resultKeys);
+                totalKeysInvalidated += resultKeys.length;
+
+                logger.debug('Keys deleted from Redis', {
+                  operation: 'redis-cache-mutate-delete',
+                  table,
+                  deletedCount: resultKeys.length,
+                });
+              } catch (err) {
+                logger.error('Failed to delete keys from Redis', err as Error, {
+                  operation: 'redis-cache-mutate-delete-error',
+                  table,
+                  keys: resultKeys,
+                });
+              }
+            });
+
+            await new Promise((resolve) => stream.on("end", resolve));
+
+            const tableDuration = Date.now() - tableStartTime;
+
+            if (keys.length > 0) {
+              try {
+                await this.redisClient.publish(
+                  "cache:mutate",
+                  JSON.stringify(keys)
+                );
+
+                logger.info('Published cache invalidation message', {
+                  operation: 'redis-cache-mutate-publish',
+                  table,
+                  pattern,
+                  keysInvalidated: keys.length,
+                  duration: tableDuration,
+                });
+              } catch (err) {
+                logger.error('Failed to publish cache invalidation message', err as Error, {
+                  operation: 'redis-cache-mutate-publish-error',
+                  table,
+                  keys,
+                });
+              }
+            } else {
+              logger.debug('No keys found to invalidate', {
+                operation: 'redis-cache-mutate-scan',
+                table,
+                pattern,
+                duration: tableDuration,
+              });
+            }
+          } catch (err) {
+            logger.error('Failed to invalidate cache for table', err as Error, {
+              operation: 'redis-cache-mutate-table-error',
+              table,
+            });
+          }
+        }
+
+        const overallDuration = Date.now() - overallStartTime;
+
+        span.setAttribute('cache.invalidated_count', totalKeysInvalidated);
+
+        logger.info('Cache invalidation completed', {
+          operation: 'redis-cache-mutate-complete',
+          tables,
+          tableCount: tables.length,
+          totalKeysInvalidated,
+          duration: overallDuration,
+        });
+
+        return;
+      } catch (error) {
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        throw error;
+      } finally {
+        span.end();
+      }
     });
-
-    return;
   }
 }

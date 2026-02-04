@@ -365,7 +365,10 @@ export class RedisCache extends Cache {
               });
 
               try {
-                await this.redisClient.del(...resultKeys);
+                const pipeline = this.redisClient.pipeline();
+                resultKeys.forEach(key => pipeline.del(key));
+                await pipeline.exec();
+
                 keys.push(...resultKeys);
                 totalKeysInvalidated += resultKeys.length;
 

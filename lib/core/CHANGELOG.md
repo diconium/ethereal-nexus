@@ -1,5 +1,96 @@
 # @ethereal-nexus/core
 
+## 1.16.0
+
+### Minor Changes
+
+- a9beea6: Enhance SpectrumMediaField component with file type handling and improved UI for asset selection
+
+## 1.15.0
+
+### Minor Changes
+
+- 5274689: fix: add validation for reserved dialog entry keys in dialog schema
+- 18c065c: fix: update return type in \_primitive method based on pageProperties
+
+## 1.14.3
+
+### Patch Changes
+
+- ad57b45: Improve dialogs
+
+## 1.14.2
+
+### Patch Changes
+
+- e49033f: Improve dialogs
+
+## 1.14.1
+
+### Patch Changes
+
+- 835d73e: chore: update next, react, and react-dom versions in package.json
+
+## 1.14.0
+
+### Minor Changes
+
+- f2fb267: add SpectrumNavigation component and integrate with field rendering
+
+### Patch Changes
+
+- d8b9d65: update react and react-dom versions in package.json [CVE-2025-66478]
+
+## 1.13.1
+
+### Patch Changes
+
+- db39d55: update PathBrowserSchema to support new path structure
+
+## 1.13.0
+
+### Minor Changes
+
+- 5034f35: feat: enhance pathbrowser and navigation interfaces to support new pageProperties structure, ensuring backward compatibility with the latest connector version.
+
+## 1.12.0
+
+### Minor Changes
+
+- 90cf802: Update dependencies
+
+## 1.11.0
+
+### Minor Changes
+
+- 06f5b7d: Introduced configurable options in the pathbrowser to enable folder-only selection.
+
+### Patch Changes
+
+- 06f5b7d: Resolved an issue where the calendar did not display the date in the specified format.
+
+## 1.10.0
+
+### Minor Changes
+
+- 956422d: Introduced configurable options in the pathbrowser to enable folder-only selection.
+
+### Patch Changes
+
+- 956422d: Resolved an issue where the calendar did not display the date in the specified format.
+
+## 1.9.0
+
+### Minor Changes
+
+- 3bc5e62: add support for CSV mime type in MediaInput allowedMimeTypes
+
+## 1.8.0
+
+### Minor Changes
+
+- e3161c4: Include tags on the dialog schema.
+
 ## 1.7.2
 
 ### Patch Changes

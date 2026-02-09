@@ -9,15 +9,18 @@ import ProjectsForm from '@/components/projects/project-form';
 import { ProjectEvents } from '@/components/projects/project-events/project-events';
 import { EnvironmentsList } from '@/components/projects/environments-table/environment-list';
 import { auth } from '@/auth';
+import { FeatureFlagList } from '@/components/projects/feature-flags-table/feature-flag-list';
+import { SessionProvider } from 'next-auth/react';
 
 export default async function EditProject(props: any) {
   const {
     tab = 'components',
-    env
+    env,
+    component,
   } = await props.searchParams;
 
   const {
-    id
+    id,
   } = await props.params;
 
   const session = await auth();
@@ -29,70 +32,82 @@ export default async function EditProject(props: any) {
   }
 
   return (<div className="container h-full flex-1 flex-col space-y-8 p-8 md:flex">
-      <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">{project.data.name}</h2>
-          <p className="text-muted-foreground">{project.data.description}</p>
-        </div>
+    <div className="flex items-center justify-between space-y-2">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">{project.data.name}</h2>
+        <p className="text-muted-foreground">{project.data.description}</p>
       </div>
-      <Tabs value={tab} defaultValue="components" className="space-y-10 mt-6">
-        <TabsList>
-          <TabsTrigger value="components" asChild>
-            <Link href={`/projects/${id}?tab=components`}>
-              Components
+    </div>
+    <Tabs value={tab} defaultValue="components" className="space-y-10 mt-6">
+      <TabsList>
+        <TabsTrigger value="components" asChild>
+          <Link href={`/projects/${id}?tab=components`}>
+            Components
+          </Link>
+        </TabsTrigger>
+        <TabsTrigger value="users" asChild>
+          <Link href={`/projects/${id}?tab=users`}>
+            Users
+          </Link>
+        </TabsTrigger>
+        <TabsTrigger value="environments" asChild>
+          <Link href={`/projects/${id}?tab=environments`}>
+            Environments
+          </Link>
+        </TabsTrigger>
+        {hasWritePermissions ? <>
+          <TabsTrigger value="settings" asChild>
+            <Link href={`/projects/${id}?tab=settings`}>
+              Settings
             </Link>
           </TabsTrigger>
-          <TabsTrigger value="users" asChild>
-            <Link href={`/projects/${id}?tab=users`}>
-              Users
+          <TabsTrigger value="featureFlags" asChild>
+            <Link href={`/projects/${id}?tab=featureFlags`}>
+              Feature Flags
             </Link>
           </TabsTrigger>
-          <TabsTrigger value="environments" asChild>
-            <Link href={`/projects/${id}?tab=environments`}>
-              Environments
+          <TabsTrigger value="activity" asChild>
+            <Link href={`/projects/${id}?tab=activity`}>
+              Activity
             </Link>
           </TabsTrigger>
-          {hasWritePermissions ? <>
-            <TabsTrigger value="settings" asChild>
-              <Link href={`/projects/${id}?tab=settings`}>
-                Settings
-              </Link>
-            </TabsTrigger>
-            <TabsTrigger value="activity" asChild>
-              <Link href={`/projects/${id}?tab=activity`}>
-                Activity
-              </Link>
-            </TabsTrigger>
-          </> : null}
-        </TabsList>
+        </> : null}
+      </TabsList>
+      <SessionProvider session={session}>
         <TabsContent value={tab} className="space-y-4">
           {(() => {
             switch (tab) {
               case 'components':
-                return   <ProjectComponentsList
+                return <ProjectComponentsList
                   key={env}
                   id={id}
                   environment={env}
-                />
+                />;
               case 'users':
-                return <ProjectMemberList
-                  id={id}
-                />
+                return <ProjectMemberList id={id} />;
               case 'environments':
-                return  <EnvironmentsList
+                return <EnvironmentsList
                   id={id}
-                />
+                />;
               case 'settings':
                 return <ProjectsForm
                   project={project.data}
-                />
+                />;
+              case 'featureFlags':
+                return <FeatureFlagList
+                  key={env}
+                  id={id}
+                  environmentId={env}
+                  componentId={component}
+                />;
               case 'activity':
-                return <ProjectEvents id={id} />
+                return <ProjectEvents id={id} />;
               default:
-                return null
+                return null;
             }
           })()}
         </TabsContent>
-      </Tabs>
-    </div>);
+      </SessionProvider>
+    </Tabs>
+  </div>);
 }

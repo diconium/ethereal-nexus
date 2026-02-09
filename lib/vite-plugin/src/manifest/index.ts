@@ -37,7 +37,7 @@ export function extractDialog(ast: ProgramNode, code: string, name: string, id: 
   }
   magic.append(`export const __dialog = parse(schema)\n`)
 
-  const fileId = `.ethereal/tmp/__etherealHelper__dialog__${name}.js`;
+  const fileId = `__etherealHelper__dialog__${name}.js`;
   setVirtual(fileId, magic.toString())
 
   emitFile({
@@ -76,7 +76,7 @@ export async function generateManifest(name: string, id: string) {
   let dialog = { dialog: [] };
   const outDir = getConfig('outDir');
 
-  const fileId = `${cwd()}/${outDir}/.ethereal/tmp/__etherealHelper__dialog__${name}.js`;
+  const fileId = `${cwd()}/${outDir}/__etherealHelper__dialog__${name}.js`;
   const { __dialog } = await import(fileId)
   const readme = extractReadme(id);
   const packageJson = getPackageInfo();

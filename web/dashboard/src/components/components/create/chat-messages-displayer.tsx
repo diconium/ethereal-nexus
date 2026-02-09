@@ -1,5 +1,5 @@
 import React, { MutableRefObject } from "react";
-import { Message } from "ai";
+import { Message } from "@ai-sdk/react";
 import { UserMessage } from "@/components/components/create/user-message";
 import { AssistantGeneratedMessageCard } from "@/components/components/create/assistant-message-card";
 import { AssistantMessageLoader } from "@/components/components/create/assistant-message-loader";

@@ -1,0 +1,25 @@
+{
+  "name": "static-assets-function",
+  "version": "1.1.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -w -p .",
+    "clean": "rimraf dist",
+    "prestart": "npm run clean && npm run build",
+    "start": "func start",
+    "test": "echo \"No tests yet...\""
+  },
+  "dependencies": {
+    "@azure/functions": "^4.4.0",
+    "@azure/identity": "^4.12.0",
+    "@azure/storage-blob": "^12.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.4.5"
+  },
+  "main": "dist/src/index.js"
+}

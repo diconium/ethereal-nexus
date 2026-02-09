@@ -6,8 +6,6 @@ import {
   componentVersionsSchema
 } from '@/data/components/dto';
 import { number, z } from 'zod';
-import { users } from '@/data/users/schema';
-import { members } from '@/data/member/schema';
 import { userSchema } from '@/data/users/dto';
 
 /**
@@ -93,6 +91,7 @@ export const projectWithComponentAssetsSchema = componentsSchema
   .extend({
     version: componentVersionsSchema.shape.version,
     dialog: componentVersionsSchema.shape.dialog,
+    ssr_active: projectComponentConfigSchema.shape.ssr_active.default(true),
     assets: z.array(
       componentAssetsSchema
         .pick({ url: true, id: true, type: true })
@@ -107,18 +106,14 @@ export const projectWithComponentAssetsSchema = componentsSchema
 export const projectComponentsSchema = componentsSchema.extend({
   config_id: projectComponentConfigSchema.shape.id,
   is_active: projectComponentConfigSchema.shape.is_active.nullable(),
+  ssr_active: projectComponentConfigSchema.shape.ssr_active.default(true),
   version: componentVersionsSchema.shape.version.nullable(),
   versions: componentVersionsSchema.pick({ id: true, version: true }).array()
 });
 export type ProjectComponent = z.infer<typeof projectComponentsSchema>;
 
 export const projectComponentsWithDialogSchema = projectComponentsSchema
-  .omit({ versions: true, config_id: true })
-  .extend(
-    {
-      dialog: componentVersionsSchema.shape.dialog.nullable()
-    }
-  );
+  .omit({ versions: true, config_id: true , is_ai_generated: true, is_active: true})
 export const projectWithOwners = projectSchema
   .extend({
     has_access: z.boolean(),
@@ -177,3 +172,14 @@ export const environmentWithComponentsSchema = environmentsSchema.extend({
   }).array()
 });
 export type EnvironmentWithComponents = z.infer<typeof environmentWithComponentsSchema>;
+
+export const featureFlagInputSchema = z.object({
+  id: z.string().optional(),
+  project_id: z.string(),
+  environment_id: z.string(),
+  component_id: z.string().optional(),
+  flag_name: z.string().min(2, 'Flag name must be at least 2 characters'),
+  description: z.string().optional(),
+  enabled: z.boolean(),
+});
+export type FeatureFlagInput = z.infer<typeof featureFlagInputSchema>;

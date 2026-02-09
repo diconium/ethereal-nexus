@@ -1,0 +1,54 @@
+{
+  "name": "@ethereal-nexus/dialog-ui-core",
+  "version": "1.2.4",
+  "type": "module",
+  "description": "Headless React package with hooks and logic for AEM dialog processing",
+  "main": "dist/index.esm.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.esm.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diconium/ethereal-nexus.git"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "tsc && vite build",
+    "type-check": "tsc --noEmit",
+    "test": "vitest"
+  },
+  "keywords": [
+    "react",
+    "aem",
+    "dialog",
+    "headless"
+  ],
+  "author": "",
+  "license": "ISC",
+  "peerDependencies": {
+    "react": "^19.2.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.8",
+    "typescript": "^5.4.2",
+    "vite": "^7.1.11",
+    "vite-plugin-dts": "^4.5.4",
+    "@vitejs/plugin-react": "^4.6.0",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  }
+}

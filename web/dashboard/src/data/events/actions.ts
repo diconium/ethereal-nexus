@@ -15,15 +15,36 @@ import { components, componentVersions } from '@/data/components/schema';
 import { ActionResponse } from '@/data/action';
 import { projects } from '@/data/projects/schema';
 import { alias } from 'drizzle-orm/pg-core';
+import { logger } from '@/lib/logger';
 
 
 export const insertEvent = async (event: NewEvent) => {
   try {
     const eventInserted = await db.insert(events).values(event).returning();
     const eventInsertedParsed = eventsSchema.safeParse(eventInserted[0]);
-    console.debug('Event inserted into database.', eventInsertedParsed);
+
+    if (eventInsertedParsed.success) {
+      logger.debug('Event successfully inserted into database', {
+        operation: 'event-insert',
+        eventId: eventInsertedParsed.data.id,
+        eventType: eventInsertedParsed.data.type,
+        resourceId: eventInsertedParsed.data.resource_id,
+        userId: eventInsertedParsed.data.user_id,
+      });
+    } else {
+      logger.warn('Event inserted but failed validation', {
+        operation: 'event-insert',
+        eventType: event.type,
+        validationErrors: eventInsertedParsed.error?.errors,
+      });
+    }
   } catch (error) {
-    console.error('Failed to insert event into database.', error);
+    logger.error('Failed to insert event into database', error as Error, {
+      operation: 'event-insert',
+      eventType: event.type,
+      resourceId: event.resource_id,
+      userId: event.user_id,
+    });
   }
 };
 
@@ -80,7 +101,12 @@ export async function getResourceEvents(
     const safe = z.array(eventWithDiscriminatedUnions).safeParse(modifiedSelect);
 
     if (!safe.success) {
-      console.error(safe.error);
+      logger.error('Event records validation failed', new Error('Event validation error'), {
+        operation: 'get-resource-events',
+        resourceId,
+        recordCount: modifiedSelect.length,
+        validationErrors: safe.error.errors,
+      });
       return actionZodError(
         'There\'s an issue with the events records.',
         safe.error,
@@ -89,7 +115,11 @@ export async function getResourceEvents(
 
     return actionSuccess(safe.data);
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to fetch events from database', error as Error, {
+      operation: 'get-resource-events',
+      resourceId,
+      limit,
+    });
     return actionError('Failed to fetch events from database.');
   }
 }

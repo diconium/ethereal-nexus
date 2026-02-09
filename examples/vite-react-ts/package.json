@@ -1,29 +1,32 @@
 {
   "name": "remote-components-vite-react-ts",
   "private": true,
-  "version": "0.3.4",
+  "version": "0.9.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "preview": "vite preview --port 8080",
     "build": "vite build",
+    "login": "ethereal auth login --port 3004",
+    "keys": "ethereal authkeys keys",
+    "logout": "ethereal auth logout",
     "publish": "ethereal publish --all",
     "build+publish": "vite build && ethereal publish --all"
   },
   "dependencies": {
     "@ethereal-nexus/core": "workspace:*",
     "@ethereal-nexus/react": "workspace:*",
-    "@vidstack/react": "^1.12.12",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0"
+    "@vidstack/react": "^1.12.13",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
   },
   "devDependencies": {
     "@ethereal-nexus/cli": "workspace:*",
     "@ethereal-nexus/vite-plugin-ethereal-nexus": "workspace:*",
-    "@types/react": "^19.0.8",
-    "@types/react-dom": "^19.0.3",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.1",
     "@vitejs/plugin-react": "^4.1.0",
     "typescript": "^5.6.2",
-    "vite": "^6.0.12"
+    "vite": "^7.1.11"
   }
 }

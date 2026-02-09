@@ -7,6 +7,21 @@ import { HttpStatus } from "@/app/api/utils";
 import process from 'node:process';
 import { notFound } from 'next/navigation';
 
+// Define tool separately and cast to any to prevent deep type instantiation errors from generic inference
+const generateEtherealNexusJSXTool: any = {
+  description: 'Generate JSX code, with the ethereal nexus structure, to create a React component',
+  inputSchema: z.object({
+    etherealNexusFileCode: z.string(),
+    fileName: z.string(),
+    componentName: z.string(),
+    description: z.string(),
+    etherealNexusComponentMockedProps: z.unknown(),
+  }),
+  execute: async function ({ id, etherealNexusFileCode, componentName, fileName, description, etherealNexusComponentMockedProps }: any) {
+    return { id, etherealNexusFileCode, componentName, fileName, etherealNexusComponentMockedProps, description, updated: false };
+  },
+};
+
 export async function POST(request: Request) {
     const session = await auth();
 
@@ -23,7 +38,7 @@ export async function POST(request: Request) {
     const { messages } = await request.json();
 
     const response = await streamText({
-        model: openai("gpt-4"),
+        model: openai("gpt-4") as any,
         messages,
         toolChoice: "required",
         system:`
@@ -283,21 +298,7 @@ export async function POST(request: Request) {
             Ensure created files are complete, standalone components with all necessary code.
             Do not use placeholders or incomplete code sections. Write out all code in full, even if repeating from previous examples.
             `,
-        tools: { // Record<string, tool>
-            generateEtherealNexusJSX: {
-                description: 'Generate JSX code, with the ethereal nexus structure, to create a React component',
-                parameters: z.object({
-                    etherealNexusFileCode: z.string().describe('The JSX code for the ethereal nexus file that will be generated'),
-                    fileName: z.string().describe('The name of the file where the component will be saved'),
-                    componentName: z.string().describe('The name of the new generated React component'),
-                    description: z.string().describe('A detailed description of the component'),
-                    etherealNexusComponentMockedProps: z.any().describe('An object with the needed mock props that have to be passed to the created component'), // TODO check typing
-                }),
-                execute: async function ({ id, etherealNexusFileCode, componentName, fileName, description, etherealNexusComponentMockedProps }) {
-                    return { id, etherealNexusFileCode, componentName, fileName, etherealNexusComponentMockedProps, description, updated: false };
-                },
-            },
-        },
+        tools: { generateEtherealNexusJSX: generateEtherealNexusJSXTool } as any,
     });
-    return response.toDataStreamResponse();
+    return response.toTextStreamResponse();
 };

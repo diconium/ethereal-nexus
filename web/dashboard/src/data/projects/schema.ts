@@ -30,6 +30,7 @@ export const projectComponentConfig = pgTable(
     component_version: uuid('component_version')
       .references(() => componentVersions.id, { onDelete: 'set null'}),
     is_active: boolean('is_active').notNull().default(true),
+    ssr_active: boolean('ssr_active').notNull().default(true),
   },
   (table) => {
     return {
@@ -43,3 +44,17 @@ export const projectComponentConfig = pgTable(
   },
 );
 
+export const featureFlags = pgTable('feature_flags', {
+  id: uuid('id').notNull().primaryKey().defaultRandom(),
+  project_id: uuid('project_id')
+    .notNull()
+    .references(() => projects.id, { onDelete: 'cascade' }),
+  component_id: uuid('component_id')
+    .references(() => components.id, { onDelete: 'cascade' }),
+  environment_id: uuid('environment_id')
+    .notNull()
+    .references(() => environments.id, { onDelete: 'cascade' }),
+  flag_name: text('flag_name').notNull(),
+  enabled: boolean('enabled').notNull().default(false),
+  description: text('description'),
+});

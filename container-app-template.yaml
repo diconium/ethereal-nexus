@@ -1,0 +1,57 @@
+location: westeurope
+properties:
+  configuration:
+    ingress:
+      external: true
+      targetPort: 3000
+  template:
+    containers:
+      - image: docker19diconium/remote-components:IMAGE_TAG
+        name: dashboard
+        env:
+          - name: DRIZZLE_DATABASE_URL
+            secretRef: drizzle-database-url
+          - name: AZURE_BLOB_STORAGE_SECRET
+            secretRef: azure-blob-storage-secret
+          - name: AZURE_BLOB_STORAGE_ACCOUNT
+            secretRef: azure-blob-storage-account
+          - name: AUTH_SECRET
+            secretRef: auth-secret
+          - name: OTEL_EXPORTER_OTLP_PROTOCOL
+            value: http/protobuf
+          - name: NODE_OPTIONS
+            value: "--experimental-vm-modules"
+          - name: IN_MEMORY_CACHE_TTL
+            value: "3600"
+          - name: DB_CACHE_STRATEGY
+            value: "redis"
+          - name: REDIS_PASSWORD
+            secretRef: redis-password
+          - name: REDIS_USE_TLS
+            value: "true"
+          - name: APP_ENV
+            value: "dev"
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "http://127.0.0.1:4318"
+          - name: REDIS_PORT
+            value: "10000"
+          - name: OTEL_SERVICE_NAME
+            value: "ethereal-nexus-dev"
+          - name: OTEL_PUBLIC_SERVICE_NAME
+            value: "ethereal-nexus-dev"
+          - name: REDIS_CACHE_STRATEGY
+            value: "explicit"
+          - name: REDIS_HOST
+            secretRef: "redis-host"
+          - name: AZURE_FRONT_DOOR_URL
+            secretRef: "azure-frontdoor-url"
+          - name: AZURE_CONTAINER_NAME
+            secretRef: "azure-container-name"
+          - name: DB_CACHE_STRATEGY
+            value: "redis"
+      - image: otel/opentelemetry-collector-contrib:latest
+        name: otel-collector
+        args: ["--config=/otel/otel-collector-config.yaml"]
+        volumeMounts:
+          - volumeName: otel-collector-config
+            mountPath: /otel

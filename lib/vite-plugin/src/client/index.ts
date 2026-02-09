@@ -1,7 +1,6 @@
 import { EmitFile, OutputBundle, OutputChunk, ParseAst, ProgramNode, RenderedChunk } from 'rollup';
 import MagicString from 'magic-string';
 import { simple } from 'acorn-walk';
-import { createHash } from 'crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getConfig } from '../config';
@@ -56,24 +55,19 @@ export function createClientCode(code: string, name: string, id: string, ast: Pr
 
 export function bundleClient(code: string, exposed: Map<string, string>, id: string, ast: ProgramNode, name: string, emitFile: EmitFile) {
   const clientCode = createClientCode(code, exposed.get(id)!, id, ast);
-  const fileId = `.ethereal/tmp/__etherealHelper__${name}`;
+  const fileId = `.ethereal/tmp/__etherealHelper__client__${name}`;
 
   setVirtual(fileId, clientCode.toString())
 
-  const hash = createHash('sha256')
-    .update(code)
-    .digest('hex')
-    .slice(0, 16);
-
   emitFile({
     type: 'chunk',
-    fileName: `.ethereal/${name}/${hash}-index.js`,
-    id: fileId
+    name: 'index',
+    id: fileId,
   });
 }
 
-function readJSDeps(chunk: OutputChunk, bundle: OutputBundle, js = new Set<string>()) {
-  const queue = [chunk.fileName];
+function readJSDeps(chunk: ViteOutputChunk & {key: string}, bundle: OutputBundle, js = new Set<string>()) {
+  const queue = [chunk.key];
   while (queue.length > 0) {
     const chunk = queue.shift();
     const chunkData = bundle[chunk!];
@@ -111,26 +105,30 @@ function readCssDeps(chunk: ViteOutputChunk, bundle: OutputBundle, css = new Set
 export function copyChunkFiles(bundle: OutputBundle) {
   const outDir = getConfig('outDir');
 
-  for (const chunk of Object.values(bundle)) {
-    if (chunk.type === 'chunk' && chunk.facadeModuleId?.includes('__etherealHelper__')) {
-      const chunkPath = path.dirname(chunk.preliminaryFileName);
+  const etherealChunks = Object.entries(bundle)
+    .filter(([,value]) => value.type === 'chunk' && value.type === 'chunk' && value.facadeModuleId?.includes('__etherealHelper__client__'))
+    .map(([key, value]) => ({
+      ...value,
+      key,
+    })) as (ViteOutputChunk & {key: string})[]
 
-      const js = readJSDeps(chunk, bundle)
-      for (const imports of js.values()) {
-        const importPath = path.parse(imports);
-        fs.copyFileSync(`./${outDir}/${imports}`, `./${outDir}/${chunkPath}/${importPath.base}`);
-      }
+  for (const chunk of Object.values(etherealChunks)) {
+    const componentName = chunk.facadeModuleId?.split('__etherealHelper__client__').at(-1);
+    const js = readJSDeps(chunk, bundle)
+    for (const imports of js.values()) {
+      const importPath = path.parse(imports);
+      fs.copyFileSync(`./${outDir}/${imports}`, `./${outDir}/.ethereal/${componentName}/${importPath.base}`);
+    }
 
-      //only works on vite
-      if(chunk.hasOwnProperty('viteMetadata') ) {
-        const cssMap = readCssDeps(chunk as ViteOutputChunk, bundle);
-        for(const css of cssMap.values()) {
-          const cssPath = path.parse(css)
-          fs.copyFileSync(`./${outDir}/${css}`, `./${outDir}/${chunkPath}/${cssPath.base}`);
-        }
-      } else {
-        console.warn('CSS bundling for ethereal nexus only works on vite.')
+    //only works on vite
+    if(chunk.hasOwnProperty('viteMetadata') ) {
+      const cssMap = readCssDeps(chunk as ViteOutputChunk, bundle);
+      for(const css of cssMap.values()) {
+        const cssPath = path.parse(css)
+        fs.copyFileSync(`./${outDir}/${css}`, `./${outDir}/.ethereal/${componentName}/${cssPath.base}`);
       }
+    } else {
+      console.warn('CSS bundling for ethereal nexus only works on vite.')
     }
   }
 }
@@ -153,4 +151,16 @@ export function adjustChunkImport(chunk: RenderedChunk, code: string, parse: Par
   }
 
   return null;
+}
+
+export function moveNexusFileToFolder(bundle: OutputBundle) {
+  Object.values(bundle)
+    .filter(value => value.type === 'chunk' && value.facadeModuleId?.includes('.ethereal/tmp/__etherealHelper__client__'))
+    .forEach(value => {
+      const chunk = bundle[value.fileName];
+      if (chunk.type === 'chunk' && chunk.facadeModuleId?.includes('__etherealHelper__client__')) {
+        const name = chunk.facadeModuleId.split('.ethereal/tmp/__etherealHelper__client__')[1];
+        chunk.fileName = `.ethereal/${name}/${chunk.fileName}`;
+      }
+    });
 }

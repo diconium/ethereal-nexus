@@ -1,0 +1,66 @@
+{
+  "name": "@ethereal-nexus/dialog-ui-spectrum",
+  "version": "1.4.1",
+  "type": "module",
+  "description": "React UI package using Adobe React Spectrum components",
+  "main": "dist/index.esm.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diconium/ethereal-nexus.git"
+  },
+  "exports": {
+    "./styles.css": "./dist/dialog-ui-spectrum.css",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.esm.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "vite dev",
+    "build": "tsc && vite build",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "storybook": "storybook dev -p 6006"
+  },
+  "keywords": [
+    "react",
+    "aem",
+    "dialog",
+    "spectrum",
+    "ui"
+  ],
+  "author": "",
+  "license": "ISC",
+  "peerDependencies": {
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "dependencies": {
+    "@adobe/react-spectrum": "^3.45.0",
+    "@ethereal-nexus/dialog-ui-core": "workspace:*",
+    "@internationalized/date": "^3.5.4",
+    "@r2wc/react-to-web-component": "^2.0.4",
+    "@spectrum-icons/workflow": "^4.2.25"
+  },
+  "devDependencies": {
+    "@storybook/react-vite": "^10.2.8",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.5",
+    "@vitejs/plugin-react": "^4.6.0",
+    "storybook": "^10.2.8",
+    "typescript": "^5.4.2",
+    "vite": "^7.1.11",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^3.2.4"
+  }
+}

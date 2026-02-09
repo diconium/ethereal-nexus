@@ -76,7 +76,7 @@ export const userEmailSchema = newUserSchema.pick({
 export const apiKeySchema = createSelectSchema(apiKeys)
   .extend({
     permissions: apiPermissionsSchema,
-    member_permissions: apiPermissionsSchema,
+    member_permissions: apiPermissionsSchema.optional(),
   })
 export type ApiKey = z.infer<typeof apiKeySchema>
 

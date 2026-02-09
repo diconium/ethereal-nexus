@@ -1,7 +1,6 @@
 # [Ethereal Nexus](https://diconium.github.io/ethereal-nexus/)
 
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
-![Build Status](https://github.com/diconium/ethereal-nexus/actions/workflows/demo-ethereal-nexus-deploy.yml/badge.svg)
 
 ## Project Overview
 

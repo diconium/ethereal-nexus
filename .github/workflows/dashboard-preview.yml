@@ -1,16 +1,17 @@
 # The name of the deployment
 name: Deploy preview environments on PR
 
+# DISABLED: This workflow is currently disabled
 # When this action will be executed
 on:
-  pull_request:
-    types: [opened, synchronize]
-    branches:
-      - 'main'
-      - '!dependabot/**'
-    paths:
-      - 'web/dashboard/**'
-      - '.github/workflows/dashboard-preview.yml'
+  # pull_request:
+  #   types: [opened, synchronize]
+  #   branches:
+  #     - 'main'
+  #     - '!dependabot/**'
+  #   paths:
+  #     - 'web/dashboard/**'
+  #     - '.github/workflows/dashboard-preview.yml'
   workflow_dispatch:
 
 env:

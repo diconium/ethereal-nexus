@@ -1,5 +1,142 @@
 # remote-components-vite-react-ts
 
+## 0.9.0
+
+### Minor Changes
+
+- a9beea6: Enhance SpectrumMediaField component with file type handling and improved UI for asset selection
+
+### Patch Changes
+
+- Updated dependencies [a9beea6]
+  - @ethereal-nexus/core@1.16.0
+  - @ethereal-nexus/react@0.3.0
+
+## 0.8.7
+
+### Patch Changes
+
+- Updated dependencies [5274689]
+- Updated dependencies [18c065c]
+  - @ethereal-nexus/core@1.15.0
+
+## 0.8.6
+
+### Patch Changes
+
+- ad57b45: Improve dialogs
+- Updated dependencies [ad57b45]
+  - @ethereal-nexus/core@1.14.3
+  - @ethereal-nexus/react@0.2.4
+
+## 0.8.5
+
+### Patch Changes
+
+- e49033f: Improve dialogs
+- Updated dependencies [e49033f]
+  - @ethereal-nexus/core@1.14.2
+  - @ethereal-nexus/react@0.2.3
+
+## 0.8.4
+
+### Patch Changes
+
+- 835d73e: chore: update next, react, and react-dom versions in package.json
+- Updated dependencies [835d73e]
+  - @ethereal-nexus/core@1.14.1
+  - @ethereal-nexus/react@0.2.2
+
+## 0.8.3
+
+### Patch Changes
+
+- d8b9d65: update react and react-dom versions in package.json [CVE-2025-66478]
+- Updated dependencies [f2fb267]
+- Updated dependencies [d8b9d65]
+  - @ethereal-nexus/core@1.14.0
+  - @ethereal-nexus/react@0.2.1
+
+## 0.8.2
+
+### Patch Changes
+
+- Updated dependencies [db39d55]
+  - @ethereal-nexus/core@1.13.1
+
+## 0.8.1
+
+### Patch Changes
+
+- Updated dependencies [5034f35]
+  - @ethereal-nexus/core@1.13.0
+
+## 0.8.0
+
+### Minor Changes
+
+- 90cf802: Update dependencies
+
+### Patch Changes
+
+- Updated dependencies [90cf802]
+  - @ethereal-nexus/react@0.2.0
+  - @ethereal-nexus/core@1.12.0
+
+## 0.7.0
+
+### Minor Changes
+
+- 61a6731: enhance cookie handling for secure API key retrieval based on protocol
+
+## 0.6.0
+
+### Minor Changes
+
+- 372fe63: Keycloak integration with CLI
+
+## 0.5.0
+
+### Minor Changes
+
+- 06f5b7d: Introduced configurable options in the pathbrowser to enable folder-only selection.
+
+### Patch Changes
+
+- 06f5b7d: Resolved an issue where the calendar did not display the date in the specified format.
+- Updated dependencies [06f5b7d]
+- Updated dependencies [06f5b7d]
+  - @ethereal-nexus/core@1.11.0
+
+## 0.4.0
+
+### Minor Changes
+
+- 956422d: Introduced configurable options in the pathbrowser to enable folder-only selection.
+
+### Patch Changes
+
+- 956422d: Resolved an issue where the calendar did not display the date in the specified format.
+- Updated dependencies [956422d]
+- Updated dependencies [956422d]
+  - @ethereal-nexus/core@1.10.0
+
+## 0.3.6
+
+### Patch Changes
+
+- Updated dependencies [3bc5e62]
+- Updated dependencies [205469c]
+  - @ethereal-nexus/core@1.9.0
+  - @ethereal-nexus/react@0.1.2
+
+## 0.3.5
+
+### Patch Changes
+
+- Updated dependencies [e3161c4]
+  - @ethereal-nexus/core@1.8.0
+
 ## 0.3.4
 
 ### Patch Changes

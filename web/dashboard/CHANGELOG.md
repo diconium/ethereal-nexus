@@ -1,5 +1,133 @@
 # @ethereal-nexus/dashboard
 
+## 3.6.0
+
+### Minor Changes
+
+- a9beea6: Enhance SpectrumMediaField component with file type handling and improved UI for asset selection
+
+## 3.5.0
+
+### Minor Changes
+
+- 94af8ab: feat: implement SSR toggle functionality and update database schema
+
+## 3.4.0
+
+### Minor Changes
+
+- 794f13b: Added Open Telemetry
+
+### Patch Changes
+
+- ad57b45: Improve dialogs
+
+## 3.3.2
+
+### Patch Changes
+
+- e49033f: Improve dialogs
+
+## 3.3.1
+
+### Patch Changes
+
+- 835d73e: chore: update next, react, and react-dom versions in package.json
+
+## 3.3.0
+
+### Minor Changes
+
+- ced5b76: Bump version
+
+## 3.2.2
+
+### Patch Changes
+
+- d8b9d65: update react and react-dom versions in package.json [CVE-2025-66478]
+
+## 3.2.1
+
+### Patch Changes
+
+- 1aa516c: fix: downgrade cmdk version to 0.2.1 and fix ProjectMemberList rendering
+
+## 3.2.0
+
+### Minor Changes
+
+- 85a894c: feat: add Redis cache configuration and enhance caching logic
+- 90cf802: Update dependencies
+
+## 3.1.0
+
+### Minor Changes
+
+- 17350e7: implemented optional in-memory cache to improve SSR call
+- c260624: feat: implement Redis cache for improved data handling and performance
+
+### Patch Changes
+
+- 639f570: optimize database queries for component version retrieval and update schema
+
+## 3.0.2
+
+### Patch Changes
+
+- c4b6624: chore: enhance dynamic import performance with timing logs
+
+## 3.0.1
+
+### Patch Changes
+
+- d7ceedf: fix: implement LRU caching for dynamic imports and improve error handling
+
+## 3.0.0
+
+### Major Changes
+
+- 3923391: feat: implement feature flag management with CRUD operations and UI components.
+
+  This allows projects to have feature flag configurations.
+  Because of this there were breaking changes since the dashboard now displays feature flags and their states.
+
+## 2.4.0
+
+### Minor Changes
+
+- 9894831: removes dialog information from all components endpoint
+
+## 2.3.0
+
+### Minor Changes
+
+- 61a6731: enhance cookie handling for secure API key retrieval based on protocol
+
+## 2.2.0
+
+### Minor Changes
+
+- 41160bc: Adds more logs on cli auth
+- 9da1478: update redirect logic to use base URL from environment variables
+
+## 2.1.0
+
+### Minor Changes
+
+- 372fe63: Keycloak integration with CLI
+
+## 2.0.0
+
+### Major Changes
+
+- 9f1d2bf: Removed the information about component and version from the asset url that is deployed to the bucket.
+
+## 1.8.2
+
+### Patch Changes
+
+- 73ed202: fix: updated dependencies for security reasons]
+
 ## 1.8.1
 
 ### Patch Changes

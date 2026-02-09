@@ -1,5 +1,129 @@
 # @ethereal-nexus/vite-plugin-ethereal-nexus
 
+## 1.3.0
+
+### Minor Changes
+
+- a9beea6: Enhance SpectrumMediaField component with file type handling and improved UI for asset selection
+
+### Patch Changes
+
+- Updated dependencies [a9beea6]
+  - @ethereal-nexus/core@1.16.0
+
+## 1.2.7
+
+### Patch Changes
+
+- Updated dependencies [5274689]
+- Updated dependencies [18c065c]
+  - @ethereal-nexus/core@1.15.0
+
+## 1.2.6
+
+### Patch Changes
+
+- ad57b45: Improve dialogs
+- Updated dependencies [ad57b45]
+  - @ethereal-nexus/core@1.14.3
+
+## 1.2.5
+
+### Patch Changes
+
+- e49033f: Improve dialogs
+- Updated dependencies [e49033f]
+  - @ethereal-nexus/core@1.14.2
+
+## 1.2.4
+
+### Patch Changes
+
+- 835d73e: chore: update next, react, and react-dom versions in package.json
+- Updated dependencies [835d73e]
+  - @ethereal-nexus/core@1.14.1
+
+## 1.2.3
+
+### Patch Changes
+
+- Updated dependencies [f2fb267]
+- Updated dependencies [d8b9d65]
+  - @ethereal-nexus/core@1.14.0
+
+## 1.2.2
+
+### Patch Changes
+
+- Updated dependencies [db39d55]
+  - @ethereal-nexus/core@1.13.1
+
+## 1.2.1
+
+### Patch Changes
+
+- Updated dependencies [5034f35]
+  - @ethereal-nexus/core@1.13.0
+
+## 1.2.0
+
+### Minor Changes
+
+- 90cf802: Update dependencies
+
+### Patch Changes
+
+- Updated dependencies [90cf802]
+  - @ethereal-nexus/core@1.12.0
+
+## 1.1.0
+
+### Minor Changes
+
+- dfb413a: feat: implement hash-based file naming for prebuilt chunks
+
+## 1.0.16
+
+### Patch Changes
+
+- 77f613e: fix: added correct dependencies to the tar file
+
+## 1.0.15
+
+### Patch Changes
+
+- af42e26: fix: root nexus component file now update on chunk change
+
+## 1.0.14
+
+### Patch Changes
+
+- Updated dependencies [06f5b7d]
+- Updated dependencies [06f5b7d]
+  - @ethereal-nexus/core@1.11.0
+
+## 1.0.13
+
+### Patch Changes
+
+- Updated dependencies [956422d]
+- Updated dependencies [956422d]
+  - @ethereal-nexus/core@1.10.0
+
+## 1.0.12
+
+### Patch Changes
+
+- Updated dependencies [3bc5e62]
+  - @ethereal-nexus/core@1.9.0
+
+## 1.0.11
+
+### Patch Changes
+
+- Updated dependencies [e3161c4]
+  - @ethereal-nexus/core@1.8.0
+
 ## 1.0.10
 
 ### Patch Changes

@@ -1,5 +1,53 @@
 # @ethereal-nexus/cli
 
+## 1.4.0
+
+### Minor Changes
+
+- a9beea6: Enhance SpectrumMediaField component with file type handling and improved UI for asset selection
+
+## 1.3.0
+
+### Minor Changes
+
+- 4037852: fix: separate negation patterns from regular patterns in tar exclusion logic
+
+## 1.2.6
+
+### Patch Changes
+
+- 5c9c9a3: Update tar version due to detected vulnerability
+
+## 1.2.5
+
+### Patch Changes
+
+- ad57b45: Improve dialogs
+
+## 1.2.4
+
+### Patch Changes
+
+- e49033f: Improve dialogs
+
+## 1.2.3
+
+### Patch Changes
+
+- 835d73e: chore: update next, react, and react-dom versions in package.json
+
+## 1.2.0
+
+### Minor Changes
+
+- 61a6731: enhance cookie handling for secure API key retrieval based on protocol
+
+## 1.1.0
+
+### Minor Changes
+
+- 372fe63: Keycloak integration with CLI
+
 ## 1.0.2
 
 ### Patch Changes

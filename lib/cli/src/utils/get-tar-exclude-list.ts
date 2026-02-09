@@ -17,8 +17,13 @@ export function getTarExcludeList(excludedPaths: string[] = []) {
     ?.split('\n')
     ?.filter((file) => !file?.includes('#') && file?.trim() !== '');
 
+  // Separate negation patterns from regular patterns
+  const regularPatterns = gitignoreFiles.filter(pattern => !pattern.startsWith('!'));
+  // Note: Negation patterns in gitignore are complex and require the full context
+  // For tar exclusion, we only use non-negated patterns
+
   return [
-    ...gitignoreFiles,
+    ...regularPatterns,
     ...excludedPaths,
     ...ignoreCommonFiles,
     '*.tar',

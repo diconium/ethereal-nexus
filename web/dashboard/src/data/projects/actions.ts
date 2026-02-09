@@ -10,7 +10,7 @@ import {
   environmentInputSchema,
   environmentsSchema,
   EnvironmentWithComponents,
-  environmentWithComponentsSchema,
+  environmentWithComponentsSchema, FeatureFlagInput,
   type Project,
   ProjectComponent,
   ProjectComponentConfig,
@@ -25,11 +25,11 @@ import {
   projectSchema,
   projectWithComponentAssetsSchema,
   type ProjectWithComponentId,
-  projectWithComponentIdSchema
+  projectWithComponentIdSchema,
 } from './dto';
 import * as console from 'console';
 import { and, countDistinct, desc, eq, exists, getTableColumns, isNull, sql } from 'drizzle-orm';
-import { environments, projectComponentConfig, projects } from './schema';
+import { environments, projectComponentConfig, projects, featureFlags } from './schema';
 import { insertMembers, userIsMember } from '@/data/member/actions';
 import { componentAssets, components, componentVersions } from '@/data/components/schema';
 import { revalidatePath } from 'next/cache';
@@ -208,8 +208,17 @@ export async function getEnvironmentComponents(
         ...getTableColumns(components),
         config_id: projectComponentConfig.id,
         is_active: projectComponentConfig.is_active,
+        ssr_active: projectComponentConfig.ssr_active,
         version: componentVersions.version,
-        versions: sql`ARRAY_AGG(jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`
+        versions: sql`ARRAY_AGG(jsonb_build_object('id', ${versions.id}, 'version', ${versions.version}))`,
+        feature_flag_count: sql`(
+          SELECT COUNT(*) FROM ${featureFlags}
+          WHERE ${featureFlags.environment_id} = ${id}
+            AND (
+              ${featureFlags.component_id} = ${components.id}
+              OR ${featureFlags.component_id} IS NULL
+            )
+        )`
       })
       .from(projectComponentConfig)
       .leftJoin(
@@ -228,7 +237,8 @@ export async function getEnvironmentComponents(
         components.id,
         componentVersions.version,
         projectComponentConfig.id,
-        projectComponentConfig.is_active
+        projectComponentConfig.is_active,
+        projectComponentConfig.ssr_active
       )
       .where(eq(projectComponentConfig.environment_id, id))
       .orderBy(
@@ -396,29 +406,35 @@ export async function getActiveEnvironmentComponents(
   if (!userId) {
     return actionError('No user provided.');
   }
-
-  const latest_version = db.select()
+  const latest_version = db
+    .select({
+      component_id: componentVersions.component_id,
+      version: componentVersions.version,
+      dialog: componentVersions.dialog,
+      id: componentVersions.id,
+      row_number: sql`row_number() over (partition by ${componentVersions.component_id} order by ${componentVersions.created_at} desc)`.as('rn')
+    })
     .from(componentVersions)
-    .orderBy(desc(componentVersions.created_at))
-    .groupBy(
-      componentVersions.id,
-      componentVersions.version,
-      componentVersions.component_id,
-      componentVersions.created_at,
-      componentVersions.component_id
-    )
-    .limit(1)
     .as('latest_version');
+
+  const latest_only = db
+    .select({
+      component_id: latest_version.component_id,
+      version: latest_version.version,
+      dialog: latest_version.dialog,
+      id: latest_version.id
+    })
+    .from(latest_version)
+    .where(eq(latest_version.row_number, 1))
+    .as('latest_only');
 
   try {
     const select = await db
       .select({
         ...getTableColumns(components),
         is_active: projectComponentConfig.is_active,
-        version: sql`coalesce
-            (${componentVersions.version}, ${latest_version.version})`,
-        dialog: sql`coalesce
-            (${componentVersions.dialog}, ${latest_version.dialog})`
+        ssr_active: projectComponentConfig.ssr_active,
+        version: sql`coalesce(${componentVersions.version}, ${latest_only.version})`,
       })
       .from(components)
       .leftJoin(
@@ -430,8 +446,8 @@ export async function getActiveEnvironmentComponents(
         eq(componentVersions.id, projectComponentConfig.component_version)
       )
       .leftJoin(
-        latest_version,
-        eq(latest_version.component_id, projectComponentConfig.component_id)
+        latest_only,
+        eq(latest_only.component_id, components.id)
       )
       .where(
         and(
@@ -576,6 +592,7 @@ export async function getEnvironmentComponentConfig(
             (${componentVersions.version}, ${latest_version.version})`,
         dialog: sql`coalesce
             (${componentVersions.dialog}::jsonb, ${latest_version.dialog}::jsonb)`,
+        ssr_active: projectComponentConfig.ssr_active
       })
       .from(projectComponentConfig)
       .leftJoin(components, eq(components.id, projectComponentConfig.component_id))
@@ -603,9 +620,14 @@ export async function getEnvironmentComponentConfig(
         latest_version.component_id,
         latest_version.version,
         latest_version.dialog,
-      );
+      )
+      .$withCache();
 
     const result = component[0];
+
+    if (!result) {
+      return actionError('Component not found in the environment.');
+    }
 
     result['assets'] = await db
       .select({
@@ -616,7 +638,21 @@ export async function getEnvironmentComponentConfig(
       .from(componentAssets)
       .where(and(
         eq(componentAssets.version_id, result.versionId)
-      ));
+      )).$withCache();
+
+      // Join feature_flag table and add flags array
+      result['featureFlags'] = await db
+        .select({
+          id: featureFlags.id,
+          name: featureFlags.flag_name,
+          enabled: featureFlags.enabled
+        })
+        .from(featureFlags)
+        .where(and(
+          eq(featureFlags.environment_id, id),
+          eq(featureFlags.component_id, result.id)
+        )).$withCache();
+
 
     return actionSuccess(result);
   } catch (error) {
@@ -725,6 +761,7 @@ export async function upsertComponentConfig(
         ],
         set: {
           is_active: safeInput.data.is_active,
+          ssr_active: safeInput.data.ssr_active,
           component_version: safeInput.data.component_version
         }
       })
@@ -922,6 +959,7 @@ export async function upsertEnvironment(
 export async function deleteComponentConfig(
   id: string,
   projectId: string,
+  componentId: string,
 ): ActionResponse<ProjectComponentConfig[]> {
   const session = await auth()
   if (!session?.user?.id) {
@@ -955,6 +993,12 @@ export async function deleteComponentConfig(
         safe.error
       );
     }
+
+
+    const deletedFeatureFlag = await db.delete(featureFlags).where(and(
+      eq(featureFlags.project_id, projectId),
+      eq(featureFlags.component_id, componentId)
+    )).returning();
 
     await logEvent({
       type: 'project_component_removed',
@@ -1005,5 +1049,77 @@ export async function deleteEnvironment(
   } catch (error) {
     console.error(error);
     return actionError('Failed to delete config from database.');
+  }
+}
+
+export async function getFeatureFlagsByEnvAndProject(
+  environmentId: string,
+  projectId: string,
+  componentId?: string
+) {
+  try {
+    const whereClause = [
+      eq(featureFlags.environment_id, environmentId),
+      eq(featureFlags.project_id, projectId)
+    ];
+    if (componentId) {
+      whereClause.push(eq(featureFlags.component_id, componentId));
+    }
+    return await db
+      .select({
+        id: featureFlags.id,
+        flag_name: featureFlags.flag_name,
+        description: featureFlags.description,
+        enabled: featureFlags.enabled,
+        component_id: featureFlags.component_id,
+        component_name: components.name
+      })
+      .from(featureFlags)
+      .leftJoin(components, eq(featureFlags.component_id, components.id))
+      .where(and(...whereClause));
+
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+export async function upsertFeatureFlag(
+  input: FeatureFlagInput
+) {
+  try {
+    let result;
+    if (input.id) {
+      // Update existing feature flag
+      result = await db
+        .update(featureFlags)
+        .set({
+          flag_name: input.flag_name,
+          description: input.description,
+          enabled: input.enabled,
+          project_id: input.project_id,
+          environment_id: input.environment_id,
+          component_id: input.component_id,
+        })
+        .where(eq(featureFlags.id, input.id))
+        .returning();
+    } else {
+      // Create new feature flag
+      result = await db
+        .insert(featureFlags)
+        .values({
+          flag_name: input.flag_name,
+          description: input.description,
+          enabled: input.enabled,
+          project_id: input.project_id,
+          environment_id: input.environment_id,
+          component_id: input.component_id,
+        })
+        .returning();
+    }
+    return { success: true, data: result[0] };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error };
   }
 }

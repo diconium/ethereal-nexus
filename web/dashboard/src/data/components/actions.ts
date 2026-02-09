@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { and, eq, getTableColumns, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
+import { logger } from '@/lib/logger';
 import {
   Component,
   componentAssetsCreateSchema,
@@ -182,7 +183,12 @@ export async function upsertComponentWithVersion(
 
     const result = componentsSchema.safeParse(insertComponent[0]);
     if (!result.success) {
-      console.error(result.error);
+      logger.error('Component validation failed after upsert', new Error('Component validation error'), {
+        operation: 'upsert-component',
+        componentName: component.name,
+        componentSlug: component.slug,
+        validationErrors: result.error.errors,
+      });
       return actionError('Failed to upsert component');
     }
     const upsertedVersion = await upsertComponentVersion({
@@ -213,7 +219,11 @@ export async function upsertComponentWithVersion(
       version: upsertedVersion.data
     });
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to insert component into database', error as Error, {
+      operation: 'upsert-component',
+      componentName: component.name,
+      componentSlug: component.slug,
+    });
     return actionError('Failed to insert component into database.');
   }
 }
@@ -235,10 +245,14 @@ export async function upsertAssets(
     const safeAssetToUpsert =
       componentAssetsCreateSchema.safeParse(assetToUpsert);
     if (!safeAssetToUpsert.success) {
-      console.error(
-        'updateAssets: asset input is not valid',
-        JSON.stringify(safeAssetToUpsert, undefined, 2)
-      );
+      logger.warn('Asset input validation failed', {
+        operation: 'upsert-assets',
+        componentId,
+        versionId,
+        url,
+        contentType,
+        validationErrors: safeAssetToUpsert.error.errors,
+      });
       return actionZodError(
         'There\'s an issue with the components assets record.',
         safeAssetToUpsert.error
@@ -263,10 +277,14 @@ export async function upsertAssets(
 
     const result = componentAssetsSchema.safeParse(upsertedAsset[0]);
     if (!result.success) {
-      console.error(
-        'updateAssets: failed to upsert asset',
-        JSON.stringify(result.error, undefined, 2)
-      );
+      logger.error('Asset upsert validation failed', new Error('Asset validation error'), {
+        operation: 'upsert-assets',
+        componentId,
+        versionId,
+        url,
+        contentType,
+        validationErrors: result.error.errors,
+      });
 
       return actionZodError(
         'There\'s an issue with the inserted components assets record.',
@@ -276,7 +294,13 @@ export async function upsertAssets(
 
     return actionSuccess(result.data);
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to update assets into database', error as Error, {
+      operation: 'upsert-assets',
+      componentId,
+      versionId,
+      url,
+      contentType,
+    });
     return actionError('Failed to update assets into database.');
   }
 }
@@ -294,7 +318,9 @@ export async function getComponents(): ActionResponse<Array<Component & { versio
 
     return actionSuccess(select);
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to fetch components from database', error as Error, {
+      operation: 'get-all-components',
+    });
     return actionError('Failed to fetch components from database.');
   }
 }
@@ -321,7 +347,10 @@ export async function getComponentById(
 
     return actionSuccess(safe.data);
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to fetch component from database', error as Error, {
+      operation: 'get-component-by-id',
+      componentId: id,
+    });
     return actionError('Failed to fetch component from database.');
   }
 }
@@ -348,7 +377,10 @@ export async function getComponentByName(
 
     return actionSuccess(safe.data);
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to fetch component from database', error as Error, {
+      operation: 'get-component-by-name',
+      componentName: name,
+    });
     return actionError('Failed to fetch component from database.');
   }
 }
@@ -374,7 +406,10 @@ export async function getComponentVersions(
 
     return actionSuccess(safe.data);
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to fetch component versions from database', error as Error, {
+      operation: 'get-component-versions',
+      componentId: id,
+    });
     return actionError('Failed to fetch component from database.');
   }
 }
@@ -427,7 +462,11 @@ export async function getComponentDependentsProjects(
 
     return actionSuccess(safe.data);
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to fetch component dependent projects from database', error as Error, {
+      operation: 'get-component-dependents',
+      componentId: id,
+      userId,
+    });
     return actionError('Failed to fetch components from database.');
   }
 }
@@ -456,7 +495,11 @@ export async function getComponentAssets(
 
     return actionSuccess(safe.data);
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to fetch component assets from database', error as Error, {
+      operation: 'get-component-assets',
+      componentId: component_id,
+      versionId: version_id,
+    });
     return actionError('Failed to fetch component from database.');
   }
 }
@@ -475,10 +518,19 @@ export async function deleteComponent(id: string): ActionResponse<Component> {
       );
     }
 
+    logger.info('Component deleted successfully', {
+      operation: 'delete-component',
+      componentId: id,
+      componentName: safe.data.name,
+    });
+
     revalidatePath('/components');
     return actionSuccess(safe.data);
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to delete component from database', error as Error, {
+      operation: 'delete-component',
+      componentId: id,
+    });
     return actionError('Failed to delete component from database.');
   }
 }

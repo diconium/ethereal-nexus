@@ -16,7 +16,7 @@ export function webcomponent<T extends ObjectEntries>(schema?: DialogSchema<T>, 
   return <P extends {} = {}>(component: React.ComponentType<P>) => {
     const name = pascalToKebab(component.displayName!);
 
-    class StyledWebComponent extends r2wc(component, {
+    class StyledWebComponent extends r2wc(component as any, {
       shadow: 'open',
       props,
     }) {

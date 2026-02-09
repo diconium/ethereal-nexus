@@ -1,10 +1,14 @@
 {
   "name": "@ethereal-nexus/cli",
-  "version": "1.0.2",
+  "version": "1.4.0",
   "type": "module",
   "description": "",
   "exports": "./dist/index.js",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diconium/ethereal-nexus.git"
+  },
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup"
@@ -13,15 +17,20 @@
     "dist",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
     "cosmiconfig": "^9.0.0",
     "fs-extra": "^11.2.0",
     "inquirer": "^9.2.22",
-    "minimatch": "^10.0.1",
+    "minimatch": "^10.1.2",
+    "node-fetch": "^3.3.2",
+    "open": "^10.0.3",
     "ora": "^8.0.1",
-    "tar": "^7.4.0",
+    "tar": "^7.5.7",
     "wretch": "^2.8.1",
     "zod": "^3.24.1"
   },

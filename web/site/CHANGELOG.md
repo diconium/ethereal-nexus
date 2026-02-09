@@ -1,5 +1,41 @@
 # @ethereal-nexus/site
 
+## 1.2.0
+
+### Minor Changes
+
+- a9beea6: Enhance SpectrumMediaField component with file type handling and improved UI for asset selection
+
+## 1.1.4
+
+### Patch Changes
+
+- ad57b45: Improve dialogs
+
+## 1.1.3
+
+### Patch Changes
+
+- e49033f: Improve dialogs
+
+## 1.1.2
+
+### Patch Changes
+
+- 835d73e: chore: update next, react, and react-dom versions in package.json
+
+## 1.1.1
+
+### Patch Changes
+
+- d8b9d65: update react and react-dom versions in package.json [CVE-2025-66478]
+
+## 1.1.0
+
+### Minor Changes
+
+- 90cf802: Update dependencies
+
 ## 1.0.2
 
 ### Patch Changes

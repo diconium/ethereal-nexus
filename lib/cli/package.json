@@ -26,7 +26,7 @@
     "cosmiconfig": "^9.0.0",
     "fs-extra": "^11.2.0",
     "inquirer": "^9.2.22",
-    "minimatch": "^10.0.3",
+    "minimatch": "^10.1.2",
     "node-fetch": "^3.3.2",
     "open": "^10.0.3",
     "ora": "^8.0.1",

@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.4.1
+
+### Patch Changes
+
+- fa726a2: fixed issue with images on next-gen dialogs
+
 ## 1.4.0
 
 ### Minor Changes

@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+  
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
@@ -37,18 +41,13 @@ jobs:
       - name: Build Packages
         run: pnpm run build
 
-      - name: Fix npmrc
-        run: npm config set "//registry.npmjs.org/:_authToken" "$NPM_TOKEN"
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Publish to npm
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba
         with:
           publish: pnpm release
           commit: "chore: release version"
           title: "[ci] Release version"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: '' # https://github.com/changesets/changesets/issues/1152#issuecomment-3190884868

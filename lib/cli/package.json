@@ -5,6 +5,10 @@
   "description": "",
   "exports": "./dist/index.js",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diconium/ethereal-nexus.git"
+  },
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup"

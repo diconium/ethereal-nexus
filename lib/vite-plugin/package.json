@@ -7,6 +7,10 @@
   ],
   "author": "",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diconium/ethereal-nexus.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsup ./src",

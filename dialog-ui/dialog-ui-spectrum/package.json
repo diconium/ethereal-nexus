@@ -6,6 +6,10 @@
   "main": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diconium/ethereal-nexus.git"
+  },
   "exports": {
     "./styles.css": "./dist/dialog-ui-spectrum.css",
     ".": {

@@ -12,6 +12,10 @@
     "build": "tsup ./src",
     "dev": "tsup ./src --watch"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diconium/ethereal-nexus.git"
+  },
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

@@ -12,6 +12,10 @@
       "import": "./dist/index.esm.js"
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diconium/ethereal-nexus.git"
+  },
   "files": [
     "dist",
     "README.md"

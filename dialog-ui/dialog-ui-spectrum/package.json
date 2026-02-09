@@ -52,12 +52,12 @@
     "@spectrum-icons/workflow": "^4.2.25"
   },
   "devDependencies": {
-    "@storybook/react-vite": "^9.1.10",
+    "@storybook/react-vite": "^10.2.8",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.5",
     "@vitejs/plugin-react": "^4.6.0",
-    "storybook": "^9.1.10",
+    "storybook": "^10.2.8",
     "typescript": "^5.4.2",
     "vite": "^7.1.11",
     "vite-plugin-dts": "^4.5.4",

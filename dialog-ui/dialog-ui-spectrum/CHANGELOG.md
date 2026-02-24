@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.5.1
+
+### Patch Changes
+
+- f31dd21: Update react-dom dependency
+
 ## 1.5.0
 
 ### Minor Changes

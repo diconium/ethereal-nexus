@@ -1,5 +1,17 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.5.0
+
+### Minor Changes
+
+- 8caf8be: fix: sorting labels on multifield
+
+### Patch Changes
+
+- cb933c8: enhance SpectrumMediaField with file drag & drop functionality
+- Updated dependencies [8caf8be]
+  - @ethereal-nexus/dialog-ui-core@1.3.0
+
 ## 1.4.1
 
 ### Patch Changes

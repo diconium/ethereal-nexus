@@ -48,5 +48,5 @@ jobs:
           commit: "chore: release version"
           title: "[ci] Release version"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

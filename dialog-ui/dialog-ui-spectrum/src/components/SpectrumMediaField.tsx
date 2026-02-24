@@ -13,6 +13,7 @@ import {
 import ImageAdd from '@spectrum-icons/workflow/ImageAdd';
 import {useI18n} from "@/providers";
 import { getMimeTypeFromPath } from "../utils/get-mimetype-from-file";
+import {ClickEventDetails} from "storybook/highlight";
 
 export interface SpectrumMediaFieldProps {
     field: any;
@@ -77,8 +78,6 @@ export const SpectrumMediaField: React.FC<SpectrumMediaFieldProps> = ({field, va
 
     const mimeTypes = Array.isArray(allowedMimeTypes) ? allowedMimeTypes.join(","): [allowedMimeTypes];
 
-
-
     useEffect(() => {
         const el = fileUploadRef.current;
         if (!el || !window?.Granite) return;
@@ -93,10 +92,20 @@ export const SpectrumMediaField: React.FC<SpectrumMediaFieldProps> = ({field, va
             }));
         };
 
+        const clearImage = (e: Event) => {
+
+            if (e.target.matches("[coral-fileupload-clear]") || e.target.parentElement?.matches("[coral-fileupload-clear]")) {
+                console.log("[SpectrumMediaField] Resetting image field value due to clear action");
+                onChangeValue();
+            }
+        }
+
         $(el).on("foundation-field-change", onChangeValue);
+        $(el).on("click", clearImage);
 
         return () => {
             $(el).off("foundation-field-change", onChangeValue);
+            $(el).off("click", clearImage);
         };
     }, []);
 

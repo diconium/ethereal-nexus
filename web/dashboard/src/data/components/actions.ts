@@ -15,22 +15,27 @@ import {
   ComponentToUpsert,
   componentVersionsCreateSchema,
   componentVersionsSchema,
-  ComponentWithVersion, NewComponentVersion
+  ComponentWithVersion,
+  NewComponentVersion,
 } from './dto';
 import {
   componentAssets,
   components,
-  componentVersions
+  componentVersions,
 } from '@/data/components/schema';
 import { revalidatePath } from 'next/cache';
-import { environments, projectComponentConfig, projects } from '@/data/projects/schema';
+import {
+  environments,
+  projectComponentConfig,
+  projects,
+} from '@/data/projects/schema';
 import { projectWithOwners, ProjectWithOwners } from '@/data/projects/dto';
 import { members } from '@/data/member/schema';
 import { users } from '@/data/users/schema';
 import { logEvent } from '@/lib/events/event-middleware';
 import { userIsMember } from '@/data/member/actions';
 import { EtherealStorage } from '@/storage/ethereal-storage';
-import { auth } from "@/auth";
+import { auth } from '@/auth';
 
 const storage = new EtherealStorage();
 const NS_PER_SEC = 1e9;
@@ -39,40 +44,38 @@ async function upsertComponentVersion(version: NewComponentVersion) {
   const safeVersion = componentVersionsCreateSchema.safeParse(version);
   if (!safeVersion.success) {
     return actionZodError(
-      'There\'s an issue with the component version record.',
-      safeVersion.error
+      "There's an issue with the component version record.",
+      safeVersion.error,
     );
   }
   const result = await db
     .insert(componentVersions)
     .values(safeVersion.data)
     .onConflictDoUpdate({
-      target: [
-        componentVersions.component_id,
-        componentVersions.version
-      ],
+      target: [componentVersions.component_id, componentVersions.version],
       set: {
         dialog: safeVersion.data.dialog,
         readme: safeVersion.data.readme,
-        changelog: safeVersion.data.changelog
-      }
+        changelog: safeVersion.data.changelog,
+      },
     })
     .returning();
 
-  const insertedVersion = componentVersionsSchema.safeParse(
-    result[0]
-  );
+  const insertedVersion = componentVersionsSchema.safeParse(result[0]);
   if (!insertedVersion.success) {
     return actionZodError(
-      'There\'s an issue with the inserted component version record.',
-      insertedVersion.error
+      "There's an issue with the inserted component version record.",
+      insertedVersion.error,
     );
   }
 
   return actionSuccess(insertedVersion.data);
 }
 
-export async function upsertNewComponent(formData: FormData, componentName: string) {
+export async function upsertNewComponent(
+  formData: FormData,
+  componentName: string,
+) {
   const session = await auth();
   if (!session?.user?.id) {
     return actionError('No user provided.');
@@ -86,7 +89,8 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
     }
   }
 
-  const manifestFile = filesMap[`/dist/.ethereal/${componentName}/manifest.json`];
+  const manifestFile =
+    filesMap[`/dist/.ethereal/${componentName}/manifest.json`];
 
   if (!manifestFile) {
     return actionError('No manifest present in the bundle.');
@@ -97,9 +101,13 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
 
   const getComponentResult = await getComponentByName(componentName);
   if (getComponentResult.success) {
-    const getComponentVersionsResult = await getComponentVersions(getComponentResult.data.id);
+    const getComponentVersionsResult = await getComponentVersions(
+      getComponentResult.data.id,
+    );
     if (getComponentVersionsResult.success) {
-      const versionAlreadyExists = getComponentVersionsResult.data.some((version) => version.version === manifest.version);
+      const versionAlreadyExists = getComponentVersionsResult.data.some(
+        (version) => version.version === manifest.version,
+      );
 
       if (versionAlreadyExists) {
         return actionError('Component version already exists.');
@@ -117,9 +125,9 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
   for (const [fileName, content] of Object.entries(filesMap)) {
     if (fileName.endsWith('.js') || fileName.endsWith('.css')) {
       const urlObject = await storage.uploadToStorage(
-          content,
-          `${slug}/${version.version}`,
-          fileName
+        content,
+        `${slug}/${version.version}`,
+        fileName,
       );
 
       if (!urlObject) {
@@ -136,13 +144,16 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
       }
 
       const response = await upsertAssets(
-          id,
-          version.id,
-          urlObject.toString(),
-          type
+        id,
+        version.id,
+        urlObject.toString(),
+        type,
       );
 
-      if (!response.success && response.error.message !== 'Asset already exists.') {
+      if (
+        !response.success &&
+        response.error.message !== 'Asset already exists.'
+      ) {
         return actionError('Failed to upsert assets');
       }
     }
@@ -150,11 +161,11 @@ export async function upsertNewComponent(formData: FormData, componentName: stri
   return actionSuccess({
     ...result.data,
   });
-};
+}
 
 export async function upsertComponentWithVersion(
   component: ComponentToUpsert,
-  userId?: string
+  userId?: string,
 ): Promise<Result<ComponentWithVersion>> {
   if (!userId) {
     return actionError('No user provided.');
@@ -163,8 +174,8 @@ export async function upsertComponentWithVersion(
   const safeComponent = componentsUpsertSchema.safeParse(component);
   if (!safeComponent.success) {
     return actionZodError(
-      'There\'s an issue with the component record.',
-      safeComponent.error
+      "There's an issue with the component record.",
+      safeComponent.error,
     );
   }
   try {
@@ -176,47 +187,48 @@ export async function upsertComponentWithVersion(
         set: {
           name: safeComponent.data.name,
           title: safeComponent.data.title,
-          description: safeComponent.data.description
-        }
+          description: safeComponent.data.description,
+        },
       })
       .returning();
 
     const result = componentsSchema.safeParse(insertComponent[0]);
     if (!result.success) {
-      logger.error('Component validation failed after upsert', new Error('Component validation error'), {
-        operation: 'upsert-component',
-        componentName: component.name,
-        componentSlug: component.slug,
-        validationErrors: result.error.errors,
-      });
+      logger.error(
+        'Component validation failed after upsert',
+        new Error('Component validation error'),
+        {
+          operation: 'upsert-component',
+          componentName: component.name,
+          componentSlug: component.slug,
+          validationErrors: result.error.errors,
+        },
+      );
       return actionError('Failed to upsert component');
     }
     const upsertedVersion = await upsertComponentVersion({
       component_id: result.data.id,
-      ...component
+      ...component,
     });
     if (!upsertedVersion.success) {
-      return actionError(
-        upsertedVersion.error.message
-      );
+      return actionError(upsertedVersion.error.message);
     }
 
-    const eventData =
-      {
-        'component_id': result?.data.id,
-        'version_id': upsertedVersion.data.id
-      };
+    const eventData = {
+      component_id: result?.data.id,
+      version_id: upsertedVersion.data.id,
+    };
 
     await logEvent({
       data: eventData,
       resource_id: result?.data.id,
       type: 'component_update',
-      user_id: userId
+      user_id: userId,
     });
 
     return actionSuccess({
       ...result.data,
-      version: upsertedVersion.data
+      version: upsertedVersion.data,
     });
   } catch (error) {
     logger.error('Failed to insert component into database', error as Error, {
@@ -232,14 +244,14 @@ export async function upsertAssets(
   componentId: string,
   versionId: string,
   url: string,
-  contentType: 'css' | 'js' | 'chunk' | 'server' | null
+  contentType: 'css' | 'js' | 'chunk' | 'server' | null,
 ) {
   try {
     const assetToUpsert: z.infer<typeof componentAssetsCreateSchema> = {
       component_id: componentId,
       version_id: versionId!,
       url,
-      type: contentType
+      type: contentType,
     };
 
     const safeAssetToUpsert =
@@ -254,8 +266,8 @@ export async function upsertAssets(
         validationErrors: safeAssetToUpsert.error.errors,
       });
       return actionZodError(
-        'There\'s an issue with the components assets record.',
-        safeAssetToUpsert.error
+        "There's an issue with the components assets record.",
+        safeAssetToUpsert.error,
       );
     }
 
@@ -266,8 +278,8 @@ export async function upsertAssets(
         target: [
           componentAssets.component_id,
           componentAssets.version_id,
-          componentAssets.url
-        ]
+          componentAssets.url,
+        ],
       })
       .returning();
 
@@ -277,18 +289,22 @@ export async function upsertAssets(
 
     const result = componentAssetsSchema.safeParse(upsertedAsset[0]);
     if (!result.success) {
-      logger.error('Asset upsert validation failed', new Error('Asset validation error'), {
-        operation: 'upsert-assets',
-        componentId,
-        versionId,
-        url,
-        contentType,
-        validationErrors: result.error.errors,
-      });
+      logger.error(
+        'Asset upsert validation failed',
+        new Error('Asset validation error'),
+        {
+          operation: 'upsert-assets',
+          componentId,
+          versionId,
+          url,
+          contentType,
+          validationErrors: result.error.errors,
+        },
+      );
 
       return actionZodError(
-        'There\'s an issue with the inserted components assets record.',
-        result.error
+        "There's an issue with the inserted components assets record.",
+        result.error,
       );
     }
 
@@ -305,7 +321,9 @@ export async function upsertAssets(
   }
 }
 
-export async function getComponents(): ActionResponse<Array<Component & { versions: string[]}>> {
+export async function getComponents(): ActionResponse<
+  Array<Component & { versions: string[] }>
+> {
   try {
     const select = await db
       .select({
@@ -313,8 +331,11 @@ export async function getComponents(): ActionResponse<Array<Component & { versio
         versions: sql`ARRAY_AGG(${componentVersions.version})`,
       })
       .from(components)
-      .leftJoin(componentVersions, eq(componentVersions.component_id, components.id))
-      .groupBy(components.id)
+      .leftJoin(
+        componentVersions,
+        eq(componentVersions.component_id, components.id),
+      )
+      .groupBy(components.id);
 
     return actionSuccess(select);
   } catch (error) {
@@ -326,7 +347,7 @@ export async function getComponents(): ActionResponse<Array<Component & { versio
 }
 
 export async function getComponentById(
-  id: string
+  id: string,
 ): ActionResponse<z.infer<typeof componentsSchema>> {
   if (!id) {
     return actionError('No identifier provided.');
@@ -334,14 +355,14 @@ export async function getComponentById(
 
   try {
     const select = await db.query.components.findFirst({
-      where: eq(components.id, id)
+      where: eq(components.id, id),
     });
 
     const safe = componentsSchema.safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the component records.',
-        safe.error
+        "There's an issue with the component records.",
+        safe.error,
       );
     }
 
@@ -356,7 +377,7 @@ export async function getComponentById(
 }
 
 export async function getComponentByName(
-  name: string
+  name: string,
 ): ActionResponse<z.infer<typeof componentsSchema>> {
   if (!name) {
     return actionError('No name provided.');
@@ -364,14 +385,14 @@ export async function getComponentByName(
 
   try {
     const select = await db.query.components.findFirst({
-      where: eq(components.name, name)
+      where: eq(components.name, name),
     });
 
     const safe = componentsSchema.safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the component records.',
-        safe.error
+        "There's an issue with the component records.",
+        safe.error,
       );
     }
 
@@ -386,7 +407,7 @@ export async function getComponentByName(
 }
 
 export async function getComponentVersions(
-  id: string
+  id: string,
 ): ActionResponse<z.infer<typeof componentVersionsSchema>[]> {
   if (!id) {
     return actionError('No identifier provided.');
@@ -394,29 +415,33 @@ export async function getComponentVersions(
 
   try {
     const select = await db.query.componentVersions.findMany({
-      where: eq(componentVersions.component_id, id)
+      where: eq(componentVersions.component_id, id),
     });
     const safe = componentVersionsSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the component records.',
-        safe.error
+        "There's an issue with the component records.",
+        safe.error,
       );
     }
 
     return actionSuccess(safe.data);
   } catch (error) {
-    logger.error('Failed to fetch component versions from database', error as Error, {
-      operation: 'get-component-versions',
-      componentId: id,
-    });
+    logger.error(
+      'Failed to fetch component versions from database',
+      error as Error,
+      {
+        operation: 'get-component-versions',
+        componentId: id,
+      },
+    );
     return actionError('Failed to fetch component from database.');
   }
 }
 
 export async function getComponentDependentsProjects(
   id: string,
-  userId?: string
+  userId?: string,
 ): ActionResponse<ProjectWithOwners[]> {
   if (!id) {
     return actionError('No component id provided.');
@@ -427,53 +452,57 @@ export async function getComponentDependentsProjects(
   }
 
   try {
-    const select = await db.select({
-      id: projects.id,
-      name: projects.name,
-      description: projects.description,
-      owners: sql`ARRAY_AGG(DISTINCT jsonb_build_object('id', ${users.id}, 'name', ${users.name}))`,
-      has_access: await userIsMember(userId, projects.id),
-    })
+    const select = await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        description: projects.description,
+        owners: sql`ARRAY_AGG(DISTINCT jsonb_build_object('id', ${users.id}, 'name', ${users.name}))`,
+        has_access: await userIsMember(userId, projects.id),
+      })
       .from(projectComponentConfig)
-      .leftJoin(environments, eq(environments.id, projectComponentConfig.environment_id))
+      .leftJoin(
+        environments,
+        eq(environments.id, projectComponentConfig.environment_id),
+      )
       .leftJoin(projects, eq(projects.id, environments.project_id))
-      .leftJoin(members,
+      .leftJoin(
+        members,
         and(
           eq(members.resource, environments.project_id),
-          eq(members.role, 'owner')
-        )
+          eq(members.role, 'owner'),
+        ),
       )
       .leftJoin(users, eq(users.id, members.user_id))
-      .where(
-        eq(projectComponentConfig.component_id, id),
-      )
-      .groupBy(
-        projects.id,
-        users.name
-      )
+      .where(eq(projectComponentConfig.component_id, id))
+      .groupBy(projects.id, users.name);
 
     const safe = projectWithOwners.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the component records.',
-        safe.error
+        "There's an issue with the component records.",
+        safe.error,
       );
     }
 
     return actionSuccess(safe.data);
   } catch (error) {
-    logger.error('Failed to fetch component dependent projects from database', error as Error, {
-      operation: 'get-component-dependents',
-      componentId: id,
-      userId,
-    });
+    logger.error(
+      'Failed to fetch component dependent projects from database',
+      error as Error,
+      {
+        operation: 'get-component-dependents',
+        componentId: id,
+        userId,
+      },
+    );
     return actionError('Failed to fetch components from database.');
   }
 }
 
 export async function getComponentAssets(
   component_id: string,
-  version_id: string
+  version_id: string,
 ): ActionResponse<z.infer<typeof componentAssetsSchema>[]> {
   if (!component_id) {
     return actionError('No component id provided.');
@@ -482,39 +511,44 @@ export async function getComponentAssets(
     const select = await db.query.componentAssets.findMany({
       where: and(
         eq(componentAssets.component_id, component_id),
-        eq(componentAssets.version_id, version_id)
-      )
+        eq(componentAssets.version_id, version_id),
+      ),
     });
     const safe = componentAssetsSchema.array().safeParse(select);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the component records.',
-        safe.error
+        "There's an issue with the component records.",
+        safe.error,
       );
     }
 
     return actionSuccess(safe.data);
   } catch (error) {
-    logger.error('Failed to fetch component assets from database', error as Error, {
-      operation: 'get-component-assets',
-      componentId: component_id,
-      versionId: version_id,
-    });
+    logger.error(
+      'Failed to fetch component assets from database',
+      error as Error,
+      {
+        operation: 'get-component-assets',
+        componentId: component_id,
+        versionId: version_id,
+      },
+    );
     return actionError('Failed to fetch component from database.');
   }
 }
 
 export async function deleteComponent(id: string): ActionResponse<Component> {
   try {
-    const del = await db.delete(components)
+    const del = await db
+      .delete(components)
       .where(eq(components.id, id))
       .returning();
 
     const safe = componentsSchema.safeParse(del);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the components records.',
-        safe.error
+        "There's an issue with the components records.",
+        safe.error,
       );
     }
 

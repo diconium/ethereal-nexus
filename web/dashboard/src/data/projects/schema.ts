@@ -27,18 +27,17 @@ export const projectComponentConfig = pgTable(
     component_id: uuid('component_id')
       .notNull()
       .references(() => components.id, { onDelete: 'cascade' }),
-    component_version: uuid('component_version')
-      .references(() => componentVersions.id, { onDelete: 'set null'}),
+    component_version: uuid('component_version').references(
+      () => componentVersions.id,
+      { onDelete: 'set null' },
+    ),
     is_active: boolean('is_active').notNull().default(true),
     ssr_active: boolean('ssr_active').notNull().default(true),
   },
   (table) => {
     return {
       pk: primaryKey({
-        columns: [
-          table.environment_id,
-          table.component_id,
-        ],
+        columns: [table.environment_id, table.component_id],
       }),
     };
   },
@@ -49,8 +48,9 @@ export const featureFlags = pgTable('feature_flags', {
   project_id: uuid('project_id')
     .notNull()
     .references(() => projects.id, { onDelete: 'cascade' }),
-  component_id: uuid('component_id')
-    .references(() => components.id, { onDelete: 'cascade' }),
+  component_id: uuid('component_id').references(() => components.id, {
+    onDelete: 'cascade',
+  }),
   environment_id: uuid('environment_id')
     .notNull()
     .references(() => environments.id, { onDelete: 'cascade' }),

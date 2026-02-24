@@ -4,8 +4,8 @@ export function actionError(message: string) {
   return {
     success: false,
     error: {
-      message
-    }
+      message,
+    },
   } as const;
 }
 
@@ -17,15 +17,15 @@ export function actionZodError(message: string, zodError: ZodError) {
       message,
       issues: error.map((issue) => ({
         message: issue.message,
-        path: issue.path
-      }))
-    }
+        path: issue.path,
+      })),
+    },
   } as const;
 }
 
 export function actionSuccess<T>(data: T) {
   return {
     success: true,
-    data
+    data,
   } as const;
 }

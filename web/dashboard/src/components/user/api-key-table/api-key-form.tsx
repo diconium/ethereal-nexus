@@ -41,7 +41,7 @@ export function ApiKeyForm({ apyKey, availableProjects, onComplete }: ApiKeyDial
   };
 
   const form = useForm<NewApiKey>({
-    resolver: zodResolver(newApiKeySchema), defaultValues
+    resolver: zodResolver(newApiKeySchema as any), defaultValues
   });
 
   const handleSubmit = async (data) => {

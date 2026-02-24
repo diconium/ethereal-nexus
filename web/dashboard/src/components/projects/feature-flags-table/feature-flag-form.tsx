@@ -12,9 +12,6 @@ import { Switch } from '@/components/ui/switch';
 import { Environment, FeatureFlagInput, featureFlagInputSchema } from '@/data/projects/dto';
 import { upsertFeatureFlag } from '@/data/projects/actions';
 import { Component } from '@/data/components/dto';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { Command, CommandInput, CommandList, CommandGroup, CommandItem } from '@/components/ui/command';
-import { ChevronDownIcon, Check } from 'lucide-react';
 import { SelectPopover } from '@/components/ui/select-popover';
 
 
@@ -31,7 +28,7 @@ type FeatureFlagFormProps = {
 export default function FeatureFlagForm({ environment, component, project, onComplete, onCancel, environments = [], components = [] }: FeatureFlagFormProps) {
   const { toast } = useToast();
   const form: any = useForm<FeatureFlagInput>({
-    resolver: zodResolver(featureFlagInputSchema),
+    resolver: zodResolver(featureFlagInputSchema as any),
     defaultValues: {
       environment_id: environment?.id || environments[0]?.id,
       component_id: component?.id ,

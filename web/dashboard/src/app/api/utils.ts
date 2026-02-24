@@ -14,7 +14,8 @@ const KEYCLOAK_CLIENT_SECRET = process.env.KEYCLOAK_CLIENT_SECRET;
 export const DEFAULT_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Headers': 'Authorization, Origin, X-Requested-With, Content-Type, Accept',
+  'Access-Control-Allow-Headers':
+    'Authorization, Origin, X-Requested-With, Content-Type, Accept',
 };
 
 export enum HttpStatus {
@@ -66,10 +67,12 @@ export async function keyCloakRefresh(token: JWT | null) {
     },
   );
 
-
   if (token) {
     if (token.refresh_token && typeof token.refresh_token === 'string') {
-      const refresh = await client.refreshTokenGrant(config, token.refresh_token);
+      const refresh = await client.refreshTokenGrant(
+        config,
+        token.refresh_token,
+      );
       console.log('token refreshed');
       return refresh;
     }
@@ -94,15 +97,15 @@ export async function authenticatedWithApiKeyUser(req?: NextRequest) {
       return null;
     }
   }
-    const [type, token] = authorization.split(' ');
+  const [type, token] = authorization.split(' ');
 
-    switch (type.toLowerCase()) {
-      case 'apikey':
-        return handleApiKeyAuthentication(token);
-      case 'bearer':
-        return handleBearerAuthentication(token);
-      default:
-        return null;
+  switch (type.toLowerCase()) {
+    case 'apikey':
+      return handleApiKeyAuthentication(token);
+    case 'bearer':
+      return handleBearerAuthentication(token);
+    default:
+      return null;
   }
 }
 
@@ -148,9 +151,7 @@ async function handleBearerAuthentication(token: string) {
       },
       undefined,
       {
-        execute: [
-          client.allowInsecureRequests,
-        ],
+        execute: [client.allowInsecureRequests],
       },
     );
     const introspection = await client.tokenIntrospection(config, token);

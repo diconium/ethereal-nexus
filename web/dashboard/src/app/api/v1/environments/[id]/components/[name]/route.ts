@@ -37,4 +37,4 @@ export const GET = async (
   }
 
   return NextResponse.json(response.data, { status: HttpStatus.OK });
-}
+};

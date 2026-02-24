@@ -1,10 +1,22 @@
-import { jsonb, pgEnum, pgTable, text, timestamp, uuid, primaryKey, integer, unique } from 'drizzle-orm/pg-core';
-import type { AdapterAccountType } from "next-auth/adapters"
+import {
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  primaryKey,
+  integer,
+  unique,
+} from 'drizzle-orm/pg-core';
+import type { AdapterAccountType } from 'next-auth/adapters';
 
 export const userRolesEnum = pgEnum('roles', ['admin', 'user', 'viewer']);
 export const userTypesEnum = pgEnum('type', ['email', 'oauth']);
 
-export const users = pgTable('user', {
+export const users = pgTable(
+  'user',
+  {
     id: uuid('id').notNull().primaryKey().defaultRandom(),
     password: text('password'),
     email: text('email'),
@@ -19,8 +31,10 @@ export const users = pgTable('user', {
     role: userRolesEnum('role').notNull().default('user'),
   },
   (t) => ({
-    uniqueUsers: unique('unique_user').on(t.email, t.issuer, t.subject).nullsNotDistinct(),
-  })
+    uniqueUsers: unique('unique_user')
+      .on(t.email, t.issuer, t.subject)
+      .nullsNotDistinct(),
+  }),
 );
 
 export const apiKeys = pgTable('api_key', {
@@ -42,39 +56,39 @@ export const invites = pgTable('invite', {
 });
 
 export const accounts = pgTable(
-  "account",
+  'account',
   {
-    userId: uuid("userId")
+    userId: uuid('userId')
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    type: text("type").$type<AdapterAccountType>().notNull(),
-    provider: text("provider").notNull(),
-    providerAccountId: text("providerAccountId").notNull(),
-    refresh_token: text("refresh_token"),
-    access_token: text("access_token"),
-    expires_at: integer("expires_at"),
-    token_type: text("token_type"),
-    scope: text("scope"),
-    id_token: text("id_token"),
-    session_state: text("session_state"),
+      .references(() => users.id, { onDelete: 'cascade' }),
+    type: text('type').$type<AdapterAccountType>().notNull(),
+    provider: text('provider').notNull(),
+    providerAccountId: text('providerAccountId').notNull(),
+    refresh_token: text('refresh_token'),
+    access_token: text('access_token'),
+    expires_at: integer('expires_at'),
+    token_type: text('token_type'),
+    scope: text('scope'),
+    id_token: text('id_token'),
+    session_state: text('session_state'),
   },
   (account) => ({
     compoundKey: primaryKey({
       columns: [account.provider, account.providerAccountId],
     }),
-  })
-)
+  }),
+);
 
 export const verificationTokens = pgTable(
-  "verification_token",
+  'verification_token',
   {
-    identifier: text("identifier").notNull(),
-    token: text("token").notNull(),
-    expires: timestamp("expires", { mode: "date" }).notNull(),
+    identifier: text('identifier').notNull(),
+    token: text('token').notNull(),
+    expires: timestamp('expires', { mode: 'date' }).notNull(),
   },
   (verificationToken) => ({
     compositePk: primaryKey({
       columns: [verificationToken.identifier, verificationToken.token],
     }),
-  })
-)
+  }),
+);

@@ -21,7 +21,7 @@ export default function PasswordForm({ onComplete }: PasswordFormProps) {
   const { toast } = useToast()
 
   const form = useForm<UpdatePassword>({
-    resolver: zodResolver(updatePasswordSchema.omit({id: true}))
+    resolver: zodResolver(updatePasswordSchema.omit({id: true}) as any)
   });
 
   async function handler(formdata) {

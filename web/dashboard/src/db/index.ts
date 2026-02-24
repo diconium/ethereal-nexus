@@ -3,16 +3,15 @@ import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
 import postgres from 'postgres';
 import { neon } from '@neondatabase/serverless';
 import { remember } from '@epic-web/remember';
-import { instrumentDrizzleClient } from "@kubiks/otel-drizzle";
+import { instrumentDrizzleClient } from '@kubiks/otel-drizzle';
 import * as users from '@/data/users/schema';
 import * as projects from '@/data/projects/schema';
 import * as member from '@/data/member/schema';
 import * as components from '@/data/components/schema';
-import * as events from "@/data/events/schema";
-import { RedisCache } from "@/db/redis-cache";
-import {InMemoryCache} from "@/db/in-memory-cache";
+import * as events from '@/data/events/schema';
+import { RedisCache } from '@/db/redis-cache';
+import { InMemoryCache } from '@/db/in-memory-cache';
 import { logger } from '@/lib/logger';
-
 
 const schema = {
   ...users,
@@ -24,16 +23,16 @@ const schema = {
 
 const redisEnabled = process.env.DB_CACHE_STRATEGY;
 
-const cache = remember("redis-cache", () => {
+const cache = remember('redis-cache', () => {
   switch (redisEnabled) {
     case 'redis':
-      logger.info("Database cache initialized with Redis", {
+      logger.info('Database cache initialized with Redis', {
         operation: 'db-init',
         cacheStrategy: 'redis',
       });
       return new RedisCache();
     default:
-      logger.info("Database cache initialized with in-memory strategy", {
+      logger.info('Database cache initialized with in-memory strategy', {
         operation: 'db-init',
         cacheStrategy: redisEnabled || 'none',
         note: 'In-memory cache is used for development. Set DB_CACHE_STRATEGY=redis for production.',
@@ -52,24 +51,23 @@ function clientFactory() {
       break;
     default:
       drizzle = drizzlePg;
-      let connectionString =
-        client = postgres(
-          process.env.DRIZZLE_DATABASE_URL!,
-          {
-            max: process.env.DRIZZLE_DATABASE_MAX_CONNECTIONS ? parseInt(process.env.DRIZZLE_DATABASE_MAX_CONNECTIONS) : 25,
-            idle_timeout: 20,
-          },
-        );
+      let connectionString = (client = postgres(
+        process.env.DRIZZLE_DATABASE_URL!,
+        {
+          max: process.env.DRIZZLE_DATABASE_MAX_CONNECTIONS
+            ? parseInt(process.env.DRIZZLE_DATABASE_MAX_CONNECTIONS)
+            : 25,
+          idle_timeout: 20,
+        },
+      ));
   }
 
   return drizzle(client, {
     cache,
-    schema
-  })
+    schema,
+  });
 }
 
-export const db = remember('db', () =>
-  clientFactory(),
-);
+export const db = remember('db', () => clientFactory());
 
 instrumentDrizzleClient(db);

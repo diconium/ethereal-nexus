@@ -26,7 +26,7 @@ export default function ProjectsForm({ project, onComplete, onCancel }: Projects
 
   const { toast } = useToast();
   const form: any = useForm<ProjectInput>({
-    resolver: zodResolver(projectInputSchema),
+    resolver: zodResolver(projectInputSchema as any),
     defaultValues: project ?? {}
   });
   const onSubmit = async (data: ProjectInput) => {

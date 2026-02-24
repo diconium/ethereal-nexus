@@ -1,5 +1,5 @@
 const permissions = ['none', 'read', 'write', 'manage'] as const;
-export type Permissions = typeof permissions[number]
+export type Permissions = (typeof permissions)[number];
 
 export function lowestPermission(left: Permissions, right: Permissions) {
   const leftIndex = permissions.indexOf(left);
@@ -8,7 +8,10 @@ export function lowestPermission(left: Permissions, right: Permissions) {
   return permissions[Math.min(leftIndex, rightIndex)];
 }
 
-export function isPermissionsHigher(left: Permissions | undefined, right: Permissions | undefined) {
+export function isPermissionsHigher(
+  left: Permissions | undefined,
+  right: Permissions | undefined,
+) {
   if (!left || !right) {
     return false;
   }

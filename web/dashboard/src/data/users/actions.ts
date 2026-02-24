@@ -41,10 +41,14 @@ import { AuthError } from 'next-auth';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 
-type Providers = 'credentials' | 'github' | 'microsoft-entra-id' | 'azure-communication-service' | 'keycloak';
+type Providers =
+  | 'credentials'
+  | 'github'
+  | 'microsoft-entra-id'
+  | 'azure-communication-service'
+  | 'keycloak';
 
 export async function login(provider: Providers, login?: UserLogin) {
-
   // Check for 'cli-callback' cookie and use its value for redirectTo if present
   let redirectTo = '/';
   const cookieStore = await cookies();
@@ -53,7 +57,6 @@ export async function login(provider: Providers, login?: UserLogin) {
   if (cliCallback?.value) {
     redirectTo = '/api/v1/cli-auth/callback';
   }
-
 
   try {
     await signIn(
@@ -81,7 +84,6 @@ export async function login(provider: Providers, login?: UserLogin) {
   }
 }
 
-
 export async function logout() {
   return await signOut();
 }
@@ -100,28 +102,28 @@ async function insertUser(user: NewUser): ActionResponse<PublicUser> {
 
     return actionSuccess(result.data);
   } catch (error) {
-    logger.error('Failed to insert user into database', error instanceof Error ? error : undefined, {
-      operation: 'user-insert',
-      email: user.email,
-    });
+    logger.error(
+      'Failed to insert user into database',
+      error instanceof Error ? error : undefined,
+      {
+        operation: 'user-insert',
+        email: user.email,
+      },
+    );
     return actionError('Failed to insert user into database.');
   }
 }
 
-async function insertCredentialsUser(
-  user: {
-    email: string
-    password: string
-  },
-): ActionResponse<PublicUser> {
+async function insertCredentialsUser(user: {
+  email: string;
+  password: string;
+}): ActionResponse<PublicUser> {
   const { email, password } = user;
 
   const existingUser = await db
     .select({ id: users.id })
     .from(users)
-    .where(
-      eq(users.email, email),
-    );
+    .where(eq(users.email, email));
   if (existingUser.length > 0) {
     return actionError('User with that email already exists.');
   }
@@ -163,7 +165,7 @@ export async function insertInvitedCredentialsUser(
       sensitivity: 'base',
     }) !== 0
   ) {
-    return actionError('The emails doesn\'t match the invite.');
+    return actionError("The emails doesn't match the invite.");
   }
 
   const result = await insertCredentialsUser(user);
@@ -261,10 +263,14 @@ export async function insertInvitedSsoUser(
 
     return insertUser(user);
   } catch (error) {
-    logger.error('Error processing SSO user invite', error instanceof Error ? error : undefined, {
-      operation: 'user-sso-invite',
-      email: user?.email,
-    });
+    logger.error(
+      'Error processing SSO user invite',
+      error instanceof Error ? error : undefined,
+      {
+        operation: 'user-sso-invite',
+        email: user?.email,
+      },
+    );
     return actionError('Failed to process SSO login.');
   }
 }
@@ -283,12 +289,16 @@ export async function insertServiceUser(
       type: 'oauth',
     });
   } catch (error) {
-    logger.error('Failed to insert service user', error instanceof Error ? error : undefined, {
-      operation: 'user-service-insert',
-      subject: safeUser.data.subject,
-      issuer: safeUser.data.issuer,
-      user: safeUser.data,
-    });
+    logger.error(
+      'Failed to insert service user',
+      error instanceof Error ? error : undefined,
+      {
+        operation: 'user-service-insert',
+        subject: safeUser.data.subject,
+        issuer: safeUser.data.issuer,
+        user: safeUser.data,
+      },
+    );
     return actionError('Failed to insert service user into database.');
   }
 }
@@ -306,7 +316,7 @@ export async function getUserById(userId?: string): ActionResponse<User> {
     const safeUser = userSchema.safeParse(userSelect);
     if (!safeUser.success) {
       return actionZodError(
-        'There\'s an issue with the user record.',
+        "There's an issue with the user record.",
         safeUser.error,
       );
     }
@@ -334,7 +344,7 @@ export async function getPublicUserById(
     const safeUser = userPublicSchema.safeParse(user.data);
     if (!safeUser.success) {
       return actionZodError(
-        'There\'s an issue with the user record.',
+        "There's an issue with the user record.",
         safeUser.error,
       );
     }
@@ -361,7 +371,7 @@ export async function getUserByEmail(
     const safeUser = userSchema.safeParse(userSelect[0]);
     if (!safeUser.success) {
       return actionZodError(
-        'There\'s an issue with the user record.',
+        "There's an issue with the user record.",
         safeUser.error,
       );
     }
@@ -372,9 +382,7 @@ export async function getUserByEmail(
   }
 }
 
-export async function deleteUser(
-  id: string,
-): ActionResponse<PublicUser> {
+export async function deleteUser(id: string): ActionResponse<PublicUser> {
   const session = await auth();
   if (!session?.user?.id) {
     return actionError('No user provided.');
@@ -386,17 +394,12 @@ export async function deleteUser(
   }
 
   try {
-    const deleted = await db
-      .delete(users)
-      .where(
-        eq(users.id, id),
-      )
-      .returning();
+    const deleted = await db.delete(users).where(eq(users.id, id)).returning();
 
     const safeDeleted = userPublicSchema.safeParse(deleted[0]);
     if (!safeDeleted.success) {
       return actionZodError(
-        'There\'s an issue with the API key record.',
+        "There's an issue with the API key record.",
         safeDeleted.error,
       );
     }
@@ -426,7 +429,7 @@ export async function getApiKeyById(
       .safeParse(result);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the api key record.',
+        "There's an issue with the api key record.",
         safe.error,
       );
     }
@@ -481,9 +484,7 @@ export async function getApiKeyByKey(
         api_resource: sql`jsonb_object_keys
         (
         ${apiKeys.permissions}
-        )`.as(
-          'api_resource',
-        ),
+        )`.as('api_resource'),
       })
       .from(apiKeys)
       .as('api_resource');
@@ -502,8 +503,11 @@ export async function getApiKeyByKey(
       .leftJoin(
         members,
         and(
-          eq(sql`${members.resource}
-          ::text`, permissions.api_resource),
+          eq(
+            sql`${members.resource}
+          ::text`,
+            permissions.api_resource,
+          ),
           eq(members.user_id, apiKeys.user_id),
         ),
       )
@@ -514,16 +518,20 @@ export async function getApiKeyByKey(
     const safe = apiKeyValidPermissions.array().safeParse(result);
     if (!safe.success) {
       return actionZodError(
-        'There\'s an issue with the api key record.',
+        "There's an issue with the api key record.",
         safe.error,
       );
     }
     return actionSuccess(result[0]);
   } catch (error) {
-    logger.error('Failed to fetch API key by key', error instanceof Error ? error : undefined, {
-      operation: 'apikey-fetch',
-      keyId: id,
-    });
+    logger.error(
+      'Failed to fetch API key by key',
+      error instanceof Error ? error : undefined,
+      {
+        operation: 'apikey-fetch',
+        keyId: id,
+      },
+    );
     return actionError('Failed to get api key.');
   }
 }
@@ -556,7 +564,7 @@ export async function upsertApiKey(
       .safeParse(insert[0]);
     if (!safeKey.success) {
       return actionZodError(
-        'There\'s an issue with the api key record.',
+        "There's an issue with the api key record.",
         safeKey.error,
       );
     }
@@ -584,7 +592,9 @@ export async function getApiKeys(
       .from(apiKeys)
       .where(eq(apiKeys.user_id, id));
 
-    const safe = z.array(omitKey ? apiKeyPublicSchema : apiKeySchema).safeParse(select);
+    const safe = z
+      .array(omitKey ? apiKeyPublicSchema : apiKeySchema)
+      .safeParse(select);
 
     if (!safe.success) {
       logger.error('Failed to parse API keys from database', undefined, {
@@ -593,7 +603,7 @@ export async function getApiKeys(
         validationError: safe.error.message,
       });
       return actionZodError(
-        'There\'s an issue with the api keys records.',
+        "There's an issue with the api keys records.",
         safe.error,
       );
     }
@@ -611,15 +621,19 @@ export async function getUsers(): ActionResponse<PublicUser[]> {
     const safeUsers = z.array(userPublicSchema).safeParse(userSelect);
     if (!safeUsers.success) {
       return actionZodError(
-        'There\'s an issue with the user records.',
+        "There's an issue with the user records.",
         safeUsers.error,
       );
     }
     return actionSuccess(safeUsers.data);
   } catch (error) {
-    logger.error('Failed to fetch users from database', error instanceof Error ? error : undefined, {
-      operation: 'user-list',
-    });
+    logger.error(
+      'Failed to fetch users from database',
+      error instanceof Error ? error : undefined,
+      {
+        operation: 'user-list',
+      },
+    );
     return actionError('Failed to fetch users from database.');
   }
 }
@@ -641,7 +655,7 @@ export async function deleteApiKey(
     const safeDeleted = apiKeyPublicSchema.safeParse(deleted);
     if (!safeDeleted.success) {
       return actionZodError(
-        'There\'s an issue with the API key record.',
+        "There's an issue with the API key record.",
         safeDeleted.error,
       );
     }
@@ -691,7 +705,7 @@ export async function deleteInvite(key: string): ActionResponse<Invite> {
     const safeDeleted = inviteSchema.safeParse(deleted);
     if (!safeDeleted.success) {
       return actionZodError(
-        'There\'s an issue with the invite record.',
+        "There's an issue with the invite record.",
         safeDeleted.error,
       );
     }
@@ -717,7 +731,7 @@ export async function updateUser(user: PublicUser): ActionResponse<PublicUser> {
     const safeUpdated = userPublicSchema.safeParse(updated[0]);
     if (!safeUpdated.success) {
       return actionZodError(
-        'There\'s an issue with the user record.',
+        "There's an issue with the user record.",
         safeUpdated.error,
       );
     }
@@ -739,7 +753,7 @@ export async function updateUserPassword(
       !existingUser.data.password ||
       !user.oldPassword
     ) {
-      return actionError('Cannot update user\'s password.');
+      return actionError("Cannot update user's password.");
     }
 
     const passwordMatches = bcrypt.compare(
@@ -747,7 +761,7 @@ export async function updateUserPassword(
       existingUser.data.password,
     );
     if (!passwordMatches) {
-      return actionError('Cannot update user\'s password.');
+      return actionError("Cannot update user's password.");
     }
 
     const newPassword = await bcrypt.hash(user.password!, 10);
@@ -762,7 +776,7 @@ export async function updateUserPassword(
     const safeUpdated = userPublicSchema.safeParse(updated[0]);
     if (!safeUpdated.success) {
       return actionZodError(
-        'There\'s an issue with the user record.',
+        "There's an issue with the user record.",
         safeUpdated.error,
       );
     }
@@ -793,7 +807,7 @@ export async function updateUserRole(
     const safeUpdated = userPublicSchema.safeParse(updated[0]);
     if (!safeUpdated.success) {
       return actionZodError(
-        'There\'s an issue with the user record.',
+        "There's an issue with the user record.",
         safeUpdated.error,
       );
     }
@@ -805,43 +819,44 @@ export async function updateUserRole(
   }
 }
 
-
-export async function getServiceUser(issuer: string, subject: string): ActionResponse<NewServiceUserSchema & {
-  permissions: ApiPermissions
-}> {
+export async function getServiceUser(
+  issuer: string,
+  subject: string,
+): ActionResponse<
+  NewServiceUserSchema & {
+    permissions: ApiPermissions;
+  }
+> {
   try {
-    const user = await db.select({
-      id: users.id,
-      subject: users.subject,
-      issuer: users.issuer,
-      client_id: users.client_id,
-      client_secret: users.client_secret,
-      permissions: sql`jsonb_object_agg
+    const user = await db
+      .select({
+        id: users.id,
+        subject: users.subject,
+        issuer: users.issuer,
+        client_id: users.client_id,
+        client_secret: users.client_secret,
+        permissions: sql`jsonb_object_agg
       (
       ${members.resource},
       ${members.permissions}
       )`,
-    })
+      })
       .from(users)
-      .where(
-        and(
-          eq(users.issuer, issuer),
-          eq(users.subject, subject),
-        ),
-      )
-      .leftJoin(
-        members,
-        eq(members.user_id, users.id),
-      )
+      .where(and(eq(users.issuer, issuer), eq(users.subject, subject)))
+      .leftJoin(members, eq(members.user_id, users.id))
       .groupBy(users.id);
 
     return actionSuccess(user[0]);
   } catch (error) {
-    logger.error('Failed to fetch service user', error instanceof Error ? error : undefined, {
-      operation: 'user-service-fetch',
-      issuer,
-      subject,
-    });
+    logger.error(
+      'Failed to fetch service user',
+      error instanceof Error ? error : undefined,
+      {
+        operation: 'user-service-fetch',
+        issuer,
+        subject,
+      },
+    );
     return actionError('Failed to fetch service user on the database.');
   }
 }

@@ -1,17 +1,21 @@
-import { WebContainer } from "@webcontainer/api";
+import { WebContainer } from '@webcontainer/api';
 
 let webContainerInstance: WebContainer;
 
 export async function getWebContainerInstance() {
-    if (!webContainerInstance) {
-        webContainerInstance = await WebContainer.boot();
-    }
+  if (!webContainerInstance) {
+    webContainerInstance = await WebContainer.boot();
+  }
 
-    return webContainerInstance;
-};
+  return webContainerInstance;
+}
 
-export const createIndexFileTemplate = (componentName: string | undefined, fileName: string | undefined, componentProps: any) => (
-    `
+export const createIndexFileTemplate = (
+  componentName: string | undefined,
+  fileName: string | undefined,
+  componentProps: any,
+) =>
+  `
         import { StrictMode } from 'react';
         import { createRoot } from 'react-dom/client';
         import './styles.css';
@@ -21,11 +25,10 @@ export const createIndexFileTemplate = (componentName: string | undefined, fileN
         const root = createRoot(document.getElementById('root'));
         root.render(
           <StrictMode>
-            <${componentName} ${componentProps? "{...props}" : ""} />
+            <${componentName} ${componentProps ? '{...props}' : ''} />
           </StrictMode>
         );
-    `
-);
+    `;
 
 export const previewTemplate = `
     import React from 'react';

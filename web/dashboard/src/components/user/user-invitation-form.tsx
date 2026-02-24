@@ -26,7 +26,7 @@ export default function UserInviteForm({ onComplete }: UserInviteFormProps) {
   const inviteUrl = typeof window !== 'undefined' ? `${window?.location.protocol}//${window.location.host}/auth/signup?key=${inviteKey}` : ''
 
   const form: any = useForm<NewInvite>({
-    resolver: zodResolver(newInviteSchema)
+    resolver: zodResolver(newInviteSchema as any)
   });
 
   async function handler(formdata) {

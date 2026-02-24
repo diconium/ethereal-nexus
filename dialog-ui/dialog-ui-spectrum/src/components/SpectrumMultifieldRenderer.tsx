@@ -18,13 +18,33 @@ import {SpectrumFieldRendererComponent} from './SpectrumFieldRenderer';
 import {useI18n} from '../providers';
 import {getFieldName} from "@/components/getFieldName.ts";
 
+/**
+ * Compute the next counter value by scanning existing items for __itemKey.
+ */
+function computeNextCounter(items: any[]): number {
+    let max = -1;
+    for (const item of items) {
+        const key = item?.__itemKey;
+        if (typeof key === 'string') {
+            const num = parseInt(key.replace('item', ''), 10);
+            if (!isNaN(num) && num > max) max = num;
+        }
+    }
+    return max + 1;
+}
+
 const SpectrumMultifieldRenderer: React.FC<MultifieldRendererProps> = ({field, value, onChange, error, path, page }) => {
     const {t} = useI18n();
     const arrayValue = Array.isArray(value) ? value : [];
 
+    // Stable counter for generating unique __itemKey for new items.
+    // Initialized from existing items so new keys never collide.
+    const itemCounterRef = React.useRef(computeNextCounter(arrayValue));
+
     const addItem = () => {
-        const newValue = FieldRenderLogic.addMultifieldItem(arrayValue, field);
-        onChange(newValue);
+        const newItem = FieldRenderLogic.createMultifieldItem(field);
+        newItem.__itemKey = `item${itemCounterRef.current++}`;
+        onChange([...arrayValue, newItem]);
     };
 
     const removeItem = (index: number) => {
@@ -39,7 +59,6 @@ const SpectrumMultifieldRenderer: React.FC<MultifieldRendererProps> = ({field, v
         let actualFieldValue = childValue;
 
         if (childField?.type === 'datamodel') {
-            // For datamodel fields, use cf_ prefix and extract fragmentPath
             actualFieldName = `cf_${childName}`;
             if (
                 childValue &&
@@ -71,10 +90,38 @@ const SpectrumMultifieldRenderer: React.FC<MultifieldRendererProps> = ({field, v
         }
     };
 
+    /**
+     * Derive a meaningful title for a multifield item when itemLabelKey is not set.
+     *
+     * Priority:
+     * 1. First child field that has a non-empty string value (content-based, follows the item on reorder)
+     * 2. __itemKey — stable key from content-resource (e.g. "item0") or assigned at creation time
+     * 3. Positional fallback "Item N" (only when nothing else is available)
+     */
+    const getItemTitle = (item: any, index: number): string => {
+        if (!item || typeof item !== 'object') return `Item ${index + 1}`;
+
+        // Try to find a meaningful string value from child fields
+        if (field.children) {
+            for (const child of field.children) {
+                const key = getFieldName(child);
+                const val = item[key];
+                if (typeof val === 'string' && val.trim() !== '') {
+                    return val;
+                }
+            }
+        }
+
+        // Use stable __itemKey (set by content-resource extraction or addItem)
+        if (item.__itemKey) {
+            return item.__itemKey;
+        }
+
+        return `Item ${index + 1}`;
+    };
+
     const getMultifieldValue = (item: any, childField: any) => {
         const childFieldKey = getFieldName(childField);
-        console.log(`🔹 [SpectrumMultifieldRenderer] getMultifieldValue called for childField:`, childFieldKey, item);
-
         return childField.type === 'datamodel'
             ? item[`cf_${childFieldKey}`]
             : item[childFieldKey];
@@ -123,7 +170,7 @@ const SpectrumMultifieldRenderer: React.FC<MultifieldRendererProps> = ({field, v
                             <DisclosureTitle level={4}>
                                 <Flex justifyContent="space-between" alignItems="center" width="100%">
                                     <Text UNSAFE_style={{fontSize: '14px'}}>
-                                        {item[field.itemLabelKey as string] || item.itemTitle || item.title || `Item ${index + 1}`}
+                                        {item[field.itemLabelKey as string] || getItemTitle(item, index)}
                                     </Text>
                                     <Flex alignItems="center" gap="size-50">
                                         {arrayValue.length > 1 && (

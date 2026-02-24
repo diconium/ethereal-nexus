@@ -314,6 +314,7 @@ export class AEMAdapter implements CMSAdapter {
                 value.forEach((item, index) => {
                     if (typeof item === 'object') {
                         Object.entries(item).forEach(([itemKey, itemValue]) => {
+                            if (itemKey === '__itemKey') return; // Skip internal display key
                             aemValues[`${key}/${index}/${itemKey}`] = itemValue;
                         });
                     } else {

@@ -42,9 +42,9 @@ jobs:
 
       - name: Publish to npm
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
         with:
-          publish: pnpm release
+          publish: pnpm exec changeset publish
           commit: "chore: release version"
           title: "[ci] Release version"
         env:

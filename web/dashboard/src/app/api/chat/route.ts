@@ -1,15 +1,16 @@
-import { z } from "zod";
-import { streamText } from "ai";
+import { z } from 'zod';
+import { streamText } from 'ai';
 import { auth } from '@/auth';
-import { openai } from "@ai-sdk/openai";
-import { NextResponse } from "next/server";
-import { HttpStatus } from "@/app/api/utils";
+import { openai } from '@ai-sdk/openai';
+import { NextResponse } from 'next/server';
+import { HttpStatus } from '@/app/api/utils';
 import process from 'node:process';
 import { notFound } from 'next/navigation';
 
 // Define tool separately and cast to any to prevent deep type instantiation errors from generic inference
 const generateEtherealNexusJSXTool: any = {
-  description: 'Generate JSX code, with the ethereal nexus structure, to create a React component',
+  description:
+    'Generate JSX code, with the ethereal nexus structure, to create a React component',
   inputSchema: z.object({
     etherealNexusFileCode: z.string(),
     fileName: z.string(),
@@ -17,31 +18,46 @@ const generateEtherealNexusJSXTool: any = {
     description: z.string(),
     etherealNexusComponentMockedProps: z.unknown(),
   }),
-  execute: async function ({ id, etherealNexusFileCode, componentName, fileName, description, etherealNexusComponentMockedProps }: any) {
-    return { id, etherealNexusFileCode, componentName, fileName, etherealNexusComponentMockedProps, description, updated: false };
+  execute: async function ({
+    id,
+    etherealNexusFileCode,
+    componentName,
+    fileName,
+    description,
+    etherealNexusComponentMockedProps,
+  }: any) {
+    return {
+      id,
+      etherealNexusFileCode,
+      componentName,
+      fileName,
+      etherealNexusComponentMockedProps,
+      description,
+      updated: false,
+    };
   },
 };
 
 export async function POST(request: Request) {
-    const session = await auth();
+  const session = await auth();
 
-    if(!process.env.OPENAI_API_KEY) {
-        notFound()
-    }
+  if (!process.env.OPENAI_API_KEY) {
+    notFound();
+  }
 
-    if (!session) {
-        return NextResponse.json('You do not have permissions for this resource.', {
-            status: HttpStatus.FORBIDDEN,
-        });
-    }
+  if (!session) {
+    return NextResponse.json('You do not have permissions for this resource.', {
+      status: HttpStatus.FORBIDDEN,
+    });
+  }
 
-    const { messages } = await request.json();
+  const { messages } = await request.json();
 
-    const response = await streamText({
-        model: openai("gpt-4") as any,
-        messages,
-        toolChoice: "required",
-        system:`
+  const response = await streamText({
+    model: openai('gpt-4') as any,
+    messages,
+    toolChoice: 'required',
+    system: `
             You are an expert React developer specialized in creating accessible, responsive, and modern UI components.
             You will get descriptions requests or even questions about components you will generate React components based on what the user is asking.
             The user may ask for you to create a new component or updating an already created component. So you need to be able to identify if the user is asking or describing a new component or if he is asking for an update to an already created component.
@@ -298,7 +314,7 @@ export async function POST(request: Request) {
             Ensure created files are complete, standalone components with all necessary code.
             Do not use placeholders or incomplete code sections. Write out all code in full, even if repeating from previous examples.
             `,
-        tools: { generateEtherealNexusJSX: generateEtherealNexusJSXTool } as any,
-    });
-    return response.toTextStreamResponse();
-};
+    tools: { generateEtherealNexusJSX: generateEtherealNexusJSXTool } as any,
+  });
+  return response.toTextStreamResponse();
+}

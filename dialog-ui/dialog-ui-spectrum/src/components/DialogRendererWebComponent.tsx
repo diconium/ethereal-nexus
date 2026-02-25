@@ -190,17 +190,22 @@ const extractFormValuesFromContentResource = (contentResource: any): any => {
                             const itemValue = (value as any)[itemKey];
                             console.log(`Processing multifield item ${itemKey}:`, itemValue);
 
+                            let extracted: any;
                             // If the item has a 'remote' wrapper, extract from it
                             if (itemValue && itemValue.remote) {
-                                return extractValues(itemValue.remote, depth + 1);
+                                extracted = extractValues(itemValue.remote, depth + 1);
                             } else if (itemValue) {
                                 // Skip jcr:primaryType and extract the rest
                                 const filtered = Object.fromEntries(
                                     Object.entries(itemValue).filter(([k]) => !skipProps.includes(k))
                                 );
-                                return extractValues(filtered, depth + 1);
+                                extracted = extractValues(filtered, depth + 1);
+                            } else {
+                                extracted = {};
                             }
-                            return {};
+                            // Preserve the original item key for display purposes
+                            extracted.__itemKey = itemKey;
+                            return extracted;
                         });
                     values[key] = items;
                     console.log(`Set multifield ${key} to:`, items);

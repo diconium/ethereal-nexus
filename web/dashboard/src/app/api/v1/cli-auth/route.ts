@@ -1,4 +1,4 @@
-'use server'
+'use server';
 // app/api/cli-auth/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
@@ -10,19 +10,22 @@ export async function GET(req: NextRequest) {
   const callbackUrl = searchParams.get('callback');
 
   if (!callbackUrl) {
-    return NextResponse.json({ error: 'Missing callback URL' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Missing callback URL' },
+      { status: 400 },
+    );
   }
 
   // Store callback URL in cookie for later use
   (await cookies()).set('cli-callback', callbackUrl, {
     maxAge: 60 * 5, // 5 minutes
-    path: '/'
+    path: '/',
   });
 
   const session = await auth();
 
-  if(!session?.user) {
-    console.log("No session found, redirecting to Keycloak auth page");
+  if (!session?.user) {
+    console.log('No session found, redirecting to Keycloak auth page');
     return await signIn();
   }
 

@@ -22,11 +22,11 @@ type UserFormProps = {
 
 export default function LoginForm({ providers,SSOLabel }: Readonly<UserFormProps>) {
   const credentialsForm = useForm({
-    resolver: zodResolver(userLoginSchema)
+    resolver: zodResolver(userLoginSchema as any)
   });
 
   const emailForm = useForm({
-    resolver: zodResolver(userLoginSchema.pick({ email: true }))
+    resolver: zodResolver(userLoginSchema.pick({ email: true }) as any)
   });
 
   async function credentialsHandler(formdata) {

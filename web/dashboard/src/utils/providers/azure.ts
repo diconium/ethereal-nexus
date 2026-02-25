@@ -1,9 +1,10 @@
 import type { EmailConfig, EmailUserConfig } from 'next-auth/providers';
 import { EmailClient } from '@azure/communication-email';
 
-
 /** @todo Document this */
-export default function Azure(config: EmailUserConfig & { connectionString: string | undefined }): EmailConfig {
+export default function Azure(
+  config: EmailUserConfig & { connectionString: string | undefined },
+): EmailConfig {
   let client: EmailClient;
   if (config.connectionString && config.connectionString !== '') {
     client = new EmailClient(config.connectionString);
@@ -15,8 +16,6 @@ export default function Azure(config: EmailUserConfig & { connectionString: stri
     name: 'Azure',
     maxAge: 24 * 60 * 60,
     async sendVerificationRequest(params) {
-
-
       const { identifier: to, provider, url, theme } = params;
       const { host } = new URL(url);
 
@@ -32,7 +31,7 @@ export default function Azure(config: EmailUserConfig & { connectionString: stri
         mainBackground: '#fff',
         buttonBackground: brandColor,
         buttonBorder: brandColor,
-        buttonText
+        buttonText,
       };
 
       if (!provider.from) {
@@ -74,11 +73,11 @@ export default function Azure(config: EmailUserConfig & { connectionString: stri
     </tr>
   </table>
 </body>
-`
+`,
         },
         recipients: {
-          to: [{ address: to }]
-        }
+          to: [{ address: to }],
+        },
       };
 
       const poller = await client.beginSend(emailMessage);
@@ -88,6 +87,6 @@ export default function Azure(config: EmailUserConfig & { connectionString: stri
         throw new Error('Azure error: ' + JSON.stringify(result.error.message));
       }
     },
-    options: config
+    options: config,
   };
 }

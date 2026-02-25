@@ -18,7 +18,7 @@ export default function OauthUserForm({ onComplete }: UserInviteFormProps) {
   const { toast } = useToast()
 
   const form: any = useForm<NewServiceUserSchema>({
-    resolver: zodResolver(newServiceUserSchema),
+    resolver: zodResolver(newServiceUserSchema as any),
     defaultValues: {
       name: '',
       issuer: '',

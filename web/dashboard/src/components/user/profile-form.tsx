@@ -27,7 +27,7 @@ export default function ProfileForm({ name, email, onComplete }: ProfileFormProp
   const form = useForm({
     resolver: zodResolver(
       userPublicSchema
-        .pick({name: true, email: true})
+        .pick({name: true, email: true}) as any
     ),
     defaultValues: {
       name: name ?? '',

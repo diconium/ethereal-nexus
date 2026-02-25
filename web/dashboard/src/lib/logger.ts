@@ -1,34 +1,34 @@
-import { trace } from '@opentelemetry/api'
-import { exportLogEntry } from '@/lib/logs-exporter'
+import { trace } from '@opentelemetry/api';
+import { exportLogEntry } from '@/lib/logs-exporter';
 
 export interface LogContext {
-  traceId?: string
-  spanId?: string
-  [key: string]: unknown
+  traceId?: string;
+  spanId?: string;
+  [key: string]: unknown;
 }
 
 // This interface is imported by logs-exporter.ts
 export interface LogEntry {
-  timestamp: string
-  level: 'debug' | 'info' | 'warn' | 'error'
-  message: string
-  context: LogContext
-  error?: Error
+  timestamp: string;
+  level: 'debug' | 'info' | 'warn' | 'error';
+  message: string;
+  context: LogContext;
+  error?: Error;
 }
 
 class Logger {
   private getTraceContext(): Pick<LogContext, 'traceId' | 'spanId'> {
-    const span = trace.getActiveSpan()
-    if (!span) return {}
-    const { traceId, spanId } = span.spanContext()
-    return { traceId, spanId }
+    const span = trace.getActiveSpan();
+    if (!span) return {};
+    const { traceId, spanId } = span.spanContext();
+    return { traceId, spanId };
   }
 
   private log(
     level: 'debug' | 'info' | 'warn' | 'error',
     message: string,
     context?: LogContext,
-    error?: Error
+    error?: Error,
   ) {
     const entry: LogEntry = {
       // Use the LogEntry type
@@ -37,28 +37,28 @@ class Logger {
       message,
       context: { ...this.getTraceContext(), ...context },
       error,
-    }
+    };
 
     // Always export log entries on server-side
     // The exporter will handle whether to send to OTEL or console
     if (typeof window === 'undefined') {
-      exportLogEntry(entry)
+      exportLogEntry(entry);
     }
   }
 
   // Public methods for a complete logger
   info(message: string, context?: LogContext) {
-    this.log('info', message, context)
+    this.log('info', message, context);
   }
   debug(message: string, context?: LogContext) {
-    this.log('debug', message, context)
+    this.log('debug', message, context);
   }
   warn(message: string, context?: LogContext) {
-    this.log('warn', message, context)
+    this.log('warn', message, context);
   }
   error(message: string, error?: Error, context?: LogContext) {
-    this.log('error', message, context, error)
+    this.log('error', message, context, error);
   }
 }
 
-export const logger = new Logger()
+export const logger = new Logger();

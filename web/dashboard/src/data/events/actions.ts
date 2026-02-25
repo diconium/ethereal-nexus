@@ -17,7 +17,6 @@ import { projects } from '@/data/projects/schema';
 import { alias } from 'drizzle-orm/pg-core';
 import { logger } from '@/lib/logger';
 
-
 export const insertEvent = async (event: NewEvent) => {
   try {
     const eventInserted = await db.insert(events).values(event).returning();
@@ -52,7 +51,6 @@ export async function getResourceEvents(
   resourceId: string,
   limit = 50,
 ): ActionResponse<EventWithDiscriminatedUnions[]> {
-
   if (!resourceId) {
     return actionError('No resource id provided.');
   }
@@ -68,21 +66,33 @@ export async function getResourceEvents(
           project: projects,
           component: components,
           member: members,
-          permissions:  sql`(${events.data}->>'permissions')::text`,
+          permissions: sql`(${events.data}->>'permissions')::text`,
         },
       })
       .from(events)
       .leftJoin(users, eq(events.user_id, users.id))
-      .leftJoin(projects, sql`(${events.data}->>'project_id')
+      .leftJoin(
+        projects,
+        sql`(${events.data}->>'project_id')
                               ::uuid  =
-                              ${projects.id}`)
-      .leftJoin(componentVersions, sql`(${events.data}->>'version_id')::uuid =  ${componentVersions.id}`)
-      .leftJoin(components, sql`(${events.data}->>'component_id')::uuid = ${components.id}`)
-      .leftJoin(members, sql`(${events.data}->>'member_id')::uuid = ${members.id}`)
+                              ${projects.id}`,
+      )
+      .leftJoin(
+        componentVersions,
+        sql`(${events.data}->>'version_id')::uuid =  ${componentVersions.id}`,
+      )
+      .leftJoin(
+        components,
+        sql`(${events.data}->>'component_id')::uuid = ${components.id}`,
+      )
+      .leftJoin(
+        members,
+        sql`(${events.data}->>'member_id')::uuid = ${members.id}`,
+      )
       .limit(limit)
       .where(eq(events.resource_id, resourceId));
 
-    const modifiedSelect = select.map(event => {
+    const modifiedSelect = select.map((event) => {
       if (event.data?.version?.id === null) {
         delete event.data.version; // Remove version if it's null
       }
@@ -98,17 +108,23 @@ export async function getResourceEvents(
       return event;
     });
 
-    const safe = z.array(eventWithDiscriminatedUnions).safeParse(modifiedSelect);
+    const safe = z
+      .array(eventWithDiscriminatedUnions)
+      .safeParse(modifiedSelect);
 
     if (!safe.success) {
-      logger.error('Event records validation failed', new Error('Event validation error'), {
-        operation: 'get-resource-events',
-        resourceId,
-        recordCount: modifiedSelect.length,
-        validationErrors: safe.error.errors,
-      });
+      logger.error(
+        'Event records validation failed',
+        new Error('Event validation error'),
+        {
+          operation: 'get-resource-events',
+          resourceId,
+          recordCount: modifiedSelect.length,
+          validationErrors: safe.error.errors,
+        },
+      );
       return actionZodError(
-        'There\'s an issue with the events records.',
+        "There's an issue with the events records.",
         safe.error,
       );
     }

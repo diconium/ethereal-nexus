@@ -22,8 +22,8 @@ type ProjectsFormProps = {
 
 export default function EnvironmentsForm({project, environment, onComplete, onCancel}: ProjectsFormProps) {
   const { toast } = useToast()
-  const form: any = useForm<EnvironmentInput>({
-    resolver: zodResolver(environmentInputSchema),
+  const form = useForm<EnvironmentInput>({
+    resolver: zodResolver(environmentInputSchema as any),
     defaultValues: {
       ...environment,
       project_id: environment?.project_id || project,
@@ -72,7 +72,7 @@ export default function EnvironmentsForm({project, environment, onComplete, onCa
             <FormItem>
               <FormLabel className="transition-colors text-muted-foreground font-bold">Description</FormLabel>
               <FormControl>
-                <TextArea placeholder="Description" {...field} rows={5} className="bg-white dark:bg-transparent" />
+                <TextArea {...field}  value={field.value || undefined} placeholder="Description" rows={5} className="bg-white dark:bg-transparent" />
               </FormControl>
               <FormMessage />
             </FormItem>

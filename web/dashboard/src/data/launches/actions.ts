@@ -2,27 +2,45 @@
 
 import { ActionError, ActionResponse } from '@/data/action';
 import { actionError, actionSuccess } from '@/data/utils';
-import { getEnvironmentsById, upsertComponentConfig } from '@/data/projects/actions';
-import { EnvironmentWithComponents, ProjectComponentConfigInput } from '@/data/projects/dto';
+import {
+  getEnvironmentsById,
+  upsertComponentConfig,
+} from '@/data/projects/actions';
+import {
+  EnvironmentWithComponents,
+  ProjectComponentConfigInput,
+} from '@/data/projects/dto';
 import { projectComponentConfig } from '@/data/projects/schema';
 import { db } from '@/db';
 import { eq, getTableColumns, sql } from 'drizzle-orm';
 import { components, componentVersions } from '@/data/components/schema';
 
-const query = async (id: string) => db.select()
-  .from(projectComponentConfig)
-  .where(eq(projectComponentConfig.id, id));
+const query = async (id: string) =>
+  db
+    .select()
+    .from(projectComponentConfig)
+    .where(eq(projectComponentConfig.id, id));
 
-const latestQuery = async (id: string) => db.select({
-    ...getTableColumns(projectComponentConfig),
-    component_version: sql`coalesce(${projectComponentConfig.component_version}, ${componentVersions.id})`,
-  })
-  .from(projectComponentConfig)
-  .leftJoin(componentVersions, eq(componentVersions.component_id, projectComponentConfig.component_id))
-  .orderBy(sql`string_to_array(${componentVersions.version}, '.')::int[] DESC`)
-  .where(eq(projectComponentConfig.id, id));
+const latestQuery = async (id: string) =>
+  db
+    .select({
+      ...getTableColumns(projectComponentConfig),
+      component_version: sql`coalesce(${projectComponentConfig.component_version}, ${componentVersions.id})`,
+    })
+    .from(projectComponentConfig)
+    .leftJoin(
+      componentVersions,
+      eq(componentVersions.component_id, projectComponentConfig.component_id),
+    )
+    .orderBy(
+      sql`string_to_array(${componentVersions.version}, '.')::int[] DESC`,
+    )
+    .where(eq(projectComponentConfig.id, id));
 
-async function merge(from: EnvironmentWithComponents['components'], to: EnvironmentWithComponents) {
+async function merge(
+  from: EnvironmentWithComponents['components'],
+  to: EnvironmentWithComponents,
+) {
   const result: (ProjectComponentConfigInput & { event: string })[] = [];
   let event: string | undefined = undefined;
 
@@ -37,7 +55,7 @@ async function merge(from: EnvironmentWithComponents['components'], to: Environm
 
     if (event) {
       let configFrom;
-      if(to.secure) {
+      if (to.secure) {
         configFrom = (await latestQuery(compFrom.config_id))[0];
       } else {
         configFrom = (await query(compFrom.config_id))[0];
@@ -49,14 +67,14 @@ async function merge(from: EnvironmentWithComponents['components'], to: Environm
           ...configTo,
           component_version: configFrom.component_version,
           is_active: configTo.is_active,
-          event
+          event,
         });
       } else {
         result.push({
           ...configFrom,
           id: undefined,
           environment_id: to.id,
-          event
+          event,
         });
       }
     }
@@ -65,7 +83,11 @@ async function merge(from: EnvironmentWithComponents['components'], to: Environm
   return result;
 }
 
-export async function launch(fromId: string, toId: string, userId?: string): ActionResponse<{ errors: ActionError[] }> {
+export async function launch(
+  fromId: string,
+  toId: string,
+  userId?: string,
+): ActionResponse<{ errors: ActionError[] }> {
   if (!userId) {
     return actionError('No user provided.');
   }
@@ -83,7 +105,12 @@ export async function launch(fromId: string, toId: string, userId?: string): Act
     const mergeResult = await merge(fromComponents, to.data);
 
     for (const config of mergeResult) {
-      const upsert = await upsertComponentConfig(config, to.data.project_id, userId, config.event);
+      const upsert = await upsertComponentConfig(
+        config,
+        to.data.project_id,
+        userId,
+        config.event,
+      );
 
       if (!upsert.success) {
         errors.push(upsert.error);

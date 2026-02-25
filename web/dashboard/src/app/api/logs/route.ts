@@ -1,19 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { logger } from '@/lib/logger' // Use our Step 5 logger
-import { initializeLogsExporter } from '@/lib/logs-exporter'
+import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger'; // Use our Step 5 logger
+import { initializeLogsExporter } from '@/lib/logs-exporter';
 
 // Initialize the OTLP exporter when this route is first hit
-initializeLogsExporter()
+initializeLogsExporter();
 
 export async function POST(request: NextRequest) {
   try {
-    const logs = await request.json()
+    const logs = await request.json();
     if (!Array.isArray(logs)) {
-      return NextResponse.json({ error: 'Invalid logs payload' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Invalid logs payload' },
+        { status: 400 },
+      );
     }
 
     for (const logEntry of logs) {
-      const { level, message, context, error } = logEntry
+      const { level, message, context, error } = logEntry;
 
       // Enrich with server-side context
       const enrichedContext = {
@@ -21,40 +24,43 @@ export async function POST(request: NextRequest) {
         source: 'browser', // Flag this log as coming from the client
         userAgent: request.headers.get('user-agent'),
         referer: request.headers.get('referer'),
-      }
+      };
 
       // Re-construct the error object on the server
-      let err: Error | undefined = undefined
+      let err: Error | undefined = undefined;
       if (error) {
-        err = new Error(error.message)
-        err.name = error.name
-        err.stack = error.stack
+        err = new Error(error.message);
+        err.name = error.name;
+        err.stack = error.stack;
       }
 
       // Use our server-side logger to forward the log
       switch (level) {
         case 'debug':
-          logger.debug(message, enrichedContext)
-          break
+          logger.debug(message, enrichedContext);
+          break;
         case 'info':
-          logger.info(message, enrichedContext)
-          break
+          logger.info(message, enrichedContext);
+          break;
         case 'warn':
-          logger.warn(message, enrichedContext)
-          break
+          logger.warn(message, enrichedContext);
+          break;
         case 'error': {
-          logger.error(message, err, enrichedContext)
-          break
+          logger.error(message, err, enrichedContext);
+          break;
         }
         default:
-          logger.info(message, enrichedContext)
+          logger.info(message, enrichedContext);
       }
     }
 
-    return NextResponse.json({ success: true, processed: logs.length })
+    return NextResponse.json({ success: true, processed: logs.length });
   } catch (error) {
     // Log errors from the logging endpoint itself
-    logger.error('Failed to process browser logs', error as Error)
-    return NextResponse.json({ error: 'Failed to process logs' }, { status: 500 })
+    logger.error('Failed to process browser logs', error as Error);
+    return NextResponse.json(
+      { error: 'Failed to process logs' },
+      { status: 500 },
+    );
   }
 }

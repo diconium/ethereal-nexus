@@ -16,7 +16,7 @@ type UserRoleSelectProps = {
 export function UserRoleSelect({ value, userId }: UserRoleSelectProps) {
   const { data: session } = useSession()
   const form = useForm({
-    resolver: zodResolver(updateRoleSchema),
+    resolver: zodResolver(updateRoleSchema as any),
     defaultValues: { id: userId, role: value }
   });
 

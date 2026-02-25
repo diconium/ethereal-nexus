@@ -3,7 +3,7 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import {
   componentAssetsSchema,
   componentsSchema,
-  componentVersionsSchema
+  componentVersionsSchema,
 } from '@/data/components/dto';
 import { number, z } from 'zod';
 import { userSchema } from '@/data/users/dto';
@@ -32,7 +32,7 @@ export const environmentsSchema = createSelectSchema(environments);
 export type Environment = z.infer<typeof environmentsSchema>;
 
 export const projectComponentConfigSchema = createSelectSchema(
-  projectComponentConfig
+  projectComponentConfig,
 );
 export type ProjectComponentConfig = z.infer<
   typeof projectComponentConfigSchema
@@ -68,21 +68,21 @@ export const projectWithComponentSchema = projectSchema.extend({
   components: projectComponentConfigSchema
     .pick({
       is_active: true,
-      component_version: true
+      component_version: true,
     })
     .extend({
       component: componentsSchema,
-      version: componentVersionsSchema
+      version: componentVersionsSchema,
     })
     .transform((val) => ({
       ...val.component,
       isActive: val.is_active,
       version: {
         ...val.version,
-        component_id: undefined
-      }
+        component_id: undefined,
+      },
     }))
-    .array()
+    .array(),
 });
 export type ProjectWithComponent = z.infer<typeof projectWithComponentSchema>;
 
@@ -95,12 +95,12 @@ export const projectWithComponentAssetsSchema = componentsSchema
     assets: z.array(
       componentAssetsSchema
         .pick({ url: true, id: true, type: true })
-        .transform(val => ({
-            ...val,
-            url: undefined,
-            filePath: val.url
-          })
-        ))
+        .transform((val) => ({
+          ...val,
+          url: undefined,
+          filePath: val.url,
+        })),
+    ),
   });
 
 export const projectComponentsSchema = componentsSchema.extend({
@@ -108,17 +108,20 @@ export const projectComponentsSchema = componentsSchema.extend({
   is_active: projectComponentConfigSchema.shape.is_active.nullable(),
   ssr_active: projectComponentConfigSchema.shape.ssr_active.default(true),
   version: componentVersionsSchema.shape.version.nullable(),
-  versions: componentVersionsSchema.pick({ id: true, version: true }).array()
+  versions: componentVersionsSchema.pick({ id: true, version: true }).array(),
 });
 export type ProjectComponent = z.infer<typeof projectComponentsSchema>;
 
-export const projectComponentsWithDialogSchema = projectComponentsSchema
-  .omit({ versions: true, config_id: true , is_ai_generated: true, is_active: true})
-export const projectWithOwners = projectSchema
-  .extend({
-    has_access: z.boolean(),
-    owners: z.array(userSchema.pick({ name: true, id: true }))
-  });
+export const projectComponentsWithDialogSchema = projectComponentsSchema.omit({
+  versions: true,
+  config_id: true,
+  is_ai_generated: true,
+  is_active: true,
+});
+export const projectWithOwners = projectSchema.extend({
+  has_access: z.boolean(),
+  owners: z.array(userSchema.pick({ name: true, id: true })),
+});
 export type ProjectWithOwners = z.infer<typeof projectWithOwners>;
 
 export type ProjectComponentsWithDialog = z.infer<
@@ -141,37 +144,37 @@ export type ProjectComponentsWithDialog = z.infer<
  */
 export const projectInputSchema = createInsertSchema(projects, {
   name: (schema) =>
-    schema.name.min(4, 'Name must be longer than 4 characters.')
-})
-  .required({ name: true, description: true });
+    schema.name.min(4, 'Name must be longer than 4 characters.'),
+}).required({ name: true, description: true });
 export type ProjectInput = z.infer<typeof projectInputSchema>;
 
 export const projectComponentConfigInputSchema = createInsertSchema(
-  projectComponentConfig
+  projectComponentConfig,
 );
 export type ProjectComponentConfigInput = z.infer<
   typeof projectComponentConfigInputSchema
 >;
 
-export const environmentInputSchema = createInsertSchema(
-  environments
-);
-export type EnvironmentInput = z.infer<
-  typeof environmentInputSchema
->;
+export const environmentInputSchema = createInsertSchema(environments);
+export type EnvironmentInput = z.infer<typeof environmentInputSchema>;
 
 export const environmentWithComponentsSchema = environmentsSchema.extend({
-  components: componentsSchema.pick({
-    id: true,
-    name: true,
-    title: true
-  }).extend({
-    config_id: projectComponentConfigSchema.shape.id,
-    is_active: projectComponentConfigSchema.shape.is_active,
-    version: componentVersionsSchema.shape.version.nullable()
-  }).array()
+  components: componentsSchema
+    .pick({
+      id: true,
+      name: true,
+      title: true,
+    })
+    .extend({
+      config_id: projectComponentConfigSchema.shape.id,
+      is_active: projectComponentConfigSchema.shape.is_active,
+      version: componentVersionsSchema.shape.version.nullable(),
+    })
+    .array(),
 });
-export type EnvironmentWithComponents = z.infer<typeof environmentWithComponentsSchema>;
+export type EnvironmentWithComponents = z.infer<
+  typeof environmentWithComponentsSchema
+>;
 
 export const featureFlagInputSchema = z.object({
   id: z.string().optional(),

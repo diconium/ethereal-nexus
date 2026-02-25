@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
     View,
     Text,
@@ -13,6 +13,7 @@ import {
 import ImageAdd from '@spectrum-icons/workflow/ImageAdd';
 import {useI18n} from "@/providers";
 import { getMimeTypeFromPath } from "../utils/get-mimetype-from-file";
+import {ClickEventDetails} from "storybook/highlight";
 
 export interface SpectrumMediaFieldProps {
     field: any;
@@ -33,66 +34,28 @@ interface FileData {
 }
 
 
-const PICKER_SRC = "/mnt/overlay/granite/ui/content/coral/foundation/form/pathfield/picker.html"
 
 export const SpectrumMediaField: React.FC<SpectrumMediaFieldProps> = ({field, value = {}, onChange, error}) => {
 
     const {t} = useI18n();
-    const inputRef = useRef<any>(null);
+    const fileUploadRef = useRef<any>(null);
+    const fileRefInput = useRef<HTMLDivElement>(null);
+    const thumbnailRef = useRef<HTMLDivElement>(null);
+    const buttonRef = useRef<HTMLButtonElement>(null);
+    const [loaded, setLoaded] = useState<boolean>(false);
 
     const { allowedMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/svg+xml", "image/tiff", "image/bmp", "image/gif"]  } = field || {};
-
-    useEffect(() => {
-
-        const coralIsReady = () => {
-            window?.Coral.commons.ready(inputRef.current);
-        }
-
-        if (inputRef.current && window?.Coral) {
-            const Coral = window.Coral;
-            const tagList = new Coral.TagList();
-
-            if (tagList) {
-                tagList.setAttribute('foundation-autocomplete-value', '');
-                tagList.removeAttribute('name');
-            }
-
-            if (value?.fileReference) {
-                const tag = new Coral.Tag().set({
-                    value: value.fileReference,
-                    label: {
-                        innerHTML: value.fileReference,
-                    }
-                })
-
-                tagList.items.add(tag)
-            }
-
-            inputRef.current.appendChild(tagList);
-
-            coralIsReady()
-
-        } else {
-            setTimeout(coralIsReady, 50);
-        }
-    }, []);
 
 
     const [filledSrc, setFilledSrc] = React.useState<FileData>({
         type: value.type || 'image',
-        fileName: value.fileName || 'Uploaded file',
+        fileName: value.fileName,
         fileReference: value.fileReference,
         altValueFromPageImage: value.altValueFromPageImage ?? false,
         alt: value.alt,
         size: value.size,
         path: value.path
     });
-
-    const hasFileReference = useMemo(() => filledSrc?.fileReference, [filledSrc]);
-
-    const clearFile = () => {
-        setFilledSrc({ altValueFromPageImage: false});
-    };
 
     const onClickAlt = () => {
         setFilledSrc((prev: FileData) => ({
@@ -113,17 +76,82 @@ export const SpectrumMediaField: React.FC<SpectrumMediaFieldProps> = ({field, va
     }, [filledSrc]);
 
 
-    const openPicker = () =>{
-        if (!inputRef.current) return;
-
-        const trigger =
-          inputRef.current.querySelector('button[is="coral-button"]') ||
-          inputRef.current.querySelector('coral-button');
-
-        trigger?.click();
-    }
-
     const mimeTypes = Array.isArray(allowedMimeTypes) ? allowedMimeTypes.join(","): [allowedMimeTypes];
+
+    useEffect(() => {
+        const el = fileUploadRef.current;
+        if (!el || !window?.Granite) return;
+
+        const $ = window.Granite.$;
+
+        const onChangeValue = () => {
+            console.debug("[SpectrumMediaField]: Changing image to:", fileRefInput?.current?.value);
+            setFilledSrc((prev) => ({
+                ...prev,
+                fileReference: fileRefInput?.current?.value
+            }));
+        };
+
+        const clearImage = (e: Event) => {
+
+            if (e.target.matches("[coral-fileupload-clear]") || e.target.parentElement?.matches("[coral-fileupload-clear]")) {
+                console.log("[SpectrumMediaField] Resetting image field value due to clear action");
+                onChangeValue();
+            }
+        }
+
+        $(el).on("foundation-field-change", onChangeValue);
+        $(el).on("click", clearImage);
+
+        return () => {
+            $(el).off("foundation-field-change", onChangeValue);
+            $(el).off("click", clearImage);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (loaded) {
+            return;
+        }
+
+        const el = fileUploadRef.current;
+
+        if (!el || !window.Granite) return;
+
+        Coral.commons.ready(el, () => {
+            const dialog = el.closest("form.cq-dialog");
+            if (dialog) {
+                window.Granite.$(dialog).trigger("foundation-contentloaded");
+
+                fileRefInput.current.setAttribute("accept", mimeTypes);
+            }
+        });
+    }, [loaded, mimeTypes]);
+
+
+    useEffect(() => {
+
+        if (!fileUploadRef || !thumbnailRef || loaded) {
+            return
+        }
+
+        const fileReference = value.fileReference;
+
+        console.debug("[SpectrumMediaField] Updating thumbnail with fileReference:", fileReference);
+
+        if (fileReference) {
+            const img = thumbnailRef.current;
+
+            img.innerHTML = `<img loading="lazy" class="cq-dd-image" src=${fileReference} alt=${value.alt} tabindex="-1">`;
+            fileUploadRef.current.classList.add("is-filled");
+
+            const btn = buttonRef.current;
+            btn.setAttribute("data-cq-fileupload-filereference", fileReference);
+        }
+
+        setLoaded(true);
+
+    }, [value.fileReference, thumbnailRef.current, fileUploadRef.current, loaded]);
 
     return (
         <View>
@@ -133,78 +161,74 @@ export const SpectrumMediaField: React.FC<SpectrumMediaFieldProps> = ({field, va
                         {t(field.label)}
                     </Text>
                     {field.tooltip && (
-                        <Text UNSAFE_style={{fontSize: '12px', color: '#666', marginBottom: '8px'}}>
-                            {t(field.tooltip)}
-                        </Text>
+                      <Text UNSAFE_style={{fontSize: '12px', color: '#666', marginBottom: '8px'}}>
+                          {t(field.tooltip)}
+                      </Text>
                     )}
                     {error && (
-                        <Text UNSAFE_style={{color: 'red', fontSize: '12px', marginBottom: '8px'}}>
-                            {t(error)}
-                        </Text>
+                      <Text UNSAFE_style={{color: 'red', fontSize: '12px', marginBottom: '8px'}}>
+                          {t(error)}
+                      </Text>
                     )}
                 </Flex>
-
-                <foundation-autocomplete
-                    ref={inputRef}
-                    pickersrc={PICKER_SRC+ "?path=%2fcontent%2fdam&root=%2fcontent%2fdam&filter=hierarchyNotFile&selectionCount=single"}
-                    foundation-autocomplete={"block"}
-                    onChange={(e) => {
-                        const value = e?.target?.value || '';
-                        console.log('User selected:', value);
-
-                        const fileName = value?.split("/")?.pop();
-
-                        const type = getMimeTypeFromPath(fileName);
-
-                        if (mimeTypes && mimeTypes.includes(type)) {
-                            setFilledSrc((prev) => ({
-                                ...prev,
-                                fileReference: value,
-                                fileName: value.split('/').pop(),
-                            }));
-                        }
-                    }}
-                    style={{ visibility: 'hidden', position: 'absolute', display: 'none' }}
-                  >
-                  </foundation-autocomplete>
-                {!hasFileReference ?
-                  <IllustratedMessage alignSelf={"start"}>
-                    <ImageAdd size={"XXL"}/>
-                    <Content>
-                        <Heading level={5}>
-                            {t('Drop an asset here.')}
-                        </Heading>
-                        <Flex direction="column" gap="size-100" alignItems="center">
-                            <Button variant={"primary"} onPress={openPicker} height={"size-10"}>
-                                {t("Browse Assets")}
-                            </Button>
-                    </Flex>
-                    </Content>
-                  </IllustratedMessage> :
-                  <Flex direction={"column"} gap="size-200" alignItems={"start"}>
-                    <img
-                      src={filledSrc?.fileReference}
-                      alt={filledSrc?.fileName}
-                      style={{
-                          maxWidth: '200px',
-                          maxHeight: '200px',
-                          objectFit: 'cover',
-                          border: '1px solid #ccc',
-                          borderRadius: '4px'
-                      }}
+                <coral-fileupload
+                  ref={fileUploadRef}
+                  className="coral-Form-field cmp-image__editor-file-upload cq-FileUpload cq-droptarget coral3-FileUpload"
+                  name={`./${field.name}`}
+                  accept={mimeTypes}
+                  data-foundation-field
+                  async
+                  autoStart
+                >
+                    <input
+                      type="hidden"
+                      ref={fileRefInput}
+                      accept={mimeTypes}
+                      name={`./${field.name}/fileReference`}
+                      value={filledSrc?.fileReference || ''}
+                      data-cq-fileupload-parameter="filereference"
                     />
-                    <Flex direction={"row"} gap="size-100" alignContent={"center"}>
-                        <Link variant="primary" onPress={clearFile}>
-                            {t("Clear")}
-                        </Link>
-                        <Link variant="primary" onPress={openPicker}>
-                            {t("Pick")}
-                        </Link>
-                    </Flex>
-                </Flex>}
+                    <input
+                      type="hidden"
+                      name={`./${field.name}/fileName`}
+                      data-cq-fileupload-parameter="filename"
+                    />
+                    <div class="cq-FileUpload-thumbnail">
+                        <div ref={thumbnailRef} class="cq-FileUpload-thumbnail-img" data-cq-fileupload-thumbnail-img />
+                        <button class="cq-FileUpload-edit coral3-Button coral3-Button--quiet"
+                                ref={buttonRef}
+                                data-cq-fileupload-viewinadminuri="/assetdetails.html{+item}"
+                                type="button"
+                                autocomplete="off" variant="quiet" trackingfeature=""
+                                trackingelement="edit" tracking="ON" size="M">
+                            <coral-button-label>{t("Edit")}</coral-button-label>
+                        </button>
+                        <button type="button" class="cq-FileUpload-clear coral3-Button coral3-Button--quiet"
+                                variant="quiet" coral-fileupload-clear="" size="M">
+                            <coral-button-label>{t("Clear")}</coral-button-label>
+                        </button>
+                        <button type="button" class="cq-FileUpload-picker coral3-Button coral3-Button--quiet"
+                                variant="quiet" aria-haspopup="dialog" size="M">
+                            <coral-button-label>{t("Pick")}</coral-button-label>
+                        </button>
+                        <div>
+                            <button type="button" variant="quiet" aria-label="Pick an asset"
+                                    aria-haspopup="dialog" icon="image"
+                                    class="cq-FileUpload-icon cq-FileUpload-picker coral3-Button coral3-Button--quiet"
+                                    size="M" iconautoarialabel="off">
+                                <coral-icon className="coral3-Icon coral3-Icon--sizeS coral3-Icon--image" icon="image"
+                                            size="S" autoarialabel="off" role="img" aria-label="Image"></coral-icon>
+                                <coral-button-label></coral-button-label>
+                            </button>
+                            <span class="cq-FileUpload-label">{t("Drop an asset here.")}</span></div>
+                    </div>
+                </coral-fileupload>
                 <Flex direction={"column"}>
-                    {!filledSrc?.altValueFromPageImage ? <TextField label={t("Alternative text for accessibility")} onChange={onAltChange} value={filledSrc?.alt}></TextField> : null }
-                    <Checkbox isSelected={filledSrc?.altValueFromPageImage} value={"true"} onChange={onClickAlt}>{t('Inherit alternative text from page')}</Checkbox>
+                    {!filledSrc?.altValueFromPageImage ?
+                      <TextField label={t("Alternative text for accessibility")} onChange={onAltChange}
+                                 value={filledSrc?.alt}></TextField> : null}
+                    <Checkbox isSelected={filledSrc?.altValueFromPageImage} value={"true"}
+                              onChange={onClickAlt}>{t('Inherit alternative text from page')}</Checkbox>
                 </Flex>
             </Flex>
         </View>

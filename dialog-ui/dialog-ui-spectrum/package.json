@@ -1,6 +1,6 @@
 {
   "name": "@ethereal-nexus/dialog-ui-spectrum",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "type": "module",
   "description": "React UI package using Adobe React Spectrum components",
   "main": "dist/index.esm.js",
@@ -41,26 +41,26 @@
   "author": "",
   "license": "ISC",
   "peerDependencies": {
-    "react": "^19.2.3",
+    "react": "^19.2.4",
     "react-dom": "^19.2.3"
   },
   "dependencies": {
-    "@adobe/react-spectrum": "^3.45.0",
+    "@adobe/react-spectrum": "^3.46.1",
     "@ethereal-nexus/dialog-ui-core": "workspace:*",
-    "@internationalized/date": "^3.5.4",
-    "@r2wc/react-to-web-component": "^2.0.4",
-    "@spectrum-icons/workflow": "^4.2.25"
+    "@internationalized/date": "^3.11.0",
+    "@r2wc/react-to-web-component": "^2.1.0",
+    "@spectrum-icons/workflow": "^4.2.27"
   },
   "devDependencies": {
-    "@storybook/react-vite": "^10.2.8",
+    "@storybook/react-vite": "^10.2.11",
     "@types/node": "^22.0.0",
-    "@types/react": "^19.0.8",
-    "@types/react-dom": "^19.0.5",
-    "@vitejs/plugin-react": "^4.6.0",
-    "storybook": "^10.2.8",
-    "typescript": "^5.4.2",
-    "vite": "^7.1.11",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
+    "storybook": "^10.2.11",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
     "vite-plugin-dts": "^4.5.4",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.18"
   }
 }

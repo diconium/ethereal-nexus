@@ -8,7 +8,12 @@ import process from 'node:process';
 export async function GET(req: NextRequest) {
   const secret = process.env.AUTH_SECRET;
   console.log('AUTH_SECRET:', secret);
-  const token = await getToken({ req, secret: secret, raw: true, secureCookie: process.env.NODE_ENV === 'production' });
+  const token = await getToken({
+    req,
+    secret: secret,
+    raw: true,
+    secureCookie: process.env.NODE_ENV === 'production',
+  });
   const callbackUrl = (await cookies()).get('cli-callback')?.value;
 
   console.log('request:', req);
@@ -16,7 +21,10 @@ export async function GET(req: NextRequest) {
   console.log('token:', token);
 
   if (!callbackUrl) {
-    return NextResponse.json({ error: 'Callback URL is missing' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Callback URL is missing' },
+      { status: 400 },
+    );
   }
 
   if (token) {
@@ -31,6 +39,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   } else {
     // Not Signed in
-    return NextResponse.json({ error: 'Authentication failed or callback lost' }, { status: 401 });
+    return NextResponse.json(
+      { error: 'Authentication failed or callback lost' },
+      { status: 401 },
+    );
   }
 }

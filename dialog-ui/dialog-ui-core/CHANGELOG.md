@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-core
 
+## 1.3.0
+
+### Minor Changes
+
+- 8caf8be: fix: sorting labels on multifield
+
 ## 1.2.4
 
 ### Patch Changes

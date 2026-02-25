@@ -1,18 +1,19 @@
-type Result<T> = {
-    success: true
-    data: T
-  }
+type Result<T> =
   | {
-  success: false,
-  error: ActionError
-}
+      success: true;
+      data: T;
+    }
+  | {
+      success: false;
+      error: ActionError;
+    };
 
 type ActionError = {
   message: string;
   issues?: {
     message: string;
-    path: (string | number)[]
-  }[]
-}
+    path: (string | number)[];
+  }[];
+};
 
-export type ActionResponse<T> = Promise<Result<T>>
+export type ActionResponse<T> = Promise<Result<T>>;

@@ -5,27 +5,30 @@ import { Buffer } from 'buffer';
 import { PassThrough } from 'stream';
 import { pipeline } from 'stream/promises';
 import { authenticatedWithApiKeyUser, HttpStatus } from '@/app/api/utils';
-import { upsertAssets, upsertComponentWithVersion } from '@/data/components/actions';
+import {
+  upsertAssets,
+  upsertComponentWithVersion,
+} from '@/data/components/actions';
 import { EtherealStorage } from '@/storage/ethereal-storage';
 
 const storage = new EtherealStorage();
 
 export const POST = async (request) => {
   let conflictingAssets = false;
-  const filesMap = new Map<string, string>()
+  const filesMap = new Map<string, string>();
   const user = await authenticatedWithApiKeyUser(request);
 
   const userId = user?.id;
   if (!userId) {
     return NextResponse.json('Api key not provided or invalid.', {
-      status: HttpStatus.UNAUTHORIZED
+      status: HttpStatus.UNAUTHORIZED,
     });
   }
 
   const contentType = request.headers.get('content-type');
   if (!contentType?.startsWith('multipart/form-data')) {
     return NextResponse.json('Invalid content type', {
-      status: HttpStatus.BAD_REQUEST
+      status: HttpStatus.BAD_REQUEST,
     });
   }
 
@@ -34,7 +37,7 @@ export const POST = async (request) => {
 
   if (!componentTar || typeof componentTar === 'string') {
     return NextResponse.json('File not provided', {
-      status: HttpStatus.BAD_REQUEST
+      status: HttpStatus.BAD_REQUEST,
     });
   }
 
@@ -64,7 +67,7 @@ export const POST = async (request) => {
     const manifestFile = filesMap.get('./manifest.json');
     if (!manifestFile) {
       return NextResponse.json('No manifest present in the bundle.', {
-        status: HttpStatus.BAD_REQUEST
+        status: HttpStatus.BAD_REQUEST,
       });
     }
 
@@ -73,7 +76,7 @@ export const POST = async (request) => {
     if (!result.success) {
       console.error(JSON.stringify(result.error, undefined, 2));
       return NextResponse.json(result.error.message, {
-        status: HttpStatus.BAD_REQUEST
+        status: HttpStatus.BAD_REQUEST,
       });
     }
 
@@ -81,15 +84,11 @@ export const POST = async (request) => {
 
     for (const [fileName, content] of filesMap) {
       if (fileName.endsWith('.js') || fileName.endsWith('.css')) {
-        const urlObject = await storage.uploadToStorage(
-          content,
-          ``,
-          fileName
-        );
+        const urlObject = await storage.uploadToStorage(content, ``, fileName);
 
         if (!urlObject) {
           return NextResponse.json('Failed to upload assets', {
-            status: HttpStatus.BAD_REQUEST
+            status: HttpStatus.BAD_REQUEST,
           });
         }
 
@@ -106,32 +105,38 @@ export const POST = async (request) => {
           id,
           version.id,
           urlObject.toString(),
-          type
+          type,
         );
 
-        if (!response.success && response.error.message !== 'Asset already exists.') {
+        if (
+          !response.success &&
+          response.error.message !== 'Asset already exists.'
+        ) {
           return NextResponse.json('Failed to upsert assets', {
-            status: HttpStatus.BAD_REQUEST
+            status: HttpStatus.BAD_REQUEST,
           });
         }
 
-        if (!response.success && response.error.message === 'Asset already exists.') {
+        if (
+          !response.success &&
+          response.error.message === 'Asset already exists.'
+        ) {
           conflictingAssets = true;
         }
       }
     }
 
-    if(conflictingAssets) {
+    if (conflictingAssets) {
       return NextResponse.json('Some assets were already present.', {
-          status: HttpStatus.CONFLICT,
-        });
+        status: HttpStatus.CONFLICT,
+      });
     }
 
     return NextResponse.json('File processed successfully.');
   } catch (err) {
     console.error(err);
     return NextResponse.json('Error processing file', {
-      status: HttpStatus.INTERNAL_SERVER_ERROR
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
     });
   }
-}
+};

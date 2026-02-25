@@ -1,6 +1,6 @@
 {
   "name": "@ethereal-nexus/dialog-ui-spectrum",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "type": "module",
   "description": "React UI package using Adobe React Spectrum components",
   "main": "dist/index.esm.js",
@@ -42,7 +42,7 @@
   "license": "ISC",
   "peerDependencies": {
     "react": "^19.2.4",
-    "react-dom": "^19.2.3"
+    "react-dom": "^19.2.4"
   },
   "dependencies": {
     "@adobe/react-spectrum": "^3.46.1",

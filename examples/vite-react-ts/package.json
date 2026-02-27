@@ -17,14 +17,14 @@
     "@ethereal-nexus/core": "workspace:*",
     "@ethereal-nexus/react": "workspace:*",
     "@vidstack/react": "^1.12.13",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
   },
   "devDependencies": {
     "@ethereal-nexus/cli": "workspace:*",
     "@ethereal-nexus/vite-plugin-ethereal-nexus": "workspace:*",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.1",
+    "@types/react": "^19.2.4",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.1.0",
     "typescript": "^5.6.2",
     "vite": "^7.1.11"

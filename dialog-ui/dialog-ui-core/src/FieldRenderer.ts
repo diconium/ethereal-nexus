@@ -71,6 +71,7 @@ export interface IFieldRenderer<TComponent = any> {
   renderSelect(props: FieldRendererProps): TComponent;
   renderCheckbox(props: FieldRendererProps): TComponent;
   renderSwitch(props: FieldRendererProps): TComponent;
+  renderTags(props: FieldRendererProps): TComponent;
   renderMultifield(props: MultifieldRendererProps): TComponent;
   renderUnsupportedField(fieldType: string): TComponent;
 }
@@ -80,6 +81,7 @@ export abstract class BaseFieldRenderer<TComponent = any> implements IFieldRende
   abstract renderSelect(props: FieldRendererProps): TComponent;
   abstract renderCheckbox(props: FieldRendererProps): TComponent;
   abstract renderSwitch(props: FieldRendererProps): TComponent;
+  abstract renderTags(props: FieldRendererProps): TComponent;
   abstract renderMultifield(props: MultifieldRendererProps): TComponent;
   abstract renderUnsupportedField(fieldType: string): TComponent;
 
@@ -96,6 +98,8 @@ export abstract class BaseFieldRenderer<TComponent = any> implements IFieldRende
         return this.renderCheckbox(props);
       case 'switch':
         return this.renderSwitch(props);
+      case 'tags':
+        return this.renderTags(props);
       case 'multifield':
         return this.renderMultifield({
           ...props,

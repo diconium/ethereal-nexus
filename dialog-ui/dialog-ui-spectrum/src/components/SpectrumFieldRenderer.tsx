@@ -27,6 +27,7 @@ import {SpectrumNavigation} from "@/components/SpectrumNavigation.tsx";
 import {getFieldName} from "@/components/getFieldName.ts";
 import {evaluateConditions} from "@/utils/conditions.ts";
 import { useFormDataContext } from '@/components/FormDataContext.tsx';
+import { SpectrumTagsField } from '@/components/SpectrumTagsField.tsx';
 
 const useFieldI18n = () => {
   const {t} = useI18n();
@@ -163,6 +164,10 @@ export class SpectrumFieldRenderer extends BaseFieldRenderer<React.ReactElement>
     return <SpectrumPathbrowserField {...props} />;
   }
 
+  renderTags(props: FieldRendererProps): React.ReactElement {
+    return <SpectrumTagsField {...props} />;
+  }
+
   renderDatamodel(props: FieldRendererProps): React.ReactElement {
     return <SpectrumDatamodelField {...props} />;
   }
@@ -192,6 +197,8 @@ export class SpectrumFieldRenderer extends BaseFieldRenderer<React.ReactElement>
         return this.renderCheckbox(props);
       case 'switch':
         return this.renderSwitch(props);
+      case 'tags':
+        return this.renderTags(props);
       case 'multifield':
         return this.renderMultifield({
           ...props,

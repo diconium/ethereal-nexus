@@ -1,12 +1,6 @@
 import { BaseFieldInput, type BaseSchema } from '../../types';
 
-type TagOutputType = {
-  name: string;
-  namespace: string;
-};
-
-
-type TagsOutputType<Multiple extends boolean> = Multiple extends true ? TagOutputType[] : TagOutputType;
+type TagsOutputType<Multiple extends boolean> = Multiple extends true ? String[] : String;
 
 export interface TagsSchema<Multiple extends boolean = false> extends BaseSchema<TagsOutputType<Multiple>> {
   /**

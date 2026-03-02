@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.17.0
+
+### Minor Changes
+
+- 29d942b: feat: adds tag support for the next gen dialogs.
+
 ## 1.16.0
 
 ### Minor Changes

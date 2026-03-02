@@ -1,5 +1,16 @@
 # @ethereal-nexus/dialog-ui-example
 
+## 1.3.0
+
+### Minor Changes
+
+- 29d942b: feat: adds tag support for the next gen dialogs.
+
+### Patch Changes
+
+- Updated dependencies [29d942b]
+  - @ethereal-nexus/dialog-ui-core@1.4.0
+
 ## 1.2.1
 
 ### Patch Changes

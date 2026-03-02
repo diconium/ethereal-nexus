@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-core
 
+## 1.4.0
+
+### Minor Changes
+
+- 29d942b: feat: adds tag support for the next gen dialogs.
+
 ## 1.3.0
 
 ### Minor Changes

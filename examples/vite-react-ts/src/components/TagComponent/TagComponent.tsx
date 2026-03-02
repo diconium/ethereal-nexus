@@ -20,7 +20,7 @@ const dialogSchema = dialog({
   }),
 });
 
-const schema = component({ version: '0.0.5' }, dialogSchema);
+const schema = component({ version: '0.0.6' }, dialogSchema);
 
 type Props = Output<typeof schema>
 
@@ -31,13 +31,13 @@ export const TagComponent: React.FC<Props> = ({ tags, tagstwo }) => {
       My Multiple Selected Tags:
       <ul>
         {tags && tags.map((tag, index) => (
-          <li key={index}>namespace: {tag.namespace} - name:{tag.name}</li>
+          <li key={index}>tag: {tag}</li>
         ))}
       </ul>
 
       My Single Tag:
       {tagstwo && (
-        <div>namespace: {tagstwo.namespace} - name:{tagstwo.name}</div>
+        <div>tagstwo: {tagstwo} </div>
       )}
     </div>
   );

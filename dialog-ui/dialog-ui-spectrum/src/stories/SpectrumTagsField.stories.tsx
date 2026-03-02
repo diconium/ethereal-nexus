@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import {SpectrumTagsField} from '../components/SpectrumTagsField';
-import {StoryFn, Meta} from '@storybook/react';
+import {StoryFn, Meta} from '@storybook/react-vite';
 
 export default {
     title: 'Components/SpectrumTagsField',

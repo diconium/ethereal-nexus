@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-core
 
+## 1.5.0
+
+### Minor Changes
+
+- f756b58: feat: enhance multifield validation with min/max constraints and normalization
+
 ## 1.4.0
 
 ### Minor Changes

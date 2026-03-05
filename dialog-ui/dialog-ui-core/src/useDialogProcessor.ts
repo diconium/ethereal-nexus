@@ -1,5 +1,6 @@
 import {useState, useCallback} from 'react';
 import {FieldConfig, DialogConfig, FormData, ValidationErrors} from './types';
+import { getMultifieldItemsConstraintError, normalizeMultifieldValue } from './multifieldValidation';
 
 export interface UseDialogProcessorReturn {
     formData: FormData;
@@ -32,14 +33,23 @@ export function useDialogProcessor(config: DialogConfig, initialValues: any): Us
             }
         }
 
-        // Handle multifield validation
-        if (field.type === 'multifield' && Array.isArray(value) && field.children) {
-            for (let i = 0; i < value.length; i++) {
-                const item = value[i];
-                for (const childField of field.children) {
-                    const childError = validateField(childField, item[childField.name]);
-                    if (childError) {
-                        return `${field.label} item ${i + 1}: ${childError}`;
+        if (field.type === 'multifield') {
+            const multifieldValue = normalizeMultifieldValue(value);
+            const itemsConstraintError = getMultifieldItemsConstraintError(field, multifieldValue);
+
+            if (itemsConstraintError) {
+                return itemsConstraintError;
+            }
+
+            // Handle multifield child validation
+            if (field.children) {
+                for (let i = 0; i < multifieldValue.length; i++) {
+                    const item = multifieldValue[i];
+                    for (const childField of field.children) {
+                        const childError = validateField(childField, item[childField.name]);
+                        if (childError) {
+                            return `${field.label} item ${i + 1}: ${childError}`;
+                        }
                     }
                 }
             }

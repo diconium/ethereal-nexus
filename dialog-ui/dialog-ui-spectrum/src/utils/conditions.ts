@@ -32,28 +32,46 @@ const calculateEffectivePath = (condition?: any, effectivePath?: string) => {
 }
 
 const validateConditionValue = (condition: any, effectivePath = "", formData: any) => {
-  const fieldValue = getValueByPath(formData, effectivePath);
-
-  const { string: isString, stringValue, booleanValue } = condition.value;
-
-  switch (condition.operator) {
-    case "eq": {
-      if (isString && fieldValue !== stringValue || !isString && fieldValue !== booleanValue) {
-        return false;
-      }
-      break;
-    }
-    case "neq": {
-      if (isString && fieldValue === stringValue || !isString && fieldValue === booleanValue) {
-        return false;
-      }
-      break;
-    }
-    default:
-      break;
+  if (!condition) {
+    return true;
   }
 
-  return true;
+  const fieldValue = getValueByPath(formData, effectivePath);
+
+  switch (condition.operator) {
+    case "exists": {
+      if (Array.isArray(fieldValue)) {
+        return fieldValue.length > 0;
+      }
+
+      return fieldValue !== undefined && fieldValue !== null;
+    }
+    case "not_exists": {
+      if (Array.isArray(fieldValue)) {
+        return fieldValue.length === 0;
+      }
+
+      return fieldValue === undefined || fieldValue === null;
+    }
+    case "eq": {
+      const isString = condition.value?.string === true;
+      if (isString) {
+        return fieldValue === condition.value?.stringValue;
+      }
+
+      return fieldValue === condition.value?.booleanValue;
+    }
+    case "neq": {
+      const isString = condition.value?.string === true;
+      if (isString) {
+        return fieldValue !== condition.value?.stringValue;
+      }
+
+      return fieldValue !== condition.value?.booleanValue;
+    }
+    default:
+      return true;
+  }
 }
 
 export const evaluateConditions = (field: FieldConfig, formData: any, path?: string) => {

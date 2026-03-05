@@ -131,6 +131,8 @@ const transformAEMFields = (aemFields: any[]): DialogConfig => {
             parentId: parentId ?? undefined,
             type: field.type,
             multiple: field.multiple || false,
+            min: field.min || undefined,
+            max: field.max || undefined,
             defaultValue: field.defaultValue,
             required: field.required || false,
             placeholder: field.placeholder || '',

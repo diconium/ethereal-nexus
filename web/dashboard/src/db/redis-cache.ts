@@ -195,9 +195,11 @@ export class RedisCache extends Cache {
           const redisKey = this.buildStructuredKey(key, tables);
           const now = Date.now();
 
-          // Check local cache first
+          // Check local cache first.
           const entry = this.store.get(redisKey);
-          if (entry && (!entry.expireAt || entry.expireAt > now)) {
+          const entryExpireAt = (entry as Entry | undefined)?.expireAt;
+
+          if (entry && (!entryExpireAt || entryExpireAt > now)) {
             span.setAttribute('cache.hit', true);
             span.setAttribute('cache.level', 'local');
             logger.debug('Local cache hit', {
@@ -207,20 +209,20 @@ export class RedisCache extends Cache {
               tables: tables?.join(','),
               isTag,
               isAutoInvalidate,
-              expiresIn: entry.expireAt
-                ? Math.round((entry.expireAt - now) / 1000)
+              expiresIn: entryExpireAt
+                ? Math.round((entryExpireAt - now) / 1000)
                 : null,
               localStoreSize: this.store.size,
             });
-            return entry.value;
+            return (entry as Entry).value;
           }
 
-          if (entry && entry.expireAt && entry.expireAt <= now) {
+          if (entry && entryExpireAt && entryExpireAt <= now) {
             logger.debug('Local cache entry expired', {
               operation: 'redis-cache-get',
               cacheLevel: 'local',
               key: redisKey,
-              expiredAgo: Math.round((now - entry.expireAt) / 1000),
+              expiredAgo: Math.round((now - entryExpireAt) / 1000),
             });
             this.store.delete(redisKey);
           }
@@ -407,47 +409,56 @@ export class RedisCache extends Cache {
                 count: 100,
               });
               const keys: string[] = [];
+              const batchTasks: Promise<void>[] = [];
 
-              stream.on('data', async (resultKeys: string[]) => {
-                if (resultKeys.length === 0) {
-                  return;
-                }
+              stream.on('data', (resultKeys: string[]) => {
+                const batchTask = (async () => {
+                  if (resultKeys.length === 0) {
+                    return;
+                  }
 
-                logger.debug('Found keys to invalidate', {
-                  operation: 'redis-cache-mutate-scan',
-                  table,
-                  pattern,
-                  keysFound: resultKeys.length,
-                  keys: resultKeys,
-                });
-
-                try {
-                  const pipeline = this.redisClient.pipeline();
-                  resultKeys.forEach((key) => pipeline.del(key));
-                  await pipeline.exec();
-
-                  keys.push(...resultKeys);
-                  totalKeysInvalidated += resultKeys.length;
-
-                  logger.debug('Keys deleted from Redis', {
-                    operation: 'redis-cache-mutate-delete',
+                  logger.debug('Found keys to invalidate', {
+                    operation: 'redis-cache-mutate-scan',
                     table,
-                    deletedCount: resultKeys.length,
+                    pattern,
+                    keysFound: resultKeys.length,
+                    keys: resultKeys,
                   });
-                } catch (err) {
-                  logger.error(
-                    'Failed to delete keys from Redis',
-                    err as Error,
-                    {
-                      operation: 'redis-cache-mutate-delete-error',
-                      table,
-                      keys: resultKeys,
-                    },
-                  );
-                }
+
+                  for (const key of resultKeys) {
+                    try {
+                      // Invalidate by forcing expiration after a read, instead of DEL.
+                      const existingValue = await this.redisClient.get(key);
+                      if (existingValue == null) {
+                        continue;
+                      }
+
+                      await this.redisClient.expireat(key, 1);
+                      keys.push(key);
+                      totalKeysInvalidated += 1;
+                    } catch (err) {
+                      logger.error(
+                        'Failed to expire key in Redis',
+                        err as Error,
+                        {
+                          operation: 'redis-cache-mutate-expire-error',
+                          table,
+                          key,
+                        },
+                      );
+                    }
+                  }
+                })();
+
+                batchTasks.push(batchTask);
               });
 
-              await new Promise((resolve) => stream.on('end', resolve));
+              await new Promise<void>((resolve, reject) => {
+                stream.on('end', () => resolve());
+                stream.on('error', (err) => reject(err));
+              });
+
+              await Promise.all(batchTasks);
 
               const tableDuration = Date.now() - tableStartTime;
 

@@ -40,7 +40,7 @@ properties:
           - name: OTEL_PUBLIC_SERVICE_NAME
             value: "ethereal-nexus-dev"
           - name: REDIS_CACHE_STRATEGY
-            value: "explicit"
+            value: "all"
           - name: REDIS_HOST
             secretRef: "redis-host"
           - name: AZURE_FRONT_DOOR_URL

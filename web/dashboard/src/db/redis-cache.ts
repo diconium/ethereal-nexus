@@ -45,6 +45,14 @@ interface Entry {
 }
 
 export class RedisCache extends Cache {
+  private static instance: RedisCache | null = null;
+
+  static getInstance(): RedisCache {
+    if (!RedisCache.instance) {
+      RedisCache.instance = new RedisCache();
+    }
+    return RedisCache.instance;
+  }
   private store = new Map<string, Entry>();
 
   private redisClient: Redis;
@@ -386,6 +394,7 @@ export class RedisCache extends Cache {
             tableCount: tables.length,
           });
 
+
           const overallStartTime = Date.now();
           let totalKeysInvalidated = 0;
 
@@ -513,3 +522,5 @@ export class RedisCache extends Cache {
     );
   }
 }
+
+export const redisCache = RedisCache.getInstance();

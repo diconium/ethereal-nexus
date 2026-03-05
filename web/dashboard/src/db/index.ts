@@ -9,7 +9,7 @@ import * as projects from '@/data/projects/schema';
 import * as member from '@/data/member/schema';
 import * as components from '@/data/components/schema';
 import * as events from '@/data/events/schema';
-import { RedisCache } from '@/db/redis-cache';
+import { redisCache, RedisCache } from '@/db/redis-cache';
 import { InMemoryCache } from '@/db/in-memory-cache';
 import { logger } from '@/lib/logger';
 
@@ -30,7 +30,7 @@ const cache = remember('redis-cache', () => {
         operation: 'db-init',
         cacheStrategy: 'redis',
       });
-      return new RedisCache();
+      return redisCache;
     default:
       logger.info('Database cache initialized with in-memory strategy', {
         operation: 'db-init',

@@ -37,17 +37,36 @@ const SpectrumMultifieldRenderer: React.FC<MultifieldRendererProps> = ({field, v
     const {t} = useI18n();
     const arrayValue = Array.isArray(value) ? value : [];
 
+    const parsedMinItems = field.min ? parseInt(field.min, 10) : NaN;
+    const parsedMaxItems = field.max ? parseInt(field.max, 10) : NaN;
+    const minItems = Number.isFinite(parsedMinItems) ? Math.max(parsedMinItems, 0) : undefined;
+    const maxItems = Number.isFinite(parsedMaxItems) ? Math.max(parsedMaxItems, 0) : undefined;
+    const canAddItem = maxItems === undefined || arrayValue.length < maxItems;
+    const canRemoveItem = minItems === undefined || arrayValue.length > minItems;
+
     // Stable counter for generating unique __itemKey for new items.
     // Initialized from existing items so new keys never collide.
     const itemCounterRef = React.useRef(computeNextCounter(arrayValue));
 
     const addItem = () => {
+        if (!canAddItem) {
+            // Trigger upstream validation flow so error is surfaced through the regular mechanism.
+            onChange(arrayValue);
+            return;
+        }
+
         const newItem = FieldRenderLogic.createMultifieldItem(field);
         newItem.__itemKey = `item${itemCounterRef.current++}`;
         onChange([...arrayValue, newItem]);
     };
 
     const removeItem = (index: number) => {
+        if (!canRemoveItem) {
+            // Trigger upstream validation flow so error is surfaced through the regular mechanism.
+            onChange(arrayValue);
+            return;
+        }
+
         const newValue = FieldRenderLogic.removeMultifieldItem(arrayValue, index);
         onChange(newValue);
     };
@@ -133,7 +152,7 @@ const SpectrumMultifieldRenderer: React.FC<MultifieldRendererProps> = ({field, v
                 <Text UNSAFE_style={{fontWeight: 'bold', fontSize: '14px'}}>
                     {t(field.label ?? '')}
                 </Text>
-                <ActionButton onPress={addItem} isQuiet>
+                <ActionButton onPress={addItem} isQuiet isDisabled={!canAddItem}>
                     <Add/>
                     <Text>{t('Add')}</Text>
                 </ActionButton>
@@ -188,6 +207,7 @@ const SpectrumMultifieldRenderer: React.FC<MultifieldRendererProps> = ({field, v
                                             </>
                                         )}
                                         <ActionButton onPress={() => removeItem(index)} isQuiet
+                                                      isDisabled={!canRemoveItem}
                                                       aria-label={`Delete item ${index + 1}`}>
                                             <Delete size="S"/>
                                         </ActionButton>

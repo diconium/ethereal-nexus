@@ -913,6 +913,8 @@ export const TabsExample: Story = {
                                 "id": "banners",
                                 "label": "Banners",
                                 "required": false,
+                                "min":"1",
+                                "max":"3",
                                 "children": [
                                     {
                                         "type": "textfield",

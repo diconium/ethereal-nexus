@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.18.0
+
+### Minor Changes
+
+- f756b58: feat: enhance multifield validation with min/max constraints and normalization
+
 ## 1.17.0
 
 ### Minor Changes

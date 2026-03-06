@@ -1,5 +1,16 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.7.0
+
+### Minor Changes
+
+- f756b58: feat: enhance multifield validation with min/max constraints and normalization
+
+### Patch Changes
+
+- Updated dependencies [f756b58]
+  - @ethereal-nexus/dialog-ui-core@1.5.0
+
 ## 1.6.0
 
 ### Minor Changes

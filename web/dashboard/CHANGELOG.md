@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 3.7.0
+
+### Minor Changes
+
+- 0ce0c7f: fix: refactor RedisCache to implement singleton pattern and update cache initialization
+
 ## 3.6.0
 
 ### Minor Changes

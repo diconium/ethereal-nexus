@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 3.7.1
+
+### Patch Changes
+
+- 8b807db: Handle JSON parsing errors in route request
+
 ## 3.7.0
 
 ### Minor Changes

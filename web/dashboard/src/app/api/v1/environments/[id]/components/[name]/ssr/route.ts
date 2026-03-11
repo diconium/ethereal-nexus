@@ -33,7 +33,7 @@ export const POST = async (
     });
   }
 
-  const req = await request.json();
+  const req = await request.json().catch(() => {});
 
   const response = await getEnvironmentComponentConfig(id, name, userId);
 

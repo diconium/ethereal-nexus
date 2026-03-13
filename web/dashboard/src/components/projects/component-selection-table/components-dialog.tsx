@@ -1,27 +1,55 @@
 'use client';
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import React, { MouseEventHandler, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { toast } from 'sonner';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { upsertComponentConfig } from '@/data/projects/actions';
 import { useSession } from 'next-auth/react';
-import { Check, ChevronDownIcon, ClipboardCopy, Plus, Rocket } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Check,
+  ChevronDownIcon,
+  ClipboardCopy,
+  Plus,
+  Rocket,
+} from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { type Environment } from '@/data/projects/dto';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 
 type ComponentsDialogProps = {
-  components: any,
-  project: string,
-  environment: string,
-  environments: Environment[],
-}
+  components: any;
+  project: string;
+  environment: string;
+  environments: Environment[];
+};
 
-export function ComponentsDialog({ components, environment, project, environments }: ComponentsDialogProps) {
+export function ComponentsDialog({
+  components,
+  environment,
+  project,
+  environments,
+}: ComponentsDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isEnvironmentOpen, setEnvironmentOpen] = useState(false);
   const [isLaunchOpen, setLaunchOpen] = useState(false);
@@ -33,32 +61,36 @@ export function ComponentsDialog({ components, environment, project, environment
   const { replace } = useRouter();
 
   const { data: session } = useSession();
-  const hasWritePermissions = session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[project] || '');
+  const hasWritePermissions =
+    session?.user?.role === 'admin' ||
+    ['write', 'manage'].includes(session?.permissions[project] || '');
 
-  const selected = environments.find(env => env.id === environment);
+  const selected = environments.find((env) => env.id === environment);
   if (!components.success) {
     throw new Error(components.error.message);
   }
 
   const handleSubmit = async () => {
     const updateResult = await Promise.all(
-      selectedComponents.map(async (component) => (
-        await upsertComponentConfig({
-          environment_id: environment,
-          component_id: component,
-          is_active: true
-        }, project, session?.user?.id, 'project_component_added')
-      ))
+      selectedComponents.map(
+        async (component) =>
+          await upsertComponentConfig(
+            {
+              environment_id: environment,
+              component_id: component,
+              is_active: true,
+            },
+            project,
+            session?.user?.id,
+            'project_component_added',
+          ),
+      ),
     );
 
     if (updateResult.some((result) => !result.success)) {
-      toast({
-        title: 'Failed to add components.'
-      });
+      toast('Failed to add components.');
     } else {
-      toast({
-        title: `Components added successfully!`
-      });
+      toast(`Components added successfully!`);
       setIsOpen(false);
       setSelectedComponents([]);
     }
@@ -88,24 +120,25 @@ export function ComponentsDialog({ components, environment, project, environment
     };
   }
 
-
   const copyProjectUrl: MouseEventHandler = () => {
-    navigator.clipboard.writeText(
-      window.location.origin +
-      `/api/v1/environments/${environment}/components`
-    ).then(() => {
-      toast({
-        title: 'Environment URL copied to clipboard'
+    navigator.clipboard
+      .writeText(
+        window.location.origin +
+          `/api/v1/environments/${environment}/components`,
+      )
+      .then(() => {
+        toast('Environment URL copied to clipboard');
       });
-    });
   };
-
 
   return (
     <div className="ml-2 w-full flex gap-2 justify-between">
       <Popover open={isEnvironmentOpen} onOpenChange={setEnvironmentOpen}>
         <PopoverTrigger asChild>
-          <Button variant="secondary" className="flex justify-between min-w-[125px]">
+          <Button
+            variant="secondary"
+            className="flex justify-between min-w-[125px]"
+          >
             {selected!.name}
             <ChevronDownIcon className="ml-2 h-4 w-4 text-muted-foreground" />
           </Button>
@@ -115,28 +148,21 @@ export function ComponentsDialog({ components, environment, project, environment
             <CommandInput placeholder="Select environment..." />
             <CommandList>
               <CommandGroup>
-                {
-                  environments
-                    .map(env => (
-                        <CommandItem
-                          key={env.id}
-                          value={env.name}
-                          onSelect={handleEnvironment(env.id)}
-                          className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
-                        >
-                    <span
-                      className="flex items-center">
-                        {
-                          environment === env.id ?
-                            <Check className="mr-2 h-4 w-4 text-muted-foreground" /> :
-                            null
-                        }
+                {environments.map((env) => (
+                  <CommandItem
+                    key={env.id}
+                    value={env.name}
+                    onSelect={handleEnvironment(env.id)}
+                    className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
+                  >
+                    <span className="flex items-center">
+                      {environment === env.id ? (
+                        <Check className="mr-2 h-4 w-4 text-muted-foreground" />
+                      ) : null}
                       <p>{env.name}</p>
                     </span>
-                        </CommandItem>
-                      )
-                    )
-                }
+                  </CommandItem>
+                ))}
               </CommandGroup>
             </CommandList>
           </Command>
@@ -144,10 +170,7 @@ export function ComponentsDialog({ components, environment, project, environment
       </Popover>
       <Popover open={isLaunchOpen} onOpenChange={setLaunchOpen}>
         <PopoverTrigger asChild>
-          <Button
-            disabled={!hasWritePermissions}
-            size="sm"
-          >
+          <Button disabled={!hasWritePermissions} size="sm">
             <Rocket className="mr-2 h-4 w-4" />
             <span>Launch</span>
           </Button>
@@ -158,39 +181,35 @@ export function ComponentsDialog({ components, environment, project, environment
             <CommandList>
               <CommandGroup>
                 {environments
-                  .filter(env => env.id !== environment)
-                  .map(env => (
-                      <CommandItem
-                        key={env.id}
-                        value={env.name}
-                        onSelect={handleLaunch(env.id)}
-                        className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
-                      >
-                        <span className="flex items-center">
-                          {environment === env.id ?
-                            <Check className="mr-2 h-4 w-4 text-muted-foreground" /> :
-                            null
-                          }
-                          <span>{selected?.name}...{env.name}</span>
+                  .filter((env) => env.id !== environment)
+                  .map((env) => (
+                    <CommandItem
+                      key={env.id}
+                      value={env.name}
+                      onSelect={handleLaunch(env.id)}
+                      className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
+                    >
+                      <span className="flex items-center">
+                        {environment === env.id ? (
+                          <Check className="mr-2 h-4 w-4 text-muted-foreground" />
+                        ) : null}
+                        <span>
+                          {selected?.name}...{env.name}
                         </span>
-                      </CommandItem>
-                    )
-                  )
-                }
+                      </span>
+                    </CommandItem>
+                  ))}
               </CommandGroup>
             </CommandList>
           </Command>
         </PopoverContent>
       </Popover>
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={copyProjectUrl}>
+      <Button size="sm" variant="ghost" onClick={copyProjectUrl}>
         <ClipboardCopy className="mr-2 h-4 w-4" />
         <span>Copy URL</span>
       </Button>
       <Button
-        size="base"
+        size="default"
         className="ml-auto"
         onClick={() => setIsOpen(true)}
         disabled={!hasWritePermissions}
@@ -201,9 +220,7 @@ export function ComponentsDialog({ components, environment, project, environment
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              Components
-            </DialogTitle>
+            <DialogTitle>Components</DialogTitle>
             <DialogDescription>
               Add components to this project so they can be used.
             </DialogDescription>
@@ -224,12 +241,15 @@ export function ComponentsDialog({ components, environment, project, environment
                         if (selectedComponents.includes(componentId)) {
                           return setSelectedComponents(
                             selectedComponents.filter(
-                              (selectedComp) => selectedComp !== componentId
-                            )
+                              (selectedComp) => selectedComp !== componentId,
+                            ),
                           );
                         }
 
-                        return setSelectedComponents([...selectedComponents, componentId]);
+                        return setSelectedComponents([
+                          ...selectedComponents,
+                          componentId,
+                        ]);
                       }}
                     >
                       <div className="ml-2">
@@ -253,7 +273,7 @@ export function ComponentsDialog({ components, environment, project, environment
             <Button
               disabled={selectedComponents.length < 1}
               onClick={handleSubmit}
-              size="base"
+              size="default"
               className="self-start"
             >
               Add components

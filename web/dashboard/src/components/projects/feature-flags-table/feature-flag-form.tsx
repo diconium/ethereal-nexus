@@ -1,55 +1,69 @@
-"use client";
+'use client';
 
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { TextArea } from '@/components/ui/text-area';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
-import { Environment, FeatureFlagInput, featureFlagInputSchema } from '@/data/projects/dto';
+import {
+  Environment,
+  FeatureFlagInput,
+  featureFlagInputSchema,
+} from '@/data/projects/dto';
 import { upsertFeatureFlag } from '@/data/projects/actions';
 import { Component } from '@/data/components/dto';
 import { SelectPopover } from '@/components/ui/select-popover';
 
-
 type FeatureFlagFormProps = {
-  project: string,
-  environments?: Environment[],
+  project: string;
+  environments?: Environment[];
   component?: Component;
   environment?: Environment;
   components?: Component[];
-  onComplete?: () => void,
-  onCancel?: () => void,
-}
+  onComplete?: () => void;
+  onCancel?: () => void;
+};
 
-export default function FeatureFlagForm({ environment, component, project, onComplete, onCancel, environments = [], components = [] }: FeatureFlagFormProps) {
-  const { toast } = useToast();
+export default function FeatureFlagForm({
+  environment,
+  component,
+  project,
+  onComplete,
+  onCancel,
+  environments = [],
+  components = [],
+}: FeatureFlagFormProps) {
   const form: any = useForm<FeatureFlagInput>({
     resolver: zodResolver(featureFlagInputSchema as any),
     defaultValues: {
       environment_id: environment?.id || environments[0]?.id,
-      component_id: component?.id ,
+      component_id: component?.id,
       project_id: project,
       enabled: false,
     },
   });
 
   const onSubmit = async (data: FeatureFlagInput) => {
-
-
-
     const result = await upsertFeatureFlag({ ...data });
     if (!result.success) {
-      return toast({
-        title: `Failed to ${data.id ? "update" : "create"} feature flag "${data.flag_name}"!`,
-      });
+      return toast(
+        `Failed to ${data.id ? 'update' : 'create'} feature flag "${data.flag_name}"!`,
+      );
     }
-    toast({
-      title: `Feature flag ${result.data.id ? "update" : "create"}d successfully!`,
-    });
+    toast(
+      `Feature flag ${result.data.id ? 'update' : 'create'}d successfully!`,
+    );
     if (onComplete) {
       onComplete();
     }
@@ -57,8 +71,12 @@ export default function FeatureFlagForm({ environment, component, project, onCom
 
   const [isEnvironmentOpen, setEnvironmentOpen] = React.useState(false);
   const [isComponentOpen, setComponentOpen] = React.useState(false);
-  const selectedEnv = environments.find(env => env.id === form.watch('environment_id')) || environments[0];
-  const selectedComp = components.find(comp => comp.id === form.watch('component_id')) || components[0];
+  const selectedEnv =
+    environments.find((env) => env.id === form.watch('environment_id')) ||
+    environments[0];
+  const selectedComp =
+    components.find((comp) => comp.id === form.watch('component_id')) ||
+    components[0];
 
   return (
     <Form {...form}>
@@ -68,9 +86,15 @@ export default function FeatureFlagForm({ environment, component, project, onCom
           name="flag_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="transition-colors text-muted-foreground font-bold">Name</FormLabel>
+              <FormLabel className="transition-colors text-muted-foreground font-bold">
+                Name
+              </FormLabel>
               <FormControl>
-                <Input placeholder="Feature Flag Name" {...field} className="bg-white dark:bg-transparent font-bold" />
+                <Input
+                  placeholder="Feature Flag Name"
+                  {...field}
+                  className="bg-white dark:bg-transparent font-bold"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -81,9 +105,16 @@ export default function FeatureFlagForm({ environment, component, project, onCom
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="transition-colors text-muted-foreground font-bold">Description</FormLabel>
+              <FormLabel className="transition-colors text-muted-foreground font-bold">
+                Description
+              </FormLabel>
               <FormControl>
-                <TextArea placeholder="Description" {...field} rows={5} className="bg-white dark:bg-transparent" />
+                <TextArea
+                  placeholder="Description"
+                  {...field}
+                  rows={5}
+                  className="bg-white dark:bg-transparent"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -94,9 +125,14 @@ export default function FeatureFlagForm({ environment, component, project, onCom
           name="enabled"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel className="transition-colors text-muted-foreground font-bold">Enabled</FormLabel>
+              <FormLabel className="transition-colors text-muted-foreground font-bold">
+                Enabled
+              </FormLabel>
               <FormControl>
-                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -107,12 +143,14 @@ export default function FeatureFlagForm({ environment, component, project, onCom
           name="environment_id"
           render={() => (
             <FormItem>
-              <FormLabel className="transition-colors text-muted-foreground font-bold">Environment</FormLabel>
+              <FormLabel className="transition-colors text-muted-foreground font-bold">
+                Environment
+              </FormLabel>
               <SelectPopover
                 label="Environment"
                 items={environments}
                 selected={selectedEnv}
-                onSelect={id => form.setValue('environment_id', id)}
+                onSelect={(id) => form.setValue('environment_id', id)}
                 open={isEnvironmentOpen}
                 setOpen={setEnvironmentOpen}
               />
@@ -125,14 +163,16 @@ export default function FeatureFlagForm({ environment, component, project, onCom
           name="component_id"
           render={() => (
             <FormItem>
-              <FormLabel className="transition-colors text-muted-foreground font-bold">Component</FormLabel>
+              <FormLabel className="transition-colors text-muted-foreground font-bold">
+                Component
+              </FormLabel>
               <SelectPopover
                 label="Component"
                 items={components}
                 selected={selectedComp}
-                onSelect={id => {
+                onSelect={(id) => {
                   console.log(id);
-                  form.setValue('component_id', id)
+                  form.setValue('component_id', id);
                 }}
                 open={isComponentOpen}
                 setOpen={setComponentOpen}
@@ -143,11 +183,17 @@ export default function FeatureFlagForm({ environment, component, project, onCom
         />
         <div className="flex items-center gap-14">
           {onCancel && (
-            <Button onClick={onCancel} variant="text" className="text-orange-500 font-bold text-base p-0">
+            <Button
+              onClick={onCancel}
+              variant="ghost"
+              className="text-accent font-bold text-base p-0"
+            >
               Cancel
             </Button>
           )}
-          <Button type="submit" size="base">Create Feature Flag</Button>
+          <Button type="submit" size="default">
+            Create Feature Flag
+          </Button>
         </div>
       </form>
     </Form>

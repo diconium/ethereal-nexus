@@ -3,19 +3,26 @@ import { Switch } from '@/components/ui/switch';
 import { useForm } from 'react-hook-form';
 import { upsertFeatureFlag } from '@/data/projects/actions';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 type ActiveSwitchProps = {
-  componentId: string,
-  disabled: boolean,
-  projectId: string,
-  environmentId: string,
-  enabled: boolean,
-  flagName: string,
-}
-export function ActiveSwitch({componentId, disabled, projectId, environmentId, enabled, flagId, flagName}:ActiveSwitchProps & { flagId: string }) {
-
-  const form = useForm({defaultValues: {enabled: enabled}});
+  componentId: string;
+  disabled: boolean;
+  projectId: string;
+  environmentId: string;
+  enabled: boolean;
+  flagName: string;
+};
+export function ActiveSwitch({
+  componentId,
+  disabled,
+  projectId,
+  environmentId,
+  enabled,
+  flagId,
+  flagName,
+}: ActiveSwitchProps & { flagId: string }) {
+  const form = useForm({ defaultValues: { enabled: enabled } });
 
   const onSubmit = async (data) => {
     const update = await upsertFeatureFlag({
@@ -24,31 +31,32 @@ export function ActiveSwitch({componentId, disabled, projectId, environmentId, e
       project_id: projectId,
       environment_id: environmentId,
       component_id: componentId,
-      enabled: data.enabled
+      enabled: data.enabled,
     });
-    if(!update.success){
-      toast({
-        title: "Failed to update feature flag.",
-      });
+    if (!update.success) {
+      toast('Failed to update feature flag.');
     }
-  }
+  };
 
-  return <Form {...form}>
-    <form onChange={form.handleSubmit(onSubmit)} className="space-y-8">
-      <FormField
-        control={form.control}
-        name="enabled"
-        render={({ field }) => (
-          <FormItem>
-            <FormControl>
-              <Switch
-                disabled={disabled}
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
-          </FormItem>)}
-      />
-    </form>
-  </Form>
+  return (
+    <Form {...form}>
+      <form onChange={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="enabled"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Switch
+                  disabled={disabled}
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+      </form>
+    </Form>
+  );
 }

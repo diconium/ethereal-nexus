@@ -1,61 +1,75 @@
 import React from 'react';
 import { SessionProvider } from 'next-auth/react';
 import { auth, signIn } from '@/auth';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/ui/sidebar/app-sidebar';
-import { Toaster } from '@/components/ui/toaster';
+import { SiteHeader } from '@/components/ui/sidebar/site-header';
+import { HeaderSlotProvider } from '@/components/ui/sidebar/header-slot-context';
+import { Toaster } from '@/components/ui/sonner';
 
 const navigation = [
   {
     title: 'Dashboard',
     url: '/',
-    icon: "LayoutDashboard",
+    icon: 'LayoutDashboard',
   },
   {
     title: 'Projects',
     url: '/projects',
-    icon: "Folder"
+    icon: 'Folder',
   },
   {
     title: 'Components',
     url: '/components',
-    icon: "LayoutGrid"
+    icon: 'LayoutGrid',
   },
   {
     title: 'Users',
     url: '/users',
-    icon: "UserRound",
-    role: 'admin'
-  }
+    icon: 'UserRound',
+    role: 'admin',
+  },
 ];
 
-export default async function SessionLayout({ children }: { children: React.ReactNode }) {
+export default async function SessionLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const session = await auth();
   if (!session?.user) {
     return await signIn();
   }
 
-  const authorizedNavigation = navigation
-    .filter(item => {
-      if (!item.role) {
-        return true;
-      }
-
-      return session.user?.role === item.role;
-    })
+  const authorizedNavigation = navigation.filter((item) => {
+    if (!item.role) {
+      return true;
+    }
+    return session.user?.role === item.role;
+  });
 
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      style={
+        {
+          '--sidebar-width': 'calc(var(--spacing) * 72)',
+          '--header-height': 'calc(var(--spacing) * 12)',
+        } as React.CSSProperties
+      }
+    >
       <AppSidebar
-        className="p-0"
+        variant="inset"
         user={session.user}
         navigation={authorizedNavigation}
       />
-      <main className="container mx-auto mt-20">
-        <SessionProvider session={session}>
-          {children}
-        </SessionProvider>
-      </main>
+      <SidebarInset>
+        <HeaderSlotProvider>
+          <SiteHeader />
+          <div className="flex flex-1 flex-col p-4 lg:p-6">
+            <SessionProvider session={session}>{children}</SessionProvider>
+          </div>
+        </HeaderSlotProvider>
+      </SidebarInset>
       <Toaster />
     </SidebarProvider>
   );

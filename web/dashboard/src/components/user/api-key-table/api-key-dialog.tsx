@@ -38,7 +38,7 @@ export function ApiKeyDialog({ availableProjects }: ApiKeyDialogProps) {
         setOpen(state);
         router.refresh()
       }}>
-        <DialogContent className="gap-0 p-0 px-4 outline-none">
+        <DialogContent className="gap-0 p-0 px-4 outline-hidden">
           <DialogHeader className="pb-4 pt-5">
             <DialogTitle>Create Key</DialogTitle>
             <DialogDescription>

@@ -5,21 +5,30 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Trash2 } from 'lucide-react';
+import { MoreHorizontal, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogTrigger } from '@radix-ui/react-dialog';
-import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { toast } from '@/components/ui/use-toast';
+import {
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
 import { deleteEnvironment } from '@/data/projects/actions';
-import DotsIcon from '@/components/ui/icons/DotsIcon';
 import { useSession } from 'next-auth/react';
 
 export function EnvironmentsRowActions({ row }) {
   const environment = row.original;
   const { data: session } = useSession();
-  const hasWritePermissions = session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[environment.project_id] || '');
+  const hasWritePermissions =
+    session?.user?.role === 'admin' ||
+    ['write', 'manage'].includes(
+      session?.permissions[environment.project_id] || '',
+    );
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -30,13 +39,9 @@ export function EnvironmentsRowActions({ row }) {
       const deleted = await deleteEnvironment(environment.id);
 
       if (deleted.success) {
-        toast({
-          title: `Environment ${environment.name} was removed successfully`
-        });
+        toast(`Environment ${environment.name} was removed successfully`);
       } else {
-        toast({
-          title: `Environment ${environment.name} could not be removed`
-        });
+        toast(`Environment ${environment.name} could not be removed`);
       }
     }
   };
@@ -49,7 +54,7 @@ export function EnvironmentsRowActions({ row }) {
             variant="ghost"
             className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
           >
-            <DotsIcon data-testid="ethereal-dots-icon" width="20" height="20" />
+            <MoreHorizontal className="h-4 w-4" />
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>

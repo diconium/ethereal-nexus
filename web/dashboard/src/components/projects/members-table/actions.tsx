@@ -5,20 +5,27 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Undo2 } from 'lucide-react';
+import { MoreHorizontal, Undo2 } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogTrigger } from '@radix-ui/react-dialog';
-import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { toast } from '@/components/ui/use-toast';
-import DotsIcon from '@/components/ui/icons/DotsIcon';
+import {
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
 import { deleteMember } from '@/data/member/actions';
 import { useSession } from 'next-auth/react';
 
 export function MemberDataTableRowActions({ member }) {
-  const {data: session} = useSession()
-  const hasWritePermissions = session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[member.resource] || '');
+  const { data: session } = useSession();
+  const hasWritePermissions =
+    session?.user?.role === 'admin' ||
+    ['write', 'manage'].includes(session?.permissions[member.resource] || '');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleDeleteOk = async () => {
@@ -27,15 +34,10 @@ export function MemberDataTableRowActions({ member }) {
       const deleted = await deleteMember(member.id);
 
       if (deleted.success) {
-        toast({
-          title: `Member was removed successfully`
-        });
+        toast(`Member was removed successfully`);
       } else {
-        toast({
-          title: `Member could not be removed`
-        });
+        toast(`Member could not be removed`);
       }
-
     }
   };
 
@@ -47,7 +49,7 @@ export function MemberDataTableRowActions({ member }) {
             variant="ghost"
             className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
           >
-            <DotsIcon data-testid="ethereal-dots-icon" width="20" height="20" />
+            <MoreHorizontal className="h-4 w-4" />
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>
@@ -59,7 +61,7 @@ export function MemberDataTableRowActions({ member }) {
                 className="text-red-600"
                 onSelect={(e) => e.preventDefault()}
               >
-                <Undo2  className="mr-2 h-4 w-4" />
+                <Undo2 className="mr-2 h-4 w-4" />
                 Remove
               </DropdownMenuItem>
             </DialogTrigger>
@@ -67,7 +69,8 @@ export function MemberDataTableRowActions({ member }) {
               <DialogHeader>
                 <DialogTitle>Are you sure?</DialogTitle>
                 <DialogDescription>
-                  This will remove {member.user.name}&apos;s access to this project along with any permission.
+                  This will remove {member.user.name}&apos;s access to this
+                  project along with any permission.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
@@ -77,10 +80,7 @@ export function MemberDataTableRowActions({ member }) {
                 >
                   Cancel
                 </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => handleDeleteOk()}
-                >
+                <Button variant="destructive" onClick={() => handleDeleteOk()}>
                   Remove
                 </Button>
               </DialogFooter>

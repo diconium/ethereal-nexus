@@ -8,8 +8,8 @@ interface UserMessageProps {
 
 export function UserMessage({ message }: UserMessageProps) {
     return (
-        <div className="bg-white rounded-lg shadow p-4 max-w-96">
-            <pre className="whitespace-pre-wrap font-sans break-words overflow-hidden">{message}</pre>
+        <div className="bg-white rounded-lg shadow-sm p-4 max-w-96">
+            <pre className="whitespace-pre-wrap font-sans wrap-break-word overflow-hidden">{message}</pre>
         </div>
     )
 };

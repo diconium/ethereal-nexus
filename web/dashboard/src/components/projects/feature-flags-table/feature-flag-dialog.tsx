@@ -78,7 +78,7 @@ export function FeatureFlagDialog({ resource, environmentId, componentId, compon
       </Popover>
       <Button
         disabled={!hasWritePermissions}
-        size="base"
+        size="default"
         onClick={() => setOpen(true)}
         className="ml-auto flex">
         <Plus />

@@ -82,7 +82,7 @@ export function WebContainerStatusOutput({ output }: StatusOutputProps) {
                         </h2>
                         {lines.map((line, index) => (
                             <div key={index} >
-                                <p className={`whitespace-pre-wrap font-sans break-words overflow-hidden ${isError ? 'text-red-600' : 'text-white'}`}>{line}</p>
+                                <p className={`whitespace-pre-wrap font-sans wrap-break-word overflow-hidden ${isError ? 'text-red-600' : 'text-white'}`}>{line}</p>
                             </div>
                         ))}
                     </div>

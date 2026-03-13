@@ -7,45 +7,50 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from '@/components/ui/dialog';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import React, { type MouseEventHandler, useState } from 'react';
 import { PublicUser } from '@/data/users/dto';
 import { insertMembers } from '@/data/member/actions';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
 import { Plus } from 'lucide-react';
 
 type AddMemberProps = {
   users: PublicUser[];
   resource: string;
-}
+};
 
 export function MemberDialog({ users, resource }: AddMemberProps) {
   const [open, setOpen] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<PublicUser[]>([]);
 
   const { data: session } = useSession();
-  const hasWritePermissions = session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[resource] || '');
+  const hasWritePermissions =
+    session?.user?.role === 'admin' ||
+    ['write', 'manage'].includes(session?.permissions[resource] || '');
 
   const handleSubmit: MouseEventHandler = async () => {
     setOpen(false);
-    const newMembers = selectedUsers
-      .map(user => ({
-        resource,
-        user_id: user.id,
-      }));
+    const newMembers = selectedUsers.map((user) => ({
+      resource,
+      user_id: user.id,
+    }));
     const members = await insertMembers(newMembers);
-    if(members.success) {
-      toast({
-        title: 'Member added successfully!',
-      });
+    if (members.success) {
+      toast('Member added successfully!');
     } else {
-      toast({
-        title: 'Failed to add member.',
+      toast('Failed to add member.', {
         description: members.error.message,
       });
     }
@@ -55,14 +60,15 @@ export function MemberDialog({ users, resource }: AddMemberProps) {
     <>
       <Button
         disabled={!hasWritePermissions}
-        size="base"
+        size="default"
         onClick={() => setOpen(true)}
-        className="ml-auto flex">
+        className="ml-auto flex"
+      >
         <Plus />
         Add User
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="gap-0 p-0 outline-none">
+        <DialogContent className="gap-0 p-0 outline-hidden">
           <DialogHeader className="px-4 pb-4 pt-5">
             <DialogTitle>Add member</DialogTitle>
             <DialogDescription>
@@ -82,15 +88,15 @@ export function MemberDialog({ users, resource }: AddMemberProps) {
                       if (selectedUsers.includes(user)) {
                         return setSelectedUsers(
                           selectedUsers.filter(
-                            (selectedUser) => selectedUser !== user
-                          )
+                            (selectedUser) => selectedUser !== user,
+                          ),
                         );
                       }
 
                       return setSelectedUsers(
                         [...users].filter((u) =>
-                          [...selectedUsers, user].includes(u)
-                        )
+                          [...selectedUsers, user].includes(u),
+                        ),
                       );
                     }}
                   >
@@ -132,10 +138,7 @@ export function MemberDialog({ users, resource }: AddMemberProps) {
                 Select users to add to this project.
               </p>
             )}
-            <Button
-              disabled={selectedUsers.length < 1}
-              onClick={handleSubmit}
-            >
+            <Button disabled={selectedUsers.length < 1} onClick={handleSubmit}>
               Continue
             </Button>
           </DialogFooter>

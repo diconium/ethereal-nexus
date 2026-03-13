@@ -10,7 +10,7 @@ export default function ApiKeyModal({projects, apyKey}) {
   const router = useRouter();
 
   return <Dialog open={true} onOpenChange={router.back}>
-    <DialogContent className="gap-0 p-0 px-4 outline-none">
+    <DialogContent className="gap-0 p-0 px-4 outline-hidden">
       <DialogHeader className="pb-4 pt-5">
         <DialogTitle>Edit Key</DialogTitle>
         <DialogDescription>

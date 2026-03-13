@@ -1,71 +1,75 @@
-'use client'
+'use client';
 
 import { ProjectsDataTableRowActions } from './data-table-row-actions';
-import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
 import Link from 'next/link';
 
 export const columns = [
   {
-    accessorKey: "name",
-    header: ({ column }) => (
-      <DataTableColumnHeader className="font-bold" column={column} title="Name" />
+    accessorKey: 'name',
+    header: 'Name',
+    cell: ({ row }) => (
+      <Link className="font-semibold" href={`/projects/${row.original.id}`}>
+        {row.getValue('name')}
+      </Link>
     ),
-    cell: ({ row }) => <Link className="font-semibold" href={`/projects/${row.original.id}`}>{row.getValue("name")}</Link>,
-    enableSorting: false,
     enableHiding: true,
   },
   {
-    accessorKey: "description",
-    header: ({ column }) => (
-      <DataTableColumnHeader className="font-bold" column={column} title="Description" />
+    accessorKey: 'description',
+    header: 'Description',
+    cell: ({ row }) => (
+      <Link
+        className="font-normal text-base leading-4"
+        href={`/projects/${row.original.id}`}
+      >
+        {row.getValue('description')}
+      </Link>
     ),
-    cell: ({ row }) => <Link className="font-normal text-base leading-4" href={`/projects/${row.original.id}`}>{row.getValue("description")}</Link>,
-    enableSorting: false,
     enableHiding: true,
   },
   {
-    accessorKey: "environments",
-    header: ({ column }) => (
-      <DataTableColumnHeader className="font-bold" column={column} title="Environments" />
-    ),
+    accessorKey: 'environments',
+    header: 'Environments',
     cell: ({ row }) => (
       <div className="inline-flex">
-        <div className="text-orange-500 text-base"> { row.getValue("environments")?.length || 0 } </div>
+        <div className="text-accent-foreground text-base">
+          {' '}
+          {row.getValue('environments')?.length || 0}{' '}
+        </div>
       </div>
     ),
-    enableSorting: false,
     enableHiding: true,
   },
   {
-    accessorKey: "components",
-    header: ({ column }) => (
-      <DataTableColumnHeader className="font-bold" column={column} title="Components" />
-    ),
+    accessorKey: 'components',
+    header: 'Components',
     cell: ({ row }) => (
       <div className="inline-flex">
-        <div className="text-orange-500 text-base"> { row.getValue("components")?.length || 0 } </div>
+        <div className="text-accent-foreground text-base">
+          {' '}
+          {row.getValue('components')?.length || 0}{' '}
+        </div>
       </div>
     ),
-    enableSorting: false,
     enableHiding: true,
   },
   {
-    accessorKey: "members",
-    header: ({ column }) => (
-      <DataTableColumnHeader className="font-bold" column={column} title="Members" />
-    ),
+    accessorKey: 'members',
+    header: 'Members',
     cell: ({ row }) => (
       <div className="inline-flex">
-        <div className="text-orange-500 text-base"> { row.getValue("members") } </div>
+        <div className="text-accent-foreground text-base">
+          {' '}
+          {row.getValue('members')}{' '}
+        </div>
       </div>
     ),
-    enableSorting: false,
     enableHiding: true,
   },
   {
-    id: "actions",
+    id: 'actions',
     cell: ({ row }) => (
-      <div className="flex justify-end" >
+      <div className="flex justify-end">
         <ProjectsDataTableRowActions row={row} />
       </div>
     ),

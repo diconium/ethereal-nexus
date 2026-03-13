@@ -5,14 +5,19 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Trash } from 'lucide-react';
+import { MoreHorizontal, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogTrigger } from '@radix-ui/react-dialog';
-import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { toast } from '@/components/ui/use-toast';
-import DotsIcon from '@/components/ui/icons/DotsIcon';
+import {
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
 import { deleteUser } from '@/data/users/actions';
 
 export function UsersDataTableRowActions({ user }) {
@@ -24,15 +29,10 @@ export function UsersDataTableRowActions({ user }) {
       const deleted = await deleteUser(user.id);
 
       if (deleted.success) {
-        toast({
-          title: `User was deleted successfully`
-        });
+        toast(`User was deleted successfully`);
       } else {
-        toast({
-          title: `User could not be deleted`
-        });
+        toast(`User could not be deleted`);
       }
-
     }
   };
 
@@ -44,7 +44,7 @@ export function UsersDataTableRowActions({ user }) {
             variant="ghost"
             className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
           >
-            <DotsIcon data-testid="ethereal-dots-icon" width="20" height="20" />
+            <MoreHorizontal className="h-4 w-4" />
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>
@@ -63,7 +63,8 @@ export function UsersDataTableRowActions({ user }) {
               <DialogHeader>
                 <DialogTitle>Are you sure?</DialogTitle>
                 <DialogDescription>
-                  This action cannot be undone. This will permanently delete {user.name} user.
+                  This action cannot be undone. This will permanently delete{' '}
+                  {user.name} user.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
@@ -73,10 +74,7 @@ export function UsersDataTableRowActions({ user }) {
                 >
                   Cancel
                 </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => handleDeleteOk()}
-                >
+                <Button variant="destructive" onClick={() => handleDeleteOk()}>
                   Delete
                 </Button>
               </DialogFooter>

@@ -534,4 +534,3 @@ export class RedisCache extends Cache {
   }
 }
 
-export const redisCache = RedisCache.getInstance();

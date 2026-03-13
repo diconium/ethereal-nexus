@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 3.7.2
+
+### Patch Changes
+
+- 7b2698d: remove redisCache export and use RedisCache.getInstance() directly
+
 ## 3.7.1
 
 ### Patch Changes

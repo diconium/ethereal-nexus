@@ -25,6 +25,16 @@ import { Button } from '@/components/ui/button';
 import { DataTablePagination } from '@/components/ui/data-table/data-table-pagination';
 import { DatePickerWithRange } from '@/components/ui/date-picker';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { format, parseISO } from 'date-fns';
 import { ChevronDown, ChevronUp, Loader2, X } from 'lucide-react';
 import { DataTableFacetedFilter } from './data-table-faceted-filter';
@@ -363,14 +373,9 @@ export default function EventsTable({
                     <TableRow>
                       <TableCell
                         colSpan={row.getVisibleCells().length}
-                        className="bg-muted/50"
+                        className="bg-muted/30"
                       >
-                        <div className="p-4">
-                          <div className="text-sm font-medium">Details</div>
-                          <pre className="mt-2 text-xs overflow-auto max-h-60 whitespace-pre-wrap">
-                            {JSON.stringify(row.original, null, 2)}
-                          </pre>
-                        </div>
+                        <EventDetailsPanel event={row.original} />
                       </TableCell>
                     </TableRow>
                   ) : null}
@@ -393,3 +398,116 @@ export default function EventsTable({
     </div>
   );
 }
+
+const formatEventType = (value?: string) =>
+  value
+    ? value
+        .split('_')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ')
+    : 'Event';
+
+const formatDateTime = (value?: string) =>
+  value ? new Date(value).toLocaleString() : '—';
+
+const DetailField = ({
+  label,
+  value,
+  className = '',
+}: {
+  label: string;
+  value?: React.ReactNode;
+  className?: string;
+}) => (
+  <div className={`space-y-1 rounded-lg border bg-card/40 p-3 ${className}`}>
+    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      {label}
+    </p>
+    <p className="text-sm font-semibold text-foreground break-words">
+      {value ?? '—'}
+    </p>
+  </div>
+);
+
+const EventDetailsPanel = ({ event }: { event: EventItem }) => {
+  const [showPayload, setShowPayload] = React.useState(false);
+  const componentInfo = event.data?.component;
+  const versionInfo = event.data?.version;
+  const projectInfo = event.data?.project;
+  const userInfo = event.user;
+
+  const metadata = [
+    { label: 'Resource ID', value: event.resource_id },
+    { label: 'Event ID', value: event.id },
+    { label: 'User ID', value: event.user_id },
+  ];
+
+  return (
+    <div className="space-y-4 py-4">
+      <Card className="border-muted">
+        <CardHeader className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary" className="text-xs uppercase">
+              {event.type ?? 'event'}
+            </Badge>
+            {componentInfo?.name ? (
+              <Badge variant="outline">{componentInfo.name}</Badge>
+            ) : null}
+            {versionInfo?.version ? (
+              <Badge variant="outline">v{versionInfo.version}</Badge>
+            ) : null}
+          </div>
+          <CardTitle>{formatEventType(event.type)}</CardTitle>
+          <CardDescription>{formatDateTime(event.timestamp)}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <DetailField
+              label="Triggered By"
+              value={userInfo?.name ?? userInfo?.email ?? 'Unknown user'}
+            />
+            <DetailField label="User Role" value={userInfo?.role} />
+            <DetailField label="Project" value={projectInfo?.name} />
+            <DetailField
+              label="Component"
+              value={componentInfo?.title ?? componentInfo?.name}
+            />
+          </div>
+
+          <Separator />
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            {metadata.map(({ label, value }) => (
+              <DetailField key={label} label={label} value={value} />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-muted">
+        <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
+          <div>
+            <CardTitle>Payload</CardTitle>
+            <CardDescription>Full event object for debugging</CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowPayload((prev) => !prev)}
+          >
+            {showPayload ? 'Hide JSON' : 'Show JSON'}
+          </Button>
+        </CardHeader>
+        {showPayload ? (
+          <CardContent>
+            <ScrollArea className="max-h-72 rounded-md border bg-muted/40">
+              <pre className="whitespace-pre-wrap break-words p-3 text-xs">
+                {JSON.stringify(event, null, 2)}
+              </pre>
+            </ScrollArea>
+          </CardContent>
+        ) : null}
+      </Card>
+    </div>
+  );
+};

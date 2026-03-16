@@ -9,7 +9,7 @@ import {
 } from '@/data/events/dto';
 import { events } from '@/data/events/schema';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
-import { eq, sql, and, desc, gte, lte } from 'drizzle-orm';
+import { eq, sql, and, desc, inArray } from 'drizzle-orm';
 import { users } from '@/data/users/schema';
 import { components, componentVersions } from '@/data/components/schema';
 import { ActionResponse } from '@/data/action';
@@ -193,10 +193,39 @@ export async function queryResourceEvents(options: {
     }
     const whereClauses: any[] = [eq(events.resource_id, resourceId)];
     logger.debug('Filtering with userId:', { userId });
-    logger.debug('Current whereClauses count:', { count: whereClauses.length });
-    if (userId) {
-      whereClauses.push(eq(events.user_id, userId));
+
+    if (typeof userId === 'string' && userId.trim().length) {
+      const uuidSchema = z.string().uuid();
+      const parsedUserIds = Array.from(
+        new Set(
+          userId
+            .split(',')
+            .map((id) => id.trim())
+            .filter(Boolean),
+        ),
+      );
+
+      const validIds: string[] = [];
+      parsedUserIds.forEach((id) => {
+        const result = uuidSchema.safeParse(id);
+        if (result.success) {
+          validIds.push(id);
+        } else {
+          logger.warn('Ignoring invalid userId filter entry', {
+            operation: 'query-resource-events',
+            invalidUserId: id,
+          });
+        }
+      });
+
+      if (validIds.length === 1) {
+        whereClauses.push(eq(events.user_id, validIds[0]));
+      } else if (validIds.length > 1) {
+        whereClauses.push(inArray(events.user_id, validIds));
+      }
     }
+
+    logger.debug('Current whereClauses count:', { count: whereClauses.length });
 
     if (type) {
       // Compare enum column as text to allow dynamic filtering by string

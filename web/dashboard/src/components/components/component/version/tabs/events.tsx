@@ -19,6 +19,8 @@ interface EventProps {
   filterUsers: { id: string; name?: string; email?: string }[];
   filterComponents: { id: string; name?: string; title?: string }[];
   filterTypes: string[];
+  hideProjectColumn?: boolean;
+  hideComponentColumn?: boolean;
   onGlobalFilterChange: (v: string) => void;
   onUserFilterChange: (v: string | undefined) => void;
   onComponentFilterChange: (v: string | undefined) => void;
@@ -45,9 +47,11 @@ const Events: React.FC<EventProps> = ({
   endDate,
   sortField,
   sortDir,
-  filterUsers,
-  filterComponents,
-  filterTypes,
+  filterUsers = [],
+  filterComponents = [],
+  filterTypes = [],
+  hideProjectColumn = false,
+  hideComponentColumn = false,
   onGlobalFilterChange,
   onUserFilterChange,
   onComponentFilterChange,
@@ -76,6 +80,8 @@ const Events: React.FC<EventProps> = ({
         filterUsers={filterUsers}
         filterComponents={filterComponents}
         filterTypes={filterTypes}
+        hideProjectColumn={hideProjectColumn}
+        hideComponentColumn={hideComponentColumn}
         onGlobalFilterChangeAction={onGlobalFilterChange}
         onUserFilterChangeAction={onUserFilterChange}
         onComponentFilterChangeAction={onComponentFilterChange}

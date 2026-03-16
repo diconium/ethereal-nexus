@@ -38,6 +38,7 @@ import { Separator } from '@/components/ui/separator';
 import { format, parseISO } from 'date-fns';
 import { ChevronDown, ChevronUp, Loader2, X } from 'lucide-react';
 import { DataTableFacetedFilter } from './data-table-faceted-filter';
+import { EVENT_LABELS } from '@/lib/utils';
 
 type EventItem = any;
 
@@ -56,6 +57,8 @@ type EventsTableProps = {
   filterUsers: { id: string; name?: string; email?: string }[];
   filterComponents: { id: string; name?: string; title?: string }[];
   filterTypes: string[];
+  hideProjectColumn?: boolean;
+  hideComponentColumn?: boolean;
   onGlobalFilterChangeAction: (v: string) => void;
   onUserFilterChangeAction: (v: string | undefined) => void;
   onComponentFilterChangeAction: (v: string | undefined) => void;
@@ -83,9 +86,11 @@ export default function EventsTable({
   startDate,
   endDate,
   sorting,
-  filterUsers,
-  filterComponents,
-  filterTypes,
+  filterUsers = [],
+  filterComponents = [],
+  filterTypes = [],
+  hideProjectColumn = false,
+  hideComponentColumn = false,
   onGlobalFilterChangeAction,
   onUserFilterChangeAction,
   onComponentFilterChangeAction,
@@ -147,6 +152,10 @@ export default function EventsTable({
         accessorKey: 'type',
         id: 'types', // Ensure the column ID matches the expected 'types'
         header: 'Event',
+        cell: ({ getValue }) => {
+          const type = getValue() as string;
+          return EVENT_LABELS[type] ?? type;
+        },
       },
       {
         id: 'user',
@@ -154,21 +163,30 @@ export default function EventsTable({
         cell: ({ row }) =>
           row.original.user?.name ?? row.original.user?.email ?? 'Unknown',
       },
-      {
-        id: 'component',
-        header: 'Component',
-        cell: ({ row }) =>
-          row.original.data?.component?.name ??
-          row.original.data?.component?.title ??
-          '-',
-      },
-      {
-        id: 'project',
-        header: 'Project',
-        cell: ({ row }) => row.original.data?.project?.name ?? '-',
-      },
+      ...(!hideComponentColumn
+        ? [
+            {
+              id: 'component',
+              header: 'Component',
+              cell: ({ row }: { row: { original: EventItem } }) =>
+                row.original.data?.component?.name ??
+                row.original.data?.component?.title ??
+                '-',
+            },
+          ]
+        : []),
+      ...(!hideProjectColumn
+        ? [
+            {
+              id: 'project',
+              header: 'Project',
+              cell: ({ row }: { row: { original: EventItem } }) =>
+                row.original.data?.project?.name ?? '-',
+            },
+          ]
+        : []),
     ],
-    [],
+    [hideProjectColumn, hideComponentColumn],
   );
 
   const pageCount = pageSize ? Math.ceil((total || 0) / pageSize) : 0;
@@ -200,7 +218,10 @@ export default function EventsTable({
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  const formattedTypes = types.map((type) => ({ label: type, value: type }));
+  const formattedTypes = types.map((type) => ({
+    label: EVENT_LABELS[type] ?? type,
+    value: type,
+  }));
   const formattedComponents = components.map((component) => ({
     label: component.name ?? component.title ?? '-',
     value: component.id,

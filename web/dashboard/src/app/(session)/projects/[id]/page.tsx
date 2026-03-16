@@ -132,6 +132,7 @@ export default async function EditProject(props: any) {
                       initialSortField={sortField}
                       initialSortDir={sortDir}
                       initialGlobalFilter={globalFilter}
+                      hideProjectColumn={true}
                     />
                   );
                 default:

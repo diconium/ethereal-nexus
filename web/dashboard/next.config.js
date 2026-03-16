@@ -1,18 +1,22 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
-  output: "standalone",
+  output: 'standalone',
   experimental: {
-    serverMinification: false
+    serverMinification: false,
   },
+  transpilePackages: [
+    '@ethereal-nexus/dialog-ui-example',
+    '@ethereal-nexus/dialog-ui-core',
+  ],
   headers: async () => {
     return [
       {
-        source: "/api/:path*",
+        source: '/api/:path*',
         headers: [
-          { key: "Access-Control-Allow-Credentials", value: "true" },
-          { key: "Access-Control-Allow-Origin", value: "*" },
-          { key: "Access-Control-Allow-Headers", value: "*" },
-        ]
+          { key: 'Access-Control-Allow-Credentials', value: 'true' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Headers', value: '*' },
+        ],
       },
       {
         source: '/(.*)',
@@ -21,6 +25,6 @@ module.exports = {
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
         ],
       },
-    ]
-}
+    ];
+  },
 };

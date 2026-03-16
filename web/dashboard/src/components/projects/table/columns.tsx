@@ -19,7 +19,7 @@ export const columns = [
     header: 'Description',
     cell: ({ row }) => (
       <Link
-        className="font-normal text-base leading-4"
+        className="font-normal text-sm leading-4"
         href={`/projects/${row.original.id}`}
       >
         {row.getValue('description')}
@@ -32,7 +32,7 @@ export const columns = [
     header: 'Environments',
     cell: ({ row }) => (
       <div className="inline-flex">
-        <div className="text-accent-foreground text-base">
+        <div className="text-accent-foreground text-sm">
           {' '}
           {row.getValue('environments')?.length || 0}{' '}
         </div>
@@ -45,7 +45,7 @@ export const columns = [
     header: 'Components',
     cell: ({ row }) => (
       <div className="inline-flex">
-        <div className="text-accent-foreground text-base">
+        <div className="text-accent-foreground text-sm">
           {' '}
           {row.getValue('components')?.length || 0}{' '}
         </div>
@@ -58,7 +58,7 @@ export const columns = [
     header: 'Members',
     cell: ({ row }) => (
       <div className="inline-flex">
-        <div className="text-accent-foreground text-base">
+        <div className="text-accent-foreground text-sm">
           {' '}
           {row.getValue('members')}{' '}
         </div>

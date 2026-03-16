@@ -18,6 +18,8 @@ interface ProjectEventsClientProps {
   initialSortField?: string;
   initialSortDir?: string;
   initialGlobalFilter?: string;
+  hideProjectColumn?: boolean;
+  hideComponentColumn?: boolean;
 }
 
 const ProjectEventsClient: React.FC<ProjectEventsClientProps> = ({
@@ -32,6 +34,8 @@ const ProjectEventsClient: React.FC<ProjectEventsClientProps> = ({
   initialSortField,
   initialSortDir,
   initialGlobalFilter = '',
+  hideProjectColumn = false,
+  hideComponentColumn = false,
 }) => {
   const [pagination, setPagination] = useState({
     pageIndex: initialPageIndex,
@@ -116,18 +120,6 @@ const ProjectEventsClient: React.FC<ProjectEventsClientProps> = ({
     placeholderData: (previousData) => previousData,
   });
 
-  if (isError) {
-    return (
-      <div>
-        Error loading events:{' '}
-        {error instanceof Error ? error.message : String(error)}
-      </div>
-    );
-  }
-
-  const eventList = Array.isArray(data?.data) ? data.data : [];
-  const total = Number(data?.total) || 0;
-
   useEffect(() => {
     if (data?.filterOptions) {
       setFilterOptionsCache((prev) => ({
@@ -189,6 +181,18 @@ const ProjectEventsClient: React.FC<ProjectEventsClientProps> = ({
     resetPage();
   }, [resetPage]);
 
+  if (isError) {
+    return (
+      <div>
+        Error loading events:{' '}
+        {error instanceof Error ? error.message : String(error)}
+      </div>
+    );
+  }
+
+  const eventList = Array.isArray(data?.data) ? data.data : [];
+  const total = Number(data?.total) || 0;
+
   return (
     <Events
       events={eventList}
@@ -207,6 +211,8 @@ const ProjectEventsClient: React.FC<ProjectEventsClientProps> = ({
       filterUsers={filterOptions.users || []}
       filterComponents={filterOptions.components || []}
       filterTypes={filterOptions.types || []}
+      hideProjectColumn={hideProjectColumn}
+      hideComponentColumn={hideComponentColumn}
       onGlobalFilterChange={handleGlobalFilterChange}
       onUserFilterChange={handleUserFilterChange}
       onComponentFilterChange={handleComponentFilterChange}

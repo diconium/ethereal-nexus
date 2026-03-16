@@ -2,6 +2,7 @@ import React from 'react';
 import { Separator } from '@/components/ui/separator';
 import { notFound } from 'next/navigation';
 import {
+  getComponentAssets,
   getComponentById,
   getComponentDependentsProjects,
   getComponentVersions,
@@ -9,7 +10,6 @@ import {
 import ComponentVersionHeader from '@/components/components/component/version/header';
 import ComponentVersionTabs from '@/components/components/component/version/tabs';
 import { auth } from '@/auth';
-import { getResourceEvents } from '@/data/events/actions';
 
 export default async function EditComponentVersion(props: any) {
   const { id, versionId, tab } = await props.params;
@@ -22,9 +22,14 @@ export default async function EditComponentVersion(props: any) {
     id,
     session?.user?.id,
   );
-  const events = await getResourceEvents(id);
+  const assets = await getComponentAssets(id, versionId);
 
-  if (!versions.success || !component.success || !dependents.success) {
+  if (
+    !versions.success ||
+    !component.success ||
+    !dependents.success ||
+    !assets.success
+  ) {
     notFound();
   }
 
@@ -48,7 +53,7 @@ export default async function EditComponentVersion(props: any) {
         selectedVersion={selectedVersion}
         component={component}
         dependents={safeDependents}
-        events={events}
+        assets={assets.data}
       />
     </div>
   );

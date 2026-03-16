@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import React from 'react';
 import { notFound } from 'next/navigation';
+import { EVENT_LABELS } from '@/lib/utils';
 import {
   Card,
   CardAction,
@@ -27,23 +28,6 @@ import {
 import { users as usersSchema } from '@/data/users/schema';
 import { members as membersSchema } from '@/data/member/schema';
 import { events } from '@/data/events/schema';
-
-// Human-readable event type labels
-const EVENT_LABELS: Record<string, string> = {
-  component_deactivated: 'Component deactivated',
-  component_activated: 'Component activated',
-  component_update: 'Component updated',
-  project_component_deactivated: 'Component deactivated in project',
-  project_component_activated: 'Component activated in project',
-  project_component_version_updated: 'Component version updated',
-  project_component_added: 'Component added to project',
-  project_component_removed: 'Component removed from project',
-  project_created: 'Project created',
-  project_updated: 'Project updated',
-  project_member_permissions_updated: 'Member permissions updated',
-  project_member_added: 'Member added',
-  customEvent: 'Custom event',
-};
 
 function relativeTime(date: Date): string {
   const now = Date.now();
@@ -191,9 +175,9 @@ export default async function Home() {
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
           {/* Stat cards */}
-          <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
-            <Link href="/components">
-              <Card className="@container/card">
+          <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+            <Link href="/components" className="flex">
+              <Card className="@container/card flex-1 bg-gradient-to-t from-primary/5 to-card shadow-xs dark:bg-card">
                 <CardHeader>
                   <CardDescription>Available components</CardDescription>
                   <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
@@ -206,7 +190,7 @@ export default async function Home() {
                     </Badge>
                   </CardAction>
                 </CardHeader>
-                <CardFooter className="flex-col items-start gap-1.5 text-sm">
+                <CardFooter className="flex-col items-start gap-1.5 text-sm mt-auto">
                   <div className="line-clamp-1 flex gap-2 font-medium">
                     Registered in the system <LayoutGrid className="size-4" />
                   </div>
@@ -217,8 +201,8 @@ export default async function Home() {
               </Card>
             </Link>
 
-            <Link href="/projects">
-              <Card className="@container/card">
+            <Link href="/projects" className="flex">
+              <Card className="@container/card flex-1 bg-gradient-to-t from-primary/5 to-card shadow-xs dark:bg-card">
                 <CardHeader>
                   <CardDescription>
                     {isAdmin ? 'Total projects' : 'Your projects'}
@@ -233,7 +217,7 @@ export default async function Home() {
                     </Badge>
                   </CardAction>
                 </CardHeader>
-                <CardFooter className="flex-col items-start gap-1.5 text-sm">
+                <CardFooter className="flex-col items-start gap-1.5 text-sm mt-auto">
                   <div className="line-clamp-1 flex gap-2 font-medium">
                     {isAdmin
                       ? 'Across the organisation'
@@ -247,7 +231,7 @@ export default async function Home() {
               </Card>
             </Link>
 
-            <Card className="@container/card">
+            <Card className="@container/card bg-gradient-to-t from-primary/5 to-card shadow-xs dark:bg-card">
               <CardHeader>
                 <CardDescription>Active deployments</CardDescription>
                 <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
@@ -260,7 +244,7 @@ export default async function Home() {
                   </Badge>
                 </CardAction>
               </CardHeader>
-              <CardFooter className="flex-col items-start gap-1.5 text-sm">
+              <CardFooter className="flex-col items-start gap-1.5 text-sm mt-auto">
                 <div className="line-clamp-1 flex gap-2 font-medium">
                   Components currently active <Zap className="size-4" />
                 </div>
@@ -271,8 +255,8 @@ export default async function Home() {
             </Card>
 
             {isAdmin && (
-              <Link href="/users">
-                <Card className="@container/card">
+              <Link href="/users" className="flex">
+                <Card className="@container/card flex-1 bg-gradient-to-t from-primary/5 to-card shadow-xs dark:bg-card">
                   <CardHeader>
                     <CardDescription>Registered users</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
@@ -285,7 +269,7 @@ export default async function Home() {
                       </Badge>
                     </CardAction>
                   </CardHeader>
-                  <CardFooter className="flex-col items-start gap-1.5 text-sm">
+                  <CardFooter className="flex-col items-start gap-1.5 text-sm mt-auto">
                     <div className="line-clamp-1 flex gap-2 font-medium">
                       Users with platform access <Users className="size-4" />
                     </div>

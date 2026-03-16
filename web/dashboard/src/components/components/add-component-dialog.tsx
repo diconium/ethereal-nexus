@@ -18,8 +18,8 @@ export function AddComponentDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="default">
-          <Plus className="h-4 w-4" />
+        <Button variant="default" size="sm">
+          <Plus data-icon="inline-start" />
           Add component
         </Button>
       </DialogTrigger>

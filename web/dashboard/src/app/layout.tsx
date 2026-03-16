@@ -7,6 +7,7 @@ const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono' });
 
 import React from 'react';
 import { ThemeProvider } from '@/components/theme-provider';
+import Providers from './providers';
 
 export default async function RootLayout({
   children,
@@ -28,7 +29,9 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <Providers>
+              {children}
+            </Providers>
           </ThemeProvider>
         </WebVitalsProvider>
       </body>

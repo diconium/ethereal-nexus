@@ -1,9 +1,33 @@
 import Events from '@/components/components/component/version/tabs/events';
 import React from 'react';
-import { getResourceEvents } from '@/data/events/actions';
+import { queryResourceEvents } from '@/data/events/actions';
 
-export const ProjectEvents = async ({ id }) => {
-  const events = await getResourceEvents(id, 20);
-  return <Events events={events.success ? events.data : []}></Events>;
+interface ProjectEventsProps {
+  id: string;
+  pageIndex?: number;
+  pageSize?: number;
+  userId?: string;
+  componentId?: string;
+  type?: string;
+  startDate?: string;
+  endDate?: string;
+  sortField?: string;
+  sortDir?: string;
+  globalFilter?: string;
+}
+
+export const ProjectEvents = async ({
+  id,
+  pageIndex = 0,
+  pageSize = 10,
+  userId = undefined,
+  componentId = undefined,
+  type = undefined,
+  startDate = undefined,
+  endDate = undefined,
+  sortField = undefined,
+  sortDir = undefined,
+  globalFilter = '',
+}: ProjectEventsProps) => {
+  return null;
 };
-

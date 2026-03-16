@@ -7,9 +7,9 @@ import {
   eventWithDiscriminatedUnions,
   NewEvent,
 } from '@/data/events/dto';
-import { events, eventsTypeEnum } from '@/data/events/schema';
+import { events } from '@/data/events/schema';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql, and, desc, gte, lte } from 'drizzle-orm';
 import { users } from '@/data/users/schema';
 import { components, componentVersions } from '@/data/components/schema';
 import { ActionResponse } from '@/data/action';
@@ -137,5 +137,274 @@ export async function getResourceEvents(
       limit,
     });
     return actionError('Failed to fetch events from database.');
+  }
+}
+
+import { userIsMember } from '../member/actions';
+
+export async function queryResourceEvents(options: {
+  resourceId: string;
+  pageIndex?: number;
+  pageSize?: number;
+  userId?: string | null; // for filtering
+  currentUserId: string; // for membership validation
+  componentId?: string | null;
+  projectId?: string | null;
+  type?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  sortField?: string | null;
+  sortDir?: 'asc' | 'desc' | null;
+  globalFilter?: string | null;
+}): Promise<
+  ActionResponse<{
+    data: EventWithDiscriminatedUnions[];
+    total: number;
+    filterOptions: {
+      users: { id: string; name?: string; email?: string }[];
+      components: { id: string; name?: string; title?: string }[];
+      types: string[];
+    };
+  }>
+> {
+  const {
+    resourceId,
+    pageIndex = 0,
+    pageSize = 20,
+    userId,
+    currentUserId,
+    componentId,
+    projectId,
+    type,
+    startDate,
+    endDate,
+    sortField,
+    sortDir,
+    globalFilter,
+  } = options;
+
+  try {
+    if (!currentUserId) {
+      return actionError('User ID is required for membership validation.');
+    }
+    const isMember = await userIsMember(currentUserId);
+    if (!isMember) {
+      return actionError('User is not authorized to access this resource');
+    }
+    const whereClauses: any[] = [eq(events.resource_id, resourceId)];
+    logger.debug('Filtering with userId:', { userId });
+    logger.debug('Current whereClauses count:', { count: whereClauses.length });
+    if (userId) {
+      whereClauses.push(eq(events.user_id, userId));
+    }
+
+    if (type) {
+      // Compare enum column as text to allow dynamic filtering by string
+      whereClauses.push(sql`${events.type}::text = ${type}`);
+    }
+    if (projectId) {
+      whereClauses.push(
+        sql`(${events.data}->>'project_id')::uuid = ${projectId}`,
+      );
+    }
+    if (componentId) {
+      whereClauses.push(
+        sql`(${events.data}->>'component_id')::uuid = ${componentId}`,
+      );
+    }
+    if (startDate) {
+      const dayStart = new Date(startDate);
+      dayStart.setHours(0, 0, 0, 0);
+      const startIso = dayStart.toISOString();
+      // inline ISO timestamp literal cast to timestamptz to avoid parameter serialization issues
+      logger.debug('startIso for date filter', {
+        startIso,
+        type: typeof startIso,
+      });
+      whereClauses.push(
+        sql`${events.timestamp} >= ${sql.raw(`'${startIso}'::timestamptz`)}`,
+      );
+    }
+    if (endDate) {
+      const dayEnd = new Date(endDate);
+      dayEnd.setHours(23, 59, 59, 999);
+      const endIso = dayEnd.toISOString();
+      logger.debug('endIso for date filter', { endIso, type: typeof endIso });
+      whereClauses.push(
+        sql`${events.timestamp} <= ${sql.raw(`'${endIso}'::timestamptz`)}`,
+      );
+    }
+
+    if (globalFilter) {
+      const searchPattern = `%${globalFilter}%`;
+      whereClauses.push(
+        sql`
+          (${events.type}::text ILIKE ${searchPattern}
+          OR ${users.name} ILIKE ${searchPattern}
+          OR ${users.email} ILIKE ${searchPattern}
+          OR ${components.name} ILIKE ${searchPattern}
+          OR ${components.title} ILIKE ${searchPattern}
+          OR ${projects.name} ILIKE ${searchPattern})`,
+      );
+    }
+
+    // base select with joins similar to getResourceEvents
+    const members = alias(users, 'members');
+    const base = db
+      .select({
+        ...events,
+        user: users,
+        data: {
+          version: componentVersions,
+          project: projects,
+          component: components,
+          member: members,
+          permissions: sql`(${events.data}->>'permissions')::text`,
+        },
+      })
+      .from(events)
+      .leftJoin(users, eq(events.user_id, users.id))
+      .leftJoin(
+        projects,
+        sql`(${events.data}->>'project_id')::uuid  = ${projects.id}`,
+      )
+      .leftJoin(
+        componentVersions,
+        sql`(${events.data}->>'version_id')::uuid =  ${componentVersions.id}`,
+      )
+      .leftJoin(
+        components,
+        sql`(${events.data}->>'component_id')::uuid = ${components.id}`,
+      )
+      .leftJoin(
+        members,
+        sql`(${events.data}->>'member_id')::uuid = ${members.id}`,
+      );
+
+    // total count - must include same joins as base query for globalFilter to work
+    const countQuery = db
+      .select({ count: sql`count(*)` })
+      .from(events)
+      .leftJoin(users, eq(events.user_id, users.id))
+      .leftJoin(
+        projects,
+        sql`(${events.data}->>'project_id')::uuid = ${projects.id}`,
+      )
+      .leftJoin(
+        components,
+        sql`(${events.data}->>'component_id')::uuid = ${components.id}`,
+      )
+      .where(and(...whereClauses));
+
+    const [{ count: total }] = await countQuery;
+
+    // ordering
+    let orderArg: any = desc(events.timestamp);
+    if (sortField) {
+      const dir = sortDir === 'asc' ? 'asc' : 'desc';
+      // map allowed sort fields to actual columns
+      if (sortField === 'timestamp') {
+        orderArg = dir === 'asc' ? events.timestamp : desc(events.timestamp);
+      } else if (sortField === 'type') {
+        // events.type is an enum column – use the column itself (desc/asc wrapper)
+        orderArg = dir === 'asc' ? events.type : desc(events.type);
+      } else if (sortField === 'user') {
+        // sort by users.name
+        orderArg = dir === 'asc' ? users.name : desc(users.name);
+      } else if (sortField === 'component') {
+        // sort by component name JSON join
+        orderArg = dir === 'asc' ? components.name : desc(components.name);
+      } else if (sortField === 'project') {
+        orderArg = dir === 'asc' ? projects.name : desc(projects.name);
+      }
+    }
+
+    const offset = pageIndex * pageSize;
+
+    logger.debug('Final SQL query being executed for resource:', {
+      resourceId,
+    });
+    // logger.debug('Final SQL query being executed:', { whereClauses }); // removed to avoid circular structure
+    const select = await base
+      .where(and(...whereClauses))
+      .orderBy(orderArg)
+      .limit(pageSize)
+      .offset(offset);
+
+    const modifiedSelect = select.map((event) => {
+      if (event.data?.version?.id === null) {
+        delete event.data.version;
+      }
+      if (event.data?.project?.id === null) {
+        delete event.data.project;
+      }
+      if (event.data?.component?.id === null) {
+        delete event.data.component;
+      }
+      if (event.data?.member?.id === null) {
+        delete event.data.member;
+      }
+      return event;
+    });
+
+    const safe = z
+      .array(eventWithDiscriminatedUnions)
+      .safeParse(modifiedSelect);
+    if (!safe.success) {
+      return actionZodError(
+        "There's an issue with the events records.",
+        safe.error,
+      );
+    }
+
+    // Fetch all unique users for the resource
+    const usersQuery = await db
+      .selectDistinct({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+      })
+      .from(events)
+      .leftJoin(users, eq(events.user_id, users.id))
+      .where(eq(events.resource_id, resourceId));
+
+    // Fetch all unique components for the resource
+    const componentsQuery = await db
+      .selectDistinct({
+        id: components.id,
+        name: components.name,
+        title: components.title,
+      })
+      .from(events)
+      .leftJoin(
+        components,
+        sql`(${events.data}->>'component_id')::uuid = ${components.id}`,
+      )
+      .where(eq(events.resource_id, resourceId));
+
+    // Fetch all unique types for the resource
+    const typesQuery = await db
+      .selectDistinct({
+        type: events.type,
+      })
+      .from(events)
+      .where(eq(events.resource_id, resourceId));
+
+    const filterOptions = {
+      users: usersQuery.filter((u) => u.id),
+      components: componentsQuery.filter((c) => c.id),
+      types: typesQuery.map((t) => t.type).filter(Boolean),
+    };
+
+    return actionSuccess({
+      data: safe.data,
+      total: Number(total) || 0,
+      filterOptions,
+    });
+  } catch (error) {
+    logger.error('Failed to query events', error as Error, {
+      operation: 'query-resource-events',
+    });
+    return actionError('Failed to query events');
   }
 }

@@ -133,41 +133,6 @@ export function ComponentsDialog({
 
   return (
     <div className="ml-2 w-full flex gap-2 justify-between">
-      <Popover open={isEnvironmentOpen} onOpenChange={setEnvironmentOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="secondary"
-            className="flex justify-between min-w-[125px]"
-          >
-            {selected!.name}
-            <ChevronDownIcon className="ml-2 h-4 w-4 text-muted-foreground" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="p-0" align="start">
-          <Command>
-            <CommandInput placeholder="Select environment..." />
-            <CommandList>
-              <CommandGroup>
-                {environments.map((env) => (
-                  <CommandItem
-                    key={env.id}
-                    value={env.name}
-                    onSelect={handleEnvironment(env.id)}
-                    className="teamaspace-y-1 flex flex-col items-start px-4 py-2"
-                  >
-                    <span className="flex items-center">
-                      {environment === env.id ? (
-                        <Check className="mr-2 h-4 w-4 text-muted-foreground" />
-                      ) : null}
-                      <p>{env.name}</p>
-                    </span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
       <Popover open={isLaunchOpen} onOpenChange={setLaunchOpen}>
         <PopoverTrigger asChild>
           <Button disabled={!hasWritePermissions} size="sm">
@@ -209,12 +174,12 @@ export function ComponentsDialog({
         <span>Copy URL</span>
       </Button>
       <Button
-        size="default"
+        size="sm"
         className="ml-auto"
         onClick={() => setIsOpen(true)}
         disabled={!hasWritePermissions}
       >
-        <Plus />
+        <Plus data-icon="inline-start" />
         Add components
       </Button>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -273,9 +238,8 @@ export function ComponentsDialog({
             <Button
               disabled={selectedComponents.length < 1}
               onClick={handleSubmit}
-              size="default"
-              className="self-start"
             >
+              <Plus data-icon="inline-start" />
               Add components
             </Button>
           </div>

@@ -4,12 +4,27 @@ import { Table } from '@tanstack/react-table';
 import { X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { DataTableFacetedFilter } from '@/components/ui/data-table/data-table-faceted-filter';
+
+interface DataTableToolbarFacet {
+  columnId: string;
+  title: string;
+  options: Array<{
+    label: string;
+    value: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    count?: number;
+  }>;
+  multi?: boolean;
+}
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   entityName?: string;
   createSlot?: React.ReactNode;
   filterColumn?: string;
+  facets?: DataTableToolbarFacet[];
+  searchPlaceholder?: string;
 }
 
 export function DataTableToolbar<TData>({
@@ -17,6 +32,8 @@ export function DataTableToolbar<TData>({
   entityName,
   createSlot,
   filterColumn,
+  facets = [],
+  searchPlaceholder,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -25,7 +42,9 @@ export function DataTableToolbar<TData>({
       <div className="flex flex-1 items-center gap-2">
         {filterColumn ? (
           <Input
-            placeholder={`Filter ${entityName}...`}
+            placeholder={
+              searchPlaceholder ?? `Filter ${entityName ?? 'items'}...`
+            }
             value={
               (table.getColumn(filterColumn)?.getFilterValue() as string) ?? ''
             }
@@ -35,6 +54,31 @@ export function DataTableToolbar<TData>({
             className="h-8 w-[150px] lg:w-[250px]"
           />
         ) : null}
+        {facets.map(({ columnId, title, options, multi = true }) => {
+          const column = table.getColumn(columnId);
+          if (!column) return null;
+          const columnValue = column.getFilterValue();
+          const selectedValues = Array.isArray(columnValue)
+            ? columnValue
+            : columnValue
+              ? [columnValue]
+              : [];
+          return (
+            <DataTableFacetedFilter
+              key={columnId}
+              title={title}
+              options={options}
+              selectedValues={selectedValues as string[]}
+              onChange={(values) => {
+                if (!multi) {
+                  column.setFilterValue(values[0] ?? undefined);
+                  return;
+                }
+                column.setFilterValue(values.length ? values : undefined);
+              }}
+            />
+          );
+        })}
         {isFiltered && (
           <Button
             variant="ghost"

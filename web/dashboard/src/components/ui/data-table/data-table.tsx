@@ -36,6 +36,10 @@ interface DataTableProps<TData, TValue> {
   entity: ComponentProps<typeof DataTableToolbar>['entityName'];
   createSlot?: ComponentProps<typeof DataTableToolbar>['createSlot'];
   colWidth?: boolean;
+  facets?: ComponentProps<typeof DataTableToolbar>['facets'];
+  searchPlaceholder?: ComponentProps<
+    typeof DataTableToolbar
+  >['searchPlaceholder'];
 }
 
 export function DataTable<TData, TValue>({
@@ -45,6 +49,8 @@ export function DataTable<TData, TValue>({
   entity,
   createSlot,
   filterColumn,
+  facets,
+  searchPlaceholder,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -79,6 +85,8 @@ export function DataTable<TData, TValue>({
         entityName={entity}
         createSlot={createSlot}
         filterColumn={filterColumn as string}
+        facets={facets}
+        searchPlaceholder={searchPlaceholder}
       />
       <div className="overflow-hidden rounded-lg border">
         <Table>

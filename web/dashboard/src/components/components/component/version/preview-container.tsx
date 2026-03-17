@@ -202,10 +202,10 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
     return [];
   }, [selectedVersion?.dialog]);
 
-  const cssAssetProxyUrls = useMemo(() => {
+  const cssAssetUrls = useMemo(() => {
     return componentAssets
       .filter((asset) => asset.type === 'css' && asset.url)
-      .map((asset) => `/api/proxy/css?url=${encodeURIComponent(asset.url)}`);
+      .map((asset) => asset.url);
   }, [componentAssets]);
 
   const initialValues = useMemo<FieldValueMap>(() => {
@@ -268,7 +268,7 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
   useEffect(() => {
     const appendedLinks: HTMLLinkElement[] = [];
 
-    cssAssetProxyUrls.forEach((url) => {
+    cssAssetUrls.forEach((url) => {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = url;
@@ -283,7 +283,7 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
         }
       });
     };
-  }, [cssAssetProxyUrls]);
+  }, [cssAssetUrls]);
 
   const attributeEntries = useMemo(
     () => flattenFieldValues(fieldValues),
@@ -306,12 +306,12 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
 
     const attrs = attributeString ? ` ${attributeString}` : '';
     const cssAttribute =
-      cssAssetProxyUrls.length > 0
-        ? ` data-css-urls='${JSON.stringify(cssAssetProxyUrls)}'`
+      cssAssetUrls.length > 0
+        ? ` data-css-urls='${JSON.stringify(cssAssetUrls)}'`
         : '';
 
     return `<${componentSlug}${attrs}${cssAttribute}></${componentSlug}>`;
-  }, [attributeString, componentSlug, cssAssetProxyUrls]);
+  }, [attributeString, componentSlug, cssAssetUrls]);
 
   useEffect(() => {
     if (!componentSlug || !previewElementRef.current) {
@@ -322,14 +322,14 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
     const root = previewElementRef.current.querySelector(selector);
 
     if (root) {
-      if (cssAssetProxyUrls.length > 0) {
-        const value = JSON.stringify(cssAssetProxyUrls);
+      if (cssAssetUrls.length > 0) {
+        const value = JSON.stringify(cssAssetUrls);
         root.setAttribute('data-css-urls', value);
       } else {
         root.removeAttribute('data-css-urls');
       }
     }
-  }, [componentSlug, cssAssetProxyUrls, snippet]);
+  }, [componentSlug, cssAssetUrls, snippet]);
 
   const assetSummary = useMemo(() => {
     const summary = componentAssets.reduce<Record<string, number>>(

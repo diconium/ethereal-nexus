@@ -12,6 +12,9 @@ on:
       - '.github/workflows/dashboard-preview.yml'
   workflow_dispatch:
 
+permissions:
+  id-token: write
+
 env:
   PR_NUMBER: ${{ github.event.number }}
 

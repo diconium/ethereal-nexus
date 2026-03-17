@@ -47,11 +47,11 @@ export function ProjectBreadcrumb({
       // the breadcrumb could otherwise force a replace back to the project.
       if (typeof window !== 'undefined') {
         const currentPath = window.location.pathname;
-        const isOnProjectPath =
-          currentPath === `/projects/${currentProject.id}` ||
-          currentPath.startsWith(`/projects/${currentProject.id}`);
+        const basePath = `/projects/${currentProject.id}`;
+        const isOnProjectBasePath =
+          currentPath === basePath || currentPath === `${basePath}/`;
         const hasEnv = new URLSearchParams(window.location.search).has('env');
-        if (!isOnProjectPath || hasEnv) {
+        if (!isOnProjectBasePath || hasEnv) {
           return;
         }
       }

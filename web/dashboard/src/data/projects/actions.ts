@@ -771,6 +771,69 @@ export async function getProjectById(
   }
 }
 
+export async function getProjectSettingsSummary(id: string): ActionResponse<{
+  environmentCount: number;
+  componentCount: number;
+  memberCount: number;
+  featureFlagCount: number;
+}> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
+  }
+
+  if (!id) {
+    return actionError('No identifier provided.');
+  }
+
+  try {
+    const [
+      environmentCountRows,
+      componentCountRows,
+      memberCountRows,
+      featureFlagCountRows,
+    ] = await Promise.all([
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(environments)
+        .where(eq(environments.project_id, id)),
+      db
+        .select({
+          count: sql<number>`count(distinct ${projectComponentConfig.component_id})`,
+        })
+        .from(projectComponentConfig)
+        .innerJoin(
+          environments,
+          eq(projectComponentConfig.environment_id, environments.id),
+        )
+        .where(eq(environments.project_id, id)),
+      db
+        .select({ count: sql<number>`count(distinct ${members.user_id})` })
+        .from(members)
+        .where(eq(members.resource, id)),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(featureFlags)
+        .where(eq(featureFlags.project_id, id)),
+    ]);
+
+    const toNumber = (rows: Array<{ count: unknown }>) =>
+      Number(rows?.[0]?.count ?? 0);
+
+    return actionSuccess({
+      environmentCount: toNumber(environmentCountRows),
+      componentCount: toNumber(componentCountRows),
+      memberCount: toNumber(memberCountRows),
+      featureFlagCount: toNumber(featureFlagCountRows),
+    });
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      'Failed to fetch project settings summary from database.',
+    );
+  }
+}
+
 export async function upsertComponentConfig(
   componentConfig: ProjectComponentConfigInput,
   projectId: string,

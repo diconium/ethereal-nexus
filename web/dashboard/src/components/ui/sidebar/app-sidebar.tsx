@@ -13,10 +13,19 @@ import {
 } from '@/components/ui/sidebar';
 import LogoImage from '@/components/ui/logo-image';
 import { NavUser } from './user-nav';
-import { NavMain } from './main-nav';
+import { NavMain, type NavSection } from './main-nav';
 import Link from 'next/link';
-import { LayoutDashboard, Folder, LayoutGrid, UserRound } from 'lucide-react';
+import {
+  Activity,
+  LayoutDashboard,
+  Folder,
+  LayoutGrid,
+  Settings,
+  UserRound,
+} from 'lucide-react';
 import type { User } from 'next-auth';
+import { ProjectSwitcher } from '@/components/ui/ProjectSwitcher';
+import { useProject } from '@/lib/project-context';
 
 type AppSidebarProps = {
   user: User;
@@ -70,6 +79,96 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
     icon: iconMap[item.icon as keyof typeof iconMap],
   }));
 
+  const { selectedProject, selectedEnvironment } = useProject();
+  const platformTitles = new Set(['All Components', 'Users']);
+
+  const primaryItems = navWithIcons.filter(
+    (item) => !platformTitles.has(item.title),
+  );
+
+  const platformItems = navWithIcons.filter((item) =>
+    platformTitles.has(item.title),
+  );
+
+  const sections: NavSection[] = [];
+
+  if (primaryItems.length > 0) {
+    sections.push({
+      items: primaryItems.map((item) => ({
+        title: item.title,
+        url: item.url,
+        icon: item.icon,
+        href: item.url,
+      })),
+    });
+  }
+
+  if (selectedProject) {
+    const projectBase = `/projects/${selectedProject.id}`;
+    const buildProjectHref = (tab: string) => {
+      const envSuffix = selectedEnvironment
+        ? `&env=${selectedEnvironment.id}`
+        : '';
+      return `${projectBase}?tab=${tab}${envSuffix}`;
+    };
+    const matchesProjectPath = (pathname: string) =>
+      pathname === projectBase || pathname.startsWith(`${projectBase}/`);
+    const projectSettingsPath = `${projectBase}/settings`;
+    const buildSettingsHref = (section: string) =>
+      `${projectSettingsPath}?section=${section}`;
+    const projectActivityPath = `${projectBase}/activity`;
+
+    sections.push({
+      label: 'Project',
+      items: [
+        {
+          title: 'Components',
+          url: projectBase,
+          href: buildProjectHref('components'),
+          icon: LayoutGrid,
+          isActive: (pathname, searchParams) => {
+            if (!matchesProjectPath(pathname)) {
+              return false;
+            }
+            const tab = searchParams.get('tab');
+            if (tab === null || tab === 'components') {
+              return true;
+            }
+            return pathname.startsWith(`${projectBase}/components`);
+          },
+        },
+        {
+          title: 'Activity',
+          url: projectActivityPath,
+          href: projectActivityPath,
+          icon: Activity,
+          isActive: (pathname) => pathname === projectActivityPath,
+        },
+        {
+          title: 'Settings',
+          url: projectSettingsPath,
+          href: buildSettingsHref('general'),
+          icon: Settings,
+          isActive: (pathname, searchParams) =>
+            pathname === projectSettingsPath &&
+            (searchParams.get('section') ?? 'general') === 'general',
+        },
+      ],
+    });
+  }
+
+  if (platformItems.length > 0) {
+    sections.push({
+      label: 'Platform',
+      items: platformItems.map((item) => ({
+        title: item.title,
+        url: item.url,
+        href: item.url,
+        icon: item.icon,
+      })),
+    });
+  }
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -93,9 +192,10 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <ProjectSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navWithIcons} />
+        <NavMain sections={sections} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

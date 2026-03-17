@@ -5,21 +5,12 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/ui/sidebar/app-sidebar';
 import { SiteHeader } from '@/components/ui/sidebar/site-header';
 import { HeaderSlotProvider } from '@/components/ui/sidebar/header-slot-context';
+import { ProjectProvider } from '@/lib/project-context';
 import { Toaster } from '@/components/ui/sonner';
 
 const navigation = [
   {
-    title: 'Dashboard',
-    url: '/',
-    icon: 'LayoutDashboard',
-  },
-  {
-    title: 'Projects',
-    url: '/projects',
-    icon: 'Folder',
-  },
-  {
-    title: 'Components',
+    title: 'All Components',
     url: '/components',
     icon: 'LayoutGrid',
   },
@@ -49,28 +40,30 @@ export default async function SessionLayout({
   });
 
   return (
-    <SidebarProvider
-      style={
-        {
-          '--sidebar-width': 'calc(var(--spacing) * 72)',
-          '--header-height': 'calc(var(--spacing) * 12)',
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar
-        variant="inset"
-        user={session.user}
-        navigation={authorizedNavigation}
-      />
-      <SidebarInset>
-        <HeaderSlotProvider>
-          <SiteHeader />
-          <div className="flex flex-1 flex-col p-4 lg:p-6">
-            <SessionProvider session={session}>{children}</SessionProvider>
-          </div>
-        </HeaderSlotProvider>
-      </SidebarInset>
-      <Toaster />
-    </SidebarProvider>
+    <ProjectProvider>
+      <SidebarProvider
+        style={
+          {
+            '--sidebar-width': 'calc(var(--spacing) * 72)',
+            '--header-height': 'calc(var(--spacing) * 12)',
+          } as React.CSSProperties
+        }
+      >
+        <AppSidebar
+          variant="inset"
+          user={session.user}
+          navigation={authorizedNavigation}
+        />
+        <SidebarInset>
+          <HeaderSlotProvider>
+            <SiteHeader />
+            <div className="flex flex-1 flex-col p-4 lg:p-6">
+              <SessionProvider session={session}>{children}</SessionProvider>
+            </div>
+          </HeaderSlotProvider>
+        </SidebarInset>
+        <Toaster />
+      </SidebarProvider>
+    </ProjectProvider>
   );
 }

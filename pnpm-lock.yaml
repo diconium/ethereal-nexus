@@ -461,11 +461,11 @@ importers:
         specifier: ^1.1.0
         version: 1.1.0
       '@ethereal-nexus/dialog-ui-core':
-        specifier: workspace:*
-        version: link:../../dialog-ui/dialog-ui-core
+        specifier: ^1.6.0
+        version: 1.6.0(react@19.2.4)
       '@ethereal-nexus/dialog-ui-shadcn':
-        specifier: workspace:*
-        version: link:../../dialog-ui/dialog-ui-shadcn
+        specifier: ^1.3.1
+        version: 1.3.1(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@google-cloud/storage':
         specifier: ^7.19.0
         version: 7.19.0(encoding@0.1.13)
@@ -1774,6 +1774,17 @@ packages:
   '@eslint/plugin-kit@0.6.1':
     resolution: {integrity: sha512-iH1B076HoAshH1mLpHMgwdGeTs0CYwL0SPMkGuSebZrwBp16v415e9NZXg2jtrqPVQjf6IANe2Vtlr5KswtcZQ==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
+
+  '@ethereal-nexus/dialog-ui-core@1.6.0':
+    resolution: {integrity: sha512-LynwoYa1uAHJtRvnLXsGDBxpS6xTlgZxD4EwGXygcasBi+YEUTH5m0x38cs0I0cFHyCWi0LH+0rwTJ5siNTi7Q==}
+    peerDependencies:
+      react: ^19.2.4
+
+  '@ethereal-nexus/dialog-ui-shadcn@1.3.1':
+    resolution: {integrity: sha512-qvgUTxmJEza3VzqAWFbMNQ0U0ESVz4EzJTJrpmf/29+Nh/l4UhAHeO4qZpZB0LNZ33aC5GDiQ/1R13aHPy07tA==}
+    peerDependencies:
+      react: ^19.2.4
+      react-dom: ^19.2.4
 
   '@expressive-code/core@0.41.7':
     resolution: {integrity: sha512-ck92uZYZ9Wba2zxkiZLsZGi9N54pMSAVdrI9uW3Oo9AtLglD5RmrdTwbYPCT2S/jC36JGB2i+pnQtBm/Ib2+dg==}
@@ -12193,6 +12204,33 @@ snapshots:
     dependencies:
       '@eslint/core': 1.1.1
       levn: 0.4.1
+
+  '@ethereal-nexus/dialog-ui-core@1.6.0(react@19.2.4)':
+    dependencies:
+      react: 19.2.4
+
+  '@ethereal-nexus/dialog-ui-shadcn@1.3.1(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@ethereal-nexus/dialog-ui-core': link:dialog-ui/dialog-ui-core
+      '@hookform/resolvers': 5.2.2(react-hook-form@7.71.2(react@19.2.4))
+      '@radix-ui/react-checkbox': 1.3.3(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@radix-ui/react-dialog': 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@radix-ui/react-label': 2.1.8(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@radix-ui/react-select': 2.2.6(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@radix-ui/react-slot': 1.2.4(@types/react@19.2.14)(react@19.2.4)
+      '@radix-ui/react-switch': 1.2.6(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@radix-ui/react-tooltip': 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      class-variance-authority: 0.7.1
+      clsx: 2.1.1
+      lucide-react: 0.469.0(react@19.2.4)
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      react-hook-form: 7.71.2(react@19.2.4)
+      tailwind-merge: 1.14.0
+      zod: 3.25.76
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
 
   '@expressive-code/core@0.41.7':
     dependencies:

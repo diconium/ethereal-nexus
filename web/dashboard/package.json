@@ -108,7 +108,7 @@
     "dotenv": "^16.6.1",
     "drizzle-kit": "^0.30.6",
     "eslint": "^10.0.3",
-    "eslint-config-next": "^16.1.7",
+    "eslint-config-next": "^16.2.0-canary.104",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.5.6",

@@ -1,6 +1,38 @@
 import { NextResponse } from 'next/server';
 import { queryResourceEvents } from '@/data/events/actions';
 import { getToken } from 'next-auth/jwt';
+import { z } from 'zod';
+
+const optionalString = z.preprocess((value) => {
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}, z.string().optional());
+
+const optionalDateString = optionalString.refine(
+  (value) => value === undefined || !Number.isNaN(Date.parse(value)),
+  'Invalid date',
+);
+
+const eventsQuerySchema = z.object({
+  resourceId: z.string().uuid(),
+  pageIndex: z.coerce.number().int().min(0).max(10_000).optional(),
+  pageSize: z.coerce.number().int().min(1).max(100).optional(),
+  userId: optionalString,
+  componentId: optionalString,
+  projectId: optionalString,
+  type: optionalString,
+  startDate: optionalDateString,
+  endDate: optionalDateString,
+  sortField: z
+    .enum(['timestamp', 'type', 'user', 'component', 'project'])
+    .optional(),
+  sortDir: z.enum(['asc', 'desc']).optional(),
+  globalFilter: z.string().max(200).optional(),
+});
 
 export async function POST(req: Request) {
   try {
@@ -13,17 +45,35 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json();
+    let body: unknown;
 
-    if (!body?.resourceId) {
+    try {
+      body = await req.json();
+    } catch {
       return NextResponse.json(
-        { success: false, error: 'resourceId required' },
+        { success: false, error: 'Invalid JSON payload' },
+        { status: 400 },
+      );
+    }
+
+    const parsedBody = eventsQuerySchema.safeParse(body);
+
+    if (!parsedBody.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid query payload',
+          issues: parsedBody.error.issues.map((issue) => ({
+            path: issue.path,
+            message: issue.message,
+          })),
+        },
         { status: 400 },
       );
     }
 
     const queryArgs = {
-      ...body,
+      ...parsedBody.data,
       currentUserId: token.sub,
     };
     const result = await queryResourceEvents(queryArgs);

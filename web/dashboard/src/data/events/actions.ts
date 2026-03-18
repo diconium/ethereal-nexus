@@ -108,6 +108,37 @@ const buildTextInClause = (columnExpression: any, values: string[]) =>
     sql`, `,
   )})`;
 
+const MAX_EVENTS_PAGE_SIZE = 100;
+const ALLOWED_SORT_FIELDS = new Set([
+  'timestamp',
+  'type',
+  'user',
+  'component',
+  'project',
+]);
+
+const normalizePaginationNumber = (
+  value: number | undefined,
+  fallback: number,
+  {
+    min,
+    max,
+  }: {
+    min: number;
+    max: number;
+  },
+) => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return fallback;
+  }
+
+  const normalized = Math.trunc(value);
+  return Math.min(Math.max(normalized, min), max);
+};
+
+const isValidDateInput = (value?: string | null) =>
+  !value || !Number.isNaN(Date.parse(value));
+
 const buildComponentProjectVisibilityClause = (projectIds: string[]) => {
   const projectIdExpression = sql`(${events.data}->>'project_id')`;
 
@@ -383,9 +414,25 @@ export async function queryResourceEvents(options: {
     globalFilter,
   } = options;
 
+  const safePageIndex = normalizePaginationNumber(pageIndex, 0, {
+    min: 0,
+    max: 10_000,
+  });
+  const safePageSize = normalizePaginationNumber(pageSize, 20, {
+    min: 1,
+    max: MAX_EVENTS_PAGE_SIZE,
+  });
+  const safeSortField =
+    sortField && ALLOWED_SORT_FIELDS.has(sortField) ? sortField : undefined;
+  const safeSortDir = sortDir === 'asc' ? 'asc' : 'desc';
+
   try {
     if (!currentUserId) {
       return actionError('User ID is required for membership validation.');
+    }
+
+    if (!isValidDateInput(startDate) || !isValidDateInput(endDate)) {
+      return actionError('Invalid date filter provided');
     }
 
     const accessScope = await resolveEventAccessScope(
@@ -548,26 +595,26 @@ export async function queryResourceEvents(options: {
 
     // ordering
     let orderArg: any = desc(events.timestamp);
-    if (sortField) {
-      const dir = sortDir === 'asc' ? 'asc' : 'desc';
+    if (safeSortField) {
+      const dir = safeSortDir;
       // map allowed sort fields to actual columns
-      if (sortField === 'timestamp') {
+      if (safeSortField === 'timestamp') {
         orderArg = dir === 'asc' ? events.timestamp : desc(events.timestamp);
-      } else if (sortField === 'type') {
+      } else if (safeSortField === 'type') {
         // events.type is an enum column – use the column itself (desc/asc wrapper)
         orderArg = dir === 'asc' ? events.type : desc(events.type);
-      } else if (sortField === 'user') {
+      } else if (safeSortField === 'user') {
         // sort by users.name
         orderArg = dir === 'asc' ? users.name : desc(users.name);
-      } else if (sortField === 'component') {
+      } else if (safeSortField === 'component') {
         // sort by component name JSON join
         orderArg = dir === 'asc' ? components.name : desc(components.name);
-      } else if (sortField === 'project') {
+      } else if (safeSortField === 'project') {
         orderArg = dir === 'asc' ? projects.name : desc(projects.name);
       }
     }
 
-    const offset = pageIndex * pageSize;
+    const offset = safePageIndex * safePageSize;
 
     logger.debug('Final SQL query being executed for resource:', {
       resourceId,
@@ -576,7 +623,7 @@ export async function queryResourceEvents(options: {
     const select = await base
       .where(and(...whereClauses))
       .orderBy(orderArg)
-      .limit(pageSize)
+      .limit(safePageSize)
       .offset(offset);
 
     const modifiedSelect = select.map((event) => {

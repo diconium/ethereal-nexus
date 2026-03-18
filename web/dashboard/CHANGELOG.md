@@ -1,5 +1,18 @@
 # @ethereal-nexus/dashboard
 
+## 3.8.0
+
+### Minor Changes
+
+- 9a312c6: This pull request contains several significant updates to the dashboard's dependencies, configuration, and UI structure. The most notable changes include major dependency upgrades (especially Tailwind CSS and related packages), Next.js configuration enhancements to support new packages, removal of disabled GitHub Actions workflows for preview environments, and improvements to the dashboard's layout and component management UI.
+
+### Patch Changes
+
+- Updated dependencies [e3ef2ba]
+- Updated dependencies [caa568f]
+  - @ethereal-nexus/dialog-ui-core@1.6.0
+  - @ethereal-nexus/dialog-ui-shadcn@1.4.0
+
 ## 3.7.2
 
 ### Patch Changes

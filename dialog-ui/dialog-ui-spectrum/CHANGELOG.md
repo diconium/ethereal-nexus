@@ -1,5 +1,17 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.8.0
+
+### Minor Changes
+
+- e3ef2ba: add enableFocusPoint property to media fields and update related components
+
+### Patch Changes
+
+- Updated dependencies [e3ef2ba]
+- Updated dependencies [caa568f]
+  - @ethereal-nexus/dialog-ui-core@1.6.0
+
 ## 1.7.0
 
 ### Minor Changes

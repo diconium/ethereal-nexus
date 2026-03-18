@@ -1,5 +1,16 @@
 # remote-components-vite-react-ts
 
+## 0.10.0
+
+### Minor Changes
+
+- e3ef2ba: add enableFocusPoint property to media fields and update related components
+
+### Patch Changes
+
+- Updated dependencies [e3ef2ba]
+  - @ethereal-nexus/core@1.19.0
+
 ## 0.9.2
 
 ### Patch Changes

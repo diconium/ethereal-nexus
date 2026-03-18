@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.19.0
+
+### Minor Changes
+
+- e3ef2ba: add enableFocusPoint property to media fields and update related components
+
 ## 1.18.0
 
 ### Minor Changes

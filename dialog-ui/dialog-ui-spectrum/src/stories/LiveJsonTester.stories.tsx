@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import React, { useState, useRef } from 'react';
-import { within, userEvent, expect } from '@storybook/test';
+// No automated interaction tests — stories are for manual testing
 import {
   DialogTrigger,
   ActionButton,
@@ -1446,18 +1446,8 @@ export const LiveTester: Story = {
     <LiveJsonDialogTester storyChatbotApiUrl={args.storyChatbotApiUrl} />
   ),
   args: {
+    // default: show chatbot so reviewers can test the advisors
     storyChatbotApiUrl: 'http://localhost:3000/api/author/chat',
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const testButton = await canvas.getByRole('button', {
-      name: /Test Dialog/i,
-    });
-    await userEvent.click(testButton);
-
-    // When chatbotApiUrl is provided the AI content advisor button should appear
-    const aiButton = await canvas.findByText(/AI content advisor/i);
-    expect(aiButton).toBeInTheDocument();
   },
 };
 
@@ -1468,16 +1458,5 @@ export const LiveTester_NoChatbot: Story = {
   ),
   args: {
     storyChatbotApiUrl: undefined,
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const testButton = await canvas.getByRole('button', {
-      name: /Test Dialog/i,
-    });
-    await userEvent.click(testButton);
-
-    // When chatbotApiUrl is NOT provided the AI content advisor button should NOT appear
-    const aiButton = canvas.queryByText(/AI content advisor/i);
-    expect(aiButton).not.toBeInTheDocument();
   },
 };

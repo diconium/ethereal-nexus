@@ -15,7 +15,7 @@ const Preview: React.FC<PreviewProps> = ({
     <div>
       <iframe
         src={`/components/${componentId}/versions/${selectedVersionId}/preview-new-window`}
-        className="w-full h-96 border-none"
+        className="w-full h-400 border-none"
       />
     </div>
   );

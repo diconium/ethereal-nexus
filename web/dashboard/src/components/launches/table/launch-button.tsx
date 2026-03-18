@@ -34,7 +34,7 @@ export function LaunchButton({ from, to }: LaunchButtonProps) {
       toast(`Launch from ${from.name} to ${to.name} could not be completed.`);
     }
 
-    toast(`Launch from ${from.name} to ${to.name} was successfull!.`);
+    toast(`Launch from ${from.name} to ${to.name} successful.`);
     setIsLaunchDialogOpen(false);
     replace(`/projects/${to.project_id}?env=${to.id}`);
   };

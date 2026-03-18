@@ -23,7 +23,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ComponentAsset, ComponentVersion } from '@/data/components/dto';
 import { ExternalLink, RefreshCcw, Copy, Bug } from 'lucide-react';
-import { FieldRenderer } from '@ethereal-nexus/dialog-ui-example';
+import { FieldRenderer } from '@ethereal-nexus/dialog-ui-shadcn';
 import {
   buildInitialValues,
   DialogField,
@@ -369,7 +369,7 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
           <CardFooter className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="w-full sm:w-auto">
               <div className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
-                <code className="block whitespace-pre-wrap break-words">
+                <code className="block whitespace-pre-wrap wrap-break-word">
                   {snippet}
                 </code>
               </div>
@@ -418,7 +418,7 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[360px] w-full">
-              <pre className="whitespace-pre-wrap break-words bg-muted/60 p-4 text-xs text-foreground">
+              <pre className="whitespace-pre-wrap wrap-break-word bg-muted/60 p-4 text-xs text-foreground">
                 {JSON.stringify(selectedVersion.dialog ?? [], null, 2)}
               </pre>
               <ScrollBar orientation="horizontal" />

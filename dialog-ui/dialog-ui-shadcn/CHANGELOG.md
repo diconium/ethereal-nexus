@@ -1,4 +1,4 @@
-# @ethereal-nexus/dialog-ui-example
+# @ethereal-nexus/dialog-ui-shadcn
 
 ## 1.3.1
 

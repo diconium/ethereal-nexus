@@ -11,6 +11,7 @@ export function setDialogMinWidth(rootElement: HTMLElement | null) {
         if (el.classList.contains('coral3-Dialog-wrapper')) {
             el.style.minWidth = '640px';
             el.style.maxWidth = '90vw';
+            el.style.width = 'auto';
             el.style.minHeight = '230px';
             el.style.maxHeight = '100vh';
             // Use setTimeout to apply centering after Coral's positioning

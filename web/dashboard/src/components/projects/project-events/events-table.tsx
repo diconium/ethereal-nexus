@@ -444,7 +444,7 @@ const DetailField = ({
     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
       {label}
     </p>
-    <p className="text-sm font-semibold text-foreground break-words">
+    <p className="text-sm font-semibold text-foreground wrap-break-word">
       {value ?? '—'}
     </p>
   </div>
@@ -522,7 +522,7 @@ const EventDetailsPanel = ({ event }: { event: EventItem }) => {
         {showPayload ? (
           <CardContent>
             <ScrollArea className="max-h-72 rounded-md border bg-muted/40">
-              <pre className="whitespace-pre-wrap break-words p-3 text-xs">
+              <pre className="whitespace-pre-wrap wrap-break-word p-3 text-xs">
                 {JSON.stringify(event, null, 2)}
               </pre>
             </ScrollArea>

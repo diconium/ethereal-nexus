@@ -38,7 +38,7 @@ pnpm build
 
 ```tsx
 import React, { useState } from 'react';
-import { ShadcnFieldRenderer } from '@ethereal-nexus/dialog-ui-example';
+import { ShadcnFieldRenderer } from '@ethereal-nexus/dialog-ui-shadcn';
 import type { FieldConfig } from '@ethereal-nexus/dialog-ui-core';
 
 const MyForm = () => {
@@ -73,7 +73,7 @@ You can create your own custom field renderer by extending the `BaseFieldRendere
 
 ```tsx
 import { BaseFieldRenderer } from '@ethereal-nexus/dialog-ui-core';
-import { ShadcnFieldRenderer } from '@ethereal-nexus/dialog-ui-example';
+import { ShadcnFieldRenderer } from '@ethereal-nexus/dialog-ui-shadcn';
 
 class CustomFieldRenderer extends ShadcnFieldRenderer {
   renderCustomField(props: FieldRendererProps): React.ReactElement {

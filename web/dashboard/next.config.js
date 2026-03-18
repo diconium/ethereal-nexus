@@ -5,7 +5,7 @@ module.exports = {
     serverMinification: false,
   },
   transpilePackages: [
-    '@ethereal-nexus/dialog-ui-example',
+    '@ethereal-nexus/dialog-ui-shadcn',
     '@ethereal-nexus/dialog-ui-core',
   ],
   headers: async () => {

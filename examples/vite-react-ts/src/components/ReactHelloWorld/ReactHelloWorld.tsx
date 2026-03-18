@@ -63,6 +63,8 @@ const dialogSchema = dialog({
   }),
   banners: multifield({
     label: 'Banners',
+    max: "3",
+    min: "1",
     children: object({
       title: text({
         label: 'Title',
@@ -110,7 +112,7 @@ const dialogSchema = dialog({
     }
   });
 
-const schema = component({ name: 'TestReactHelloWorld', version: '4.0.8' }, dialogSchema);
+const schema = component({ name: 'TestReactHelloWorld', version: '5.0.11' }, dialogSchema);
 
 type Props = Output<typeof schema>
 

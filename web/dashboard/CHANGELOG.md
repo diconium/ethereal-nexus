@@ -1,5 +1,17 @@
 # @ethereal-nexus/dashboard
 
+## 3.7.2
+
+### Patch Changes
+
+- 7b2698d: remove redisCache export and use RedisCache.getInstance() directly
+
+## 3.7.1
+
+### Patch Changes
+
+- 8b807db: Handle JSON parsing errors in route request
+
 ## 3.7.0
 
 ### Minor Changes

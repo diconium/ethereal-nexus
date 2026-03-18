@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { queryResourceEvents } from '@/data/events/actions';
 import { getToken } from 'next-auth/jwt';
 import { z } from 'zod';
@@ -34,7 +34,7 @@ const eventsQuerySchema = z.object({
   globalFilter: z.string().max(200).optional(),
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const token = await getToken({ req, secret: process.env.AUTH_SECRET });
 

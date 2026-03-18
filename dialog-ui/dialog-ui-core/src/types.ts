@@ -20,6 +20,7 @@ export interface FieldConfig {
     placeholder?: string;
     multiple?: boolean;
     parentId?: string;
+    enableFocusPoint?: boolean;
     defaultValue?: boolean | string | number | string[] | number[] | null;
     tooltip?: string | null;
     min?: string;

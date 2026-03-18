@@ -134,6 +134,7 @@ const transformAEMFields = (aemFields: any[]): DialogConfig => {
             min: field.min || undefined,
             max: field.max || undefined,
             defaultValue: field.defaultValue,
+            enableFocusPoint: field. enableFocusPoint || false,
             required: field.required || false,
             placeholder: field.placeholder || '',
             tooltip: field.tooltip || null,

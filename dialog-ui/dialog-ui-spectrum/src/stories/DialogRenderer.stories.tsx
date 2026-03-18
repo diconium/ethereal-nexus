@@ -971,3 +971,197 @@ export const TabsExample: Story = {
         ])
     },
 };
+
+
+
+// Tabs example with grouped and non-grouped content
+export const WithFocusPoint: Story = {
+  args: {
+    'data-content-resource': JSON.stringify({
+      "image" : {
+        "jcr:primaryType" : "nt:unstructured",
+        "fileReference" : "/content/dam/aem-dsv-redesign/carson-arias-7Z03R1wOdmI-unsplash.jpg"
+      },
+      "remoteComponentType" : "image-text",
+      "jcr:lastModifiedBy" : "admin",
+      "jcr:created" : 1769787763724,
+      "jcr:createdBy" : "admin",
+      "jcr:lastModified" : 1771948507239,
+      "sling:resourceType" : "remote-components/components/remotecomponent",
+      "jcr:primaryType" : "nt:unstructured",
+      "remote" : {
+        "picture_type" : "picture",
+        "content_alignment" : "",
+        "jcr:primaryType" : "nt:unstructured",
+        "picture" : {
+          "active" : true,
+          "jcr:primaryType" : "nt:unstructured",
+          "remote" : {
+            "image" : {
+              "alt" : "my desc",
+              "jcr:primaryType" : "nt:unstructured",
+              "altValueFromPageImage" : false,
+              "fileReference" : "https://picsum.photos/id/237/200/300",
+              "type" : "image"
+            },
+            "jcr:primaryType" : "nt:unstructured",
+            "ratio" : "auto",
+            "caption_color" : "dark-gray-1"
+          }
+        },
+        "intro_alignment" : ""
+      },
+      "remoteComponentTitle" : "nexus.component.image-text"
+    }),
+    'data-config': JSON.stringify([
+      {
+        "type": "tabs",
+        "id": "tabs",
+        "_id": null,
+        "title": null,
+        "label": null,
+        "itemLabelKey": null,
+        "folder": false,
+        "path": "/content",
+        "placeholder": "",
+        "min": "",
+        "max": "",
+        "startday": "",
+        "tooltip": null,
+        "url": null,
+        "method": "POST",
+        "allowedMimeTypes": [
+          "image/gif",
+          "image/jpeg",
+          "image/png",
+          "image/tiff",
+          "image/svg+xml"
+        ],
+        "multiple": false,
+        "showastoggle": false,
+        "required": false,
+        "children": [
+          {
+            "type": "tab",
+            "id": "tab_nexus.image_type.label",
+            "_id": null,
+            "title": null,
+            "label": "nexus.image_type.label",
+            "itemLabelKey": null,
+            "folder": false,
+            "path": "/content",
+            "placeholder": "",
+            "min": "",
+            "max": "",
+            "startday": "",
+            "tooltip": null,
+            "url": null,
+            "method": "POST",
+            "allowedMimeTypes": [
+              "image/gif",
+              "image/jpeg",
+              "image/png",
+              "image/tiff",
+              "image/svg+xml"
+            ],
+            "multiple": false,
+            "showastoggle": false,
+            "required": false,
+            "children": [
+              {
+                "type": "group",
+                "id": "picture",
+                "_id": null,
+                "title": null,
+                "label": "nexus.image.label",
+                "itemLabelKey": null,
+                "folder": false,
+                "path": "/content",
+                "placeholder": "",
+                "min": "",
+                "max": "",
+                "startday": "",
+                "tooltip": null,
+                "url": null,
+                "method": "POST",
+                "allowedMimeTypes": [
+                  "image/gif",
+                  "image/jpeg",
+                  "image/png",
+                  "image/tiff",
+                  "image/svg+xml"
+                ],
+                "multiple": false,
+                "showastoggle": false,
+                "required": false,
+                "children": [
+                  {
+                    "type": "media",
+                    "id": "image",
+                    "_id": null,
+                    "title": null,
+                    "label": "nexus.image.label",
+                    "itemLabelKey": null,
+                    "folder": false,
+                    "path": "/content",
+                    "placeholder": "",
+                    "min": "",
+                    "max": "",
+                    "startday": "",
+                    "tooltip": "nexus.image.tooltip",
+                    "url": null,
+                    "method": "POST",
+                    "allowedMimeTypes": [
+                      "image/gif",
+                      "image/jpeg",
+                      "image/png",
+                      "image/tiff",
+                      "image/svg+xml"
+                    ],
+                    "enableFocusPoint": true,
+                    "multiple": false,
+                    "showastoggle": false,
+                    "required": false,
+                    "children": null,
+                    "pageProperties": null,
+                    "values": null,
+                    "condition": null,
+                    "displayformat": "",
+                    "headerformat": "",
+                    "valueformat": "",
+                    "defaultValue": "",
+                    "body": null
+                  }
+                ],
+                "pageProperties": null,
+                "values": null,
+                "condition": null,
+                "displayformat": "",
+                "headerformat": "",
+                "valueformat": "",
+                "defaultValue": "",
+                "body": null
+              }
+            ],
+            "pageProperties": null,
+            "values": null,
+            "condition": null,
+            "displayformat": "",
+            "headerformat": "",
+            "valueformat": "",
+            "defaultValue": "",
+            "body": null
+          }
+        ],
+        "pageProperties": null,
+        "values": null,
+        "condition": null,
+        "displayformat": "",
+        "headerformat": "",
+        "valueformat": "",
+        "defaultValue": "",
+        "body": null
+      }
+    ])
+  },
+};

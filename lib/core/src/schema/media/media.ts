@@ -4,6 +4,10 @@ type MediaOutputType = {
   alt: string;
   url: string;
   renditions: string[];
+  focusPoint?: {
+    x: number;
+    y: number;
+  }
 };
 
 export interface MediaSchema<TOutput extends string = string> extends BaseSchema<MediaOutputType> {
@@ -23,10 +27,11 @@ type CSVType = 'text/csv';
 interface MediaInput extends BaseFieldInput {
   defaultValue?: string;
   allowedMimeTypes?: ( PDFTypes | ZipTypes | ImageTypes | VideoTypes | CSVType)[];
+  enableFocusPoint?: boolean
 }
 
 export function media(input: MediaInput): MediaSchema {
-  const { label, tooltip, required, defaultValue, allowedMimeTypes } = input;
+  const { label, tooltip, required, defaultValue, allowedMimeTypes, enableFocusPoint } = input;
 
   return {
     type: 'media',
@@ -37,7 +42,8 @@ export function media(input: MediaInput): MediaSchema {
         tooltip,
         required,
         defaultValue,
-        allowedMimeTypes
+        allowedMimeTypes,
+        enableFocusPoint,
       };
     },
     _primitive() {

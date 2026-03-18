@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getProjectById } from '@/data/projects/actions';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { ProjectComponentsList } from '@/components/projects/component-selection-table/components-list';
 import Link from 'next/link';
 import { EnvironmentsList } from '@/components/projects/environments-table/environment-list';
@@ -13,37 +13,6 @@ export default async function EditProject(props: any) {
   const searchParams = await props.searchParams;
   const { tab = 'components', env, component } = searchParams;
   const { id } = await props.params;
-
-  if (tab === 'activity') {
-    const params = new URLSearchParams();
-
-    Object.entries(searchParams).forEach(([key, value]) => {
-      if (key === 'tab' || value === undefined) {
-        return;
-      }
-
-      if (Array.isArray(value)) {
-        value.forEach((entry) => params.append(key, entry));
-        return;
-      }
-
-      if (typeof value === 'string') {
-        params.set(key, value);
-      }
-    });
-
-    const query = params.toString();
-    redirect(`/projects/${id}/activity${query ? `?${query}` : ''}`);
-  }
-
-  if (tab === 'settings') {
-    redirect(`/projects/${id}/settings?section=general`);
-  }
-
-  if (tab === 'users') {
-    redirect(`/projects/${id}/settings?section=members`);
-  }
-
   const session = await auth();
   const hasWritePermissions =
     session?.user?.role === 'admin' ||
@@ -53,6 +22,11 @@ export default async function EditProject(props: any) {
     notFound();
   }
 
+  const allowedTabs = hasWritePermissions
+    ? new Set(['components', 'environments', 'featureFlags'])
+    : new Set(['components', 'environments']);
+  const activeTab = allowedTabs.has(tab) ? tab : 'components';
+
   return (
     <div className="flex flex-1 flex-col space-y-8">
       <div className="flex items-center justify-between space-y-2">
@@ -61,7 +35,7 @@ export default async function EditProject(props: any) {
           <p className="text-muted-foreground">{project.data.description}</p>
         </div>
       </div>
-      <Tabs value={tab} defaultValue="components" className="space-y-10">
+      <Tabs value={activeTab} defaultValue="components" className="space-y-10">
         <TabsList>
           <TabsTrigger value="components" asChild>
             <Link
@@ -88,9 +62,9 @@ export default async function EditProject(props: any) {
           ) : null}
         </TabsList>
         <SessionProvider session={session}>
-          <TabsContent value={tab} className="space-y-4">
+          <TabsContent value={activeTab} className="space-y-4">
             {(() => {
-              switch (tab) {
+              switch (activeTab) {
                 case 'components':
                   return (
                     <ProjectComponentsList

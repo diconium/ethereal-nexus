@@ -1,5 +1,17 @@
 # @ethereal-nexus/dialog-ui-shadcn
 
+## 1.4.0
+
+### Minor Changes
+
+- caa568f: update with author.ui
+
+### Patch Changes
+
+- Updated dependencies [e3ef2ba]
+- Updated dependencies [caa568f]
+  - @ethereal-nexus/dialog-ui-core@1.6.0
+
 ## 1.3.1
 
 ### Patch Changes

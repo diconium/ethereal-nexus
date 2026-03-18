@@ -1,5 +1,12 @@
 # @ethereal-nexus/dialog-ui-core
 
+## 1.6.0
+
+### Minor Changes
+
+- e3ef2ba: add enableFocusPoint property to media fields and update related components
+- caa568f: update with author.ui
+
 ## 1.5.0
 
 ### Minor Changes

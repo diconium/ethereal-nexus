@@ -1,42 +1,43 @@
-'use client'
+'use client';
 
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Trash } from 'lucide-react';
+import { MoreHorizontal, Trash } from 'lucide-react';
 import { Dialog, DialogTrigger } from '@radix-ui/react-dialog';
-import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useState } from 'react';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { deleteComponent } from '@/data/components/actions';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import DotsIcon from '@/components/ui/icons/DotsIcon';
 
 export function ComponentsDataTableRowActions({ row }) {
-  const router = useRouter()
-  const {data: session } = useSession()
+  const router = useRouter();
+  const { data: session } = useSession();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const hasWritePermissions = session?.user?.role === 'admin';
 
   const handleDelete = async () => {
-    const result = await deleteComponent(row.original.id)
+    const result = await deleteComponent(row.original.id);
 
-    if(!result.success) {
-      toast({
-        title: `Component ${row.original.name} could not be deleted`,
-      });
+    if (!result.success) {
+      toast(`Component ${row.original.name} could not be deleted`);
     }
 
-    toast({
-      title: `Component ${row.original.name} was deleted successfully`,
-    });
+    toast(`Component ${row.original.name} was deleted successfully`);
     setDeleteDialogOpen(false);
-    router.refresh()
+    router.refresh();
   };
 
   return (
@@ -46,7 +47,7 @@ export function ComponentsDataTableRowActions({ row }) {
           variant="ghost"
           className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
         >
-          <DotsIcon data-testid="ethereal-dots-icon" width="20" height="20"/>
+          <MoreHorizontal className="h-4 w-4" />
           <span className="sr-only">Open menu</span>
         </Button>
       </DropdownMenuTrigger>

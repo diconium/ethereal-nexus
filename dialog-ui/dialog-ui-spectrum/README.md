@@ -422,7 +422,6 @@ We welcome contributions! Please see our [Contributing Guide](../../CONTRIBUTING
 ## Related Packages
 
 - [@ethereal-nexus/dialog-ui-core](../dialog-ui-core) - Headless dialog processing logic
-- [@ethereal-nexus/dialog-ui-example](../dialog-ui-example) - Example implementations
 
 ## License
 

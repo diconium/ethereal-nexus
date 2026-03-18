@@ -1,6 +1,12 @@
 import React from 'react';
-import { ComparisonResult, LaunchesList } from '@/components/launches/table/launches-list';
-import { getEnvironmentsById, getEnvironmentsByProject } from '@/data/projects/actions';
+import {
+  ComparisonResult,
+  LaunchesList,
+} from '@/components/launches/table/launches-list';
+import {
+  getEnvironmentsById,
+  getEnvironmentsByProject,
+} from '@/data/projects/actions';
 import { auth } from '@/auth';
 import { EnvironmentWithComponents } from '@/data/projects/dto';
 import { notFound } from 'next/navigation';
@@ -9,16 +15,23 @@ import { db } from '@/db';
 import { eq, sql } from 'drizzle-orm';
 import { componentVersions } from '@/data/components/schema';
 
-const latestQuery = async (id: string) => db.select()
-  .from(componentVersions)
-  .orderBy(sql`string_to_array(${componentVersions.version}, '.')::int[] DESC`)
-  .where(eq(componentVersions.component_id, id));
+const latestQuery = async (id: string) =>
+  db
+    .select()
+    .from(componentVersions)
+    .orderBy(
+      sql`string_to_array(${componentVersions.version}, '.')::int[] DESC`,
+    )
+    .where(eq(componentVersions.component_id, id));
 
-async function compareEnvironments(from: EnvironmentWithComponents, to: EnvironmentWithComponents): Promise<ComparisonResult[]> {
+async function compareEnvironments(
+  from: EnvironmentWithComponents,
+  to: EnvironmentWithComponents,
+): Promise<ComparisonResult[]> {
   const result: ComparisonResult[] = [];
 
   for (const compFrom of from.components) {
-    if(to.secure && !compFrom.version) {
+    if (to.secure && !compFrom.version) {
       compFrom.version = (await latestQuery(compFrom.id))[0].version;
     }
 
@@ -31,12 +44,12 @@ async function compareEnvironments(from: EnvironmentWithComponents, to: Environm
         new: false,
         is_active: {
           from: compFrom.is_active,
-          to: compTo.is_active
+          to: compTo.is_active,
         },
         version: {
           from: compFrom.version || 'latest',
-          to: compTo.version || 'latest'
-        }
+          to: compTo.version || 'latest',
+        },
       });
     } else {
       result.push({
@@ -46,12 +59,12 @@ async function compareEnvironments(from: EnvironmentWithComponents, to: Environm
         new: true,
         is_active: {
           from: compFrom.is_active,
-          to: null
+          to: null,
         },
         version: {
           from: compFrom.version || 'latest',
-          to: null
-        }
+          to: null,
+        },
       });
     }
   }
@@ -60,9 +73,7 @@ async function compareEnvironments(from: EnvironmentWithComponents, to: Environm
 }
 
 export default async function NewLaunch(props: any) {
-  const {
-    id
-  } = await props.params;
+  const { id } = await props.params;
 
   const session = await auth();
 
@@ -70,7 +81,17 @@ export default async function NewLaunch(props: any) {
   const from = await getEnvironmentsById(fromId, session?.user?.id);
   const to = await getEnvironmentsById(toId, session?.user?.id);
 
-  if (!from.success || !to.success || from.data.project_id !== to.data.project_id || !(session?.user?.role === 'admin' || ['write', 'manage'].includes(session?.permissions[from.data.project_id] || ''))) {
+  if (
+    !from.success ||
+    !to.success ||
+    from.data.project_id !== to.data.project_id ||
+    !(
+      session?.user?.role === 'admin' ||
+      ['write', 'manage'].includes(
+        session?.permissions[from.data.project_id] || '',
+      )
+    )
+  ) {
     notFound();
   }
 
@@ -78,12 +99,10 @@ export default async function NewLaunch(props: any) {
   const comparison = await compareEnvironments(from.data, to.data);
 
   return (
-    <div className="container h-full flex-1 flex-col space-y-8 p-8 md:flex">
+    <div className="flex flex-1 flex-col space-y-8">
       <div className="w-full flex items-end">
         <div className="mr-auto">
-          <div className="flex items-baseline">
-            <h2 className="text-2xl font-bold tracking-tight">Create Launch</h2>
-          </div>
+          <h1 className="text-4xl font-semibold">Create Launch</h1>
           <p className="text-muted-foreground">Compare the changes to launch</p>
         </div>
       </div>
@@ -92,11 +111,7 @@ export default async function NewLaunch(props: any) {
         to={to.data}
         environments={environments.success ? environments.data : []}
       />
-      <LaunchesList
-        from={from.data}
-        to={to.data}
-        comparison={comparison}
-      />
+      <LaunchesList from={from.data} to={to.data} comparison={comparison} />
     </div>
   );
 }

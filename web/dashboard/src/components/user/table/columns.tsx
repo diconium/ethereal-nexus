@@ -1,38 +1,32 @@
 'use client';
 
-import { DataTableColumnHeader } from '@/components/ui/data-table/data-table-column-header';
 import { UserRoleSelect } from './user-role-select';
 import { UsersDataTableRowActions } from '@/components/user/table/data-table-row-actions';
 
 export const columns = [
   {
-    accessorKey: "name",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Name" />
+    accessorKey: 'name',
+    header: 'Name',
+    cell: ({ row }) => (
+      <span className="font-semibold">{row.getValue('name')}</span>
     ),
-    cell: ({ row }) => <span className="font-semibold">{row.getValue("name")}</span>,
-    enableSorting: true,
   },
   {
-    accessorKey: "email",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Email" />
-    ),
-    cell: ({ row }) => row.getValue("email"),
-    enableSorting: true,
+    accessorKey: 'email',
+    header: 'Email',
+    cell: ({ row }) => row.getValue('email'),
   },
   {
     accessorKey: 'role',
-    header: ({ column }) => (
-      <DataTableColumnHeader className="font-bold" column={column} title="Role" />
+    header: 'Role',
+    cell: ({ row }) => (
+      <UserRoleSelect value={row.original.role} userId={row.original.id} />
     ),
-    cell: ({ row }) => <UserRoleSelect value={row.original.role} userId={row.original.id} />,
-    enableSorting: false
   },
   {
-    id: "actions",
+    id: 'actions',
     cell: ({ row }) => (
-      <div className="flex justify-end" >
+      <div className="flex justify-end">
         <UsersDataTableRowActions user={row.original} />
       </div>
     ),

@@ -3,45 +3,59 @@
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { NewUser, newUserSchema } from '@/data/users/dto';
 import { insertInvitedCredentialsUser, login } from '@/data/users/actions';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Github } from '@/components/ui/icons/Github';
 import { Microsoft } from '@/components/ui/icons/Microsoft';
 
 type UserFormProps = {
   onComplete?: () => void;
-  providers: ('credentials' | 'github' | 'microsoft-entra-id' | 'azure-communication-service' | false)[]
-}
+  providers: (
+    | 'credentials'
+    | 'github'
+    | 'microsoft-entra-id'
+    | 'azure-communication-service'
+    | false
+  )[];
+};
 
 export default function UserForm({ onComplete, providers }: UserFormProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { toast } = useToast();
 
   const form = useForm({
     resolver: zodResolver(newUserSchema as any),
   });
 
   async function handler(formdata) {
-    const user = await insertInvitedCredentialsUser(formdata, searchParams.get('key'));
+    const user = await insertInvitedCredentialsUser(
+      formdata,
+      searchParams.get('key'),
+    );
     if (user.success) {
-      toast({
-        title: 'User created successfully!'
-      });
+      toast('User created successfully!');
       if (onComplete) onComplete();
       return router.push('/auth/signin');
     }
 
     form.setError('email', {
       type: 'manual',
-      message: user.error.message
+      message: user.error.message,
     });
   }
 
@@ -52,7 +66,7 @@ export default function UserForm({ onComplete, providers }: UserFormProps) {
           Create an account
         </h1>
       </div>
-      {providers.includes('credentials') ?
+      {providers.includes('credentials') ? (
         <>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handler)} className="space-y-4">
@@ -63,11 +77,13 @@ export default function UserForm({ onComplete, providers }: UserFormProps) {
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="John Doe" {...field} value={field.value ?? ''} />
+                      <Input
+                        placeholder="John Doe"
+                        {...field}
+                        value={field.value ?? ''}
+                      />
                     </FormControl>
-                    <FormDescription>
-                      This is the name user.
-                    </FormDescription>
+                    <FormDescription>This is the name user.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -79,7 +95,11 @@ export default function UserForm({ onComplete, providers }: UserFormProps) {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="johndoe@yourcompany.com" {...field} type="email" />
+                      <Input
+                        placeholder="johndoe@yourcompany.com"
+                        {...field}
+                        type="email"
+                      />
                     </FormControl>
                     <FormDescription>
                       This is the email of the user.
@@ -95,16 +115,20 @@ export default function UserForm({ onComplete, providers }: UserFormProps) {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <PasswordInput placeholder="****" {...field} value={field.value ?? ''} />
+                      <PasswordInput
+                        placeholder="****"
+                        {...field}
+                        value={field.value ?? ''}
+                      />
                     </FormControl>
-                    <FormDescription>
-                      Please select a password.
-                    </FormDescription>
+                    <FormDescription>Please select a password.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button className="w-full" type="submit">Create user</Button>
+              <Button className="w-full" type="submit">
+                Create user
+              </Button>
             </form>
           </Form>
           <div className="relative">
@@ -112,14 +136,13 @@ export default function UserForm({ onComplete, providers }: UserFormProps) {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
             </div>
           </div>
-        </> :
-        null
-      }
+        </>
+      ) : null}
       <div className="flex flex-col space-y-4">
         <Button
           disabled={!providers.includes('github')}
@@ -130,8 +153,8 @@ export default function UserForm({ onComplete, providers }: UserFormProps) {
         >
           <Github className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
           <span className="text-neutral-700 dark:text-neutral-300 text-sm">
-              GitHub
-        </span>
+            GitHub
+          </span>
         </Button>
         <Button
           disabled={!providers.includes('microsoft-entra-id')}
@@ -142,8 +165,8 @@ export default function UserForm({ onComplete, providers }: UserFormProps) {
         >
           <Microsoft className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
           <span className="text-neutral-700 dark:text-neutral-300 text-sm">
-              Microsoft
-        </span>
+            Microsoft
+          </span>
         </Button>
       </div>
     </>

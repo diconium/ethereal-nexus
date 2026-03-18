@@ -7,6 +7,7 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { columns } from '@/components/components/table/columns';
 import { Button } from '@/components/ui/button';
 import { getComponents } from '@/data/components/actions';
+import { AddComponentDialog } from '@/components/components/add-component-dialog';
 
 export default async function Components() {
   const session = await auth();
@@ -26,19 +27,25 @@ export default async function Components() {
         entity="components"
         filterColumn={'name'}
         createSlot={
-          !!process.env.OPENAI_API_KEY ?
-            <Button asChild variant="outline" className="ml-auto border-0 relative overflow-hidden p-0.5" disabled={session?.user?.role === 'viewer'}>
-              <Link
-                href="/components/generate"
+          <div className="flex items-center gap-2">
+            <AddComponentDialog />
+            {!!process.env.OPENAI_API_KEY && (
+              <Button
+                asChild
+                variant="outline"
+                className="ml-auto border-0 relative overflow-hidden p-0.5"
+                disabled={session?.user?.role === 'viewer'}
               >
-                <span className="absolute inset-[-2000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#FE6630_0%,#D9508A_25%,#8F26D3_50%,#D9508A_75%,#FE6630_100%)]" />
-                <span className="flex h-full w-full items-center justify-center rounded-full bg-background px-5 backdrop-blur-3xl">
-                  <Sparkles className="h-5 w-5 mr-1" />
-                  Generate component
-                </span>
-              </Link>
-            </Button> :
-            null
+                <Link href="/components/generate">
+                  <span className="absolute inset-[-2000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#FE6630_0%,#D9508A_25%,#8F26D3_50%,#D9508A_75%,#FE6630_100%)]" />
+                  <span className="flex h-full w-full items-center justify-center rounded-full bg-background px-5 backdrop-blur-3xl">
+                    <Sparkles className="h-5 w-5 mr-1" />
+                    Generate component
+                  </span>
+                </Link>
+              </Button>
+            )}
+          </div>
         }
       />
     </>

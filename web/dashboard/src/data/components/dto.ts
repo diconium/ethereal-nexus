@@ -13,6 +13,7 @@ export const newComponentsSchema = createInsertSchema(components).transform(
 export type NewComponent = z.infer<typeof newComponentsSchema>;
 
 export const componentAssetsSchema = createSelectSchema(componentAssets);
+export type ComponentAsset = z.infer<typeof componentAssetsSchema>;
 
 export const componentVersionsSchema = createSelectSchema(componentVersions);
 export type ComponentVersion = z.infer<typeof componentVersionsSchema>;

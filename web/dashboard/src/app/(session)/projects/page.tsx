@@ -27,13 +27,18 @@ export default async function Projects() {
           data={projects.data}
           filterColumn={'name'}
           createSlot={
-            <Button className="ml-auto" asChild disabled={session?.user?.role === 'viewer'}>
-              <Link href="/projects/new">
-                <Plus />
-                <span className="text-sm font-bold">Create project</span>
-              </Link>
-            </Button>
-          }
+          <Button
+            className="ml-auto"
+            asChild
+            disabled={session?.user?.role === 'viewer'}
+            size="sm"
+          >
+            <Link href="/projects/new">
+              <Plus data-icon="inline-start" />
+              Create project
+            </Link>
+          </Button>
+        }
         />
       </>
   );

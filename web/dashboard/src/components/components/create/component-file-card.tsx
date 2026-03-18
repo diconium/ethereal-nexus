@@ -1,56 +1,69 @@
-"use client";
+'use client';
 
 import React, { useContext } from 'react';
-import { FileIcon, GitBranchIcon, HistoryIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { ChatContext } from "@/components/components/create/utils/chat-context";
+import { FileIcon, GitBranchIcon, HistoryIcon } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ChatContext } from '@/components/components/create/utils/chat-context';
 
 interface EtherealNexusFileCardProps {
-    id: string;
-    updated: boolean;
-    componentName: string;
-    fileName: string;
-    handleClick: () => void;
+  id: string;
+  updated: boolean;
+  componentName: string;
+  fileName: string;
+  handleClick: () => void;
 }
 
-export function ComponentFileCard({ id, updated, fileName, componentName, handleClick }: EtherealNexusFileCardProps) {
-    const { currentMessage } = useContext(ChatContext);
-    const isSelected = currentMessage?.id === id;
+export function ComponentFileCard({
+  id,
+  updated,
+  fileName,
+  componentName,
+  handleClick,
+}: EtherealNexusFileCardProps) {
+  const { currentMessage } = useContext(ChatContext);
+  const isSelected = currentMessage?.id === id;
 
-    return (
-        <div
-            className={`bg-background rounded-md p-4 hover:shadow-md transition-all duration-300 cursor-pointer
-                        ${isSelected
-                ? 'border-2 border-orange-500 shadow-md ring-2 ring-orange-300'
-                : 'hover:border-orange-400'}`}
-            onClick={handleClick}
-        >
-            <div className="flex items-start space-x-3">
-                <div className="relative flex-shrink-0">
-                    <FileIcon className="w-6 h-6" />
-                    <GitBranchIcon className="w-4 h-4 text-orange-500 absolute -top-1 -right-1" />
-                </div>
-                <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-start gap-2 mb-1">
-                        <h3 className="text-sm font-semibold break-all">{componentName}</h3>
-                        <div className="flex flex-wrap gap-1">
-                            <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">
-                                Ethereal Nexus File
-                            </Badge>
-                        </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground break-all">{fileName}</p>
-                </div>
-                {
-                    updated &&
-                    <div className="flex mt-auto items-center">
-                        <Badge variant="outline" className="text-orange-800 border-0">
-                            <HistoryIcon className="w-4 h-4 mr-1" />
-                            Updated
-                        </Badge>
-                    </div>
-                }
-            </div>
+  return (
+    <div
+      className={`bg-background rounded-md p-4 hover:shadow-md transition-all duration-300 cursor-pointer
+                        ${
+                          isSelected
+                            ? 'border-2 border-accent shadow-md ring-2 ring-accent/50'
+                            : 'hover:border-accent/60'
+                        }`}
+      onClick={handleClick}
+    >
+      <div className="flex items-start space-x-3">
+        <div className="relative shrink-0">
+          <FileIcon className="w-6 h-6" />
+          <GitBranchIcon className="w-4 h-4 text-accent absolute -top-1 -right-1" />
         </div>
-    );
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-start gap-2 mb-1">
+            <h3 className="text-sm font-semibold break-all">{componentName}</h3>
+            <div className="flex flex-wrap gap-1">
+              <Badge
+                variant="outline"
+                className="bg-accent text-accent-foreground border-accent/50"
+              >
+                Ethereal Nexus File
+              </Badge>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground break-all">{fileName}</p>
+        </div>
+        {updated && (
+          <div className="flex mt-auto items-center">
+            <Badge
+              variant="outline"
+              className="text-accent-foreground border-0"
+            >
+              <HistoryIcon className="w-4 h-4 mr-1" />
+              Updated
+            </Badge>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

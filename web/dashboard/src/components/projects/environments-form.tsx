@@ -1,27 +1,42 @@
-"use client";
+'use client';
 
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { TextArea } from '@/components/ui/text-area';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
-import { useToast } from '@/components/ui/use-toast';
-import { Environment, EnvironmentInput, environmentInputSchema } from '@/data/projects/dto';
+import { toast } from 'sonner';
+import {
+  Environment,
+  EnvironmentInput,
+  environmentInputSchema,
+} from '@/data/projects/dto';
 import { upsertEnvironment } from '@/data/projects/actions';
 import { Switch } from '@/components/ui/switch';
 
 type ProjectsFormProps = {
-  project: string,
-  environment?: Environment,
-  onComplete?: () => void,
-  onCancel?: () => void,
-}
+  project: string;
+  environment?: Environment;
+  onComplete?: () => void;
+  onCancel?: () => void;
+};
 
-export default function EnvironmentsForm({project, environment, onComplete, onCancel}: ProjectsFormProps) {
-  const { toast } = useToast()
+export default function EnvironmentsForm({
+  project,
+  environment,
+  onComplete,
+  onCancel,
+}: ProjectsFormProps) {
   const form = useForm<EnvironmentInput>({
     resolver: zodResolver(environmentInputSchema as any),
     defaultValues: {
@@ -32,20 +47,20 @@ export default function EnvironmentsForm({project, environment, onComplete, onCa
   });
   const onSubmit = async (data: EnvironmentInput) => {
     const environments = await upsertEnvironment({
-      ...data
+      ...data,
     });
-    if(!environments.success) {
-      return toast({
-        title: `Failed to ${data.id ? "update" : "create"} environment "${data.name}"!`,
-      });
+    if (!environments.success) {
+      return toast(
+        `Failed to ${data.id ? 'update' : 'create'} environment "${data.name}"!`,
+      );
     }
 
-    toast({
-      title: `Environment ${environments.data.id ? "update" : "create"}d successfully!`,
-    });
+    toast(
+      `Environment ${environments.data.id ? 'update' : 'create'}d successfully!`,
+    );
 
-    if(onComplete) {
-      onComplete()
+    if (onComplete) {
+      onComplete();
     }
   };
 
@@ -57,9 +72,15 @@ export default function EnvironmentsForm({project, environment, onComplete, onCa
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="transition-colors text-muted-foreground font-bold">Name</FormLabel>
+              <FormLabel className="transition-colors text-muted-foreground font-bold">
+                Name
+              </FormLabel>
               <FormControl>
-                <Input placeholder="Name" {...field} className="bg-white dark:bg-transparent font-bold" />
+                <Input
+                  placeholder="Name"
+                  {...field}
+                  className="bg-white dark:bg-transparent font-bold"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -70,9 +91,17 @@ export default function EnvironmentsForm({project, environment, onComplete, onCa
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="transition-colors text-muted-foreground font-bold">Description</FormLabel>
+              <FormLabel className="transition-colors text-muted-foreground font-bold">
+                Description
+              </FormLabel>
               <FormControl>
-                <TextArea {...field}  value={field.value || undefined} placeholder="Description" rows={5} className="bg-white dark:bg-transparent" />
+                <TextArea
+                  {...field}
+                  value={field.value || undefined}
+                  placeholder="Description"
+                  rows={5}
+                  className="bg-white dark:bg-transparent"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -83,7 +112,9 @@ export default function EnvironmentsForm({project, environment, onComplete, onCa
           name="secure"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel className="transition-colors text-muted-foreground font-bold">Secure</FormLabel>
+              <FormLabel className="transition-colors text-muted-foreground font-bold">
+                Secure
+              </FormLabel>
               <FormControl className="">
                 <Switch
                   checked={field.value}
@@ -95,14 +126,19 @@ export default function EnvironmentsForm({project, environment, onComplete, onCa
           )}
         />
         <div className="flex items-center gap-14">
-          {
-            onCancel && (
-              <Button onClick={onCancel} variant="text" className="text-orange-500 font-bold text-base p-0">
-                Cancel
-              </Button>
-            )
-          }
-          <Button type="submit" size="base">{`${environment?.id ? "Save" : "Create Environment"}`}</Button>
+          {onCancel && (
+            <Button
+              onClick={onCancel}
+              variant="ghost"
+              className="text-accent font-bold text-base p-0"
+            >
+              Cancel
+            </Button>
+          )}
+          <Button
+            type="submit"
+            size="default"
+          >{`${environment?.id ? 'Save' : 'Create Environment'}`}</Button>
         </div>
       </form>
     </Form>

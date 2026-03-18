@@ -1,57 +1,73 @@
-import { SidebarGroup } from '@/components/ui/sidebar';
+'use client';
+
+import type { LucideIcon } from 'lucide-react';
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@/components/ui/sidebar';
 import Link from 'next/link';
-import { Folder, LayoutDashboard, LayoutGrid, UserRound } from 'lucide-react';
-import { createElement } from 'react';
-import { cva } from 'class-variance-authority';
 import { isSelected } from '@/utils/navigation';
-import { usePathname } from 'next/navigation';
+import {
+  usePathname,
+  useSearchParams,
+  type ReadonlyURLSearchParams,
+} from 'next/navigation';
 
-interface NavItem {
-  items: {
-    title: string
-    url: string
-    icon?: string
-    isActive?: boolean
-  }[];
+export interface NavItem {
+  title: string;
+  url: string;
+  icon?: LucideIcon;
+  href?: string;
+  isActive?: (
+    pathname: string,
+    searchParams: ReadonlyURLSearchParams,
+  ) => boolean;
 }
 
-const icons = {
-  LayoutDashboard: LayoutDashboard,
-  UserRound: UserRound,
-  LayoutGrid: LayoutGrid,
-  Folder: Folder,
+export interface NavSection {
+  label?: string;
+  items: NavItem[];
 }
 
-const linkVariants = cva(
-  "flex items-center gap-2 p-2 rounded-xl",
-  {
-    variants: {
-      active: {
-        true: 'bg-orange-10 dark:bg-orange-80 hover:bg-orange-10 hover:dark:bg-orange-80',
-        false: 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]'
-      },
-    },
-    defaultVariants: {
-      active: false,
-    },
-  }
-)
-
-export function NavMain({ items }: NavItem) {
+export function NavMain({ sections }: { sections: NavSection[] }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   return (
-    <SidebarGroup className="p-0 gap-4">
-      {items.map((item) => (
-        <Link
-          href={item.url}
-          key={item.title}
-          className={linkVariants({ active: isSelected(pathname, item.url) })}
-        >
-          <span className="p-2 rounded-xl bg-orange-120 text-white">{item.icon && createElement(icons[item.icon], {color: 'currentColor'})} </span>
-          <span>{item.title}</span>
-        </Link>
+    <>
+      {sections.map((section, index) => (
+        <SidebarGroup key={section.label ?? `section-${index}`}>
+          {section.label ? (
+            <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+          ) : null}
+          <SidebarGroupContent className="flex flex-col gap-2">
+            <SidebarMenu>
+              {section.items.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip={item.title}
+                    isActive={
+                      item.isActive
+                        ? item.isActive(pathname, searchParams)
+                        : isSelected(pathname, item.url)
+                    }
+                  >
+                    <Link href={item.href ?? item.url}>
+                      {item.icon && <item.icon />}
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       ))}
-    </SidebarGroup>
+    </>
   );
 }

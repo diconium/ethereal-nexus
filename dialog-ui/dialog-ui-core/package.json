@@ -24,7 +24,8 @@
     "dev": "vite build --watch",
     "build": "tsc && vite build",
     "type-check": "tsc --noEmit",
-    "test": "vitest"
+    "test": "vitest",
+    "knip": "knip"
   },
   "keywords": [
     "react",
@@ -41,14 +42,13 @@
     "access": "public"
   },
   "devDependencies": {
+    "@types/node": "^25.5.0",
     "@types/react": "^19.2.4",
+    "@vitejs/plugin-react": "^5.1.4",
+    "knip": "^5.88.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
     "vite-plugin-dts": "^4.5.4",
-    "@vitejs/plugin-react": "^5.1.4",
     "vitest": "^4.0.18"
-  },
-  "dependencies": {
-    "zod": "^4.3.6"
   }
 }

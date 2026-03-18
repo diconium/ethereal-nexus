@@ -25,10 +25,10 @@ export default async function Teams() {
         data={users.data}
         filterColumn={'name'}
         createSlot={
-          <Button className="ml-auto" asChild>
+          <Button className="ml-auto" asChild size="sm">
             <Link href="/users/new">
-              <Plus />
-              <span className="text-sm font-bold">Invite user</span>
+              <Plus data-icon="inline-start" />
+              Invite user
             </Link>
           </Button>
         }

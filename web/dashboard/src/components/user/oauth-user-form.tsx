@@ -1,22 +1,31 @@
-"use client";
+'use client';
 
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { type NewServiceUserSchema, newServiceUserSchema } from '@/data/users/dto';
+import {
+  type NewServiceUserSchema,
+  newServiceUserSchema,
+} from '@/data/users/dto';
 import { insertServiceUser } from '@/data/users/actions';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 type UserInviteFormProps = {
-  onComplete?: () => void
-}
+  onComplete?: () => void;
+};
 
 export default function OauthUserForm({ onComplete }: UserInviteFormProps) {
-  const { toast } = useToast()
-
   const form: any = useForm<NewServiceUserSchema>({
     resolver: zodResolver(newServiceUserSchema as any),
     defaultValues: {
@@ -25,19 +34,16 @@ export default function OauthUserForm({ onComplete }: UserInviteFormProps) {
       subject: '',
       client_id: '',
       client_secret: '',
-    }
+    },
   });
 
   async function handler(formdata) {
     const serviceUser = await insertServiceUser(formdata);
     if (serviceUser.success) {
-      toast({
-        title: 'Service user created successfully!',
-      });
-      if(onComplete) onComplete();
+      toast('Service user created successfully!');
+      if (onComplete) onComplete();
     } else {
-      toast({
-        title: 'Failed to create service user.',
+      toast('Failed to create service user.', {
         description: serviceUser.error.message,
       });
     }
@@ -49,7 +55,7 @@ export default function OauthUserForm({ onComplete }: UserInviteFormProps) {
         <FormField
           control={form.control}
           name="name"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
@@ -58,46 +64,45 @@ export default function OauthUserForm({ onComplete }: UserInviteFormProps) {
               <FormDescription>
                 Name to identify the service user.
               </FormDescription>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
           name="issuer"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem>
               <FormLabel>Issuer</FormLabel>
               <FormControl>
-                <Input placeholder="https://oauth.server.com/.well-known/openid-configuration" {...field} />
+                <Input
+                  placeholder="https://oauth.server.com/.well-known/openid-configuration"
+                  {...field}
+                />
               </FormControl>
-              <FormDescription>
-                Issuer of the OAuth service.
-              </FormDescription>
-              <FormMessage/>
+              <FormDescription>Issuer of the OAuth service.</FormDescription>
+              <FormMessage />
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
           name="subject"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem>
               <FormLabel>Subject</FormLabel>
               <FormControl>
                 <Input placeholder="Subject of the client" {...field} />
               </FormControl>
-              <FormDescription>
-                Sub claim for the users JWT.
-              </FormDescription>
-              <FormMessage/>
+              <FormDescription>Sub claim for the users JWT.</FormDescription>
+              <FormMessage />
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
           name="client_id"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem>
               <FormLabel>Client ID</FormLabel>
               <FormControl>
@@ -106,14 +111,14 @@ export default function OauthUserForm({ onComplete }: UserInviteFormProps) {
               <FormDescription>
                 Client ID provided by the OAuth server.
               </FormDescription>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
           name="client_secret"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem>
               <FormLabel>Client Secret</FormLabel>
               <FormControl>
@@ -122,15 +127,15 @@ export default function OauthUserForm({ onComplete }: UserInviteFormProps) {
               <FormDescription>
                 Client Secret provided by the OAuth server.
               </FormDescription>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
           )}
         />
-        <FormMessage />
         <Button
-          className='w-full'
+          className="w-full"
           type="submit"
-          disabled={form.formState.isSubmitting}>
+          disabled={form.formState.isSubmitting}
+        >
           Create User
         </Button>
       </form>

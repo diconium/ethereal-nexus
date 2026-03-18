@@ -24,7 +24,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ComponentAsset, ComponentVersion } from '@/data/components/dto';
 import { ExternalLink, RefreshCcw, Copy, Bug } from 'lucide-react';
 import { FieldRenderer } from '@ethereal-nexus/dialog-ui-example';
-import { DialogField } from '@ethereal-nexus/dialog-ui-core';
+import {
+  buildInitialValues,
+  DialogField,
+  flattenFieldValues,
+  getNestedValue,
+  setNestedValueImmutable,
+} from '@ethereal-nexus/dialog-ui-core';
+
+const joinPath = (parent: string, current?: string | null) => {
+  if (!current) {
+    return parent;
+  }
+
+  return parent ? `${parent}.${current}` : current;
+};
 
 interface PreviewContainerProps {
   componentSlug: string | null;
@@ -40,7 +54,6 @@ interface PreviewContainerProps {
   };
 }
 
-type FieldValueMap = Record<string, any>;
 type AssetKind = NonNullable<ComponentAsset['type']>;
 
 const assetTypeLabels: Record<AssetKind | 'other', string> = {
@@ -59,30 +72,7 @@ function getAssetTypeLabel(type: ComponentAsset['type'] | 'other') {
   return assetTypeLabels[type as AssetKind] ?? assetTypeLabels.other;
 }
 
-const joinPath = (parent: string, current?: string | null) => {
-  if (!current) {
-    return parent;
-  }
-  return parent ? `${parent}.${current}` : current;
-};
-
-function extractDefaultValue(field: DialogField): any {
-  const candidate =
-    (field as any).default ??
-    (field as any).defaultValue ??
-    (field as any).value ??
-    (field as any).initialValue;
-
-  if (candidate !== undefined) {
-    return candidate;
-  }
-
-  if (field.type === 'checkbox' || field.type === 'switch') {
-    return false;
-  }
-
-  return '';
-}
+type FieldValueMap = Record<string, any>;
 
 const formatAttributeValue = (value: any): string => {
   if (value === undefined || value === null) {
@@ -99,94 +89,6 @@ const formatAttributeValue = (value: any): string => {
   } catch (error) {
     return String(value);
   }
-};
-
-const getNestedValue = (source: FieldValueMap, path: string) => {
-  if (!path) {
-    return source;
-  }
-
-  return path.split('.').reduce<any>((current, key) => {
-    if (current === undefined || current === null) {
-      return undefined;
-    }
-    return current[key];
-  }, source);
-};
-
-const setNestedValueMutable = (
-  target: FieldValueMap,
-  path: string,
-  value: any,
-) => {
-  if (!path) {
-    return;
-  }
-
-  const keys = path.split('.');
-  let current = target;
-
-  keys.forEach((key, index) => {
-    if (index === keys.length - 1) {
-      current[key] = value;
-      return;
-    }
-
-    if (typeof current[key] !== 'object' || current[key] === null) {
-      current[key] = {};
-    }
-
-    current = current[key];
-  });
-};
-
-const setNestedValueImmutable = (
-  source: FieldValueMap,
-  path: string,
-  value: any,
-): FieldValueMap => {
-  if (!path) {
-    if (value && typeof value === 'object') {
-      return value;
-    }
-    return source;
-  }
-
-  const [currentKey, ...restKeys] = path.split('.');
-  const remainingPath = restKeys.join('.');
-
-  return {
-    ...source,
-    [currentKey]: restKeys.length
-      ? setNestedValueImmutable(
-          typeof source?.[currentKey] === 'object' &&
-            source[currentKey] !== null
-            ? source[currentKey]
-            : {},
-          remainingPath,
-          value,
-        )
-      : value,
-  };
-};
-
-const flattenFieldValues = (
-  values: FieldValueMap,
-  prefix = '',
-): Array<[string, any]> => {
-  const entries: Array<[string, any]> = [];
-
-  Object.entries(values ?? {}).forEach(([key, value]) => {
-    const path = prefix ? `${prefix}.${key}` : key;
-
-    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-      entries.push(...flattenFieldValues(value, path));
-    } else {
-      entries.push([path, value]);
-    }
-  });
-
-  return entries;
 };
 
 const PreviewContainer: React.FC<PreviewContainerProps> = ({
@@ -209,51 +111,7 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
   }, [componentAssets]);
 
   const initialValues = useMemo<FieldValueMap>(() => {
-    const defaults: FieldValueMap = {};
-
-    const assignDefaults = (fields?: DialogField[], parentPath = '') => {
-      if (!fields) {
-        return;
-      }
-
-      fields.forEach((field) => {
-        if (!field) {
-          return;
-        }
-
-        const fieldType = field.type;
-        const fieldName = field.name as string | undefined;
-
-        if (fieldType === 'tabs') {
-          assignDefaults(field.children as DialogField[], parentPath);
-          return;
-        }
-
-        if (fieldType === 'tab') {
-          assignDefaults(field.children as DialogField[], parentPath);
-          return;
-        }
-
-        if (fieldType === 'group' || fieldType === 'fieldset') {
-          const groupPath = fieldName
-            ? joinPath(parentPath, fieldName)
-            : parentPath;
-          assignDefaults(field.children as DialogField[], groupPath);
-          return;
-        }
-
-        if (!fieldName) {
-          assignDefaults(field.children as DialogField[], parentPath);
-          return;
-        }
-
-        const fieldPath = joinPath(parentPath, fieldName);
-        setNestedValueMutable(defaults, fieldPath, extractDefaultValue(field));
-      });
-    };
-
-    assignDefaults(dialogFields);
-    return defaults;
+    return buildInitialValues(dialogFields);
   }, [dialogFields]);
 
   const [fieldValues, setFieldValues] = useState<FieldValueMap>(initialValues);

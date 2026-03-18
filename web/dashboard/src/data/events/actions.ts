@@ -7,7 +7,7 @@ import {
   eventWithDiscriminatedUnions,
   NewEvent,
 } from '@/data/events/dto';
-import { events } from '@/data/events/schema';
+import { events, eventsTypeEnum } from '@/data/events/schema';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import { eq, sql, and, desc, inArray } from 'drizzle-orm';
 import { users } from '@/data/users/schema';
@@ -16,6 +16,90 @@ import { ActionResponse } from '@/data/action';
 import { projects } from '@/data/projects/schema';
 import { alias } from 'drizzle-orm/pg-core';
 import { logger } from '@/lib/logger';
+
+const parseCommaSeparatedValues = (value?: string | null) => {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    return [] as string[];
+  }
+
+  return Array.from(
+    new Set(
+      value
+        .split(',')
+        .map((entry) => entry.trim())
+        .filter(Boolean),
+    ),
+  );
+};
+
+const appendUuidFilter = ({
+  rawValue,
+  label,
+  addSingle,
+  addMultiple,
+}: {
+  rawValue?: string | null;
+  label: string;
+  addSingle: (value: string) => void;
+  addMultiple: (values: string[]) => void;
+}) => {
+  const uuidSchema = z.string().uuid();
+  const parsedValues = parseCommaSeparatedValues(rawValue);
+  const validValues: string[] = [];
+
+  parsedValues.forEach((value) => {
+    const result = uuidSchema.safeParse(value);
+    if (result.success) {
+      validValues.push(value);
+      return;
+    }
+
+    logger.warn(`Ignoring invalid ${label} filter entry`, {
+      operation: 'query-resource-events',
+      [`invalid${label[0].toUpperCase()}${label.slice(1)}`]: value,
+    });
+  });
+
+  if (validValues.length === 1) {
+    addSingle(validValues[0]);
+  } else if (validValues.length > 1) {
+    addMultiple(validValues);
+  }
+};
+
+const appendTextEnumFilter = ({
+  rawValue,
+  label,
+  allowedValues,
+  addSingle,
+  addMultiple,
+}: {
+  rawValue?: string | null;
+  label: string;
+  allowedValues: readonly string[];
+  addSingle: (value: string) => void;
+  addMultiple: (values: string[]) => void;
+}) => {
+  const parsedValues = parseCommaSeparatedValues(rawValue);
+  const validValues = parsedValues.filter((value) =>
+    allowedValues.includes(value),
+  );
+
+  parsedValues
+    .filter((value) => !allowedValues.includes(value))
+    .forEach((value) => {
+      logger.warn(`Ignoring invalid ${label} filter entry`, {
+        operation: 'query-resource-events',
+        [`invalid${label[0].toUpperCase()}${label.slice(1)}`]: value,
+      });
+    });
+
+  if (validValues.length === 1) {
+    addSingle(validValues[0]);
+  } else if (validValues.length > 1) {
+    addMultiple(validValues);
+  }
+};
 
 export const insertEvent = async (event: NewEvent) => {
   try {
@@ -194,53 +278,57 @@ export async function queryResourceEvents(options: {
     const whereClauses: any[] = [eq(events.resource_id, resourceId)];
     logger.debug('Filtering with userId:', { userId });
 
-    if (typeof userId === 'string' && userId.trim().length) {
-      const uuidSchema = z.string().uuid();
-      const parsedUserIds = Array.from(
-        new Set(
-          userId
-            .split(',')
-            .map((id) => id.trim())
-            .filter(Boolean),
-        ),
-      );
-
-      const validIds: string[] = [];
-      parsedUserIds.forEach((id) => {
-        const result = uuidSchema.safeParse(id);
-        if (result.success) {
-          validIds.push(id);
-        } else {
-          logger.warn('Ignoring invalid userId filter entry', {
-            operation: 'query-resource-events',
-            invalidUserId: id,
-          });
-        }
-      });
-
-      if (validIds.length === 1) {
-        whereClauses.push(eq(events.user_id, validIds[0]));
-      } else if (validIds.length > 1) {
-        whereClauses.push(inArray(events.user_id, validIds));
-      }
-    }
+    appendUuidFilter({
+      rawValue: userId,
+      label: 'userId',
+      addSingle: (value) => {
+        whereClauses.push(eq(events.user_id, value));
+      },
+      addMultiple: (values) => {
+        whereClauses.push(inArray(events.user_id, values));
+      },
+    });
 
     logger.debug('Current whereClauses count:', { count: whereClauses.length });
 
-    if (type) {
-      // Compare enum column as text to allow dynamic filtering by string
-      whereClauses.push(sql`${events.type}::text = ${type}`);
-    }
+    appendTextEnumFilter({
+      rawValue: type,
+      label: 'type',
+      allowedValues: eventsTypeEnum.enumValues,
+      addSingle: (value) => {
+        whereClauses.push(sql`${events.type}::text = ${value}`);
+      },
+      addMultiple: (values) => {
+        whereClauses.push(
+          sql`${events.type}::text in (${sql.join(
+            values.map((value) => sql`${value}`),
+            sql`, `,
+          )})`,
+        );
+      },
+    });
     if (projectId) {
       whereClauses.push(
         sql`(${events.data}->>'project_id')::uuid = ${projectId}`,
       );
     }
-    if (componentId) {
-      whereClauses.push(
-        sql`(${events.data}->>'component_id')::uuid = ${componentId}`,
-      );
-    }
+    appendUuidFilter({
+      rawValue: componentId,
+      label: 'componentId',
+      addSingle: (value) => {
+        whereClauses.push(
+          sql`(${events.data}->>'component_id')::uuid = ${value}`,
+        );
+      },
+      addMultiple: (values) => {
+        whereClauses.push(
+          sql`(${events.data}->>'component_id')::uuid in (${sql.join(
+            values.map((value) => sql`${value}::uuid`),
+            sql`, `,
+          )})`,
+        );
+      },
+    });
     if (startDate) {
       const dayStart = new Date(startDate);
       dayStart.setHours(0, 0, 0, 0);

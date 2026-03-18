@@ -16,6 +16,7 @@ import { ActionResponse } from '@/data/action';
 import { projects } from '@/data/projects/schema';
 import { alias } from 'drizzle-orm/pg-core';
 import { logger } from '@/lib/logger';
+import { members as memberTable } from '@/data/member/schema';
 
 const parseCommaSeparatedValues = (value?: string | null) => {
   if (typeof value !== 'string' || value.trim().length === 0) {
@@ -100,6 +101,123 @@ const appendTextEnumFilter = ({
     addMultiple(validValues);
   }
 };
+
+const buildTextInClause = (columnExpression: any, values: string[]) =>
+  sql`${columnExpression} in (${sql.join(
+    values.map((value) => sql`${value}`),
+    sql`, `,
+  )})`;
+
+const buildComponentProjectVisibilityClause = (projectIds: string[]) => {
+  const projectIdExpression = sql`(${events.data}->>'project_id')`;
+
+  if (projectIds.length === 0) {
+    return sql`${projectIdExpression} is null`;
+  }
+
+  return sql`(${projectIdExpression} is null or ${buildTextInClause(
+    projectIdExpression,
+    projectIds,
+  )})`;
+};
+
+async function resolveEventAccessScope(
+  resourceId: string,
+  currentUserId: string,
+): Promise<{
+  isAdmin: boolean;
+  resourceType: 'project' | 'component';
+  accessibleProjectIds: string[];
+} | null> {
+  const [currentUser] = await db
+    .select({ id: users.id, role: users.role })
+    .from(users)
+    .where(eq(users.id, currentUserId))
+    .limit(1);
+
+  if (!currentUser) {
+    return null;
+  }
+
+  const isAdmin = currentUser.role === 'admin';
+
+  const [projectResource] = await db
+    .select({ id: projects.id })
+    .from(projects)
+    .where(eq(projects.id, resourceId))
+    .limit(1);
+
+  if (projectResource) {
+    if (!isAdmin) {
+      const [projectMembership] = await db
+        .select({ resource: memberTable.resource })
+        .from(memberTable)
+        .where(
+          and(
+            eq(memberTable.user_id, currentUserId),
+            eq(memberTable.resource, projectResource.id),
+          ),
+        )
+        .limit(1);
+
+      if (!projectMembership) {
+        return null;
+      }
+    }
+
+    return {
+      isAdmin,
+      resourceType: 'project',
+      accessibleProjectIds: [projectResource.id],
+    };
+  }
+
+  const [componentResource] = await db
+    .select({ id: components.id })
+    .from(components)
+    .where(eq(components.id, resourceId))
+    .limit(1);
+
+  if (!componentResource) {
+    return null;
+  }
+
+  const componentProjects = await db
+    .selectDistinct({
+      projectId: sql<string | null>`${events.data}->>'project_id'`,
+    })
+    .from(events)
+    .where(eq(events.resource_id, componentResource.id));
+
+  const componentProjectIds = componentProjects
+    .map((entry) => entry.projectId)
+    .filter(Boolean);
+
+  if (isAdmin) {
+    return {
+      isAdmin: true,
+      resourceType: 'component',
+      accessibleProjectIds: componentProjectIds,
+    };
+  }
+
+  const memberProjects = await db
+    .selectDistinct({ projectId: memberTable.resource })
+    .from(memberTable)
+    .where(eq(memberTable.user_id, currentUserId));
+
+  const memberProjectIds = new Set(
+    memberProjects.map((entry) => entry.projectId).filter(Boolean),
+  );
+
+  return {
+    isAdmin: false,
+    resourceType: 'component',
+    accessibleProjectIds: componentProjectIds.filter((projectId) =>
+      memberProjectIds.has(projectId),
+    ),
+  };
+}
 
 export const insertEvent = async (event: NewEvent) => {
   try {
@@ -224,8 +342,6 @@ export async function getResourceEvents(
   }
 }
 
-import { userIsMember } from '../member/actions';
-
 export async function queryResourceEvents(options: {
   resourceId: string;
   pageIndex?: number;
@@ -271,11 +387,23 @@ export async function queryResourceEvents(options: {
     if (!currentUserId) {
       return actionError('User ID is required for membership validation.');
     }
-    const isMember = await userIsMember(currentUserId);
-    if (!isMember) {
+
+    const accessScope = await resolveEventAccessScope(
+      resourceId,
+      currentUserId,
+    );
+    if (!accessScope) {
       return actionError('User is not authorized to access this resource');
     }
-    const whereClauses: any[] = [eq(events.resource_id, resourceId)];
+
+    const accessWhereClauses: any[] = [eq(events.resource_id, resourceId)];
+    if (!accessScope.isAdmin && accessScope.resourceType === 'component') {
+      accessWhereClauses.push(
+        buildComponentProjectVisibilityClause(accessScope.accessibleProjectIds),
+      );
+    }
+
+    const whereClauses: any[] = [...accessWhereClauses];
     logger.debug('Filtering with userId:', { userId });
 
     appendUuidFilter({
@@ -299,33 +427,36 @@ export async function queryResourceEvents(options: {
         whereClauses.push(sql`${events.type}::text = ${value}`);
       },
       addMultiple: (values) => {
-        whereClauses.push(
-          sql`${events.type}::text in (${sql.join(
-            values.map((value) => sql`${value}`),
-            sql`, `,
-          )})`,
-        );
+        whereClauses.push(buildTextInClause(sql`${events.type}::text`, values));
       },
     });
     if (projectId) {
-      whereClauses.push(
-        sql`(${events.data}->>'project_id')::uuid = ${projectId}`,
-      );
+      if (
+        accessScope.resourceType === 'project' &&
+        projectId !== accessScope.accessibleProjectIds[0]
+      ) {
+        return actionError('User is not authorized to access this project');
+      }
+
+      if (
+        accessScope.resourceType === 'component' &&
+        !accessScope.isAdmin &&
+        !accessScope.accessibleProjectIds.includes(projectId)
+      ) {
+        return actionError('User is not authorized to access this project');
+      }
+
+      whereClauses.push(sql`(${events.data}->>'project_id') = ${projectId}`);
     }
     appendUuidFilter({
       rawValue: componentId,
       label: 'componentId',
       addSingle: (value) => {
-        whereClauses.push(
-          sql`(${events.data}->>'component_id')::uuid = ${value}`,
-        );
+        whereClauses.push(sql`(${events.data}->>'component_id') = ${value}`);
       },
       addMultiple: (values) => {
         whereClauses.push(
-          sql`(${events.data}->>'component_id')::uuid in (${sql.join(
-            values.map((value) => sql`${value}::uuid`),
-            sql`, `,
-          )})`,
+          buildTextInClause(sql`(${events.data}->>'component_id')`, values),
         );
       },
     });
@@ -483,7 +614,7 @@ export async function queryResourceEvents(options: {
       })
       .from(events)
       .leftJoin(users, eq(events.user_id, users.id))
-      .where(eq(events.resource_id, resourceId));
+      .where(and(...accessWhereClauses));
 
     // Fetch all unique components for the resource
     const componentsQuery = await db
@@ -497,7 +628,7 @@ export async function queryResourceEvents(options: {
         components,
         sql`(${events.data}->>'component_id')::uuid = ${components.id}`,
       )
-      .where(eq(events.resource_id, resourceId));
+      .where(and(...accessWhereClauses));
 
     // Fetch all unique types for the resource
     const typesQuery = await db
@@ -505,7 +636,7 @@ export async function queryResourceEvents(options: {
         type: events.type,
       })
       .from(events)
-      .where(eq(events.resource_id, resourceId));
+      .where(and(...accessWhereClauses));
 
     const filterOptions = {
       users: usersQuery.filter((u) => u.id),

@@ -18,6 +18,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import type { Project, ProjectEnvironment } from '@/lib/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -43,6 +44,57 @@ interface ProjectContextValue {
 
 const STORAGE_KEY_PROJECT = 'dsv_selected_project_id';
 const STORAGE_KEY_ENV = 'dsv_selected_environment_id';
+
+function getProjectIdFromPathname(pathname: string | null): string | null {
+  if (!pathname?.startsWith('/projects/')) {
+    return null;
+  }
+
+  const [, , projectId] = pathname.split('/');
+  return projectId || null;
+}
+
+function resolveSelection({
+  projects,
+  envMap,
+  pathname,
+  searchParams,
+}: {
+  projects: Project[];
+  envMap: Record<string, ProjectEnvironment[]>;
+  pathname: string | null;
+  searchParams: URLSearchParams | null;
+}) {
+  const urlProjectId = getProjectIdFromPathname(pathname);
+  const urlEnvId = searchParams?.get('env') ?? null;
+  const savedProjectId = storageGet(STORAGE_KEY_PROJECT);
+  const savedEnvId = storageGet(STORAGE_KEY_ENV);
+
+  const activeProject =
+    projects.find((project) => project.id === urlProjectId) ??
+    projects.find((project) => project.id === savedProjectId) ??
+    projects[0] ??
+    null;
+
+  if (!activeProject) {
+    return {
+      project: null,
+      environment: null,
+    };
+  }
+
+  const projectEnvironments = envMap[activeProject.id] ?? [];
+  const activeEnvironment =
+    projectEnvironments.find((env) => env.id === urlEnvId) ??
+    projectEnvironments.find((env) => env.id === savedEnvId) ??
+    projectEnvironments[0] ??
+    null;
+
+  return {
+    project: activeProject,
+    environment: activeEnvironment,
+  };
+}
 
 function storageGet(key: string): string | null {
   try {
@@ -75,6 +127,8 @@ const ProjectContext = createContext<ProjectContextValue>({
 // ── Provider ──────────────────────────────────────────────────────────────────
 
 export function ProjectProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [projects, setProjects] = useState<Project[]>([]);
   const [allEnvironments, setAllEnvironments] = useState<
     Record<string, ProjectEnvironment[]>
@@ -132,23 +186,32 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
           envMap[projectId] = envs;
         }
 
-        // 3. Restore persisted selection or fall back to first project/env.
-        const savedProjectId = storageGet(STORAGE_KEY_PROJECT);
-        const savedEnvId = storageGet(STORAGE_KEY_ENV);
+        // 3. Resolve selection from URL first, then persisted state, then fallbacks.
+        const { project: activeProject, environment: activeEnv } =
+          resolveSelection({
+            projects: loadedProjects,
+            envMap,
+            pathname,
+            searchParams,
+          });
 
-        const activeProject =
-          loadedProjects.find((p) => p.id === savedProjectId) ??
-          loadedProjects[0];
-        const projectEnvs = envMap[activeProject.id] ?? [];
-        const activeEnv =
-          projectEnvs.find((e) => e.id === savedEnvId) ??
-          projectEnvs[0] ??
-          null;
+        if (!activeProject) {
+          setProjects(loadedProjects);
+          setAllEnvironments(envMap);
+          setSelectedProjectState(null);
+          setSelectedEnvironmentState(null);
+          return;
+        }
 
         setProjects(loadedProjects);
         setAllEnvironments(envMap);
         setSelectedProjectState(activeProject);
         setSelectedEnvironmentState(activeEnv);
+
+        storageSet(STORAGE_KEY_PROJECT, activeProject.id);
+        if (activeEnv) {
+          storageSet(STORAGE_KEY_ENV, activeEnv.id);
+        }
       } catch (err) {
         console.error('[ProjectContext] load error:', err);
       } finally {
@@ -161,6 +224,44 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (loading || projects.length === 0) {
+      return;
+    }
+
+    const { project, environment } = resolveSelection({
+      projects,
+      envMap: allEnvironments,
+      pathname,
+      searchParams,
+    });
+
+    if (project?.id && project.id !== selectedProject?.id) {
+      setSelectedProjectState(project);
+      storageSet(STORAGE_KEY_PROJECT, project.id);
+    }
+
+    if (environment?.id !== selectedEnvironment?.id) {
+      setSelectedEnvironmentState(environment);
+      if (environment) {
+        storageSet(STORAGE_KEY_ENV, environment.id);
+      }
+    }
+
+    if (!project && selectedProject) {
+      setSelectedProjectState(null);
+      setSelectedEnvironmentState(null);
+    }
+  }, [
+    allEnvironments,
+    loading,
+    pathname,
+    projects,
+    searchParams,
+    selectedEnvironment,
+    selectedProject,
+  ]);
 
   // ── Setters ───────────────────────────────────────────────────────────────
 

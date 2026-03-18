@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getProjectById } from '@/data/projects/actions';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { ProjectComponentsList } from '@/components/projects/component-selection-table/components-list';
 import Link from 'next/link';
 import { EnvironmentsList } from '@/components/projects/environments-table/environment-list';
@@ -10,8 +10,40 @@ import { FeatureFlagList } from '@/components/projects/feature-flags-table/featu
 import { SessionProvider } from 'next-auth/react';
 
 export default async function EditProject(props: any) {
-  const { tab = 'components', env, component } = await props.searchParams;
+  const searchParams = await props.searchParams;
+  const { tab = 'components', env, component } = searchParams;
   const { id } = await props.params;
+
+  if (tab === 'activity') {
+    const params = new URLSearchParams();
+
+    Object.entries(searchParams).forEach(([key, value]) => {
+      if (key === 'tab' || value === undefined) {
+        return;
+      }
+
+      if (Array.isArray(value)) {
+        value.forEach((entry) => params.append(key, entry));
+        return;
+      }
+
+      if (typeof value === 'string') {
+        params.set(key, value);
+      }
+    });
+
+    const query = params.toString();
+    redirect(`/projects/${id}/activity${query ? `?${query}` : ''}`);
+  }
+
+  if (tab === 'settings') {
+    redirect(`/projects/${id}/settings?section=general`);
+  }
+
+  if (tab === 'users') {
+    redirect(`/projects/${id}/settings?section=members`);
+  }
+
   const session = await auth();
   const hasWritePermissions =
     session?.user?.role === 'admin' ||

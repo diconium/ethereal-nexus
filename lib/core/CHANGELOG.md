@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.19.1
+
+### Patch Changes
+
+- ef9dec5: bump version
+
 ## 1.19.0
 
 ### Minor Changes

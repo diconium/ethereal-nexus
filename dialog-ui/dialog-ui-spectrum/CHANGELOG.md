@@ -1,5 +1,13 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.8.1
+
+### Patch Changes
+
+- ef9dec5: bump version
+- Updated dependencies [ef9dec5]
+  - @ethereal-nexus/dialog-ui-core@1.6.1
+
 ## 1.8.0
 
 ### Minor Changes

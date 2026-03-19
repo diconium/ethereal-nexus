@@ -108,6 +108,7 @@ const ProjectEventsClient: React.FC<ProjectEventsClientProps> = ({
       };
       const res = await fetch('/api/events/query', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },

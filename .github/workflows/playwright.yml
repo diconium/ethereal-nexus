@@ -8,7 +8,7 @@ on:
     branches:
       [ main ]
     paths:
-      - '.github/workflows/playwright.yml.yml'
+      - '.github/workflows/playwright.yml'
 
 env:
   TEST_PATH: "./test/e2e"

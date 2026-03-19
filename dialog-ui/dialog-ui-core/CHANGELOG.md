@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-core
 
+## 1.6.1
+
+### Patch Changes
+
+- ef9dec5: bump version
+
 ## 1.6.0
 
 ### Minor Changes

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryResourceEvents } from '@/data/events/actions';
-import { getToken } from 'next-auth/jwt';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
+import { auth } from '@/auth';
+import { HttpStatus } from '@/app/api/utils';
 
 const optionalString = z.preprocess((value) => {
   if (typeof value !== 'string') {
@@ -37,11 +38,12 @@ const eventsQuerySchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const token = await getToken({ req, secret: process.env.AUTH_SECRET });
-    logger.debug('Auth token retrieved', { hasSub: !!token?.sub });
-    if (!token?.sub) {
+    const session = await auth();
+    if (!session || !session.user || !session.user.id) {
       logger.warn('Unauthorized request to events query', { url: req.url });
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json('You do not have permissions for this resource.', {
+        status: HttpStatus.FORBIDDEN,
+      });
     }
 
     let body: unknown;
@@ -76,10 +78,10 @@ export async function POST(req: NextRequest) {
 
     const queryArgs = {
       ...parsedBody.data,
-      currentUserId: token.sub,
+      currentUserId: session.user.id
     };
 
-    logger.info('Executing events query', { url: req.url, queryArgs: { resourceId: parsedBody.data.resourceId, user: token.sub } });
+    logger.info('Executing events query', { url: req.url, queryArgs: { resourceId: parsedBody.data.resourceId, user: session.user.id } });
 
     const result = await queryResourceEvents(queryArgs);
     if (!result.success) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryResourceEvents } from '@/data/events/actions';
 import { getToken } from 'next-auth/jwt';
+import { logger } from '@/lib/logger';
 import { z } from 'zod';
 
 const optionalString = z.preprocess((value) => {
@@ -37,28 +38,29 @@ const eventsQuerySchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const token = await getToken({ req, secret: process.env.AUTH_SECRET });
-
+    logger.debug('Auth token retrieved', { hasSub: !!token?.sub });
     if (!token?.sub) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 },
-      );
+      logger.warn('Unauthorized request to events query', { url: req.url });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     let body: unknown;
 
     try {
       body = await req.json();
-    } catch {
-      return NextResponse.json(
-        { success: false, error: 'Invalid JSON payload' },
-        { status: 400 },
-      );
+    } catch (err) {
+      logger.warn('Invalid JSON payload received for events query', { url: req.url });
+      return NextResponse.json({ success: false, error: 'Invalid JSON payload' }, { status: 400 });
     }
 
     const parsedBody = eventsQuerySchema.safeParse(body);
 
     if (!parsedBody.success) {
+      logger.warn('Events query payload validation failed', {
+        url: req.url,
+        issues: parsedBody.error.issues,
+      });
+
       return NextResponse.json(
         {
           success: false,
@@ -76,23 +78,24 @@ export async function POST(req: NextRequest) {
       ...parsedBody.data,
       currentUserId: token.sub,
     };
+
+    logger.info('Executing events query', { url: req.url, queryArgs: { resourceId: parsedBody.data.resourceId, user: token.sub } });
+
     const result = await queryResourceEvents(queryArgs);
     if (!result.success) {
       const message = result.error.message;
-      const status = message.includes('required')
-        ? 400
-        : message.includes('not authorized')
-          ? 403
-          : 500;
+      const status = message.includes('required') ? 400 : message.includes('not authorized') ? 403 : 500;
+
+      logger.error('queryResourceEvents failed', new Error(message), { url: req.url, status, queryArgs });
 
       return NextResponse.json({ success: false, error: message }, { status });
     }
 
+    logger.info('Events query succeeded', { url: req.url, resourceId: parsedBody.data.resourceId });
+
     return NextResponse.json({ success: true, data: result.data });
   } catch (e) {
-    return NextResponse.json(
-      { success: false, error: String(e) },
-      { status: 500 },
-    );
+    logger.error('Unhandled error in events query route', e as Error, { url: req.url });
+    return NextResponse.json({ success: false, error: String(e) }, { status: 500 });
   }
 }

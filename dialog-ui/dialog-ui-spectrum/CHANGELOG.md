@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.8.2
+
+### Patch Changes
+
+- 150e393: improve type safety and remove unnecessary styles in dialog utilities and navigation components
+
 ## 1.8.1
 
 ### Patch Changes

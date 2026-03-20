@@ -50,7 +50,7 @@ export const SpectrumNavigation = ({ field, value = {}, onChange, error }: Spect
       }} />
 
       <Checkbox key={"collectAllPages"}
-                isSelected={isToCollectAllPages ?? false} onChange={(val) => {
+                isSelected={isToCollectAllPages ?? false} onChange={(val: boolean) => {
         setIsToCollectAllPages(val)
         setData((prevValue) => ({ ...prevValue, collectAllPages: val?.toString()  }))
       }}>
@@ -58,7 +58,7 @@ export const SpectrumNavigation = ({ field, value = {}, onChange, error }: Spect
       </Checkbox>
 
       {isToCollectAllPages ? null :
-        (<NumberField width={"100%"} key={"structureDepth"} minValue={1} label={t("Navigation Structure Depth")} value={value?.structureDepth} onChange={(val) => {
+        (<NumberField width={"100%"} key={"structureDepth"} minValue={1} label={t("Navigation Structure Depth")} value={value?.structureDepth} onChange={(val: number) => {
         setData((value) => ({ ...value, collectAllPages: "false", structureDepth: val?.toString(10)}))
         }} />)
       }

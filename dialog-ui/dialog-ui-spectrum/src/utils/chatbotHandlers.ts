@@ -9,6 +9,14 @@ interface HandleSendFactoryProps {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+
+type FieldType = { defaultValue: string; type: string }
+
+export const isFieldType = (fieldType: FieldType | any): fieldType is FieldType => {
+  return typeof fieldType === "object" && fieldType !== null && (fieldType.defaultValue || fieldType.type);
+};
+
+
 export function handleSendFactory({ dialog, initialValues, onUpdateValues, setMessages, setLoading }: HandleSendFactoryProps) {
   return function handleSend(msg?: string) {
     // The input value should be managed in the component
@@ -31,14 +39,19 @@ export function handleSendFactory({ dialog, initialValues, onUpdateValues, setMe
           if (dialog && dialog.fields) {
             fieldDef = findField(dialog.fields, pathParts[pathParts.length - 1]);
           }
-          const defaultValue = fieldDef && fieldDef.defaultValue !== undefined ? fieldDef.defaultValue : undefined;
-          if (!v || (defaultValue !== undefined && v === (Array.isArray(defaultValue) ? defaultValue.join(',') : defaultValue))) {
+
+          let defaultValue: string | undefined = undefined;
+
+          if (isFieldType(fieldDef)) {
+            defaultValue = (fieldDef as FieldType)?.defaultValue;
+          }
+          if (!v || (defaultValue !== undefined && v === (Array.isArray(defaultValue) ? defaultValue?.join(',') : defaultValue))) {
             setMessages((msgs: { sender: 'ai' | 'user'; text: string; suggestions?: string[] }[]) => [...msgs, { sender: 'ai', text: `Please provide a value for '${path}' that is different from the default${defaultValue !== undefined ? ` ('${defaultValue}')` : ''}.` }]);
           } else {
             let updated = { ...initialValues };
             // Checkbox handling: convert value to boolean if field type is checkbox
             let finalValue: string | boolean = v;
-            if (fieldDef && fieldDef.type === 'checkbox') {
+            if (isFieldType(fieldDef) && (fieldDef as FieldType).type === 'checkbox') {
               finalValue = v === 'true';
             }
             // Special handling for cf_ fields

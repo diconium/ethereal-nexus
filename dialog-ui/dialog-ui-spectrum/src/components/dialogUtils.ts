@@ -19,7 +19,6 @@ export function setDialogMinWidth(rootElement: HTMLElement | null) {
                 el!.style.position = 'fixed';
                 el!.style.top = '50%';
                 el!.style.left = '50%';
-                el!.style.transform = 'translate(-50%, -50%)';
                 el!.style.margin = '0';
             }, 0);
             break;

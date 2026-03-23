@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.8.4
+
+### Patch Changes
+
+- d596aa5: enhance dialog positioning and add resize handling for improved responsiveness
+
 ## 1.8.3
 
 ### Patch Changes

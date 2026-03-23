@@ -8,7 +8,7 @@ import {
 } from '@ethereal-nexus/dialog-ui-core';
 import { SpectrumFieldRendererComponent } from './SpectrumFieldRenderer';
 import { useSpectrumAEMAdapter, SpectrumAEMAdapterConfig } from '@/adapters';
-import { setDialogMinWidth } from './dialogUtils';
+import {removeTranslate, setDialogMinWidth} from './dialogUtils';
 import { getFieldName } from '@/components/getFieldName.ts';
 import { FormDataProvider } from '@/components/FormDataContext.tsx';
 import { ChatbotColumn } from './ChatbotColumn';
@@ -96,6 +96,12 @@ export const EnhancedDialogBody: React.FC<
 
   useEffect(() => {
     setDialogMinWidth(rootRef.current);
+
+    window.addEventListener("resize", () => removeTranslate(rootRef.current))
+
+    return () => {
+      window.removeEventListener("resize", () => removeTranslate(rootRef.current))
+    }
   }, []);
 
   // Expose helper functions on window only when the chatbot is available.

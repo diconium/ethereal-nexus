@@ -13,16 +13,28 @@ export function setDialogMinWidth(rootElement: HTMLElement | null) {
             el.style.maxWidth = '90vw';
             el.style.width = 'auto';
             el.style.minHeight = '230px';
-            el.style.maxHeight = 'calc(100vh - 32px)';
-            el.style.overflow = 'auto';
-            // Apply stable viewport positioning after Coral finishes its initial layout.
+            el.style.maxHeight = '100vh';
+            // Use setTimeout to apply centering after Coral's positioning
             setTimeout(() => {
                 el!.style.position = 'fixed';
-                el!.style.top = '16px';
+                el!.style.top = '50%';
                 el!.style.left = '50%';
-                el!.style.transform = 'translateX(-50%)';
+                el!.style.transform = 'translate(-50%, -50%)';
                 el!.style.margin = '0';
             }, 0);
+            break;
+        }
+    }
+}
+
+
+export function removeTranslate(rootElement: HTMLElement | null) {
+    if (!rootElement) return;
+    let el: HTMLElement | null = rootElement;
+    while (el && el.parentElement) {
+        el = el.parentElement as HTMLElement;
+        if (el.classList.contains('coral3-Dialog-wrapper')) {
+            el!.style.transform = "none"
             break;
         }
     }

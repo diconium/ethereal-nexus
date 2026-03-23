@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.8.3
+
+### Patch Changes
+
+- cc8f43d: adjust dialog positioning and overflow handling for improved layout
+
 ## 1.8.2
 
 ### Patch Changes

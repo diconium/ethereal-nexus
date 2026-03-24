@@ -31,6 +31,7 @@ import {useLinkEditor} from "@/components/utils/useLinkEditor.ts";
 import TextIndentIncrease from "@spectrum-icons/workflow/TextIndentIncrease";
 import TextIndentDecrease from "@spectrum-icons/workflow/TextIndentDecrease";
 import { indentIncrease, indentDecrease } from '@/components/utils/list-indent.ts';
+import sanitizeHtml from "sanitize-html";
 
 interface SpectrumRichTextEditorFieldProps {
     field: any;
@@ -38,6 +39,28 @@ interface SpectrumRichTextEditorFieldProps {
     onChange: (value: string) => void;
     error?: string | null;
 }
+
+const sanitizeRichTextContent = (html: string): string => sanitizeHtml(html || '', {
+    allowedTags: [
+        'p', 'br', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'a', 'span', 'div'
+    ],
+    allowedAttributes: {
+        "*": ['style'],
+    },
+    allowedStyles: {
+        '*': {
+            'text-align': [/^(left|right|center|justify)$/],
+            'margin-left': [/^\d+(px|em|rem|%)$/],
+            'padding-left': [/^\d+(px|em|rem|%)$/]
+        }
+    },
+    allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+    allowedSchemesByTag: {
+        a: ['http', 'https', 'mailto', 'tel']
+    },
+    allowProtocolRelative: false,
+    disallowedTagsMode: 'discard'
+});
 
 export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldProps> = ({
                                                                                             field,
@@ -47,7 +70,7 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
                                                                                         }) => {
     const {t} = useI18n();
     const editorRef = useRef<HTMLDivElement>(null);
-    const [content, setContent] = useState<string>(value || '');
+    const [content, setContent] = useState<string>(sanitizeRichTextContent(value || ''));
     const [isEditorFocused, setIsEditorFocused] = useState<boolean>(false);
     const [isSourceMode, setIsSourceMode] = useState<boolean>(false);
     const [sourceContent, setSourceContent] = useState<string>(value || '');
@@ -56,10 +79,13 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
 
   const handleContentChange = () => {
     if (editorRef.current) {
-      const newContent = editorRef.current.innerHTML;
-      setContent(newContent);
-      setSourceContent(newContent);
-      onChange(newContent);
+      const sanitizedContent = sanitizeRichTextContent(editorRef.current.innerHTML);
+      if (editorRef.current.innerHTML !== sanitizedContent) {
+        editorRef.current.innerHTML = sanitizedContent;
+      }
+      setContent(sanitizedContent);
+      setSourceContent(sanitizedContent);
+      onChange(sanitizedContent);
     }
   };
 
@@ -67,41 +93,59 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
 
 
     useEffect(() => {
-        if (editorRef.current && value !== editorRef.current.innerHTML) {
-            editorRef.current.innerHTML = value || '';
+        const sanitizedValue = sanitizeRichTextContent(value || '');
+
+        setContent(sanitizedValue);
+
+        if (isSourceMode) {
+            setSourceContent(value || '');
+            return;
         }
-    }, [value]);
+
+        setSourceContent(sanitizedValue);
+
+        if (editorRef.current && sanitizedValue !== editorRef.current.innerHTML) {
+            editorRef.current.innerHTML = sanitizedValue;
+        }
+    }, [value, isSourceMode]);
 
     // Add useEffect to handle content restoration when switching modes
     useEffect(() => {
-        if (!isSourceMode && editorRef.current && sourceContent) {
-            // When switching to visual mode, restore content from sourceContent
-            editorRef.current.innerHTML = sourceContent;
+        if (!isSourceMode && editorRef.current) {
+            const sanitizedSourceContent = sanitizeRichTextContent(sourceContent);
+            if (editorRef.current.innerHTML !== sanitizedSourceContent) {
+                editorRef.current.innerHTML = sanitizedSourceContent;
+            }
+            if (content !== sanitizedSourceContent) {
+                setContent(sanitizedSourceContent);
+            }
         }
-    }, [isSourceMode]);
+    }, [isSourceMode, sourceContent, content]);
 
 
     const handleSourceChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const newContent = e.target.value;
-        setSourceContent(newContent);
-        setContent(newContent);
-        onChange(newContent);
+        setSourceContent(e.target.value);
     };
 
     const toggleSourceMode = () => {
         if (isSourceMode) {
-            // Switching from source to visual mode
+            const sanitizedContent = sanitizeRichTextContent(sourceContent);
+            setSourceContent(sanitizedContent);
+            setContent(sanitizedContent);
+            onChange(sanitizedContent);
             setIsSourceMode(false);
-            // Content will be restored by useEffect
-        } else {
-            // Switching from visual to source mode
-            if (editorRef.current) {
-                const currentContent = editorRef.current.innerHTML;
-                setSourceContent(currentContent);
-                setContent(currentContent);
-            }
-            setIsSourceMode(true);
+            return;
         }
+
+        if (editorRef.current) {
+            const sanitizedContent = sanitizeRichTextContent(editorRef.current.innerHTML);
+            if (editorRef.current.innerHTML !== sanitizedContent) {
+                editorRef.current.innerHTML = sanitizedContent;
+            }
+            setSourceContent(sanitizedContent);
+            setContent(sanitizedContent);
+        }
+        setIsSourceMode(true);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -263,7 +307,7 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
                   <ActionButton onPress={removeLink} isDisabled={isSourceMode}>
                     <Unlink />
                   </ActionButton>
-                  <ActionButton onPress={() => setIsSourceMode((prev) => !prev)} >
+                  <ActionButton onPress={toggleSourceMode} >
                     {isSourceMode ? <TextEdit/> : <FileHTML />}
                   </ActionButton>
                 </Flex>

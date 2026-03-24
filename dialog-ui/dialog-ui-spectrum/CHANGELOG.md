@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.8.5
+
+### Patch Changes
+
+- dfb461b: add sanitize-html for rich text content sanitization in SpectrumRichTextEditorField
+
 ## 1.8.4
 
 ### Patch Changes

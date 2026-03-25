@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import {
   Breadcrumb,
@@ -31,6 +31,7 @@ export function ProjectBreadcrumb({
   currentProject,
   environments,
 }: ProjectBreadcrumbProps) {
+  const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentEnvironmentId = searchParams.get('env') ?? undefined;
@@ -42,27 +43,26 @@ export function ProjectBreadcrumb({
   // update the URL to include it so the URL always reflects the active env.
   useEffect(() => {
     if (!currentEnvironmentId && defaultEnvironmentId) {
-      // Only replace the URL if the user is still on this project's page.
-      // This avoids racing with navigation away (for example to /users) where
-      // the breadcrumb could otherwise force a replace back to the project.
+      const basePath = `/projects/${currentProject.id}`;
+      const isOnProjectPath =
+        pathname === basePath || pathname?.startsWith(`${basePath}/`);
+      if (!isOnProjectPath) {
+        return;
+      }
+
       if (typeof window !== 'undefined') {
-        const currentPath = window.location.pathname;
-        const basePath = `/projects/${currentProject.id}`;
-        const isOnProjectBasePath =
-          currentPath === basePath || currentPath === `${basePath}/`;
         const hasEnv = new URLSearchParams(window.location.search).has('env');
-        if (!isOnProjectBasePath || hasEnv) {
+        if (hasEnv) {
           return;
         }
       }
+
       const params = new URLSearchParams(searchParams.toString());
       params.set('env', defaultEnvironmentId);
-      // Use replace so we don't add a history entry.
-      // Keep other existing params (tab, component, etc.).
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       (async () => {
         try {
-          router.replace(`/projects/${currentProject.id}?${params.toString()}`);
+          router.replace(`${pathname}?${params.toString()}`);
         } catch (e) {
           // ignore navigation errors
           // console.debug('Failed to replace URL with default env', e);
@@ -73,6 +73,7 @@ export function ProjectBreadcrumb({
   }, [
     currentEnvironmentId,
     defaultEnvironmentId,
+    pathname,
     searchParams.toString(),
     currentProject.id,
     router,
@@ -85,7 +86,8 @@ export function ProjectBreadcrumb({
   function onEnvironmentChange(envId: string) {
     const params = new URLSearchParams(searchParams.toString());
     params.set('env', envId);
-    router.push(`/projects/${currentProject.id}?${params.toString()}`);
+    const targetPath = pathname || `/projects/${currentProject.id}`;
+    router.push(`${targetPath}?${params.toString()}`);
   }
 
   return (

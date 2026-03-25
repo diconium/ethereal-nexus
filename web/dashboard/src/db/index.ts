@@ -9,6 +9,7 @@ import * as projects from '@/data/projects/schema';
 import * as member from '@/data/member/schema';
 import * as components from '@/data/components/schema';
 import * as events from '@/data/events/schema';
+import * as ai from '@/data/ai/schema';
 import { RedisCache } from '@/db/redis-cache';
 import { InMemoryCache } from '@/db/in-memory-cache';
 import { logger } from '@/lib/logger';
@@ -19,11 +20,12 @@ const schema = {
   ...member,
   ...components,
   ...events,
+  ...ai,
 };
 
 const redisEnabled = process.env.DB_CACHE_STRATEGY;
 
-const cache = remember('redis-cache', () => {
+export const cache = remember('redis-cache', () => {
   switch (redisEnabled) {
     case 'redis':
       logger.info('Database cache initialized with Redis', {
@@ -41,7 +43,7 @@ const cache = remember('redis-cache', () => {
   }
 });
 
-function clientFactory() {
+function clientFactory(useCache = true) {
   let drizzle, client;
 
   switch (process.env.DRIZZLE_DATABASE_TYPE) {
@@ -62,12 +64,10 @@ function clientFactory() {
       ));
   }
 
-  return drizzle(client, {
-    cache,
-    schema,
-  });
+  return drizzle(client, useCache ? { cache, schema } : { schema });
 }
 
 export const db = remember('db', () => clientFactory());
+export const dbUncached = remember('db-uncached', () => clientFactory(false));
 
 instrumentDrizzleClient(db);

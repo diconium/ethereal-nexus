@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     if (!session || !session.user || !session.user.id) {
-      logger.warn('Unauthorized request to events query', { url: req.url });
+      lweb/dashboard/src/app/api/events/query/route.tsogger.warn('Unauthorized request to events query', { url: req.url });
       return NextResponse.json('You do not have permissions for this resource.', {
         status: HttpStatus.FORBIDDEN,
       });

@@ -1,0 +1,17 @@
+ALTER TABLE "project_ai_chatbot_api_setting"
+ADD COLUMN "rate_limit_use_ip" boolean DEFAULT true NOT NULL,
+ADD COLUMN "rate_limit_use_session_cookie" boolean DEFAULT true NOT NULL,
+ADD COLUMN "rate_limit_use_fingerprint" boolean DEFAULT false NOT NULL,
+ADD COLUMN "fingerprint_header_name" text DEFAULT 'x-client-fingerprint' NOT NULL,
+ADD COLUMN "message_size_limit_enabled" boolean DEFAULT true NOT NULL,
+ADD COLUMN "max_message_characters" integer DEFAULT 8000 NOT NULL,
+ADD COLUMN "max_request_body_bytes" integer DEFAULT 16000 NOT NULL,
+ADD COLUMN "session_request_cap_enabled" boolean DEFAULT false NOT NULL,
+ADD COLUMN "session_request_cap_max_requests" integer DEFAULT 200 NOT NULL,
+ADD COLUMN "session_request_cap_window_seconds" integer DEFAULT 86400 NOT NULL,
+ADD COLUMN "ip_daily_token_budget_enabled" boolean DEFAULT false NOT NULL,
+ADD COLUMN "ip_daily_token_budget" integer DEFAULT 100000 NOT NULL,
+ADD COLUMN "temporary_block_enabled" boolean DEFAULT true NOT NULL,
+ADD COLUMN "temporary_block_violation_threshold" integer DEFAULT 5 NOT NULL,
+ADD COLUMN "temporary_block_window_seconds" integer DEFAULT 3600 NOT NULL,
+ADD COLUMN "temporary_block_duration_seconds" integer DEFAULT 1800 NOT NULL;

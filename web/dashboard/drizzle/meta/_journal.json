@@ -43,6 +43,90 @@
       "when": 1768341380474,
       "tag": "0005_dashing_morph",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1773932548899,
+      "tag": "0006_safe_morph",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1773944439865,
+      "tag": "0007_slippery_roughhouse",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1773952926048,
+      "tag": "0008_marvelous_maximus",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1773956400000,
+      "tag": "0009_worthy_chatbot_cleanup",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1773998100000,
+      "tag": "0010_public_chatbot_protection",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1774001700000,
+      "tag": "0011_chatbot_stats",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1774005300000,
+      "tag": "0012_ai_provider_support",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1774012500000,
+      "tag": "0013_chatbot_public_slug",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1774023300000,
+      "tag": "0014_author_dialog_public_slug",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1774026900000,
+      "tag": "0015_author_dialog_remove_debug_json",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1774030500000,
+      "tag": "0016_chatbot_api_settings_per_chatbot",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1774034100000,
+      "tag": "0017_chatbot_enabled_flag",
+      "breakpoints": true
     }
   ]
 }

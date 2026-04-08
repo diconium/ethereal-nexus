@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 3.8.1
+
+### Patch Changes
+
+- 9f0cfef: remove unecessary cache logic from route handling
+
 ## 3.8.0
 
 ### Minor Changes

@@ -1,11 +1,13 @@
 import { notFound } from 'next/navigation';
 import { unstable_noStore as noStore } from 'next/cache';
+import { auth } from '@/auth';
 import {
   getEnvironmentsByProject,
   getProjectById,
 } from '@/data/projects/actions';
 import {
   getContentAdvisorAgentConfigs,
+  getContentAdvisorIssuesDashboard,
   getContentAdvisorSchedules,
   getLatestContentAdvisorResult,
   getProjectAiFlags,
@@ -24,6 +26,7 @@ export default async function ProjectAiContentAdvisorPage({
   searchParams,
 }: PageProps) {
   noStore();
+  const session = await auth();
   const { id } = await params;
   const query = await searchParams;
   const env = Array.isArray(query.env) ? query.env[0] : query.env;
@@ -65,13 +68,14 @@ export default async function ProjectAiContentAdvisorPage({
   const flags = flagsResult?.success ? flagsResult.data : [];
   const featureFlag = flags.find((flag) => flag.key === 'content-advisor');
 
-  const [agents, schedules, latestResult] = selectedEnvironment
+  const [agents, schedules, latestResult, issuesDashboard] = selectedEnvironment
     ? await Promise.all([
         getContentAdvisorAgentConfigs(id, selectedEnvironment.id),
         getContentAdvisorSchedules(id, selectedEnvironment.id),
         getLatestContentAdvisorResult(id, selectedEnvironment.id),
+        getContentAdvisorIssuesDashboard(id, selectedEnvironment.id),
       ])
-    : [null, null, null];
+    : [null, null, null, null];
 
   return (
     <div className="space-y-6">
@@ -83,14 +87,24 @@ export default async function ProjectAiContentAdvisorPage({
         />
       ) : !selectedEnvironment ? (
         <FeatureDisabledNotice projectId={id} title="Content Advisor" />
-      ) : agents?.success && schedules?.success && latestResult?.success ? (
+      ) : agents?.success &&
+        schedules?.success &&
+        latestResult?.success &&
+        issuesDashboard?.success ? (
         <ContentAdvisorManager
           projectId={id}
           environmentId={selectedEnvironment.id}
           agents={agents.data}
           schedules={schedules.data}
-          issues={latestResult.data.issues}
+          issues={issuesDashboard.data.issues}
+          latestRun={issuesDashboard.data.latestRun}
           runSummary={latestResult.data.run?.summary}
+          currentUser={{
+            id: session?.user?.id || '',
+            name: session?.user?.name || session?.user?.email || 'Unknown user',
+            email: session?.user?.email || null,
+            image: session?.user?.image || null,
+          }}
         />
       ) : (
         <AiErrorNotice
@@ -102,7 +116,9 @@ export default async function ProjectAiContentAdvisorPage({
                 ? schedules.error.message
                 : latestResult && !latestResult.success
                   ? latestResult.error.message
-                  : 'Unable to load content advisor for this environment.'
+                  : issuesDashboard && !issuesDashboard.success
+                    ? issuesDashboard.error.message
+                    : 'Unable to load content advisor for this environment.'
           }
         />
       )}

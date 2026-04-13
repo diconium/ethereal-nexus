@@ -32,6 +32,10 @@ import {
   getAiProviderLabel,
   type AiProvider,
 } from '@/data/ai/provider';
+import {
+  extractCatalogueEndpointSlug,
+  normalizeCatalogueApiPath,
+} from '@/data/ai/catalogue-endpoint';
 
 type CataloguesManagerProps = {
   projectId: string;
@@ -145,7 +149,8 @@ export function CataloguesManager({
       provider_agent_id: catalogue.provider_config?.agent_id || '',
       system_prompt: catalogue.system_prompt,
       agent_id: catalogue.agent_id || '',
-      api_url: catalogue.api_url || '',
+      api_url:
+        extractCatalogueEndpointSlug(catalogue.api_url) || catalogue.slug,
       agent_principal_id: catalogue.agent_principal_id || '',
       tenant_id: catalogue.tenant_id || '',
       activity_protocol_endpoint: catalogue.activity_protocol_endpoint || '',
@@ -205,7 +210,9 @@ export function CataloguesManager({
               environment with Drizzle-backed versions.
             </p>
           </div>
-          <Button onClick={openCreateDialog}>Add catalogue</Button>
+          <Button size="sm" onClick={openCreateDialog}>
+            Add catalogue
+          </Button>
         </div>
 
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -439,9 +446,10 @@ export function CataloguesManager({
                   </p>
                 </div>
                 <div className="space-y-2 sm:col-span-2">
-                  <label className="text-sm font-medium">API URL</label>
+                  <label className="text-sm font-medium">
+                    API endpoint slug
+                  </label>
                   <Input
-                    type="url"
                     value={form.api_url}
                     onChange={(event) =>
                       setForm((current) => ({
@@ -449,11 +457,17 @@ export function CataloguesManager({
                         api_url: event.target.value,
                       }))
                     }
-                    placeholder="https://.../catalogues/..."
+                    placeholder="product-knowledge"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Used to call the catalogue endpoint when it differs from the
-                    provider project endpoint.
+                    We automatically expose this catalogue at{' '}
+                    <code>
+                      {normalizeCatalogueApiPath(
+                        form.api_url || form.slug,
+                        form.slug,
+                      ) || '/api/v1/<slug>'}
+                    </code>
+                    .
                   </p>
                 </div>
                 <div className="space-y-2 sm:col-span-2">
@@ -529,10 +543,20 @@ export function CataloguesManager({
               </label>
             </div>
             <DialogFooter className="border-t px-6 py-4">
-              <Button type="button" variant="outline" onClick={closeFormDialog}>
+              <Button
+                size="sm"
+                type="button"
+                variant="outline"
+                onClick={closeFormDialog}
+              >
                 Cancel
               </Button>
-              <Button type="button" disabled={isPending} onClick={submitForm}>
+              <Button
+                size="sm"
+                type="button"
+                disabled={isPending}
+                onClick={submitForm}
+              >
                 {isEditing ? 'Save catalogue' : 'Create catalogue'}
               </Button>
             </DialogFooter>

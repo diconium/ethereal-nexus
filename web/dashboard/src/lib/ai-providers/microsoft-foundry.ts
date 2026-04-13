@@ -7,6 +7,25 @@ import type { CatalogueData } from '@/data/ai/catalogue';
 import { catalogueDataSchema } from '@/data/ai/catalogue';
 
 let credential: DefaultAzureCredential | null = null;
+const FOUNDRY_REQUEST_TIMEOUT_MS = 90_000;
+
+async function withTimeout<T>(
+  operation: Promise<T>,
+  timeoutMs: number,
+  message: string,
+  context?: Record<string, unknown>,
+) {
+  return await Promise.race<T>([
+    operation,
+    new Promise<T>((_, reject) => {
+      const timeoutId = setTimeout(() => {
+        logger.warn(message, context);
+        clearTimeout(timeoutId);
+        reject(new Error(message));
+      }, timeoutMs);
+    }),
+  ]);
+}
 
 function getCredential() {
   if (!credential) {
@@ -22,11 +41,21 @@ function getClient(projectEndpoint: string) {
 async function getAgentDefinition(client: AIProjectClient, agentId: string) {
   const baseAgentName = agentId.split(':')[0];
   try {
-    return await client.agents.get(agentId);
+    return await withTimeout(
+      client.agents.get(agentId),
+      FOUNDRY_REQUEST_TIMEOUT_MS,
+      'Timed out while resolving Microsoft Foundry agent definition.',
+      { agentId },
+    );
   } catch (error) {
     if (baseAgentName !== agentId) {
       try {
-        return await client.agents.get(baseAgentName);
+        return await withTimeout(
+          client.agents.get(baseAgentName),
+          FOUNDRY_REQUEST_TIMEOUT_MS,
+          'Timed out while resolving Microsoft Foundry base agent definition.',
+          { agentId: baseAgentName },
+        );
       } catch {
         // ignore
       }
@@ -41,10 +70,35 @@ export async function callFoundryChat(options: {
   conversationId?: string;
   loggerContext?: Record<string, unknown>;
 }) {
+  logger.info('Starting Microsoft Foundry chat request', {
+    provider: 'microsoft-foundry',
+    messageCount: options.messages.length,
+    hasConversationId: Boolean(options.conversationId),
+    ...options.loggerContext,
+  });
+
   const config = getFoundryConfigOrThrow(options.providerConfig);
   const projectClient = getClient(config.project_endpoint);
+  logger.debug('Microsoft Foundry project client created', {
+    provider: 'microsoft-foundry',
+    projectEndpoint: config.project_endpoint,
+    ...options.loggerContext,
+  });
+
   const agent = await getAgentDefinition(projectClient, config.agent_id);
+  logger.debug('Microsoft Foundry agent definition loaded', {
+    provider: 'microsoft-foundry',
+    agentId: config.agent_id,
+    resolvedAgentName: agent.name,
+    ...options.loggerContext,
+  });
+
   const openAIClient = await projectClient.getOpenAIClient();
+  logger.debug('Microsoft Foundry OpenAI client resolved', {
+    provider: 'microsoft-foundry',
+    ...options.loggerContext,
+  });
+
   const lastUserMessage = [...options.messages]
     .reverse()
     .find((message) => message.role === 'user');
@@ -59,25 +113,66 @@ export async function callFoundryChat(options: {
 
   if (options.conversationId) {
     if (lastUserMessage) {
-      await openAIClient.conversations.items.create(options.conversationId, {
-        items: [
-          {
-            type: 'message',
-            role: 'user',
-            content: lastUserMessage.content,
-          },
-        ],
+      logger.debug('Appending user message to existing Foundry conversation', {
+        provider: 'microsoft-foundry',
+        conversationId: options.conversationId,
+        userMessageLength: lastUserMessage.content.length,
+        ...options.loggerContext,
       });
+      await withTimeout(
+        openAIClient.conversations.items.create(options.conversationId, {
+          items: [
+            {
+              type: 'message',
+              role: 'user',
+              content: lastUserMessage.content,
+            },
+          ],
+        }),
+        FOUNDRY_REQUEST_TIMEOUT_MS,
+        'Timed out while appending to Microsoft Foundry conversation.',
+        {
+          conversationId: options.conversationId,
+          ...options.loggerContext,
+        },
+      );
     }
 
-    const response = await openAIClient.responses.create(
-      { conversation: options.conversationId },
-      {
-        body: {
-          agent: { name: agent.name, type: 'agent_reference' },
+    logger.info('Creating Foundry response for existing conversation', {
+      provider: 'microsoft-foundry',
+      conversationId: options.conversationId,
+      resolvedAgentName: agent.name,
+      ...options.loggerContext,
+    });
+    const response = await withTimeout(
+      openAIClient.responses.create(
+        { conversation: options.conversationId },
+        {
+          body: {
+            agent: { name: agent.name, type: 'agent_reference' },
+          },
         },
+      ),
+      FOUNDRY_REQUEST_TIMEOUT_MS,
+      'Timed out while waiting for Microsoft Foundry response.',
+      {
+        conversationId: options.conversationId,
+        ...options.loggerContext,
       },
     );
+
+    logger.info('Received Foundry response for existing conversation', {
+      provider: 'microsoft-foundry',
+      conversationId: options.conversationId,
+      outputLength: response.output_text?.length ?? 0,
+      ...options.loggerContext,
+    });
+    logger.debug('Foundry response message payload', {
+      provider: 'microsoft-foundry',
+      conversationId: options.conversationId,
+      outputText: response.output_text ?? '',
+      ...options.loggerContext,
+    });
 
     return {
       reply: response.output_text ?? '',
@@ -103,15 +198,58 @@ export async function callFoundryChat(options: {
     role: message.role,
     content: message.content,
   }));
-  const conversation = await openAIClient.conversations.create({ items });
-  const response = await openAIClient.responses.create(
-    { conversation: conversation.id },
-    {
-      body: {
-        agent: { name: agent.name, type: 'agent_reference' },
+  logger.info('Creating new Foundry conversation', {
+    provider: 'microsoft-foundry',
+    itemCount: items.length,
+    resolvedAgentName: agent.name,
+    ...options.loggerContext,
+  });
+  const conversation = await withTimeout(
+    openAIClient.conversations.create({ items }),
+    FOUNDRY_REQUEST_TIMEOUT_MS,
+    'Timed out while creating Microsoft Foundry conversation.',
+    options.loggerContext,
+  );
+  logger.debug('Created new Foundry conversation', {
+    provider: 'microsoft-foundry',
+    conversationId: conversation.id,
+    ...options.loggerContext,
+  });
+
+  logger.info('Creating Foundry response for new conversation', {
+    provider: 'microsoft-foundry',
+    conversationId: conversation.id,
+    resolvedAgentName: agent.name,
+    ...options.loggerContext,
+  });
+  const response = await withTimeout(
+    openAIClient.responses.create(
+      { conversation: conversation.id },
+      {
+        body: {
+          agent: { name: agent.name, type: 'agent_reference' },
+        },
       },
+    ),
+    FOUNDRY_REQUEST_TIMEOUT_MS,
+    'Timed out while waiting for Microsoft Foundry response.',
+    {
+      conversationId: conversation.id,
+      ...options.loggerContext,
     },
   );
+  logger.info('Received Foundry response for new conversation', {
+    provider: 'microsoft-foundry',
+    conversationId: conversation.id,
+    outputLength: response.output_text?.length ?? 0,
+    ...options.loggerContext,
+  });
+  logger.debug('Foundry response message payload', {
+    provider: 'microsoft-foundry',
+    conversationId: conversation.id,
+    outputText: response.output_text ?? '',
+    ...options.loggerContext,
+  });
   const inputText = options.messages
     .map((message) => message.content)
     .join('\n');
@@ -215,6 +353,12 @@ export async function generateCatalogueWithFoundry(options: {
   systemPrompt: string;
   loggerContext?: Record<string, unknown>;
 }): Promise<CatalogueData> {
+  logger.info('Preparing catalogue generation prompt', {
+    provider: 'microsoft-foundry',
+    systemPromptLength: options.systemPrompt.length,
+    ...options.loggerContext,
+  });
+
   const schemaPrompt = JSON.stringify(
     {
       items: [
@@ -251,16 +395,34 @@ export async function generateCatalogueWithFoundry(options: {
     loggerContext: options.loggerContext,
   });
 
+  logger.debug('Catalogue generation raw response received', {
+    provider: 'microsoft-foundry',
+    replyLength: response.reply.length,
+    ...options.loggerContext,
+  });
+
   const parsed = catalogueDataSchema.safeParse(
     sanitiseCatalogueData(extractJson(response.reply)),
   );
 
   if (!parsed.success) {
+    logger.warn('Catalogue generation response failed schema validation', {
+      provider: 'microsoft-foundry',
+      issue: parsed.error.issues[0]?.message,
+      ...options.loggerContext,
+    });
     const issue = parsed.error.issues[0];
     throw new Error(
       `Agent returned invalid catalogue data at ${issue?.path?.join('.') || 'root'}: ${issue?.message}`,
     );
   }
+
+  logger.info('Catalogue generation response parsed successfully', {
+    provider: 'microsoft-foundry',
+    itemCount: parsed.data.items.length,
+    facetCount: Object.keys(parsed.data.facets).length,
+    ...options.loggerContext,
+  });
 
   return parsed.data;
 }

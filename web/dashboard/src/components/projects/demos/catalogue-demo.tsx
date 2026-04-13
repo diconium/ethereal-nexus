@@ -13,6 +13,7 @@ import {
   type CatalogueItem,
   type FacetValue,
 } from '@/data/ai/catalogue';
+import { normalizeCatalogueApiPath } from '@/data/ai/catalogue-endpoint';
 
 type Filters = Record<string, Set<string>>;
 
@@ -44,6 +45,7 @@ export function CatalogueDemo({
     name: string;
     slug: string;
     description: string | null;
+    api_url?: string | null;
   };
 }) {
   const [data, setData] = useState<CatalogueData>(EMPTY_CATALOGUE_DATA);
@@ -53,7 +55,9 @@ export function CatalogueDemo({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const endpoint = `/api/v1/projects/${projectId}/environments/${environmentId}/catalogues/${catalogue.slug}`;
+  const endpoint =
+    normalizeCatalogueApiPath(catalogue.api_url, catalogue.slug) ||
+    `/api/v1/${catalogue.slug}`;
 
   useEffect(() => {
     let cancelled = false;
@@ -66,8 +70,12 @@ export function CatalogueDemo({
         if (!response.ok) {
           throw new Error(`Fetch failed: ${response.status}`);
         }
-        const payload = (await response.json()) as { data?: unknown };
-        const parsed = catalogueDataSchema.safeParse(payload.data);
+        const payload = (await response.json()) as { data?: unknown } | unknown;
+        const data =
+          payload && typeof payload === 'object' && 'data' in payload
+            ? payload.data
+            : payload;
+        const parsed = catalogueDataSchema.safeParse(data);
         if (!parsed.success) {
           throw new Error('Catalogue API returned invalid data.');
         }

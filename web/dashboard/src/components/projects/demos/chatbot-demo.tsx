@@ -44,6 +44,7 @@ import {
   AI_PROVIDER_BADGE_STYLES,
   getAiProviderLabel,
 } from '@/data/ai/provider';
+import type { ChatbotApiSettings } from '@/data/ai/dto';
 import { cn } from '@/lib/utils';
 
 export type ChatRole = 'user' | 'assistant';
@@ -133,6 +134,44 @@ type DemoResponse = {
   conversationId?: string;
 };
 
+type ChatbotLimitStatus = {
+  requestWindow: {
+    enabled: boolean;
+    identities: Array<{
+      source: string;
+      current: number;
+      remaining: number;
+      resetSeconds: number;
+      limit: number;
+      windowSeconds: number;
+    }>;
+  };
+  sessionCap: {
+    enabled: boolean;
+    available: boolean;
+    current: number;
+    remaining: number;
+    resetSeconds: number;
+    limit: number;
+    windowSeconds: number;
+  };
+  dailyTokenBudget: {
+    enabled: boolean;
+    current: number;
+    remaining: number;
+    resetSeconds: number;
+    limit: number;
+  };
+  temporaryBlock: {
+    enabled: boolean;
+    identities: Array<{
+      source: string;
+      blocked: boolean;
+      resetSeconds: number;
+    }>;
+  };
+};
+
 type ChatbotDemoProps = {
   chatbot: {
     name: string;
@@ -142,6 +181,7 @@ type ChatbotDemoProps = {
     agent_id: string;
     provider: string;
   };
+  apiSettings: ChatbotApiSettings;
 };
 
 function createMessage(
@@ -217,40 +257,57 @@ async function copyToClipboard(value: string) {
   return true;
 }
 
-export function createHttpChatAdapter(endpoint: string): ChatSendMessage {
+export function createHttpChatAdapter(
+  endpoint: string,
+  onSettled?: () => void,
+): ChatSendMessage {
   return async ({ messages, conversationId, systemPrompt }) => {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messages,
-        conversationId,
-        systemPrompt,
-      }),
-    });
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages,
+          conversationId,
+          systemPrompt,
+        }),
+      });
 
-    const contentType = response.headers.get('content-type') || '';
-    const payload = contentType.includes('application/json')
-      ? ((await response.json()) as DemoResponse)
-      : await response.text();
+      const contentType = response.headers.get('content-type') || '';
+      const payload = contentType.includes('application/json')
+        ? ((await response.json()) as DemoResponse)
+        : await response.text();
 
-    if (!response.ok) {
-      throw new Error(readAssistantMessage(payload));
+      if (!response.ok) {
+        const limitType = response.headers.get('X-Ethereal-Limit-Type');
+        const current = response.headers.get('X-Ethereal-Current');
+        const limit = response.headers.get('X-Ethereal-Limit');
+        const reset = response.headers.get('X-Ethereal-Reset');
+        const baseMessage = readAssistantMessage(payload);
+        if (limitType && current && limit) {
+          throw new Error(
+            `${baseMessage} Current usage ${current}/${limit}.${reset ? ` Resets in ${reset}s.` : ''}`,
+          );
+        }
+        throw new Error(baseMessage);
+      }
+
+      return {
+        reply: readAssistantMessage(payload),
+        conversationId:
+          payload &&
+          typeof payload === 'object' &&
+          'conversationId' in payload &&
+          typeof payload.conversationId === 'string'
+            ? payload.conversationId
+            : conversationId,
+        raw: payload,
+      };
+    } finally {
+      onSettled?.();
     }
-
-    return {
-      reply: readAssistantMessage(payload),
-      conversationId:
-        payload &&
-        typeof payload === 'object' &&
-        'conversationId' in payload &&
-        typeof payload.conversationId === 'string'
-          ? payload.conversationId
-          : conversationId,
-      raw: payload,
-    };
   };
 }
 
@@ -1146,16 +1203,111 @@ export function PortableAiChat({
   );
 }
 
-export function ChatbotDemo({ chatbot }: ChatbotDemoProps) {
+export function ChatbotDemo({ chatbot, apiSettings }: ChatbotDemoProps) {
   const endpoint = useMemo(
     () => `/api/v1/chatbots/${chatbot.public_slug}/messages`,
     [chatbot.public_slug],
   );
+  const limitsEndpoint = useMemo(
+    () => `/api/v1/chatbots/${chatbot.public_slug}/limits`,
+    [chatbot.public_slug],
+  );
+  const [limitStatus, setLimitStatus] = useState<ChatbotLimitStatus | null>(
+    null,
+  );
+
+  const refreshLimitStatus = useCallback(async () => {
+    try {
+      const response = await fetch(limitsEndpoint, { cache: 'no-store' });
+      if (!response.ok) {
+        return;
+      }
+      const payload = (await response.json()) as ChatbotLimitStatus;
+      setLimitStatus(payload);
+    } catch {
+      // ignore limit status refresh failures in demo UI
+    }
+  }, [limitsEndpoint]);
+
+  useEffect(() => {
+    void refreshLimitStatus();
+  }, [refreshLimitStatus]);
+
+  const activeLimits = useMemo(() => {
+    const items: string[] = [];
+    if (apiSettings.rate_limit_enabled) {
+      items.push(
+        `${apiSettings.rate_limit_max_requests} req / ${apiSettings.rate_limit_window_seconds}s`,
+      );
+    }
+    if (apiSettings.message_size_limit_enabled) {
+      items.push(`${apiSettings.max_message_characters} chars max message`);
+      items.push(`${apiSettings.max_request_body_bytes} bytes max payload`);
+    }
+    if (apiSettings.session_request_cap_enabled) {
+      items.push(
+        `${apiSettings.session_request_cap_max_requests} req / ${apiSettings.session_request_cap_window_seconds}s per session`,
+      );
+    }
+    if (apiSettings.ip_daily_token_budget_enabled) {
+      items.push(`${apiSettings.ip_daily_token_budget} tokens / 24h per IP`);
+    }
+    if (apiSettings.temporary_block_enabled) {
+      items.push(
+        `${apiSettings.temporary_block_duration_seconds}s cooldown after repeated violations`,
+      );
+    }
+    return items;
+  }, [apiSettings]);
 
   const sendMessage = useMemo(
-    () => createHttpChatAdapter(endpoint),
-    [endpoint],
+    () => createHttpChatAdapter(endpoint, () => void refreshLimitStatus()),
+    [endpoint, refreshLimitStatus],
   );
+
+  const limitSummary = useMemo(() => {
+    if (!limitStatus) {
+      return null;
+    }
+
+    const parts: string[] = [];
+    if (
+      limitStatus.requestWindow.enabled &&
+      limitStatus.requestWindow.identities.length
+    ) {
+      const strongestWindow = [...limitStatus.requestWindow.identities].sort(
+        (a, b) => b.current - a.current,
+      )[0];
+      parts.push(
+        `Window ${strongestWindow.current}/${strongestWindow.limit} (${strongestWindow.remaining} left, resets in ${strongestWindow.resetSeconds}s)`,
+      );
+    }
+    if (limitStatus.sessionCap.enabled) {
+      if (limitStatus.sessionCap.available) {
+        parts.push(
+          `Session ${limitStatus.sessionCap.current}/${limitStatus.sessionCap.limit} (${limitStatus.sessionCap.remaining} left)`,
+        );
+      } else {
+        parts.push('Session cap available after session cookie is established');
+      }
+    }
+    if (limitStatus.dailyTokenBudget.enabled) {
+      parts.push(
+        `Daily tokens ${limitStatus.dailyTokenBudget.current}/${limitStatus.dailyTokenBudget.limit} (${limitStatus.dailyTokenBudget.remaining} left)`,
+      );
+    }
+    if (limitStatus.temporaryBlock.enabled) {
+      const activeBlock = limitStatus.temporaryBlock.identities.find(
+        (identity) => identity.blocked,
+      );
+      if (activeBlock) {
+        parts.push(
+          `Temporary block active for ${activeBlock.source} (${activeBlock.resetSeconds}s left)`,
+        );
+      }
+    }
+    return parts;
+  }, [limitStatus]);
 
   return (
     <PortableAiChat
@@ -1195,6 +1347,26 @@ export function ChatbotDemo({ chatbot }: ChatbotDemoProps) {
               {endpoint}
             </span>
           </span>
+          {activeLimits.length ? (
+            <span className="inline-flex max-w-full items-center gap-2">
+              <span className="font-medium uppercase tracking-wide text-foreground/70">
+                Limits
+              </span>
+              <span className="break-all text-foreground/85">
+                {activeLimits.join(' · ')}
+              </span>
+            </span>
+          ) : null}
+          {limitSummary?.length ? (
+            <span className="inline-flex max-w-full items-center gap-2">
+              <span className="font-medium uppercase tracking-wide text-foreground/70">
+                Current usage
+              </span>
+              <span className="break-all text-foreground/85">
+                {limitSummary.join(' · ')}
+              </span>
+            </span>
+          ) : null}
         </div>
       }
       emptyStateTitle={`Meet ${chatbot.name}`}

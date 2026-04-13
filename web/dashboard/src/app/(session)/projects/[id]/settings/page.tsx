@@ -26,17 +26,22 @@ import {
   CalendarClock,
   ChevronDown,
   SlidersHorizontal,
+  Link2,
 } from 'lucide-react';
 import {
   getChatbotsByEnvironment,
   getContentAdvisorAgentConfigs,
+  getContentAdvisorSettings,
   getContentAdvisorSchedules,
+  getPageUrlMappings,
   getProjectAiFlags,
 } from '@/data/ai/actions';
 import { EnvironmentSwitcher } from '@/components/projects/ai/environment-switcher';
 import { FeatureFlagsSection } from '@/components/projects/ai/feature-flags-section';
 import { ContentAdvisorAgentConfigSection } from '@/components/projects/ai/content-advisor-agent-config-section';
+import { ContentAdvisorSettingsSection } from '@/components/projects/ai/content-advisor-settings-section';
 import { ContentAdvisorSchedulesSection } from '@/components/projects/ai/content-advisor-schedules-section';
+import { PageUrlMappingsSection } from '@/components/projects/ai/page-url-mappings-section';
 import { AiErrorNotice } from '@/components/projects/ai/ai-error-notice';
 
 type PageProps = {
@@ -153,15 +158,24 @@ export default async function ProjectSettingsPage({
   const settingsHref = (nextSection: 'general' | 'members' | 'ai') =>
     `${projectSettingsPath}?section=${nextSection}${selectedEnvironment ? `&env=${selectedEnvironment.id}` : ''}`;
 
-  const [aiFlags, chatbots, contentAdvisorAgents, contentAdvisorSchedules] =
+  const [
+    aiFlags,
+    chatbots,
+    contentAdvisorAgents,
+    contentAdvisorSchedules,
+    contentAdvisorSettings,
+    pageUrlMappings,
+  ] =
     section === 'ai' && selectedEnvironment
       ? await Promise.all([
           getProjectAiFlags(id, selectedEnvironment.id),
           getChatbotsByEnvironment(id, selectedEnvironment.id),
           getContentAdvisorAgentConfigs(id, selectedEnvironment.id),
           getContentAdvisorSchedules(id, selectedEnvironment.id),
+          getContentAdvisorSettings(id, selectedEnvironment.id),
+          getPageUrlMappings(id, selectedEnvironment.id),
         ])
-      : [null, null, null, null];
+      : [null, null, null, null, null, null];
 
   return (
     <div className="flex flex-1 flex-col space-y-8">
@@ -273,10 +287,13 @@ export default async function ProjectSettingsPage({
           ) : !aiFlags ||
             !chatbots ||
             !contentAdvisorAgents ||
-            !contentAdvisorSchedules ? null : !aiFlags.success ||
+            !contentAdvisorSchedules ||
+            !contentAdvisorSettings ||
+            !pageUrlMappings ? null : !aiFlags.success ||
             !chatbots.success ||
             !contentAdvisorAgents.success ||
-            !contentAdvisorSchedules.success ? (
+            !contentAdvisorSchedules.success ||
+            !contentAdvisorSettings.success ? (
             <AiErrorNotice
               title="Unable to load AI settings"
               message={
@@ -288,7 +305,9 @@ export default async function ProjectSettingsPage({
                       ? contentAdvisorAgents.error.message
                       : !contentAdvisorSchedules.success
                         ? contentAdvisorSchedules.error.message
-                        : 'Failed to load AI settings.'
+                        : !contentAdvisorSettings.success
+                          ? contentAdvisorSettings.error.message
+                          : 'Failed to load AI settings.'
               }
             />
           ) : (
@@ -322,6 +341,19 @@ export default async function ProjectSettingsPage({
 
               <Section
                 icon={CalendarClock}
+                title="Content Advisor automation"
+                description="Configure how persistent issues are automatically resolved in the selected environment."
+              >
+                <ContentAdvisorSettingsSection
+                  key={`advisor-settings-${selectedEnvironment.id}`}
+                  projectId={id}
+                  environmentId={selectedEnvironment.id}
+                  initialSettings={contentAdvisorSettings.data}
+                />
+              </Section>
+
+              <Section
+                icon={CalendarClock}
                 title="Content Advisor schedules"
                 description="Automate content analysis with cron-based schedules for the current environment."
               >
@@ -330,6 +362,28 @@ export default async function ProjectSettingsPage({
                   projectId={id}
                   environmentId={selectedEnvironment.id}
                   initialSchedules={contentAdvisorSchedules.data}
+                  brokenLinkDomain={
+                    (
+                      contentAdvisorAgents.data.find(
+                        (agent) => agent.key === 'broken-link',
+                      )?.provider_config as
+                        | { allowed_domain?: string }
+                        | undefined
+                    )?.allowed_domain
+                  }
+                />
+              </Section>
+
+              <Section
+                icon={Link2}
+                title="AEM page URL mappings"
+                description="Map AEM content paths to public frontend URLs for the broken-link crawler."
+              >
+                <PageUrlMappingsSection
+                  key={`page-url-mappings-${selectedEnvironment.id}`}
+                  projectId={id}
+                  environmentId={selectedEnvironment.id}
+                  initialMappings={pageUrlMappings.success ? pageUrlMappings.data : []}
                 />
               </Section>
             </>

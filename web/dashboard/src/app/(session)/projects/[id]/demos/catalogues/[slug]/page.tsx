@@ -95,7 +95,13 @@ export default async function CatalogueDemoPage({
     <CatalogueDemo
       projectId={id}
       environmentId={selectedEnvironment.id}
-      catalogue={catalogue}
+      catalogue={{
+        id: catalogue.id,
+        name: catalogue.name,
+        slug: catalogue.slug,
+        description: catalogue.description,
+        api_url: catalogue.api_url,
+      }}
     />
   );
 }

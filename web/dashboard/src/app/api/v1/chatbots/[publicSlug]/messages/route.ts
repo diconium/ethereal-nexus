@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { HttpStatus } from '@/app/api/utils';
 import { db } from '@/db';
@@ -24,6 +25,22 @@ import {
   type ChatbotDemoRequestEnvelope,
 } from '@/lib/chatbot-demo-api/route-handler';
 import { chatWithChatbotAgent } from '@/lib/chatbot-demo-api/agent';
+import { classifyConversationWithRules } from '@/data/ai/analytics/classifier-rules';
+import {
+  getChatbotAnalyticsConfig,
+  getTopicRules,
+  getTopicRuleSet,
+} from '@/data/ai/analytics/queries';
+import {
+  recordChatbotAnalyticsEvent,
+  resolveChatbotSession,
+  updateChatbotSessionClassification,
+  updateChatbotSessionRollup,
+} from '@/data/ai/analytics/session';
+import {
+  enqueueUnmatchedReview,
+  getPendingReviewForSession,
+} from '@/data/ai/analytics/review-queue';
 
 type RouteContext = {
   params: Promise<{
@@ -403,6 +420,100 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     const body = handled.body as ChatbotDemoRequestEnvelope;
+    const userMessages = body.messages
+      .filter((message) => message.role === 'user')
+      .map((message) => message.content.trim())
+      .filter(Boolean);
+    const rawSessionKey =
+      body.conversationId ||
+      sessionIdentityKey ||
+      identityResolution.identities[0]?.key ||
+      ipIdentityKey;
+    const sessionKey = createHash('sha256')
+      .update(`${chatbot.id}:${rawSessionKey}`)
+      .digest('hex');
+    const { session } = await resolveChatbotSession({
+      projectId,
+      environmentId,
+      chatbotId: chatbot.id,
+      conversationId: body.conversationId,
+      sessionKey,
+      identitySource: body.conversationId
+        ? 'conversation'
+        : sessionIdentityKey
+          ? 'session'
+          : identityResolution.usedFingerprint
+            ? 'fingerprint'
+            : 'ip',
+    });
+    const requestEvent = await recordChatbotAnalyticsEvent({
+      projectId,
+      environmentId,
+      chatbotId: chatbot.id,
+      sessionId: session.id,
+      eventType: 'request',
+      statusCode: 200,
+      requestBodyBytes,
+      messageCount: body.metrics.messageCount,
+      latestUserCharacters: body.metrics.latestUserCharacters,
+      success: true,
+    });
+    await updateChatbotSessionRollup({
+      sessionId: session.id,
+      detectedLanguage: null,
+      requestCountDelta: 1,
+      userMessageCountDelta: 1,
+      secondUserMessageSeen: userMessages.length >= 2,
+    });
+
+    let reviewEligible = false;
+    if (userMessages.length >= 1) {
+      const [topicRuleSet, topicRules, analyticsConfig] = await Promise.all([
+        getTopicRuleSet(chatbot.id),
+        getTopicRules(chatbot.id),
+        getChatbotAnalyticsConfig(chatbot.id),
+      ]);
+
+      const ruleResult = classifyConversationWithRules({
+        firstUserMessage: userMessages[0] || '',
+        secondUserMessage: userMessages[1] || null,
+        rules: topicRuleSet?.enabled ? topicRules : [],
+        defaultLanguage: topicRuleSet?.default_language,
+      });
+
+      const hasConfidentRuleMatch =
+        Boolean(topicRuleSet?.enabled) &&
+        ruleResult.matched &&
+        ruleResult.confidence >= (topicRuleSet?.minimum_confidence ?? 60);
+
+      if (hasConfidentRuleMatch) {
+        await updateChatbotSessionClassification({
+          sessionId: session.id,
+          topicTags: ruleResult.topicTags,
+          intentTags: ruleResult.intentTags,
+          sentiment: ruleResult.sentiment,
+          resolutionState: ruleResult.resolutionState,
+          classificationSource: ruleResult.source,
+          classificationConfidence: ruleResult.confidence,
+          detectedLanguage: ruleResult.detectedLanguage,
+        });
+      } else if (
+        analyticsConfig?.llm_fallback_enabled &&
+        userMessages.length >= 2
+      ) {
+        reviewEligible = true;
+        await updateChatbotSessionClassification({
+          sessionId: session.id,
+          topicTags: [],
+          intentTags: ruleResult.intentTags,
+          sentiment: ruleResult.sentiment,
+          resolutionState: ruleResult.resolutionState,
+          classificationSource: 'rules',
+          classificationConfidence: ruleResult.confidence,
+          detectedLanguage: ruleResult.detectedLanguage,
+        });
+      }
+    }
 
     logger.debug('Chatbot request payload validated', {
       route: 'chatbot-messages-public',
@@ -450,6 +561,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
               status: 429,
               headers: {
                 'Retry-After': String(sessionCap.resetSeconds),
+                'X-Ethereal-Limit-Type': 'session-cap',
+                'X-Ethereal-Limit': String(
+                  chatbotApiSettings.session_request_cap_max_requests,
+                ),
+                'X-Ethereal-Current': String(sessionCap.current),
+                'X-Ethereal-Remaining': String(sessionCap.remaining),
+                'X-Ethereal-Reset': String(sessionCap.resetSeconds),
               },
             },
           );
@@ -480,6 +598,21 @@ export async function POST(request: NextRequest, context: RouteContext) {
             status: 429,
             headers: {
               'Retry-After': String(tokenBudgetState.resetSeconds || 86400),
+              'X-Ethereal-Limit-Type': 'daily-token-budget',
+              'X-Ethereal-Limit': String(
+                chatbotApiSettings.ip_daily_token_budget,
+              ),
+              'X-Ethereal-Current': String(tokenBudgetState.current),
+              'X-Ethereal-Remaining': String(
+                Math.max(
+                  0,
+                  chatbotApiSettings.ip_daily_token_budget -
+                    tokenBudgetState.current,
+                ),
+              ),
+              'X-Ethereal-Reset': String(
+                tokenBudgetState.resetSeconds || 86400,
+              ),
             },
           },
         );
@@ -500,6 +633,57 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     const response = await chatWithChatbotAgent(chatbot, body);
     const latencyMs = Date.now() - requestStart;
+
+    await recordChatbotAnalyticsEvent({
+      projectId,
+      environmentId,
+      chatbotId: chatbot.id,
+      sessionId: session.id,
+      eventType: 'response',
+      statusCode: 200,
+      latencyMs,
+      messageCount: body.metrics.messageCount,
+      latestUserCharacters: body.metrics.latestUserCharacters,
+      inputTokens: response.usage.inputTokens,
+      outputTokens: response.usage.outputTokens,
+      totalTokens: response.usage.totalTokens,
+      success: true,
+    });
+    await updateChatbotSessionRollup({
+      sessionId: session.id,
+      assistantMessageCountDelta: 1,
+      inputTokensDelta: response.usage.inputTokens,
+      outputTokensDelta: response.usage.outputTokens,
+      totalTokensDelta: response.usage.totalTokens,
+      latencyMsDelta: latencyMs,
+    });
+
+    if (reviewEligible) {
+      const existingReview = await getPendingReviewForSession(session.id);
+      if (!existingReview) {
+        await enqueueUnmatchedReview({
+          projectId,
+          environmentId,
+          chatbotId: chatbot.id,
+          sessionId: session.id,
+          eventId: requestEvent.id,
+          firstUserMessage: userMessages[0] || '',
+          secondUserMessage: userMessages[1] || null,
+          assistantExcerpt: response.reply,
+          matchFailureReason: 'no-topic-rule-match',
+        });
+
+        logger.info('Queued unmatched chatbot session for fallback review', {
+          route: 'chatbot-messages-public',
+          projectId,
+          environmentId,
+          publicSlug,
+          chatbotId: chatbot.id,
+          sessionId: session.id,
+          userMessageCount: userMessages.length,
+        });
+      }
+    }
 
     if (chatbotApiSettings.ip_daily_token_budget_enabled) {
       if (ipIdentityKey) {

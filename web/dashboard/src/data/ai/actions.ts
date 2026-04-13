@@ -19,8 +19,12 @@ import {
   projectAiContentAdvisorRuns,
   projectAiContentAdvisorAgentRuns,
   projectAiContentAdvisorIssues,
+  projectAiContentAdvisorIssueComments,
+  projectAiContentAdvisorIssueDetections,
+  projectAiContentAdvisorSettings,
+  projectAiPageUrlMappings,
 } from './schema';
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, notInArray, sql } from 'drizzle-orm';
 import {
   AuthorDialog,
   AuthorDialogInput,
@@ -47,11 +51,30 @@ import {
   contentAdvisorAgentConfigInputSchema,
   contentAdvisorAgentConfigSchema,
   ContentAdvisorIssue,
+  ContentAdvisorIssueComment,
+  ContentAdvisorIssueCommentInput,
   ContentAdvisorIssueInput,
+  ContentAdvisorIssueStatusInput,
+  ContentAdvisorIssueWithComments,
+  ContentAdvisorAgentRunWithAgent,
+  ContentAdvisorIssueDashboardItem,
+  ContentAdvisorRunHistoryItem,
+  ContentAdvisorSettings,
+  ContentAdvisorSettingsInput,
+  contentAdvisorIssueCommentInputSchema,
+  contentAdvisorIssueCommentSchema,
+  contentAdvisorIssueDashboardItemSchema,
+  contentAdvisorIssueDetectionSchema,
+  contentAdvisorIssueStatusInputSchema,
+  contentAdvisorSettingsInputSchema,
+  contentAdvisorSettingsSchema,
+  contentAdvisorAgentRunWithAgentSchema,
   contentAdvisorIssueSchema,
   contentAdvisorIssueInputSchema,
+  contentAdvisorIssueWithCommentsSchema,
   ContentAdvisorRun,
   contentAdvisorRunSchema,
+  contentAdvisorRunHistoryItemSchema,
   ContentAdvisorSchedule,
   ContentAdvisorScheduleInput,
   contentAdvisorScheduleInputSchema,
@@ -61,6 +84,12 @@ import {
   projectAiFeatureFlagSchema,
   projectAiFeatureKeySchema,
   PROJECT_AI_FEATURE_KEYS,
+  BrokenLinkAgentConfigInput,
+  brokenLinkAgentConfigInputSchema,
+  PageUrlMapping,
+  PageUrlMappingInput,
+  pageUrlMappingInputSchema,
+  pageUrlMappingSchema,
 } from './dto';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -75,16 +104,141 @@ import {
   ContentAdvisorAgentKey,
 } from './content-advisor';
 import { buildFoundryProviderConfig } from './provider';
+import { normalizeCatalogueApiPath } from './catalogue-endpoint';
 import { generateCatalogueWithFoundry } from '@/lib/ai-providers/microsoft-foundry';
-import { analyzePageWithAgent, fetchPageSource } from './analyzer';
+import {
+  analyzePageWithAgent,
+  fetchPageSource,
+  resolveContentAdvisorPageUrl,
+  resolvePageReferenceWithMapping,
+} from './analyzer';
+import type { InferSelectModel } from 'drizzle-orm';
+import type { Session } from 'next-auth';
+
+/**
+ * Tiny semaphore for bounding concurrent async tasks without adding a
+ * dependency on `p-limit`.  Use `limit(fn)` to acquire a slot, run `fn`, and
+ * release the slot automatically.
+ */
+function createConcurrencyLimiter(concurrency: number) {
+  let running = 0;
+  const queue: (() => void)[] = [];
+  function next() {
+    if (queue.length && running < concurrency) {
+      running++;
+      queue.shift()!();
+    }
+  }
+  return function limit<T>(fn: () => Promise<T>): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      queue.push(() => {
+        fn()
+          .then(resolve, reject)
+          .finally(() => {
+            running--;
+            next();
+          });
+      });
+      next();
+    });
+  };
+}
+
+function buildContentAdvisorIssueFingerprint(issue: {
+  issue_type: string;
+  page_path?: string | null;
+  component_path?: string | null;
+  title: string;
+}) {
+  const normalize = (value?: string | null) =>
+    (value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+
+  return [
+    normalize(issue.issue_type),
+    normalize(issue.page_path),
+    normalize(issue.component_path),
+    normalize(issue.title),
+  ].join('::');
+}
+
+type ContentAdvisorIssueRow = InferSelectModel<
+  typeof projectAiContentAdvisorIssues
+>;
+
+/** Minimum set of columns needed to normalise an agent-config row. */
+type PartialAgentConfigRow = Pick<
+  InferSelectModel<typeof projectAiContentAdvisorAgentConfigs>,
+  'id' | 'key' | 'name' | 'description'
+> &
+  Partial<
+    Omit<
+      InferSelectModel<typeof projectAiContentAdvisorAgentConfigs>,
+      'id' | 'key' | 'name' | 'description'
+    >
+  >;
+
+async function maybeAutoResolveContentAdvisorIssues(input: {
+  tx: any;
+  environmentId: string;
+  threshold: number | null;
+}) {
+  if (!input.threshold || input.threshold < 1) {
+    return;
+  }
+
+  const recentRuns = await input.tx
+    .select({ id: projectAiContentAdvisorRuns.id })
+    .from(projectAiContentAdvisorRuns)
+    .where(eq(projectAiContentAdvisorRuns.environment_id, input.environmentId))
+    .orderBy(desc(projectAiContentAdvisorRuns.created_at))
+    .limit(input.threshold);
+
+  if (recentRuns.length < input.threshold) {
+    return;
+  }
+
+  const recentRunIds = recentRuns.map((run: { id: string }) => run.id);
+  const recentlyDetectedIssues = await input.tx
+    .select({ issue_id: projectAiContentAdvisorIssueDetections.issue_id })
+    .from(projectAiContentAdvisorIssueDetections)
+    .where(
+      inArray(projectAiContentAdvisorIssueDetections.run_id, recentRunIds),
+    );
+
+  const recentIssueIds = new Set(
+    recentlyDetectedIssues.map((row: { issue_id: string }) => row.issue_id),
+  );
+
+  // Fetch only open/in-progress issues to avoid unnecessary rows in memory.
+  const candidateIds = await input.tx
+    .select({ id: projectAiContentAdvisorIssues.id })
+    .from(projectAiContentAdvisorIssues)
+    .where(
+      and(
+        eq(projectAiContentAdvisorIssues.environment_id, input.environmentId),
+        notInArray(projectAiContentAdvisorIssues.status, ['done', 'wont-do']),
+      ),
+    );
+
+  const toResolveIds = candidateIds
+    .map((r) => r.id)
+    .filter((id) => !recentIssueIds.has(id));
+
+  if (toResolveIds.length) {
+    await input.tx
+      .update(projectAiContentAdvisorIssues)
+      .set({ status: 'done' })
+      .where(inArray(projectAiContentAdvisorIssues.id, toResolveIds));
+  }
+}
 
 type ProjectAccess = {
-  session: any;
+  session: Session;
   permission: string;
   canWrite: boolean;
 };
 
-async function getProjectAccess(
+export async function getProjectAccess(
   projectId: string,
   requireWrite = false,
 ): Promise<ProjectAccess | ActionResponse<never>> {
@@ -157,6 +311,25 @@ async function ensureUniquePublicAuthorDialogSlug(input: {
   return null;
 }
 
+async function ensureUniqueCatalogueApiPath(input: {
+  apiPath: string;
+  excludeId?: string;
+}) {
+  const existing = await db
+    .select({ id: projectAiCatalogues.id })
+    .from(projectAiCatalogues)
+    .where(eq(projectAiCatalogues.api_url, input.apiPath))
+    .limit(1);
+
+  if (existing[0] && (!input.excludeId || existing[0].id !== input.excludeId)) {
+    return actionError(
+      'This catalogue API endpoint is already in use. Choose a different endpoint path.',
+    );
+  }
+
+  return null;
+}
+
 function mapAiDbError(error: unknown, fallback: string) {
   if (!(error instanceof Error)) {
     return fallback;
@@ -206,9 +379,7 @@ const LEGACY_CONTENT_ADVISOR_AGENT_KEY_MAP: Record<
   'compliance-accessibility': 'compliance',
 };
 
-function normalizeContentAdvisorAgentRow(
-  row: typeof projectAiContentAdvisorAgentConfigs.$inferSelect,
-) {
+function normalizeContentAdvisorAgentRow(row: PartialAgentConfigRow) {
   const normalizedKey =
     LEGACY_CONTENT_ADVISOR_AGENT_KEY_MAP[row.key] ??
     (row.key as ContentAdvisorAgentKey);
@@ -851,6 +1022,20 @@ export async function upsertCatalogue(
   }
 
   try {
+    const apiPath = normalizeCatalogueApiPath(
+      safeInput.data.api_url,
+      safeInput.data.slug,
+    );
+    if (apiPath) {
+      const apiPathError = await ensureUniqueCatalogueApiPath({
+        apiPath,
+        excludeId: safeInput.data.id,
+      });
+      if (apiPathError) {
+        return apiPathError;
+      }
+    }
+
     const payload = {
       ...safeInput.data,
       description: safeInput.data.description || null,
@@ -858,8 +1043,7 @@ export async function upsertCatalogue(
         project_endpoint: safeInput.data.project_endpoint || '',
         agent_id: safeInput.data.provider_agent_id || '',
       }),
-      api_url:
-        safeInput.data.api_url || safeInput.data.project_endpoint || null,
+      api_url: apiPath,
       agent_id:
         safeInput.data.provider_agent_id || safeInput.data.agent_id || null,
       agent_principal_id: safeInput.data.agent_principal_id || null,
@@ -867,7 +1051,7 @@ export async function upsertCatalogue(
       activity_protocol_endpoint:
         safeInput.data.activity_protocol_endpoint || null,
       responses_api_endpoint:
-        safeInput.data.api_url ||
+        apiPath ||
         safeInput.data.project_endpoint ||
         safeInput.data.responses_api_endpoint ||
         null,
@@ -900,6 +1084,14 @@ export async function upsertCatalogue(
     return actionSuccess(safe.data);
   } catch (error) {
     console.error(error);
+    if (
+      error instanceof Error &&
+      error.message.includes('project_ai_catalogue_api_url_idx')
+    ) {
+      return actionError(
+        'This catalogue API endpoint is already in use. Choose a different endpoint path.',
+      );
+    }
     return actionError(
       mapAiDbError(error, 'Failed to save catalogue into database.'),
     );
@@ -1144,15 +1336,32 @@ export async function generateCatalogueVersionWithAi(
 ): ActionResponse<CatalogueVersion> {
   const access = await getProjectAccess(projectId, true);
   if ('success' in access && !access.success) {
+    logger.warn('Unauthorized catalogue agent generation attempt', {
+      projectId,
+      catalogueId,
+    });
     return access;
   }
 
   const catalogue = await getCatalogueById(projectId, catalogueId);
   if (!catalogue.success) {
+    logger.warn('Catalogue agent generation target not found', {
+      projectId,
+      catalogueId,
+      message: catalogue.error.message,
+    });
     return catalogue;
   }
 
   try {
+    logger.info('Generating catalogue version with agent', {
+      projectId,
+      catalogueId,
+      provider: catalogue.data.provider,
+      environmentId: catalogue.data.environment_id,
+      slug: catalogue.data.slug,
+    });
+
     switch (catalogue.data.provider) {
       case 'microsoft-foundry': {
         const parsedData = await generateCatalogueWithFoundry({
@@ -1164,15 +1373,50 @@ export async function generateCatalogueVersionWithAi(
             projectId,
           },
         });
-        return saveCatalogueVersion(projectId, catalogueId, parsedData);
+        const result = await saveCatalogueVersion(
+          projectId,
+          catalogueId,
+          parsedData,
+        );
+        if (!result.success) {
+          logger.warn('Generated catalogue version failed to save', {
+            projectId,
+            catalogueId,
+            provider: catalogue.data.provider,
+            message: result.error.message,
+          });
+          return result;
+        }
+
+        logger.info('Catalogue version generated successfully', {
+          projectId,
+          catalogueId,
+          versionId: result.data.id,
+          itemCount: result.data.data.items.length,
+          provider: catalogue.data.provider,
+        });
+        return result;
       }
       default:
+        logger.warn('Unsupported catalogue provider for generation', {
+          projectId,
+          catalogueId,
+          provider: catalogue.data.provider,
+        });
         return actionError(
           `Unsupported catalogue provider: ${catalogue.data.provider}`,
         );
     }
   } catch (error) {
-    console.error(error);
+    logger.error(
+      'Failed to generate catalogue version with AI',
+      error as Error,
+      {
+        projectId,
+        catalogueId,
+        provider: catalogue.success ? catalogue.data.provider : undefined,
+      },
+    );
     return actionError(
       mapAiDbError(error, 'Failed to generate catalogue version with AI.'),
     );
@@ -1476,6 +1720,76 @@ export async function upsertContentAdvisorAgentConfig(
   }
 }
 
+export async function upsertBrokenLinkAgentConfig(
+  input: BrokenLinkAgentConfigInput,
+): ActionResponse<ContentAdvisorAgentConfig> {
+  const access = await getProjectAccess(input.project_id, true);
+  if ('success' in access && !access.success) {
+    return access;
+  }
+
+  const safeInput = brokenLinkAgentConfigInputSchema.safeParse(input);
+  if (!safeInput.success) {
+    return actionZodError(
+      'Failed to parse broken link agent config input.',
+      safeInput.error,
+    );
+  }
+
+  try {
+    const payload = {
+      project_id: safeInput.data.project_id,
+      environment_id: safeInput.data.environment_id,
+      key: safeInput.data.key,
+      name: safeInput.data.name,
+      description: safeInput.data.description,
+      provider: 'microsoft-foundry' as const,
+      provider_config: {
+        crawl_depth: safeInput.data.crawl_depth,
+        allowed_domain: safeInput.data.allowed_domain,
+      },
+      prompt: '',
+      enabled: safeInput.data.enabled,
+      updated_at: new Date(),
+    };
+
+    const rows = safeInput.data.id
+      ? await db
+          .update(projectAiContentAdvisorAgentConfigs)
+          .set(payload)
+          .where(
+            and(
+              eq(projectAiContentAdvisorAgentConfigs.id, safeInput.data.id),
+              eq(
+                projectAiContentAdvisorAgentConfigs.project_id,
+                safeInput.data.project_id,
+              ),
+            ),
+          )
+          .returning()
+      : await db
+          .insert(projectAiContentAdvisorAgentConfigs)
+          .values(payload)
+          .returning();
+
+    const safe = contentAdvisorAgentConfigSchema.safeParse(rows[0]);
+    if (!safe.success) {
+      return actionZodError(
+        'Failed to parse broken link agent config.',
+        safe.error,
+      );
+    }
+
+    aiRevalidate(input.project_id);
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      mapAiDbError(error, 'Failed to save broken link agent config.'),
+    );
+  }
+}
+
 export async function getContentAdvisorSchedules(
   projectId: string,
   environmentId: string,
@@ -1665,9 +1979,11 @@ export async function createContentAdvisorRun(
   agentRuns: Array<{
     agent_config_id: string;
     summary: string;
+    response?: string;
     status?: string;
     issues: ContentAdvisorIssueInput[];
   }>,
+  triggeredBy: 'schedule' | 'manual' = 'schedule',
 ): ActionResponse<{
   run: ContentAdvisorRun;
   issues: ContentAdvisorIssue[];
@@ -1677,24 +1993,75 @@ export async function createContentAdvisorRun(
     return access;
   }
 
-  const parsedIssues = agentRuns.flatMap((agentRun) =>
-    agentRun.issues.map((issue) =>
-      contentAdvisorIssueInputSchema.safeParse(issue),
-    ),
-  );
-  const failedIssue = parsedIssues.find((result) => !result.success);
-  if (failedIssue && !failedIssue.success) {
-    return actionZodError('Invalid content advisor issue.', failedIssue.error);
+  // Validate and transform all issues via Zod. We eagerly parse every issue
+  // here so that Zod transforms (e.g. .trim()) are applied before any DB write,
+  // and the validated `.data` is what actually reaches the database.
+  const parsedAgentRuns: Array<
+    (typeof agentRuns)[number] & { parsedIssues: ContentAdvisorIssueInput[] }
+  > = [];
+  for (const agentRun of agentRuns) {
+    const parsedIssues: ContentAdvisorIssueInput[] = [];
+    for (const issue of agentRun.issues) {
+      const result = contentAdvisorIssueInputSchema.safeParse(issue);
+      if (!result.success) {
+        return actionZodError('Invalid content advisor issue.', result.error);
+      }
+      parsedIssues.push(result.data);
+    }
+    parsedAgentRuns.push({ ...agentRun, parsedIssues });
+  }
+
+  // IDOR guard: verify all agent_config_ids belong to this project
+  const agentConfigIds = [
+    ...new Set(parsedAgentRuns.map((r) => r.agent_config_id)),
+  ];
+
+  if (agentConfigIds.length === 0) {
+    return actionError('No agent runs provided.');
+  }
+  if (agentConfigIds.length > 50) {
+    return actionError('Too many agent configs in a single run (max 50).');
+  }
+
+  const validConfigs = await db
+    .select({ id: projectAiContentAdvisorAgentConfigs.id })
+    .from(projectAiContentAdvisorAgentConfigs)
+    .where(
+      and(
+        eq(projectAiContentAdvisorAgentConfigs.project_id, projectId),
+        inArray(projectAiContentAdvisorAgentConfigs.id, agentConfigIds),
+      ),
+    );
+  const validConfigIds = new Set(validConfigs.map((c) => c.id));
+  const invalidConfig = agentConfigIds.find((id) => !validConfigIds.has(id));
+  if (invalidConfig) {
+    return actionError(
+      'One or more agent configs do not belong to this project.',
+    );
   }
 
   try {
     const result = await db.transaction(async (tx) => {
+      const settingsRows = await tx
+        .select()
+        .from(projectAiContentAdvisorSettings)
+        .where(
+          and(
+            eq(projectAiContentAdvisorSettings.project_id, projectId),
+            eq(projectAiContentAdvisorSettings.environment_id, environmentId),
+          ),
+        )
+        .limit(1);
+
+      const settings = settingsRows[0] || null;
+
       const [runRow] = await tx
         .insert(projectAiContentAdvisorRuns)
         .values({
           project_id: projectId,
           environment_id: environmentId,
           schedule_id: scheduleId,
+          triggered_by: triggeredBy,
           summary,
           status: 'completed',
           completed_at: new Date(),
@@ -1703,33 +2070,90 @@ export async function createContentAdvisorRun(
 
       const insertedIssues: ContentAdvisorIssue[] = [];
 
-      for (const agentRun of agentRuns) {
+      for (const agentRun of parsedAgentRuns) {
         const [agentRunRow] = await tx
           .insert(projectAiContentAdvisorAgentRuns)
           .values({
             run_id: runRow.id,
             agent_config_id: agentRun.agent_config_id,
             summary: agentRun.summary,
+            response: agentRun.response || '',
             status: agentRun.status || 'completed',
-            issue_count: agentRun.issues.length,
+            issue_count: agentRun.parsedIssues.length,
           })
           .returning();
 
-        if (!agentRun.issues.length) {
+        if (!agentRun.parsedIssues.length) {
           continue;
         }
 
-        const rows = await tx
-          .insert(projectAiContentAdvisorIssues)
-          .values(
-            agentRun.issues.map((issue) => ({
+        const rows: ContentAdvisorIssueRow[] = [];
+        const detectionValues: {
+          issue_id: string;
+          run_id: string;
+          agent_run_id: string;
+        }[] = [];
+
+        for (const issue of agentRun.parsedIssues) {
+          const fingerprint =
+            issue.fingerprint || buildContentAdvisorIssueFingerprint(issue);
+
+          // Atomic upsert — avoids race condition when concurrent runs process
+          // the same fingerprint simultaneously.
+          const [upsertedIssue] = await tx
+            .insert(projectAiContentAdvisorIssues)
+            .values({
+              environment_id: environmentId,
               run_id: runRow.id,
               agent_run_id: agentRunRow.id,
               ...issue,
+              fingerprint,
+              status: issue.status || 'open',
+              page_path: issue.page_path || null,
+              component_path: issue.component_path || null,
               page_title: issue.page_title || null,
-            })),
-          )
-          .returning();
+              first_detected_at: new Date(),
+              last_detected_at: new Date(),
+              detection_count: 1,
+            })
+            .onConflictDoUpdate({
+              target: [
+                projectAiContentAdvisorIssues.environment_id,
+                projectAiContentAdvisorIssues.fingerprint,
+              ],
+              set: {
+                run_id: runRow.id,
+                agent_run_id: agentRunRow.id,
+                page_url: issue.page_url,
+                page_path: issue.page_path || null,
+                component_path: issue.component_path || null,
+                page_title: issue.page_title || null,
+                severity: issue.severity,
+                title: issue.title,
+                description: issue.description,
+                suggestion: issue.suggestion,
+                reasoning: issue.reasoning,
+                last_detected_at: new Date(),
+                detection_count: sql`${projectAiContentAdvisorIssues.detection_count} + 1`,
+              },
+            })
+            .returning();
+
+          detectionValues.push({
+            issue_id: upsertedIssue.id,
+            run_id: runRow.id,
+            agent_run_id: agentRunRow.id,
+          });
+
+          rows.push(upsertedIssue);
+        }
+
+        // Batch-insert all detections for this agent run in a single statement.
+        if (detectionValues.length) {
+          await tx
+            .insert(projectAiContentAdvisorIssueDetections)
+            .values(detectionValues);
+        }
 
         const safeIssues = z.array(contentAdvisorIssueSchema).safeParse(rows);
         if (!safeIssues.success) {
@@ -1737,6 +2161,12 @@ export async function createContentAdvisorRun(
         }
         insertedIssues.push(...safeIssues.data);
       }
+
+      await maybeAutoResolveContentAdvisorIssues({
+        tx,
+        environmentId,
+        threshold: settings?.auto_resolve_after_runs ?? null,
+      });
 
       return { runRow, issues: insertedIssues };
     });
@@ -1764,7 +2194,7 @@ export async function getLatestContentAdvisorResult(
   environmentId: string,
 ): ActionResponse<{
   run: ContentAdvisorRun | null;
-  issues: ContentAdvisorIssue[];
+  issues: ContentAdvisorIssueWithComments[];
 }> {
   const access = await getProjectAccess(projectId);
   if ('success' in access && !access.success) {
@@ -1795,8 +2225,39 @@ export async function getLatestContentAdvisorResult(
       .where(eq(projectAiContentAdvisorIssues.run_id, runRow.id))
       .orderBy(desc(projectAiContentAdvisorIssues.created_at));
 
+    const comments = issues.length
+      ? await db
+          .select()
+          .from(projectAiContentAdvisorIssueComments)
+          .where(
+            inArray(
+              projectAiContentAdvisorIssueComments.issue_id,
+              issues.map((issue) => issue.id),
+            ),
+          )
+          .orderBy(asc(projectAiContentAdvisorIssueComments.created_at))
+      : [];
+
+    const commentsByIssue = comments.reduce(
+      (acc, comment) => {
+        if (!acc[comment.issue_id]) {
+          acc[comment.issue_id] = [];
+        }
+        acc[comment.issue_id].push(comment);
+        return acc;
+      },
+      {} as Record<string, ContentAdvisorIssueComment[]>,
+    );
+
+    const issuesWithComments = issues.map((issue) => ({
+      ...issue,
+      comments: commentsByIssue[issue.id] || [],
+    }));
+
     const safeRun = contentAdvisorRunSchema.safeParse(runRow);
-    const safeIssues = z.array(contentAdvisorIssueSchema).safeParse(issues);
+    const safeIssues = z
+      .array(contentAdvisorIssueWithCommentsSchema)
+      .safeParse(issuesWithComments);
     if (!safeRun.success) {
       return actionZodError(
         'Failed to parse content advisor run.',
@@ -1819,6 +2280,218 @@ export async function getLatestContentAdvisorResult(
   }
 }
 
+export async function getContentAdvisorIssuesDashboard(
+  projectId: string,
+  environmentId: string,
+): ActionResponse<{
+  latestRun: ContentAdvisorRun | null;
+  issues: ContentAdvisorIssueDashboardItem[];
+}> {
+  const access = await getProjectAccess(projectId);
+  if ('success' in access && !access.success) {
+    return access;
+  }
+
+  try {
+    const latestRunRows = await db
+      .select()
+      .from(projectAiContentAdvisorRuns)
+      .where(
+        and(
+          eq(projectAiContentAdvisorRuns.project_id, projectId),
+          eq(projectAiContentAdvisorRuns.environment_id, environmentId),
+        ),
+      )
+      .orderBy(desc(projectAiContentAdvisorRuns.created_at))
+      .limit(1);
+
+    const latestRunRow = latestRunRows[0] || null;
+
+    // Fetch issues independently — can run in parallel with other future queries.
+    const issues = await db
+      .select({
+        issue: projectAiContentAdvisorIssues,
+        agent: {
+          id: projectAiContentAdvisorAgentConfigs.id,
+          key: projectAiContentAdvisorAgentConfigs.key,
+          name: projectAiContentAdvisorAgentConfigs.name,
+          description: projectAiContentAdvisorAgentConfigs.description,
+        },
+      })
+      .from(projectAiContentAdvisorIssues)
+      .innerJoin(
+        projectAiContentAdvisorRuns,
+        eq(
+          projectAiContentAdvisorIssues.run_id,
+          projectAiContentAdvisorRuns.id,
+        ),
+      )
+      .innerJoin(
+        projectAiContentAdvisorAgentRuns,
+        eq(
+          projectAiContentAdvisorIssues.agent_run_id,
+          projectAiContentAdvisorAgentRuns.id,
+        ),
+      )
+      .innerJoin(
+        projectAiContentAdvisorAgentConfigs,
+        eq(
+          projectAiContentAdvisorAgentRuns.agent_config_id,
+          projectAiContentAdvisorAgentConfigs.id,
+        ),
+      )
+      .where(
+        and(
+          eq(projectAiContentAdvisorIssues.environment_id, environmentId),
+          eq(projectAiContentAdvisorRuns.project_id, projectId),
+        ),
+      )
+      .orderBy(desc(projectAiContentAdvisorIssues.last_detected_at));
+
+    const issueRows = issues.map((row) => row.issue);
+
+    // comments and detections are independent — fetch them in parallel.
+    const [comments, detections] = await Promise.all([
+      issueRows.length
+        ? db
+            .select()
+            .from(projectAiContentAdvisorIssueComments)
+            .where(
+              inArray(
+                projectAiContentAdvisorIssueComments.issue_id,
+                issueRows.map((issue) => issue.id),
+              ),
+            )
+            .orderBy(asc(projectAiContentAdvisorIssueComments.created_at))
+        : Promise.resolve([]),
+      issueRows.length
+        ? db
+            .select({
+              id: projectAiContentAdvisorIssueDetections.id,
+              issue_id: projectAiContentAdvisorIssueDetections.issue_id,
+              run_id: projectAiContentAdvisorIssueDetections.run_id,
+              agent_run_id: projectAiContentAdvisorIssueDetections.agent_run_id,
+              created_at: projectAiContentAdvisorIssueDetections.created_at,
+              run: {
+                id: projectAiContentAdvisorRuns.id,
+                summary: projectAiContentAdvisorRuns.summary,
+                created_at: projectAiContentAdvisorRuns.created_at,
+                completed_at: projectAiContentAdvisorRuns.completed_at,
+              },
+              agentRun: {
+                id: projectAiContentAdvisorAgentRuns.id,
+                summary: projectAiContentAdvisorAgentRuns.summary,
+                status: projectAiContentAdvisorAgentRuns.status,
+                created_at: projectAiContentAdvisorAgentRuns.created_at,
+                agent: {
+                  id: projectAiContentAdvisorAgentConfigs.id,
+                  key: projectAiContentAdvisorAgentConfigs.key,
+                  name: projectAiContentAdvisorAgentConfigs.name,
+                  description: projectAiContentAdvisorAgentConfigs.description,
+                },
+              },
+            })
+            .from(projectAiContentAdvisorIssueDetections)
+            .innerJoin(
+              projectAiContentAdvisorRuns,
+              eq(
+                projectAiContentAdvisorIssueDetections.run_id,
+                projectAiContentAdvisorRuns.id,
+              ),
+            )
+            .innerJoin(
+              projectAiContentAdvisorAgentRuns,
+              eq(
+                projectAiContentAdvisorIssueDetections.agent_run_id,
+                projectAiContentAdvisorAgentRuns.id,
+              ),
+            )
+            .innerJoin(
+              projectAiContentAdvisorAgentConfigs,
+              eq(
+                projectAiContentAdvisorAgentRuns.agent_config_id,
+                projectAiContentAdvisorAgentConfigs.id,
+              ),
+            )
+            .where(
+              inArray(
+                projectAiContentAdvisorIssueDetections.issue_id,
+                issueRows.map((issue) => issue.id),
+              ),
+            )
+            .orderBy(desc(projectAiContentAdvisorIssueDetections.created_at))
+        : Promise.resolve([]),
+    ]);
+
+    const commentsByIssue = comments.reduce(
+      (acc, comment) => {
+        if (!acc[comment.issue_id]) {
+          acc[comment.issue_id] = [];
+        }
+        acc[comment.issue_id].push(comment);
+        return acc;
+      },
+      {} as Record<string, ContentAdvisorIssueComment[]>,
+    );
+
+    const detectionsByIssue = detections.reduce(
+      (acc, detection) => {
+        if (!acc[detection.issue_id]) {
+          acc[detection.issue_id] = [];
+        }
+        acc[detection.issue_id].push(detection);
+        return acc;
+      },
+      {} as Record<
+        string,
+        z.infer<typeof contentAdvisorIssueDetectionSchema>[]
+      >,
+    );
+
+    const safeLatestRun = latestRunRow
+      ? contentAdvisorRunSchema.safeParse(latestRunRow)
+      : null;
+
+    if (safeLatestRun && !safeLatestRun.success) {
+      return actionZodError(
+        'Failed to parse latest content advisor run.',
+        safeLatestRun.error,
+      );
+    }
+
+    const safeIssues = z
+      .array(contentAdvisorIssueDashboardItemSchema)
+      .safeParse(
+        issues.map((row) => ({
+          ...row.issue,
+          agent: row.agent,
+          comments: commentsByIssue[row.issue.id] || [],
+          detections: detectionsByIssue[row.issue.id] || [],
+          is_detected_in_latest_run: latestRunRow
+            ? row.issue.run_id === latestRunRow.id
+            : false,
+        })),
+      );
+
+    if (!safeIssues.success) {
+      return actionZodError(
+        'Failed to parse content advisor issues dashboard.',
+        safeIssues.error,
+      );
+    }
+
+    return actionSuccess({
+      latestRun: safeLatestRun ? safeLatestRun.data : null,
+      issues: safeIssues.data,
+    });
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      mapAiDbError(error, 'Failed to fetch content advisor issues dashboard.'),
+    );
+  }
+}
+
 export async function getContentAdvisorScheduleById(
   projectId: string,
   scheduleId: string,
@@ -1828,39 +2501,336 @@ export async function getContentAdvisorScheduleById(
     return access;
   }
 
-  const schedules = await db
-    .select()
-    .from(projectAiContentAdvisorSchedules)
-    .where(
-      and(
-        eq(projectAiContentAdvisorSchedules.id, scheduleId),
-        eq(projectAiContentAdvisorSchedules.project_id, projectId),
-      ),
-    )
-    .limit(1);
+  try {
+    const schedules = await db
+      .select()
+      .from(projectAiContentAdvisorSchedules)
+      .where(
+        and(
+          eq(projectAiContentAdvisorSchedules.id, scheduleId),
+          eq(projectAiContentAdvisorSchedules.project_id, projectId),
+        ),
+      )
+      .limit(1);
 
-  const schedule = schedules[0];
-  if (!schedule) {
-    return actionError('Schedule not found.');
+    const schedule = schedules[0];
+    if (!schedule) {
+      return actionError('Schedule not found.');
+    }
+
+    const pages = await db
+      .select()
+      .from(projectAiContentAdvisorSchedulePages)
+      .where(eq(projectAiContentAdvisorSchedulePages.schedule_id, schedule.id));
+
+    const safe = contentAdvisorScheduleSchema.safeParse({
+      ...schedule,
+      pages: pages.map((page) => page.url),
+    });
+    if (!safe.success) {
+      return actionZodError(
+        'Failed to parse content advisor schedule.',
+        safe.error,
+      );
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      mapAiDbError(error, 'Failed to fetch content advisor schedule.'),
+    );
+  }
+}
+
+export async function getContentAdvisorSettings(
+  projectId: string,
+  environmentId: string,
+): ActionResponse<ContentAdvisorSettings | null> {
+  const access = await getProjectAccess(projectId);
+  if ('success' in access && !access.success) {
+    return access;
   }
 
-  const pages = await db
-    .select()
-    .from(projectAiContentAdvisorSchedulePages)
-    .where(eq(projectAiContentAdvisorSchedulePages.schedule_id, schedule.id));
+  try {
+    const rows = await db
+      .select()
+      .from(projectAiContentAdvisorSettings)
+      .where(
+        and(
+          eq(projectAiContentAdvisorSettings.project_id, projectId),
+          eq(projectAiContentAdvisorSettings.environment_id, environmentId),
+        ),
+      )
+      .limit(1);
 
-  const safe = contentAdvisorScheduleSchema.safeParse({
-    ...schedule,
-    pages: pages.map((page) => page.url),
-  });
-  if (!safe.success) {
+    const row = rows[0];
+    if (!row) {
+      return actionSuccess(null);
+    }
+
+    const safe = contentAdvisorSettingsSchema.safeParse(row);
+    if (!safe.success) {
+      return actionZodError(
+        'Failed to parse content advisor settings.',
+        safe.error,
+      );
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      mapAiDbError(error, 'Failed to fetch content advisor settings.'),
+    );
+  }
+}
+
+export async function upsertContentAdvisorSettings(
+  input: ContentAdvisorSettingsInput,
+): ActionResponse<ContentAdvisorSettings> {
+  const access = await getProjectAccess(input.project_id, true);
+  if ('success' in access && !access.success) {
+    return access;
+  }
+
+  const parsedInput = contentAdvisorSettingsInputSchema.safeParse(input);
+  if (!parsedInput.success) {
     return actionZodError(
-      'Failed to parse content advisor schedule.',
-      safe.error,
+      'Failed to parse content advisor settings.',
+      parsedInput.error,
     );
   }
 
-  return actionSuccess(safe.data);
+  try {
+    const rows = await db
+      .insert(projectAiContentAdvisorSettings)
+      .values({
+        project_id: parsedInput.data.project_id,
+        environment_id: parsedInput.data.environment_id,
+        auto_resolve_after_runs: parsedInput.data.auto_resolve_after_runs,
+      })
+      .onConflictDoUpdate({
+        target: [
+          projectAiContentAdvisorSettings.project_id,
+          projectAiContentAdvisorSettings.environment_id,
+        ],
+        set: {
+          auto_resolve_after_runs: parsedInput.data.auto_resolve_after_runs,
+          updated_at: new Date(),
+        },
+      })
+      .returning();
+
+    const safe = contentAdvisorSettingsSchema.safeParse(rows[0]);
+    if (!safe.success) {
+      return actionZodError(
+        'Failed to parse saved content advisor settings.',
+        safe.error,
+      );
+    }
+
+    aiRevalidate(input.project_id);
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      mapAiDbError(error, 'Failed to save content advisor settings.'),
+    );
+  }
+}
+
+export async function addContentAdvisorIssueComment(
+  projectId: string,
+  input: ContentAdvisorIssueCommentInput,
+): ActionResponse<ContentAdvisorIssueComment> {
+  const access = await getProjectAccess(projectId, true);
+  if ('success' in access && !access.success) {
+    return access;
+  }
+
+  const parsedInput = contentAdvisorIssueCommentInputSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return actionZodError(
+      'Failed to parse content advisor issue comment.',
+      parsedInput.error,
+    );
+  }
+
+  if ('success' in access) {
+    return access;
+  }
+
+  const { session } = access;
+  const userId = session.user?.id;
+  const userName =
+    session.user?.name?.trim() || session.user?.email || 'Unknown';
+  const userEmail = session.user?.email || null;
+  const userImage = session.user?.image || null;
+
+  if (!userId) {
+    return actionError('No user provided.');
+  }
+
+  try {
+    const issueRows = await db
+      .select({
+        id: projectAiContentAdvisorIssues.id,
+        runProjectId: projectAiContentAdvisorRuns.project_id,
+      })
+      .from(projectAiContentAdvisorIssues)
+      .innerJoin(
+        projectAiContentAdvisorRuns,
+        eq(
+          projectAiContentAdvisorIssues.run_id,
+          projectAiContentAdvisorRuns.id,
+        ),
+      )
+      .where(eq(projectAiContentAdvisorIssues.id, parsedInput.data.issue_id))
+      .limit(1);
+
+    const issue = issueRows[0];
+    if (!issue || issue.runProjectId !== projectId) {
+      return actionError('Issue not found.');
+    }
+
+    const [comment] = await db
+      .insert(projectAiContentAdvisorIssueComments)
+      .values({
+        issue_id: parsedInput.data.issue_id,
+        author_user_id: userId,
+        author_name: userName,
+        author_email: userEmail,
+        author_image: userImage,
+        body: parsedInput.data.body,
+      })
+      .returning();
+
+    const safeComment = contentAdvisorIssueCommentSchema.safeParse(comment);
+    if (!safeComment.success) {
+      return actionZodError(
+        'Failed to parse content advisor issue comment.',
+        safeComment.error,
+      );
+    }
+
+    aiRevalidate(projectId);
+    return actionSuccess(safeComment.data);
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      mapAiDbError(error, 'Failed to save content advisor issue comment.'),
+    );
+  }
+}
+
+export async function updateContentAdvisorIssueStatus(
+  projectId: string,
+  input: ContentAdvisorIssueStatusInput,
+): ActionResponse<ContentAdvisorIssue> {
+  const access = await getProjectAccess(projectId, true);
+  if ('success' in access && !access.success) {
+    return access;
+  }
+
+  const parsedInput = contentAdvisorIssueStatusInputSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return actionZodError(
+      'Failed to parse content advisor issue status.',
+      parsedInput.error,
+    );
+  }
+
+  try {
+    const issueRows = await db
+      .select({
+        id: projectAiContentAdvisorIssues.id,
+        runProjectId: projectAiContentAdvisorRuns.project_id,
+      })
+      .from(projectAiContentAdvisorIssues)
+      .innerJoin(
+        projectAiContentAdvisorRuns,
+        eq(
+          projectAiContentAdvisorIssues.run_id,
+          projectAiContentAdvisorRuns.id,
+        ),
+      )
+      .where(eq(projectAiContentAdvisorIssues.id, parsedInput.data.issue_id))
+      .limit(1);
+
+    const issue = issueRows[0];
+    if (!issue || issue.runProjectId !== projectId) {
+      return actionError('Issue not found.');
+    }
+
+    const [updatedIssue] = await db
+      .update(projectAiContentAdvisorIssues)
+      .set({ status: parsedInput.data.status })
+      .where(eq(projectAiContentAdvisorIssues.id, parsedInput.data.issue_id))
+      .returning();
+
+    const safeIssue = contentAdvisorIssueSchema.safeParse(updatedIssue);
+    if (!safeIssue.success) {
+      return actionZodError(
+        'Failed to parse content advisor issue status.',
+        safeIssue.error,
+      );
+    }
+
+    aiRevalidate(projectId);
+    return actionSuccess(safeIssue.data);
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      mapAiDbError(error, 'Failed to update content advisor issue status.'),
+    );
+  }
+}
+
+export async function deleteContentAdvisorIssue(
+  projectId: string,
+  issueId: string,
+): ActionResponse<{ id: string }> {
+  const access = await getProjectAccess(projectId, true);
+  if ('success' in access && !access.success) {
+    return access;
+  }
+
+  try {
+    const issueRows = await db
+      .select({
+        id: projectAiContentAdvisorIssues.id,
+        runProjectId: projectAiContentAdvisorRuns.project_id,
+      })
+      .from(projectAiContentAdvisorIssues)
+      .innerJoin(
+        projectAiContentAdvisorRuns,
+        eq(
+          projectAiContentAdvisorIssues.run_id,
+          projectAiContentAdvisorRuns.id,
+        ),
+      )
+      .where(eq(projectAiContentAdvisorIssues.id, issueId))
+      .limit(1);
+
+    const issue = issueRows[0];
+    if (!issue || issue.runProjectId !== projectId) {
+      return actionError('Issue not found.');
+    }
+
+    const rows = await db
+      .delete(projectAiContentAdvisorIssues)
+      .where(eq(projectAiContentAdvisorIssues.id, issueId))
+      .returning({ id: projectAiContentAdvisorIssues.id });
+
+    aiRevalidate(projectId);
+    return actionSuccess(rows[0]);
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      mapAiDbError(error, 'Failed to delete content advisor issue.'),
+    );
+  }
 }
 
 export async function runContentAdvisorScheduleAnalysis(
@@ -1870,6 +2840,11 @@ export async function runContentAdvisorScheduleAnalysis(
   run: ContentAdvisorRun;
   issues: ContentAdvisorIssue[];
 }> {
+  const access = await getProjectAccess(projectId, true);
+  if ('success' in access && !access.success) {
+    return access;
+  }
+
   const scheduleResult = await getContentAdvisorScheduleById(
     projectId,
     scheduleId,
@@ -1887,19 +2862,45 @@ export async function runContentAdvisorScheduleAnalysis(
     return agentConfigs;
   }
 
-  const enabledAgents = agentConfigs.data.filter((agent) => agent.enabled);
+  const enabledAgents = agentConfigs.data.filter(
+    // 'compliance' is coming-soon — exclude it from all scheduled/manual runs
+    // until the feature is fully implemented and enabled for production.
+    (agent) => agent.enabled && agent.key !== 'compliance',
+  );
   if (!enabledAgents.length) {
     return actionError('No enabled content advisor agents configured.');
   }
 
   try {
+    const mappingsResult = await getPageUrlMappings(
+      projectId,
+      schedule.environment_id,
+    );
+    const mappings = mappingsResult.success ? mappingsResult.data : [];
+
     const sources = await Promise.all(
-      schedule.pages.map(async (url) => {
+      schedule.pages.map(async (page) => {
         try {
-          return await fetchPageSource(url);
+          const resolved = resolvePageReferenceWithMapping(page, mappings);
+          if (!resolved.url.startsWith('http')) {
+            // AEM path with no mapping — return a stub that will surface as an issue
+            return {
+              reference: page,
+              url: page,
+              title: null,
+              text: '',
+              html: '',
+              status: 0,
+            };
+          }
+          const rawSource = await fetchPageSource(resolved.url);
+          return resolved.aemPath
+            ? { ...rawSource, reference: resolved.aemPath }
+            : rawSource;
         } catch {
           return {
-            url,
+            reference: page,
+            url: resolveContentAdvisorPageUrl(page),
             title: null,
             text: '',
             html: '',
@@ -1909,16 +2910,55 @@ export async function runContentAdvisorScheduleAnalysis(
       }),
     );
 
-    const agentRuns = enabledAgents.map((agent) => {
-      const issues = sources.flatMap((source) =>
-        analyzePageWithAgent(agent, source),
-      );
-      return {
-        agent_config_id: agent.id,
-        summary: `${issues.length} issue${issues.length === 1 ? '' : 's'} found by ${agent.name}.`,
-        issues,
-      };
-    });
+    // Cap concurrent LLM calls: max 4 agent×page combos in flight at once.
+    // Each individual call is also wrapped with a 45-second timeout so a slow
+    // LLM response does not hold the serverless function open indefinitely.
+    const llmLimit = createConcurrencyLimiter(4);
+
+    const agentRuns = await Promise.all(
+      enabledAgents.map(async (agent) => {
+        const analysisResults = await Promise.all(
+          sources.map((source) =>
+            llmLimit(async () => {
+              const timeoutController = new AbortController();
+              const timeoutId = setTimeout(
+                () => timeoutController.abort(),
+                45_000,
+              );
+              try {
+                return await Promise.race([
+                  analyzePageWithAgent(agent, source),
+                  new Promise<never>((_, reject) => {
+                    timeoutController.signal.addEventListener('abort', () =>
+                      reject(new Error('LLM call timed out after 45 seconds')),
+                    );
+                  }),
+                ]);
+              } finally {
+                clearTimeout(timeoutId);
+              }
+            }),
+          ),
+        );
+        const issues = analysisResults.flatMap((result) => result.issues);
+        const issueCount = issues.length;
+
+        return {
+          agent_config_id: agent.id,
+          summary:
+            analysisResults
+              .map((result) => result.summary.trim())
+              .filter(Boolean)
+              .join(' ') ||
+            `${issueCount} issue${issueCount === 1 ? '' : 's'} found by ${agent.name}.`,
+          response: analysisResults
+            .map((result) => result.response.trim())
+            .filter(Boolean)
+            .join('\n\n'),
+          issues,
+        };
+      }),
+    );
 
     const totalIssues = agentRuns.reduce(
       (sum, current) => sum + current.issues.length,
@@ -1933,11 +2973,349 @@ export async function runContentAdvisorScheduleAnalysis(
         ? `Found ${totalIssues} issue${totalIssues === 1 ? '' : 's'} across ${schedule.pages.length} page${schedule.pages.length === 1 ? '' : 's'}.`
         : `No issues found across ${schedule.pages.length} page${schedule.pages.length === 1 ? '' : 's'}.`,
       agentRuns,
+      'manual',
     );
   } catch (error) {
     console.error(error);
     return actionError(
       mapAiDbError(error, 'Failed to run content advisor schedule.'),
+    );
+  }
+}
+
+export async function runContentAdvisorAgentForSchedulePage(input: {
+  projectId: string;
+  environmentId: string;
+  scheduleId: string;
+  agentConfigId: string;
+  page: string;
+}): ActionResponse<{
+  sourceUrl: string;
+  issues: ContentAdvisorIssue[];
+  run: ContentAdvisorRun;
+}> {
+  const access = await getProjectAccess(input.projectId, true);
+  if ('success' in access && !access.success) {
+    return access;
+  }
+
+  const [scheduleResult, agentConfigsResult] = await Promise.all([
+    getContentAdvisorScheduleById(input.projectId, input.scheduleId),
+    getContentAdvisorAgentConfigs(input.projectId, input.environmentId),
+  ]);
+
+  if (!scheduleResult.success) {
+    return scheduleResult;
+  }
+
+  if (!agentConfigsResult.success) {
+    return agentConfigsResult;
+  }
+
+  const schedule = scheduleResult.data;
+  if (schedule.environment_id !== input.environmentId) {
+    return actionError('Schedule does not belong to the selected environment.');
+  }
+
+  const pageReference = input.page.trim();
+  if (!pageReference) {
+    return actionError('Select a page to analyse.');
+  }
+
+  if (!schedule.pages.includes(pageReference)) {
+    return actionError('Selected page is not configured for this schedule.');
+  }
+
+  const agent = agentConfigsResult.data.find(
+    (entry) => entry.id === input.agentConfigId,
+  );
+  if (!agent) {
+    return actionError('Content Advisor agent not found.');
+  }
+
+  if (!agent.enabled) {
+    return actionError('Selected Content Advisor agent is disabled.');
+  }
+
+  if (agent.key === 'compliance') {
+    return actionError('The Compliance agent is not yet available.');
+  }
+
+  try {
+    // Load URL mappings so AEM paths can be resolved to frontend URLs
+    const mappingsResult = await getPageUrlMappings(
+      input.projectId,
+      input.environmentId,
+    );
+    const mappings = mappingsResult.success ? mappingsResult.data : [];
+
+    const resolved = resolvePageReferenceWithMapping(pageReference, mappings);
+
+    // If the reference is an AEM path with no mapping, bail with a helpful error
+    if (!resolved.url.startsWith('http')) {
+      return actionError(
+        `"${pageReference}" is an AEM path with no URL mapping. Add a mapping in AI settings → AEM page URL mappings.`,
+      );
+    }
+
+    const rawSource = await fetchPageSource(resolved.url);
+    // When a mapping was applied, keep the AEM path as the source reference so
+    // issues store page_path = AEM path and page_url = frontend URL.
+    const source = resolved.aemPath
+      ? { ...rawSource, reference: resolved.aemPath }
+      : rawSource;
+
+    const analysis = await analyzePageWithAgent(agent, source);
+    const summary = analysis.issues.length
+      ? `${agent.name} found ${analysis.issues.length} issue${analysis.issues.length === 1 ? '' : 's'} on ${pageReference}.`
+      : `${agent.name} found no issues on ${pageReference}.`;
+
+    const runResult = await createContentAdvisorRun(
+      input.projectId,
+      input.environmentId,
+      input.scheduleId,
+      summary,
+      [
+        {
+          agent_config_id: agent.id,
+          summary: analysis.summary || summary,
+          response: analysis.response,
+          issues: analysis.issues,
+        },
+      ],
+      'manual',
+    );
+
+    if (!runResult.success) {
+      return runResult;
+    }
+
+    return actionSuccess({
+      sourceUrl: source.url,
+      issues: runResult.data.issues,
+      run: runResult.data.run,
+    });
+  } catch (error) {
+    return actionError(
+      error instanceof Error
+        ? error.message
+        : 'Failed to run content advisor agent for the selected page.',
+    );
+  }
+}
+
+export async function getContentAdvisorRunDetails(
+  projectId: string,
+  runId: string,
+): ActionResponse<{
+  run: ContentAdvisorRun;
+  agentRuns: ContentAdvisorAgentRunWithAgent[];
+  issues: ContentAdvisorIssueWithComments[];
+}> {
+  const access = await getProjectAccess(projectId);
+  if ('success' in access && !access.success) {
+    return access;
+  }
+
+  try {
+    const runRows = await db
+      .select()
+      .from(projectAiContentAdvisorRuns)
+      .where(
+        and(
+          eq(projectAiContentAdvisorRuns.id, runId),
+          eq(projectAiContentAdvisorRuns.project_id, projectId),
+        ),
+      )
+      .limit(1);
+
+    const runRow = runRows[0];
+    if (!runRow) {
+      return actionError('Content Advisor run not found.');
+    }
+
+    // Fetch agent runs and issues in parallel — they are independent of each other.
+    const [agentRunRows, issueRows] = await Promise.all([
+      db
+        .select({
+          id: projectAiContentAdvisorAgentRuns.id,
+          run_id: projectAiContentAdvisorAgentRuns.run_id,
+          agent_config_id: projectAiContentAdvisorAgentRuns.agent_config_id,
+          status: projectAiContentAdvisorAgentRuns.status,
+          summary: projectAiContentAdvisorAgentRuns.summary,
+          response: projectAiContentAdvisorAgentRuns.response,
+          issue_count: projectAiContentAdvisorAgentRuns.issue_count,
+          created_at: projectAiContentAdvisorAgentRuns.created_at,
+          agent: {
+            id: projectAiContentAdvisorAgentConfigs.id,
+            key: projectAiContentAdvisorAgentConfigs.key,
+            name: projectAiContentAdvisorAgentConfigs.name,
+            description: projectAiContentAdvisorAgentConfigs.description,
+          },
+        })
+        .from(projectAiContentAdvisorAgentRuns)
+        .innerJoin(
+          projectAiContentAdvisorAgentConfigs,
+          eq(
+            projectAiContentAdvisorAgentRuns.agent_config_id,
+            projectAiContentAdvisorAgentConfigs.id,
+          ),
+        )
+        .where(eq(projectAiContentAdvisorAgentRuns.run_id, runId))
+        .orderBy(asc(projectAiContentAdvisorAgentRuns.created_at)),
+      db
+        .select()
+        .from(projectAiContentAdvisorIssues)
+        .where(eq(projectAiContentAdvisorIssues.run_id, runId))
+        .orderBy(desc(projectAiContentAdvisorIssues.created_at)),
+    ]);
+
+    // Comments are not rendered in the run detail page.
+    // Skip the DB query and pass empty arrays to satisfy the schema default.
+
+    const safeRun = contentAdvisorRunSchema.safeParse(runRow);
+    const safeAgentRuns = z
+      .array(contentAdvisorAgentRunWithAgentSchema)
+      .safeParse(
+        agentRunRows.map((row) => ({
+          ...row,
+          agent: normalizeContentAdvisorAgentRow(row.agent),
+        })),
+      );
+    const safeIssues = z.array(contentAdvisorIssueWithCommentsSchema).safeParse(
+      issueRows.map((issue) => ({
+        ...issue,
+        comments: [],
+      })),
+    );
+
+    if (!safeRun.success) {
+      return actionZodError(
+        'Failed to parse content advisor run.',
+        safeRun.error,
+      );
+    }
+    if (!safeAgentRuns.success) {
+      return actionZodError(
+        'Failed to parse content advisor agent runs.',
+        safeAgentRuns.error,
+      );
+    }
+    if (!safeIssues.success) {
+      return actionZodError(
+        'Failed to parse content advisor issues.',
+        safeIssues.error,
+      );
+    }
+
+    return actionSuccess({
+      run: safeRun.data,
+      agentRuns: safeAgentRuns.data,
+      issues: safeIssues.data,
+    });
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      mapAiDbError(error, 'Failed to fetch content advisor run details.'),
+    );
+  }
+}
+
+export async function getContentAdvisorRunsForSchedule(
+  projectId: string,
+  scheduleId: string,
+  limit = 25,
+): ActionResponse<ContentAdvisorRunHistoryItem[]> {
+  const access = await getProjectAccess(projectId);
+  if ('success' in access && !access.success) {
+    return access;
+  }
+
+  const safeLimit = Math.max(1, Math.min(limit, 200));
+
+  try {
+    const runRows = await db
+      .select()
+      .from(projectAiContentAdvisorRuns)
+      .where(
+        and(
+          eq(projectAiContentAdvisorRuns.project_id, projectId),
+          eq(projectAiContentAdvisorRuns.schedule_id, scheduleId),
+        ),
+      )
+      .orderBy(desc(projectAiContentAdvisorRuns.created_at))
+      .limit(safeLimit);
+
+    if (!runRows.length) {
+      return actionSuccess([]);
+    }
+
+    const runIds = runRows.map((row) => row.id);
+
+    const agentRunRows = await db
+      .select({
+        id: projectAiContentAdvisorAgentRuns.id,
+        run_id: projectAiContentAdvisorAgentRuns.run_id,
+        agent_config_id: projectAiContentAdvisorAgentRuns.agent_config_id,
+        status: projectAiContentAdvisorAgentRuns.status,
+        summary: projectAiContentAdvisorAgentRuns.summary,
+        response: projectAiContentAdvisorAgentRuns.response,
+        issue_count: projectAiContentAdvisorAgentRuns.issue_count,
+        created_at: projectAiContentAdvisorAgentRuns.created_at,
+        agent: {
+          id: projectAiContentAdvisorAgentConfigs.id,
+          key: projectAiContentAdvisorAgentConfigs.key,
+          name: projectAiContentAdvisorAgentConfigs.name,
+          description: projectAiContentAdvisorAgentConfigs.description,
+        },
+      })
+      .from(projectAiContentAdvisorAgentRuns)
+      .innerJoin(
+        projectAiContentAdvisorAgentConfigs,
+        eq(
+          projectAiContentAdvisorAgentRuns.agent_config_id,
+          projectAiContentAdvisorAgentConfigs.id,
+        ),
+      )
+      .where(inArray(projectAiContentAdvisorAgentRuns.run_id, runIds))
+      .orderBy(asc(projectAiContentAdvisorAgentRuns.created_at));
+
+    const agentRunsByRunId = agentRunRows.reduce(
+      (acc, row) => {
+        if (!acc[row.run_id]) {
+          acc[row.run_id] = [];
+        }
+        acc[row.run_id].push(row);
+        return acc;
+      },
+      {} as Record<string, typeof agentRunRows>,
+    );
+
+    const items = runRows.map((run) => {
+      const agentRuns = (agentRunsByRunId[run.id] ?? []).map((row) => ({
+        ...row,
+        agent: normalizeContentAdvisorAgentRow(row.agent as any),
+      }));
+      const issue_count = agentRuns.reduce(
+        (sum, ar) => sum + (ar.issue_count || 0),
+        0,
+      );
+      return { ...run, agentRuns, issue_count };
+    });
+
+    const safe = z.array(contentAdvisorRunHistoryItemSchema).safeParse(items);
+    if (!safe.success) {
+      return actionZodError(
+        'Failed to parse content advisor run history.',
+        safe.error,
+      );
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      mapAiDbError(error, 'Failed to fetch content advisor run history.'),
     );
   }
 }
@@ -1952,4 +3330,123 @@ export async function getCatalogueDataOrEmpty(
   }
 
   return actionSuccess(latestVersion.data?.data || EMPTY_CATALOGUE_DATA);
+}
+
+// ---------------------------------------------------------------------------
+// AEM path → frontend URL mappings
+// ---------------------------------------------------------------------------
+
+export async function getPageUrlMappings(
+  projectId: string,
+  environmentId: string,
+): ActionResponse<PageUrlMapping[]> {
+  const access = await getProjectAccess(projectId);
+  if ('success' in access && !access.success) return access;
+
+  try {
+    const rows = await db
+      .select()
+      .from(projectAiPageUrlMappings)
+      .where(
+        and(
+          eq(projectAiPageUrlMappings.project_id, projectId),
+          eq(projectAiPageUrlMappings.environment_id, environmentId),
+        ),
+      )
+      .orderBy(asc(projectAiPageUrlMappings.aem_path));
+
+    const parsed = rows.map((row) => pageUrlMappingSchema.safeParse(row));
+    const valid = parsed.filter((r) => r.success).map((r) => r.data!);
+    return actionSuccess(valid);
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      mapAiDbError(error, 'Failed to fetch page URL mappings from database.'),
+    );
+  }
+}
+
+export async function upsertPageUrlMapping(
+  input: PageUrlMappingInput,
+): ActionResponse<PageUrlMapping> {
+  const access = await getProjectAccess(input.project_id, true);
+  if ('success' in access && !access.success) return access;
+
+  const safe = pageUrlMappingInputSchema.safeParse(input);
+  if (!safe.success) {
+    return actionZodError(
+      'Failed to parse page URL mapping input.',
+      safe.error,
+    );
+  }
+
+  try {
+    const payload = {
+      project_id: safe.data.project_id,
+      environment_id: safe.data.environment_id,
+      aem_path: safe.data.aem_path,
+      frontend_url: safe.data.frontend_url,
+      updated_at: new Date(),
+    };
+
+    const rows = safe.data.id
+      ? await db
+          .update(projectAiPageUrlMappings)
+          .set(payload)
+          .where(
+            and(
+              eq(projectAiPageUrlMappings.id, safe.data.id),
+              eq(projectAiPageUrlMappings.project_id, safe.data.project_id),
+            ),
+          )
+          .returning()
+      : await db
+          .insert(projectAiPageUrlMappings)
+          .values(payload)
+          .onConflictDoUpdate({
+            target: [
+              projectAiPageUrlMappings.environment_id,
+              projectAiPageUrlMappings.aem_path,
+            ],
+            set: {
+              frontend_url: safe.data.frontend_url,
+              updated_at: new Date(),
+            },
+          })
+          .returning();
+
+    const parsed = pageUrlMappingSchema.safeParse(rows[0]);
+    if (!parsed.success) {
+      return actionZodError('Failed to parse saved mapping.', parsed.error);
+    }
+
+    return actionSuccess(parsed.data);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to save page URL mapping.');
+  }
+}
+
+export async function deletePageUrlMapping(
+  projectId: string,
+  mappingId: string,
+): ActionResponse<{ id: string }> {
+  const access = await getProjectAccess(projectId, true);
+  if ('success' in access && !access.success) return access;
+
+  try {
+    await db
+      .delete(projectAiPageUrlMappings)
+      .where(
+        and(
+          eq(projectAiPageUrlMappings.id, mappingId),
+          eq(projectAiPageUrlMappings.project_id, projectId),
+        ),
+      );
+
+    return actionSuccess({ id: mappingId });
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to delete page URL mapping.');
+  }
 }

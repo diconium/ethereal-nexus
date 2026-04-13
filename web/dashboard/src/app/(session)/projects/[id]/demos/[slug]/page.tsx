@@ -3,7 +3,12 @@ import {
   getProjectById,
   getEnvironmentsByProject,
 } from '@/data/projects/actions';
-import { getChatbotsByEnvironment, getProjectAiFlags } from '@/data/ai/actions';
+import {
+  getChatbotApiSettingsByEnvironment,
+  getChatbotsByEnvironment,
+  getProjectAiFlags,
+} from '@/data/ai/actions';
+import { DEFAULT_CHATBOT_API_SETTINGS_VALUES } from '@/data/ai/chatbot-api-settings';
 import { FeatureDisabledNotice } from '@/components/projects/ai/feature-disabled-notice';
 import { AiErrorNotice } from '@/components/projects/ai/ai-error-notice';
 import { ChatbotDemo } from '@/components/projects/demos/chatbot-demo';
@@ -52,12 +57,17 @@ export default async function ChatbotDemoPage({
     );
   }
 
-  const [flagsResult, chatbotsResult] = await Promise.all([
+  const [flagsResult, chatbotsResult, apiSettingsResult] = await Promise.all([
     getProjectAiFlags(id, selectedEnvironment.id),
     getChatbotsByEnvironment(id, selectedEnvironment.id),
+    getChatbotApiSettingsByEnvironment(id, selectedEnvironment.id),
   ]);
 
-  if (!flagsResult.success || !chatbotsResult.success) {
+  if (
+    !flagsResult.success ||
+    !chatbotsResult.success ||
+    !apiSettingsResult.success
+  ) {
     return (
       <AiErrorNotice
         title="Unable to load chatbot demo"
@@ -66,7 +76,9 @@ export default async function ChatbotDemoPage({
             ? flagsResult.error.message
             : !chatbotsResult.success
               ? chatbotsResult.error.message
-              : 'Failed to load chatbot demo.'
+              : !apiSettingsResult.success
+                ? apiSettingsResult.error.message
+                : 'Failed to load chatbot demo.'
         }
       />
     );
@@ -88,5 +100,17 @@ export default async function ChatbotDemoPage({
     notFound();
   }
 
-  return <ChatbotDemo chatbot={chatbot} />;
+  const apiSettings = apiSettingsResult.data.find(
+    (item) => item.chatbot_id === chatbot.id,
+  ) ?? {
+    id: crypto.randomUUID(),
+    project_id: id,
+    environment_id: selectedEnvironment.id,
+    chatbot_id: chatbot.id,
+    ...DEFAULT_CHATBOT_API_SETTINGS_VALUES,
+    created_at: new Date(),
+    updated_at: new Date(),
+  };
+
+  return <ChatbotDemo chatbot={chatbot} apiSettings={apiSettings} />;
 }

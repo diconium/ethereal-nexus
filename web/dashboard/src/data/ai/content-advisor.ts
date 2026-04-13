@@ -13,6 +13,7 @@ export const CONTENT_ADVISOR_ISSUE_TYPES = [
   'stale-content',
   'incorrect-content',
   'incoherent-content',
+  'duplicate-content',
   'broken-content',
 ] as const;
 
@@ -27,6 +28,16 @@ export const CONTENT_ADVISOR_SEVERITIES = [
 
 export type ContentAdvisorSeverity =
   (typeof CONTENT_ADVISOR_SEVERITIES)[number];
+
+export const CONTENT_ADVISOR_ISSUE_STATUSES = [
+  'open',
+  'in-progress',
+  'done',
+  'wont-do',
+] as const;
+
+export type ContentAdvisorIssueStatus =
+  (typeof CONTENT_ADVISOR_ISSUE_STATUSES)[number];
 
 export const CONTENT_ADVISOR_AGENT_CATALOG = [
   {
@@ -51,23 +62,22 @@ export const CONTENT_ADVISOR_AGENT_CATALOG = [
     description:
       'Reviews prose quality, tone of voice, brand consistency, terminology uniformity across pages, duplicate content, and structural clarity.',
     defaultPrompt:
-      'Review prose quality, brand tone of voice, terminology consistency, duplicate or near-duplicate copy, readability, and structural clarity.',
+      'Review the page content for incoherent writing, placeholder text, weak structure, repeated copy, unclear calls to action, prose quality, tone of voice consistency, brand alignment, terminology uniformity, duplicate content, and structural clarity. Return only valid JSON with the shape {"summary": string, "issues": [{"issue_type": "stale-content" | "incorrect-content" | "incoherent-content" | "duplicate-content" | "broken-content", "severity": "critical" | "warning" | "info", "status": "open", "title": string, "description": string, "suggestion": string, "reasoning": string}]}. If no issues are found, return {"summary":"No issues found.","issues":[]}.',
   },
   {
     key: 'broken-link' as const,
     name: 'Broken Link',
     description:
-      'Detects broken internal and external hyperlinks, missing redirects, and anchor targets that return error status codes.',
-    defaultPrompt:
-      'Identify hyperlinks that return 4xx or 5xx status codes, missing redirect rules for moved pages, and anchor fragment targets that no longer exist.',
+      'Crawls configured pages and follows links up to a configurable depth, checking each link for HTTP errors (4xx/5xx). Only follows links within the same domain. Reports all broken or unreachable URLs as issues.',
+    defaultPrompt: '',
   },
   {
     key: 'compliance' as const,
     name: 'Compliance',
     description:
-      'Checks for required legal notices, GDPR/cookie consent banners, T&C and Privacy Policy accessibility, disclaimer presence, and regulatory copy requirements.',
+      'Audits pages for legal and regulatory completeness. Checks for: GDPR-compliant cookie consent banners (OneTrust, CookieBot, or equivalent); accessible links to Privacy Policy and Terms & Conditions in the page footer or navigation; required legal disclaimers and copyright notices; regulatory copy completeness (e.g. financial, medical, or age-gating notices where applicable); and stale year references in copyright statements.',
     defaultPrompt:
-      'Check for GDPR-compliant cookie consent banners, visible links to Privacy Policy and Terms & Conditions, required legal disclaimers, and regulatory copy completeness.',
+      'Check for GDPR-compliant cookie consent banners, visible links to Privacy Policy and Terms & Conditions, required legal disclaimers, and regulatory copy completeness. Return only valid JSON with the shape {"summary": string, "issues": [{"issue_type": "incorrect-content" | "stale-content", "severity": "critical" | "warning" | "info", "status": "open", "title": string, "description": string, "suggestion": string, "reasoning": string}]}. If no issues are found, return {"summary":"No issues found.","issues":[]}.',
   },
 ];
 

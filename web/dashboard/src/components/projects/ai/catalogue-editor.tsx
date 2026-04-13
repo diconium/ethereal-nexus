@@ -16,6 +16,7 @@ import {
   generateCatalogueVersionWithAi,
   saveCatalogueVersion,
 } from '@/data/ai/actions';
+import { normalizeCatalogueApiPath } from '@/data/ai/catalogue-endpoint';
 import type { Catalogue } from '@/data/ai/dto';
 import type {
   CatalogueData,
@@ -40,6 +41,9 @@ export function CatalogueEditor({
   const [raw, setRaw] = useState(JSON.stringify(initialData, null, 2));
   const [versionList, setVersionList] = useState(versions);
   const [isPending, startTransition] = useTransition();
+  const publicEndpoint =
+    normalizeCatalogueApiPath(catalogue.api_url, catalogue.slug) ||
+    `/api/v1/${catalogue.slug}`;
 
   const isJsonValid = useMemo(() => {
     try {
@@ -66,11 +70,14 @@ export function CatalogueEditor({
               Versioned JSON catalogue editor scoped to the selected
               environment.
             </p>
+            <p className="mt-2 break-all text-xs text-muted-foreground">
+              GET <code>{publicEndpoint}</code>
+            </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
-            variant="outline"
+            size="sm"
             disabled={isPending}
             onClick={() => {
               if (!isJsonValid) {
@@ -104,6 +111,7 @@ export function CatalogueEditor({
             Save JSON
           </Button>
           <Button
+            size="sm"
             disabled={isPending}
             onClick={() => {
               startTransition(async () => {
@@ -131,7 +139,7 @@ export function CatalogueEditor({
               });
             }}
           >
-            Generate version
+            {isPending ? 'Working...' : 'Call agent'}
           </Button>
         </div>
       </div>

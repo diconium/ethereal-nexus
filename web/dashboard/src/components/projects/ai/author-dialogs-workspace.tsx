@@ -303,7 +303,7 @@ export function AuthorDialogsWorkspace({
               public endpoints and live editing tools.
             </p>
           </div>
-          <Button disabled={isPending} onClick={openCreateDialog}>
+          <Button size="sm" disabled={isPending} onClick={openCreateDialog}>
             Add new
           </Button>
         </div>
@@ -849,10 +849,20 @@ export function AuthorDialogsWorkspace({
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={closeFormDialog}>
+              <Button
+                size="sm"
+                type="button"
+                variant="outline"
+                onClick={closeFormDialog}
+              >
                 Cancel
               </Button>
-              <Button type="button" disabled={isPending} onClick={submitForm}>
+              <Button
+                size="sm"
+                type="button"
+                disabled={isPending}
+                onClick={submitForm}
+              >
                 {isEditing ? 'Save workspace' : 'Create workspace'}
               </Button>
             </DialogFooter>

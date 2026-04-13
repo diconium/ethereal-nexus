@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState, useTransition } from 'react';
-import { MessageSquare } from 'lucide-react';
+import { BarChart3, MessageSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -369,7 +369,9 @@ export function ChatbotsManager({
               unique public talk endpoint.
             </p>
           </div>
-          <Button onClick={openCreateDialog}>Add chatbot</Button>
+          <Button size="sm" onClick={openCreateDialog}>
+            Add chatbot
+          </Button>
         </div>
 
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -457,6 +459,14 @@ export function ChatbotsManager({
                           >
                             <MessageSquare className="h-4 w-4" />
                             Open Chat
+                          </Link>
+                        </Button>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link
+                            href={`/projects/${projectId}/ai/chatbots/${chatbot.id}/analytics?env=${environmentId}`}
+                          >
+                            <BarChart3 className="h-4 w-4" />
+                            Analytics
                           </Link>
                         </Button>
                         <Button
@@ -768,10 +778,20 @@ export function ChatbotsManager({
             </div>
 
             <DialogFooter className="border-t px-6 py-4">
-              <Button type="button" variant="outline" onClick={closeFormDialog}>
+              <Button
+                size="sm"
+                type="button"
+                variant="outline"
+                onClick={closeFormDialog}
+              >
                 Cancel
               </Button>
-              <Button type="button" disabled={isPending} onClick={submitForm}>
+              <Button
+                size="sm"
+                type="button"
+                disabled={isPending}
+                onClick={submitForm}
+              >
                 {isEditing ? 'Save chatbot' : 'Create chatbot'}
               </Button>
             </DialogFooter>

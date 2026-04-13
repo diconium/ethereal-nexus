@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "project_ai_content_advisor_settings_project_env_idx" ON "project_ai_content_advisor_settings" USING btree ("project_id","environment_id");

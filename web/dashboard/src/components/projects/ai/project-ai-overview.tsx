@@ -1,16 +1,24 @@
+'use client';
+
 import {
   Activity,
-  BarChart3,
+  AreaChart as AreaChartIcon,
   Bot,
   Clock3,
-  MessageSquareText,
+  AlertTriangle,
   Radar,
   ScanSearch,
-  ShieldCheck,
   Sparkles,
 } from 'lucide-react';
+import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart';
 import type { ProjectAiFeatureFlag } from '@/data/ai/dto';
 
 type ProjectAiOverviewProps = {
@@ -23,10 +31,20 @@ type ProjectAiOverviewProps = {
     contentIssuesFound: number;
     scheduledRuns: number;
     topPerformingAgent: string;
+    contentAdvisorResolvedRate: number;
+    persistentIssues: number;
+    openIssues: number;
+    enabledAgents: number;
+    systemActivityPoints: Array<{ day: string; detections: number }>;
   };
 };
 
-const SYSTEM_ACTIVITY_POINTS = [42, 58, 51, 73, 65, 89, 82];
+const systemActivityChartConfig = {
+  detections: {
+    label: 'Detections',
+    color: 'var(--chart-1)',
+  },
+} satisfies ChartConfig;
 
 function OverviewStat({
   title,
@@ -118,15 +136,15 @@ export function ProjectAiOverview({
           icon={Bot}
         />
         <OverviewStat
-          title="Messages Processed"
-          value="48.2K"
-          hint="Last 7 days"
-          icon={MessageSquareText}
+          title="Open Issues"
+          value={String(stats.openIssues)}
+          hint="Currently need review or follow-up"
+          icon={AlertTriangle}
         />
         <OverviewStat
-          title="Avg Response Time"
-          value="1.2s"
-          hint="Azure Foundry runtime"
+          title="Enabled Agents"
+          value={String(stats.enabledAgents)}
+          hint="Configured and active in this environment"
           icon={Clock3}
         />
       </div>
@@ -140,32 +158,65 @@ export function ProjectAiOverview({
             <div className="rounded-2xl border bg-muted/15 p-5">
               <div className="mb-4 flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium text-foreground">
-                    System activity
+                  <p className="flex items-center gap-2 text-sm font-medium text-foreground">
+                    <AreaChartIcon className="size-4 text-primary" />
+                    Detection activity
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Chatbot traffic, schedule runs, and overall AI system load.
+                    Content Advisor detections recorded across the last 7 days.
                   </p>
                 </div>
                 <Badge variant="outline">7 days</Badge>
               </div>
 
-              <div className="flex h-48 items-end gap-3 rounded-xl bg-gradient-to-b from-muted/10 to-muted/40 p-4">
-                {SYSTEM_ACTIVITY_POINTS.map((value, index) => (
-                  <div
-                    key={`${value}-${index}`}
-                    className="flex flex-1 flex-col items-center gap-2"
-                  >
-                    <div
-                      className="w-full rounded-t-xl bg-gradient-to-t from-primary/85 via-primary/70 to-primary/30"
-                      style={{ height: `${value}%` }}
-                    />
-                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                      D{index + 1}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              <ChartContainer
+                config={systemActivityChartConfig}
+                className="aspect-auto h-48 w-full"
+              >
+                <AreaChart
+                  data={stats.systemActivityPoints}
+                  margin={{ left: 8, right: 8 }}
+                >
+                  <defs>
+                    <linearGradient
+                        id="fillSystemLoad"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="5%"
+                        stopColor="var(--color-detections)"
+                        stopOpacity={0.75}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="var(--color-detections)"
+                        stopOpacity={0.08}
+                      />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="day"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                  />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator="dot" />}
+                  />
+                  <Area
+                    dataKey="detections"
+                    type="natural"
+                    fill="url(#fillSystemLoad)"
+                    stroke="var(--color-detections)"
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ChartContainer>
             </div>
 
             <div className="space-y-3 rounded-2xl border bg-card px-5 py-4">
@@ -175,13 +226,13 @@ export function ProjectAiOverview({
               <div className="grid gap-3">
                 <div className="rounded-xl border bg-muted/15 px-4 py-3">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Top Performing Agent
+                    Most active agent
                   </p>
                   <p className="mt-2 text-lg font-semibold text-foreground">
                     {stats.topPerformingAgent}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Highest issue detection rate
+                    Highest number of recorded issue detections
                   </p>
                 </div>
               </div>
@@ -204,31 +255,19 @@ export function ProjectAiOverview({
               icon={Radar}
             />
             <InsightCard
-              title="Public API Usage"
-              value="9.4K"
-              hint="Requests (rate-limited)"
-              icon={BarChart3}
+              title="Persistent Issues"
+              value={String(stats.persistentIssues)}
+              hint="Tracked across all Content Advisor runs"
+              icon={Activity}
             />
           </div>
 
           <div className="grid gap-4">
             <InsightCard
-              title="Chatbot Health"
-              value="98.7%"
-              hint="Success rate across all chatbot interactions."
-              icon={ShieldCheck}
-            />
-            <InsightCard
               title="Content Advisor Impact"
-              value="+22%"
-              hint="Improvement in SEO score after fixes."
+              value={`${stats.contentAdvisorResolvedRate}%`}
+              hint="Share of persistent issues marked done or won't do."
               icon={Activity}
-            />
-            <InsightCard
-              title="API Reliability"
-              value="1.3K"
-              hint="Excess requests prevented by rate limiting."
-              icon={ShieldCheck}
             />
           </div>
         </div>

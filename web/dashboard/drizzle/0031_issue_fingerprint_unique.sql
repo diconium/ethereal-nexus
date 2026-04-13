@@ -1,0 +1,2 @@
+DROP INDEX "project_ai_content_advisor_issue_fingerprint_idx";--> statement-breakpoint
+CREATE UNIQUE INDEX "project_ai_content_advisor_issue_fingerprint_idx" ON "project_ai_content_advisor_issue" USING btree ("environment_id","fingerprint");

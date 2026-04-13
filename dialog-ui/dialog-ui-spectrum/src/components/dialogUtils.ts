@@ -26,3 +26,16 @@ export function setDialogMinWidth(rootElement: HTMLElement | null) {
         }
     }
 }
+
+
+export function removeTranslate(rootElement: HTMLElement | null) {
+    if (!rootElement) return;
+    let el: HTMLElement | null = rootElement;
+    while (el && el.parentElement) {
+        el = el.parentElement as HTMLElement;
+        if (el.classList.contains('coral3-Dialog-wrapper')) {
+            el!.style.transform = "none"
+            break;
+        }
+    }
+}

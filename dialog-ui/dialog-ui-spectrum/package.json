@@ -1,6 +1,6 @@
 {
   "name": "@ethereal-nexus/dialog-ui-spectrum",
-  "version": "1.8.1",
+  "version": "1.8.5",
   "type": "module",
   "description": "React UI package using Adobe React Spectrum components",
   "main": "dist/index.esm.js",
@@ -49,7 +49,9 @@
     "@ethereal-nexus/dialog-ui-core": "workspace:*",
     "@internationalized/date": "^3.11.0",
     "@r2wc/react-to-web-component": "^2.1.0",
-    "@spectrum-icons/workflow": "^4.2.27"
+    "@spectrum-icons/workflow": "^4.2.27",
+    "@types/sanitize-html": "^2.16.1",
+    "sanitize-html": "^2.17.2"
   },
   "devDependencies": {
     "@storybook/react-vite": "^10.2.11",

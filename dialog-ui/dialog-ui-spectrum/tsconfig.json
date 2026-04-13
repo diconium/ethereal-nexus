@@ -29,7 +29,8 @@
     /* Declaration */
     "declaration": true,
     "declarationMap": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "noImplicitAny": false
   },
   "include": ["src"],
   "references": [

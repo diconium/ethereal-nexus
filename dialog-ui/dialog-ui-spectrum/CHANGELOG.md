@@ -1,5 +1,29 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.8.5
+
+### Patch Changes
+
+- dfb461b: add sanitize-html for rich text content sanitization in SpectrumRichTextEditorField
+
+## 1.8.4
+
+### Patch Changes
+
+- d596aa5: enhance dialog positioning and add resize handling for improved responsiveness
+
+## 1.8.3
+
+### Patch Changes
+
+- cc8f43d: adjust dialog positioning and overflow handling for improved layout
+
+## 1.8.2
+
+### Patch Changes
+
+- 150e393: improve type safety and remove unnecessary styles in dialog utilities and navigation components
+
 ## 1.8.1
 
 ### Patch Changes

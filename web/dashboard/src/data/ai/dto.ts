@@ -417,7 +417,6 @@ export const contentAdvisorAgentConfigInputSchema = z.object({
   provider: aiProviderSchema,
   project_endpoint: z.string().url().optional().nullable().or(z.literal('')),
   provider_agent_id: z.string().optional().nullable(),
-  prompt: z.string().min(1),
   enabled: z.boolean().default(true),
 });
 export type ContentAdvisorAgentConfigInput = z.infer<
@@ -477,7 +476,6 @@ export const contentAdvisorScheduleInputSchema = z.object({
   environment_id: z.string().uuid(),
   label: z.string().min(2),
   cron: z.string().min(5),
-  focus_instruction: z.string().optional().nullable(),
   enabled: z.boolean().default(true),
   pages: z.array(contentAdvisorPageReferenceSchema).min(1),
 });

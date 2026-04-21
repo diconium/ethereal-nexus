@@ -397,7 +397,6 @@ function normalizeContentAdvisorAgentRow(row: PartialAgentConfigRow) {
     key: normalizedKey,
     name: catalogEntry.name,
     description: catalogEntry.description,
-    prompt: row.prompt || catalogEntry.defaultPrompt,
   };
 }
 
@@ -1749,7 +1748,6 @@ export async function upsertBrokenLinkAgentConfig(
         crawl_depth: safeInput.data.crawl_depth,
         allowed_domain: safeInput.data.allowed_domain,
       },
-      prompt: '',
       enabled: safeInput.data.enabled,
       updated_at: new Date(),
     };
@@ -1877,7 +1875,6 @@ export async function upsertContentAdvisorSchedule(
             .set({
               label: safeInput.data.label,
               cron: safeInput.data.cron,
-              focus_instruction: safeInput.data.focus_instruction || null,
               enabled: safeInput.data.enabled,
               updated_at: new Date(),
             })
@@ -1898,7 +1895,6 @@ export async function upsertContentAdvisorSchedule(
               environment_id: safeInput.data.environment_id,
               label: safeInput.data.label,
               cron: safeInput.data.cron,
-              focus_instruction: safeInput.data.focus_instruction || null,
               enabled: safeInput.data.enabled,
             })
             .returning();

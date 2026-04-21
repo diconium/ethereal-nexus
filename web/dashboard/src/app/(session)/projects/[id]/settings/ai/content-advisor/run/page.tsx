@@ -26,7 +26,6 @@ import {
 } from '@/data/ai/actions';
 import { getProjectById } from '@/data/projects/actions';
 import type {
-  ContentAdvisorAgentConfig,
   ContentAdvisorIssueWithComments,
 } from '@/data/ai/dto';
 
@@ -96,16 +95,6 @@ function IssuePreview({ issue }: { issue: ContentAdvisorIssueWithComments }) {
       </div>
     </div>
   );
-}
-
-function agentPromptLabel(agent?: ContentAdvisorAgentConfig) {
-  if (!agent) {
-    return 'No agent selected';
-  }
-
-  return agent.prompt?.trim()
-    ? 'Configured agent prompt'
-    : 'Default agent prompt';
 }
 
 export default async function ContentAdvisorManualRunPage({
@@ -224,14 +213,6 @@ export default async function ContentAdvisorManualRunPage({
                   <span className="font-medium text-foreground">Page:</span>{' '}
                   <span className="break-all font-mono text-muted-foreground">
                     {activePage || 'No configured page available'}
-                  </span>
-                </p>
-                <p>
-                  <span className="font-medium text-foreground">
-                    Prompt source:
-                  </span>{' '}
-                  <span className="text-muted-foreground">
-                    {agentPromptLabel(activeAgent)}
                   </span>
                 </p>
               </div>

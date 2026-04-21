@@ -12,7 +12,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { TextArea } from '@/components/ui/text-area';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -173,9 +172,6 @@ function AgentRow({
   const providerCfg = parseProviderCfg(agent?.provider_config);
 
   const [expanded, setExpanded] = useState(false);
-  const [prompt, setPrompt] = useState(
-    agent?.prompt || catalogEntry.defaultPrompt,
-  );
   const [enabled, setEnabled] = useState(agent?.enabled ?? true);
   const [provider, setProvider] = useState<AiProvider>(
     agent?.provider || 'microsoft-foundry',
@@ -199,7 +195,6 @@ function AgentRow({
     setProvider(agent?.provider || 'microsoft-foundry');
     setProjectEndpoint(cfg?.project_endpoint || '');
     setProviderAgentId(cfg?.agent_id || '');
-    setPrompt(agent?.prompt || catalogEntry.defaultPrompt);
     setCrawlDepth(cfg?.crawl_depth ?? 1);
     setAllowedDomain(cfg?.allowed_domain || '');
   }, [agent?.id, agent?.updated_at]);
@@ -401,24 +396,6 @@ function AgentRow({
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label
-                  htmlFor={`${catalogEntry.key}-focus-instruction`}
-                  className="text-sm font-medium"
-                >
-                  Focus instruction
-                </label>
-                <TextArea
-                  id={`${catalogEntry.key}-focus-instruction`}
-                  rows={4}
-                  value={prompt}
-                  onChange={(event) => setPrompt(event.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Fine-tune what this specialist should focus on for the current
-                  environment.
-                </p>
-              </div>
             </>
           )}
 
@@ -466,7 +443,6 @@ function AgentRow({
                     provider,
                     project_endpoint: projectEndpoint,
                     provider_agent_id: providerAgentId,
-                    prompt,
                     enabled,
                   });
 

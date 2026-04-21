@@ -203,14 +203,6 @@ export default async function ContentAdvisorScheduleHistoryPage({
           <Badge variant={schedule.enabled ? 'default' : 'secondary'}>
             {schedule.enabled ? 'Enabled' : 'Disabled'}
           </Badge>
-          {schedule.focus_instruction ? (
-            <>
-              <Separator orientation="vertical" className="h-4" />
-              <span className="truncate text-muted-foreground">
-                {schedule.focus_instruction}
-              </span>
-            </>
-          ) : null}
         </div>
       </div>
 

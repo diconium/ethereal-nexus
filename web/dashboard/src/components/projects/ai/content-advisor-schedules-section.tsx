@@ -45,7 +45,6 @@ import {
 } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { TextArea } from '@/components/ui/text-area';
 import {
   deleteContentAdvisorSchedule,
   runContentAdvisorScheduleAnalysis,
@@ -68,7 +67,6 @@ type ScheduleFormState = {
   urlInput: string;
   pages: string[];
   cron: string;
-  focus_instruction: string;
   enabled: boolean;
 };
 
@@ -114,7 +112,6 @@ const BLANK_FORM: ScheduleFormState = {
   urlInput: '',
   pages: [],
   cron: '0 2 * * *',
-  focus_instruction: '',
   enabled: true,
 };
 
@@ -337,26 +334,6 @@ function ScheduleForm({
         )}
       </div>
 
-      <div className="space-y-2">
-        <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Focus instruction
-          <span className="ml-1 font-normal normal-case text-muted-foreground">
-            (optional)
-          </span>
-        </label>
-        <TextArea
-          rows={3}
-          value={form.focus_instruction}
-          onChange={(event) =>
-            setForm((current) => ({
-              ...current,
-              focus_instruction: event.target.value,
-            }))
-          }
-          placeholder="Prioritise stale content and broken journeys on these pages."
-        />
-      </div>
-
       <label className="flex items-center justify-between rounded-xl border bg-background px-4 py-3 text-sm">
         <div>
           <div className="font-medium text-foreground">Schedule state</div>
@@ -427,7 +404,6 @@ function ScheduleActions({
               environment_id: environmentId,
               label: schedule.label,
               cron: schedule.cron,
-              focus_instruction: schedule.focus_instruction || null,
               enabled: checked,
               pages: schedule.pages,
             });
@@ -618,11 +594,6 @@ function ScheduleDetailsRow({
             <div className="truncate font-medium text-foreground">
               {schedule.label}
             </div>
-            {schedule.focus_instruction ? (
-              <div className="truncate text-xs text-muted-foreground">
-                {schedule.focus_instruction}
-              </div>
-            ) : null}
           </div>
           <div>
             <Badge variant={schedule.enabled ? 'default' : 'secondary'}>
@@ -653,12 +624,6 @@ function ScheduleDetailsRow({
 
         <CollapsibleContent className="border-t bg-muted/20 px-6 py-4">
           <div className="space-y-4">
-            {schedule.focus_instruction ? (
-              <div className="rounded-xl border bg-background px-4 py-3 text-sm text-muted-foreground">
-                {schedule.focus_instruction}
-              </div>
-            ) : null}
-
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Configured pages
@@ -710,15 +675,14 @@ export function ContentAdvisorSchedulesSection({
   );
 
   const initialForm = editingSchedule
-    ? {
-        id: editingSchedule.id,
-        label: editingSchedule.label,
-        urlInput: '',
-        pages: editingSchedule.pages,
-        cron: editingSchedule.cron,
-        focus_instruction: editingSchedule.focus_instruction || '',
-        enabled: editingSchedule.enabled,
-      }
+      ? {
+          id: editingSchedule.id,
+          label: editingSchedule.label,
+          urlInput: '',
+          pages: editingSchedule.pages,
+          cron: editingSchedule.cron,
+          enabled: editingSchedule.enabled,
+        }
     : BLANK_FORM;
 
   return (
@@ -786,7 +750,6 @@ export function ContentAdvisorSchedulesSection({
                 environment_id: environmentId,
                 label: form.label,
                 cron: form.cron,
-                focus_instruction: form.focus_instruction || null,
                 enabled: form.enabled,
                 pages: form.pages,
               });

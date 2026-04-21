@@ -695,7 +695,6 @@ export const projectAiContentAdvisorAgentConfigs = pgTable(
     provider_config: jsonb('provider_config')
       .notNull()
       .default(sql`'{}'::jsonb`),
-    prompt: text('prompt').notNull().default(''),
     enabled: boolean('enabled').notNull().default(true),
     created_at: timestamp('created_at', { withTimezone: true })
       .notNull()
@@ -728,7 +727,6 @@ export const projectAiContentAdvisorSchedules = pgTable(
       .references(() => environments.id, { onDelete: 'cascade' }),
     label: text('label').notNull(),
     cron: text('cron').notNull().default('0 * * * *'),
-    focus_instruction: text('focus_instruction'),
     enabled: boolean('enabled').notNull().default(true),
     created_at: timestamp('created_at', { withTimezone: true })
       .notNull()

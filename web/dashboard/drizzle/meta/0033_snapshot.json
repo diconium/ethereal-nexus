@@ -2648,13 +2648,6 @@
           "notNull": true,
           "default": "'{}'::jsonb"
         },
-        "prompt": {
-          "name": "prompt",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
         "enabled": {
           "name": "enabled",
           "type": "boolean",

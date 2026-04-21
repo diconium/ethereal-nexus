@@ -1,5 +1,5 @@
 import { getApiKeyByKey, getServiceUser } from '@/data/users/actions';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { headers } from 'next/headers';
 import { decodeJwt } from 'jose';
 import * as client from 'openid-client';
@@ -141,10 +141,7 @@ async function handleApiKeyAuthentication(token: string) {
       route: 'authenticatedWithApiKeyUser',
       reason: apiKey.error.message,
     });
-    NextResponse.json(apiKey.error, {
-      status: HttpStatus.FORBIDDEN,
-    });
-    return;
+    return null;
   }
 
   logger.debug('API key authentication succeeded', {
@@ -166,10 +163,7 @@ async function handleBearerAuthentication(token: string) {
       logger.warn('Bearer authentication failed: invalid JWT claims', {
         route: 'authenticatedWithApiKeyUser',
       });
-      NextResponse.json('Invalid OAuth credentials.', {
-        status: HttpStatus.FORBIDDEN,
-      });
-      return;
+      return null;
     }
 
     const serviceUser = await getServiceUser(iss, sub);
@@ -179,10 +173,7 @@ async function handleBearerAuthentication(token: string) {
         issuer: iss,
         subject: sub,
       });
-      NextResponse.json('User not found.', {
-        status: HttpStatus.NOT_FOUND,
-      });
-      return;
+      return null;
     }
 
     const { id, client_id, client_secret, permissions } = serviceUser.data;
@@ -203,10 +194,7 @@ async function handleBearerAuthentication(token: string) {
         route: 'authenticatedWithApiKeyUser',
         userId: serviceUser.data.id,
       });
-      NextResponse.json('Token is not active.', {
-        status: HttpStatus.UNAUTHORIZED,
-      });
-      return;
+      return null;
     }
 
     logger.debug('Bearer authentication succeeded', {
@@ -227,9 +215,6 @@ async function handleBearerAuthentication(token: string) {
         route: 'authenticatedWithApiKeyUser',
       },
     );
-    NextResponse.json(error, {
-      status: HttpStatus.FORBIDDEN,
-    });
-    return;
+    return null;
   }
 }

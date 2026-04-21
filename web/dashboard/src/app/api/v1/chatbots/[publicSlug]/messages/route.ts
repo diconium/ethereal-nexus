@@ -425,7 +425,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .map((message) => message.content.trim())
       .filter(Boolean);
     const rawSessionKey =
-      body.conversationId ||
       sessionIdentityKey ||
       identityResolution.identities[0]?.key ||
       ipIdentityKey;
@@ -438,13 +437,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
       chatbotId: chatbot.id,
       conversationId: body.conversationId,
       sessionKey,
-      identitySource: body.conversationId
-        ? 'conversation'
-        : sessionIdentityKey
-          ? 'session'
-          : identityResolution.usedFingerprint
-            ? 'fingerprint'
-            : 'ip',
+      identitySource: sessionIdentityKey
+        ? 'session'
+        : identityResolution.usedFingerprint
+          ? 'fingerprint'
+          : 'ip',
     });
     const requestEvent = await recordChatbotAnalyticsEvent({
       projectId,
@@ -526,10 +523,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
       latestUserCharacters: body.metrics.latestUserCharacters,
     });
 
+    const sessionCapIdentityKey = sessionIdentityKey || rawSessionKey;
     if (chatbotApiSettings.session_request_cap_enabled) {
-      if (sessionIdentityKey) {
+      if (sessionCapIdentityKey) {
         const sessionCap = await checkRateLimit({
-          key: `${scopeKey}:session:${sessionIdentityKey}:session-cap`,
+          key: `${scopeKey}:session:${sessionCapIdentityKey}:session-cap`,
           limit: chatbotApiSettings.session_request_cap_max_requests,
           windowSeconds: chatbotApiSettings.session_request_cap_window_seconds,
         });
@@ -537,7 +535,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         if (!sessionCap.allowed) {
           if (chatbotApiSettings.temporary_block_enabled) {
             await registerViolationAndMaybeBlock({
-              key: `${scopeKey}:session:${sessionIdentityKey}`,
+              key: `${scopeKey}:session:${sessionCapIdentityKey}`,
               threshold: chatbotApiSettings.temporary_block_violation_threshold,
               violationWindowSeconds:
                 chatbotApiSettings.temporary_block_window_seconds,

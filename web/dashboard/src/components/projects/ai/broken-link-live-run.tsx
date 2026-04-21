@@ -206,6 +206,21 @@ export function BrokenLinkLiveRun({
           }
         }
       }
+
+      buffer += decoder.decode();
+      if (buffer.trim()) {
+        const lines = buffer.split('\n');
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          try {
+            const event = JSON.parse(trimmed) as BrokenLinkCrawlEvent;
+            handleEvent(event);
+          } catch {
+            // Malformed line — skip
+          }
+        }
+      }
     } catch (err) {
       if ((err as Error).name === 'AbortError') return;
       setCrawlState({

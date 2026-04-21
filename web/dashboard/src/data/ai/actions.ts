@@ -109,6 +109,7 @@ import { generateCatalogueWithFoundry } from '@/lib/ai-providers/microsoft-found
 import {
   analyzePageWithAgent,
   fetchPageSource,
+  isSafeContentAdvisorUrl,
   resolveContentAdvisorPageUrl,
   resolvePageReferenceWithMapping,
 } from './analyzer';
@@ -2042,6 +2043,22 @@ export async function createContentAdvisorRun(
 
   try {
     const result = await db.transaction(async (tx) => {
+      const uniqueFingerprintIndexResult = await tx.execute(
+        sql`select exists (
+          select 1
+          from pg_indexes
+          where schemaname = current_schema()
+            and tablename = 'project_ai_content_advisor_issue'
+            and indexname = 'project_ai_content_advisor_issue_fingerprint_idx'
+            and indexdef ilike 'create unique index%'
+        ) as is_unique`,
+      );
+      const hasUniqueFingerprintIndex = Array.isArray(
+        uniqueFingerprintIndexResult,
+      )
+        ? Boolean(uniqueFingerprintIndexResult[0]?.is_unique)
+        : Boolean(uniqueFingerprintIndexResult.rows[0]?.is_unique);
+
       const settingsRows = await tx
         .select()
         .from(projectAiContentAdvisorSettings)
@@ -2097,47 +2114,93 @@ export async function createContentAdvisorRun(
         for (const issue of agentRun.parsedIssues) {
           const fingerprint =
             issue.fingerprint || buildContentAdvisorIssueFingerprint(issue);
+          const detectedAt = new Date();
+          const insertValues = {
+            environment_id: environmentId,
+            run_id: runRow.id,
+            agent_run_id: agentRunRow.id,
+            ...issue,
+            fingerprint,
+            status: issue.status || 'open',
+            page_path: issue.page_path || null,
+            component_path: issue.component_path || null,
+            page_title: issue.page_title || null,
+            first_detected_at: detectedAt,
+            last_detected_at: detectedAt,
+            detection_count: 1,
+          };
+          const updateValues = {
+            run_id: runRow.id,
+            agent_run_id: agentRunRow.id,
+            page_url: issue.page_url,
+            page_path: issue.page_path || null,
+            component_path: issue.component_path || null,
+            page_title: issue.page_title || null,
+            severity: issue.severity,
+            title: issue.title,
+            description: issue.description,
+            suggestion: issue.suggestion,
+            reasoning: issue.reasoning,
+            last_detected_at: detectedAt,
+            detection_count: sql`${projectAiContentAdvisorIssues.detection_count} + 1`,
+          };
 
           // Atomic upsert — avoids race condition when concurrent runs process
           // the same fingerprint simultaneously.
-          const [upsertedIssue] = await tx
-            .insert(projectAiContentAdvisorIssues)
-            .values({
-              environment_id: environmentId,
-              run_id: runRow.id,
-              agent_run_id: agentRunRow.id,
-              ...issue,
-              fingerprint,
-              status: issue.status || 'open',
-              page_path: issue.page_path || null,
-              component_path: issue.component_path || null,
-              page_title: issue.page_title || null,
-              first_detected_at: new Date(),
-              last_detected_at: new Date(),
-              detection_count: 1,
-            })
-            .onConflictDoUpdate({
-              target: [
-                projectAiContentAdvisorIssues.environment_id,
-                projectAiContentAdvisorIssues.fingerprint,
-              ],
-              set: {
-                run_id: runRow.id,
-                agent_run_id: agentRunRow.id,
-                page_url: issue.page_url,
-                page_path: issue.page_path || null,
-                component_path: issue.component_path || null,
-                page_title: issue.page_title || null,
-                severity: issue.severity,
-                title: issue.title,
-                description: issue.description,
-                suggestion: issue.suggestion,
-                reasoning: issue.reasoning,
-                last_detected_at: new Date(),
-                detection_count: sql`${projectAiContentAdvisorIssues.detection_count} + 1`,
-              },
-            })
-            .returning();
+          let upsertedIssue: ContentAdvisorIssueRow | undefined;
+
+          if (hasUniqueFingerprintIndex) {
+            [upsertedIssue] = await tx
+              .insert(projectAiContentAdvisorIssues)
+              .values(insertValues)
+              .onConflictDoUpdate({
+                target: [
+                  projectAiContentAdvisorIssues.environment_id,
+                  projectAiContentAdvisorIssues.fingerprint,
+                ],
+                set: updateValues,
+              })
+              .returning();
+          } else {
+            // Older databases may still have the pre-0031 non-unique index.
+            // Serialize by fingerprint so we can safely emulate the upsert.
+            await tx.execute(
+              sql`select pg_advisory_xact_lock(hashtext(${environmentId}), hashtext(${fingerprint}))`,
+            );
+
+            const existingIssueRows = await tx
+              .select()
+              .from(projectAiContentAdvisorIssues)
+              .where(
+                and(
+                  eq(
+                    projectAiContentAdvisorIssues.environment_id,
+                    environmentId,
+                  ),
+                  eq(projectAiContentAdvisorIssues.fingerprint, fingerprint),
+                ),
+              )
+              .limit(1);
+
+            if (existingIssueRows[0]) {
+              [upsertedIssue] = await tx
+                .update(projectAiContentAdvisorIssues)
+                .set(updateValues)
+                .where(
+                  eq(projectAiContentAdvisorIssues.id, existingIssueRows[0].id),
+                )
+                .returning();
+            } else {
+              [upsertedIssue] = await tx
+                .insert(projectAiContentAdvisorIssues)
+                .values(insertValues)
+                .returning();
+            }
+          }
+
+          if (!upsertedIssue) {
+            throw new Error('Failed to upsert content advisor issue.');
+          }
 
           detectionValues.push({
             issue_id: upsertedIssue.id,
@@ -2893,6 +2956,16 @@ export async function runContentAdvisorScheduleAnalysis(
               status: 0,
             };
           }
+          if (!isSafeContentAdvisorUrl(resolved.url)) {
+            return {
+              reference: page,
+              url: resolved.url,
+              title: null,
+              text: '',
+              html: '',
+              status: 0,
+            };
+          }
           const rawSource = await fetchPageSource(resolved.url);
           return resolved.aemPath
             ? { ...rawSource, reference: resolved.aemPath }
@@ -3055,6 +3128,12 @@ export async function runContentAdvisorAgentForSchedulePage(input: {
     if (!resolved.url.startsWith('http')) {
       return actionError(
         `"${pageReference}" is an AEM path with no URL mapping. Add a mapping in AI settings → AEM page URL mappings.`,
+      );
+    }
+
+    if (!isSafeContentAdvisorUrl(resolved.url)) {
+      return actionError(
+        `"${pageReference}" resolves to a private or restricted address and cannot be analysed.`,
       );
     }
 

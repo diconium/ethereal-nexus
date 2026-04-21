@@ -433,6 +433,57 @@ function normaliseAllowedDomain(raw: string): string {
   return `https://${trimmed.replace(/\/+$/, '')}`;
 }
 
+const PRIVATE_HOST_PATTERNS: RegExp[] = [
+  /^localhost$/i,
+  /\.local$/i,
+  /^127\./,
+  /^\[?::1\]?$/,
+  /^10\./,
+  /^172\.(1[6-9]|2\d|3[01])\./,
+  /^192\.168\./,
+  /^169\.254\./,
+  /^\[?fe80:/i,
+  /^\[?fc[0-9a-f]{2}:/i,
+  /^\[?fd[0-9a-f]{2}:/i,
+  /^0\.0\.0\.0$/,
+  /^0$/,
+];
+
+export function isSafeContentAdvisorUrl(raw: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return false;
+  }
+
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return false;
+  }
+
+  const host = parsed.hostname.toLowerCase()
+  return !PRIVATE_HOST_PATTERNS.some((pattern) => pattern.test(host));
+}
+
+export function isAllowedContentAdvisorUrl(
+  raw: string,
+  allowedDomain?: string | null,
+): boolean {
+  if (!isSafeContentAdvisorUrl(raw)) {
+    return false;
+  }
+
+  if (!allowedDomain) {
+    return true;
+  }
+
+  try {
+    return new URL(raw).origin === normaliseAllowedDomain(allowedDomain);
+  } catch {
+    return false;
+  }
+}
+
 type BrokenLinkCrawlResult = {
   summary: string;
   issues: ContentAdvisorIssueInput[];
@@ -456,6 +507,13 @@ export async function crawlBrokenLinks(
     };
   }
 
+  if (!isAllowedContentAdvisorUrl(source.url, allowedDomain)) {
+    return {
+      summary: 'Page URL is outside the allowed crawl domain or points to a restricted address; skipping crawl.',
+      issues: [],
+    };
+  }
+
   const baseOrigin = allowedDomain
     ? normaliseAllowedDomain(allowedDomain)
     : new URL(source.url).origin;
@@ -468,7 +526,7 @@ export async function crawlBrokenLinks(
 
   // Seed from the already-fetched source page
   const seedLinks = extractLinks(source.html, source.url).filter((link) =>
-    link.url.startsWith(baseOrigin),
+    isAllowedContentAdvisorUrl(link.url, baseOrigin),
   );
   for (const link of seedLinks) {
     if (!visited.has(link.url)) {
@@ -485,6 +543,9 @@ export async function crawlBrokenLinks(
         // Check if the link is alive
         if (!checked.has(url)) {
           checked.add(url);
+          if (!isAllowedContentAdvisorUrl(url, baseOrigin)) {
+            return;
+          }
           const result = await checkLink(url);
 
           if (!result.ok) {
@@ -533,9 +594,15 @@ export async function crawlBrokenLinks(
           // Only follow links within the same origin and only if within depth limit
           if (result.ok && depth < maxDepth) {
             try {
+              if (!isAllowedContentAdvisorUrl(url, baseOrigin)) {
+                return;
+              }
               const nextSource = await fetchPageSource(url);
+              if (!isAllowedContentAdvisorUrl(nextSource.url, baseOrigin)) {
+                return;
+              }
               const nextLinks = extractLinks(nextSource.html, url).filter(
-                (link) => link.url.startsWith(baseOrigin),
+                (link) => isAllowedContentAdvisorUrl(link.url, baseOrigin),
               );
               for (const nextLink of nextLinks) {
                 if (!visited.has(nextLink.url)) {

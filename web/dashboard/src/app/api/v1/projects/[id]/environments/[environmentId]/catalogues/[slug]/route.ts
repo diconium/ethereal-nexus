@@ -69,7 +69,13 @@ export async function GET(_request: Request, context: RouteContext) {
   });
 
   return NextResponse.json({
-    catalogue,
+    catalogue: {
+      slug: catalogue.slug,
+      name: catalogue.name,
+      description: catalogue.description,
+      show_in_sidebar: catalogue.show_in_sidebar,
+      updated_at: catalogue.updated_at,
+    },
     data: versions[0]?.data || { items: [], facets: {} },
   });
 }

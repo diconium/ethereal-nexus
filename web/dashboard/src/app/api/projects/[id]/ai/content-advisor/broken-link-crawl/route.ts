@@ -51,6 +51,74 @@ export type BrokenLinkCrawlEvent =
 
 const SKIPPED_SCHEMES = /^(mailto:|tel:|javascript:|data:|#)/i;
 
+// ---------------------------------------------------------------------------
+// SSRF guard
+// ---------------------------------------------------------------------------
+
+/**
+ * Patterns that match hostnames known to resolve to private / loopback /
+ * link-local / cloud-metadata addresses.  Any URL whose hostname matches one
+ * of these is blocked before any network request is made.
+ *
+ * Covered ranges:
+ *   - Loopback:          127.x.x.x, [::1]
+ *   - Private class A:   10.x.x.x
+ *   - Private class B:   172.16–31.x.x
+ *   - Private class C:   192.168.x.x
+ *   - Link-local:        169.254.x.x  (AWS/GCP/Azure metadata at 169.254.169.254)
+ *   - IPv6 link-local:   fe80::…
+ *   - IPv6 unique-local: fc00::/7  (fc… or fd…)
+ *   - localhost          (hostname)
+ *   - Internal .local    (mDNS / Kubernetes cluster-local)
+ *   - Bare IP octets / zero address
+ */
+const PRIVATE_HOST_PATTERNS: RegExp[] = [
+  /^localhost$/i,
+  /\.local$/i,
+  /^127\./,
+  /^\[?::1\]?$/,
+  /^10\./,
+  /^172\.(1[6-9]|2\d|3[01])\./,
+  /^192\.168\./,
+  /^169\.254\./,
+  /^\[?fe80:/i,
+  /^\[?fc[0-9a-f]{2}:/i,
+  /^\[?fd[0-9a-f]{2}:/i,
+  /^0\.0\.0\.0$/,
+  /^0$/,
+];
+
+/**
+ * Returns `true` when `url` is safe to fetch from a public-facing server.
+ * Rejects anything that is not http/https, or whose hostname matches a
+ * private-network / metadata-endpoint pattern.
+ */
+function isSafeUrl(raw: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return false;
+  }
+  const host = parsed.hostname.toLowerCase();
+  return !PRIVATE_HOST_PATTERNS.some((re) => re.test(host));
+}
+
+function isAllowedOrigin(raw: string, allowedOrigin: string): boolean {
+  try {
+    return new URL(raw).origin === allowedOrigin;
+  } catch {
+    return false;
+  }
+}
+
+function isAllowedCrawlUrl(raw: string, allowedOrigin: string): boolean {
+  return isSafeUrl(raw) && isAllowedOrigin(raw, allowedOrigin);
+}
+
 type LinkRef = { url: string; ancestorComponent: string | null };
 
 /**
@@ -225,6 +293,7 @@ export async function POST(
   } | null;
   const maxDepth = crawlConfig?.crawl_depth ?? 1;
   const rawDomain = crawlConfig?.allowed_domain ?? null;
+  const configuredOrigin = rawDomain ? normaliseOrigin(rawDomain) : null;
 
   // Build the stream
   const stream = new ReadableStream({
@@ -254,6 +323,29 @@ export async function POST(
           return;
         }
 
+        // SSRF guard: block private/loopback/metadata addresses
+        if (!isSafeUrl(resolved.url)) {
+          emit({
+            type: 'done',
+            summary: `Page URL "${resolved.url}" resolves to a private or restricted address and cannot be crawled.`,
+            brokenCount: 0,
+            totalChecked: 0,
+          });
+          controller.close();
+          return;
+        }
+
+        if (configuredOrigin && !isAllowedOrigin(resolved.url, configuredOrigin)) {
+          emit({
+            type: 'done',
+            summary: `Page URL "${resolved.url}" is outside the configured allowed domain ${configuredOrigin}.`,
+            brokenCount: 0,
+            totalChecked: 0,
+          });
+          controller.close();
+          return;
+        }
+
         // 2. Fetch the resolved starting page
         const source = await fetchPageSource(resolved.url);
         // Preserve the AEM path in source.reference for issue page_path
@@ -261,13 +353,22 @@ export async function POST(
           (source as { reference: string }).reference = resolved.aemPath;
         }
 
-        const baseOrigin = rawDomain
-          ? normaliseOrigin(rawDomain)
-          : new URL(source.url).origin;
+        const baseOrigin = configuredOrigin ?? new URL(source.url).origin;
+
+        if (!isAllowedCrawlUrl(source.url, baseOrigin)) {
+          emit({
+            type: 'done',
+            summary: `Resolved page URL "${source.url}" is outside the allowed crawl origin ${baseOrigin}.`,
+            brokenCount: 0,
+            totalChecked: 0,
+          });
+          controller.close();
+          return;
+        }
 
         // 3. Extract seed links and emit the list immediately
-        const seedLinks = extractLinks(source.html, source.url).filter((l) =>
-          l.url.startsWith(baseOrigin),
+        const seedLinks = extractLinks(source.html, source.url).filter((link) =>
+          isAllowedCrawlUrl(link.url, baseOrigin),
         );
 
         // Emit the source page status so the UI can show it as a header row
@@ -321,6 +422,19 @@ export async function POST(
               if (checked.has(url)) return;
               checked.add(url);
 
+              // SSRF guard: skip private/loopback/metadata addresses
+              if (!isAllowedCrawlUrl(url, baseOrigin)) {
+                emit({
+                  type: 'checked',
+                  url,
+                  ok: false,
+                  status: 0,
+                  foundOn: foundOnUrl,
+                  ancestorComponent,
+                });
+                return;
+              }
+
               const result = await checkLink(url);
               if (!result.ok) brokenCount++;
 
@@ -336,10 +450,13 @@ export async function POST(
               // Follow into next depth level
               if (result.ok && depth < maxDepth) {
                 try {
+                  if (!isAllowedCrawlUrl(url, baseOrigin)) return;
                   const nextSource = await fetchPageSource(url);
-                  const nextLinks = extractLinks(nextSource.html, url).filter(
-                    (l) => l.url.startsWith(baseOrigin),
-                  );
+                  if (!isAllowedCrawlUrl(nextSource.url, baseOrigin)) return;
+                  const nextLinks = extractLinks(
+                    nextSource.html,
+                    nextSource.url,
+                  ).filter((link) => isAllowedCrawlUrl(link.url, baseOrigin));
 
                   for (const nextLink of nextLinks) {
                     if (!visited.has(nextLink.url)) {

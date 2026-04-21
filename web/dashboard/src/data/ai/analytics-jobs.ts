@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, lte } from 'drizzle-orm';
+import { and, asc, desc, eq, isNull, lte } from 'drizzle-orm';
 import { db } from '@/db';
 import { classifyChatbotConversationWithFoundry } from '@/data/ai/analytics/classifier-review';
 import {
@@ -184,6 +184,7 @@ export async function finalizeStaleChatbotSessionsJob(input: {
   const conditions = [
     eq(projectAiChatbotSessions.project_id, input.projectId),
     eq(projectAiChatbotSessions.environment_id, input.environmentId),
+    isNull(projectAiChatbotSessions.ended_at),
     lte(projectAiChatbotSessions.last_activity_at, threshold),
   ];
   if (input.chatbotId) {

@@ -34,10 +34,11 @@ export async function GET(_request: NextRequest, context: RouteContext) {
         eq(projectAiCatalogues.api_url, apiPath),
         eq(projectAiCatalogues.slug, catalogueSlug),
       ),
-    )
-    .limit(1);
+    );
 
-  const catalogue = catalogueRows[0];
+  const catalogue = catalogueRows.find(
+    (entry) => normalizeCatalogueApiPath(entry.api_url, entry.slug) === apiPath,
+  );
   if (!catalogue) {
     logger.warn('Public catalogue v1 API target not found', {
       route: 'catalogue-public-v1-api',

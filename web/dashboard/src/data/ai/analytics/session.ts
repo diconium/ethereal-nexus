@@ -31,11 +31,24 @@ export async function resolveChatbotSession(input: {
     .limit(1);
 
   if (rows[0]) {
+    const nextConversationId =
+      rows[0].conversation_id || input.conversationId || null;
     await db
       .update(projectAiChatbotSessions)
-      .set({ last_activity_at: now, updated_at: now })
+      .set({
+        conversation_id: nextConversationId,
+        last_activity_at: now,
+        updated_at: now,
+      })
       .where(eq(projectAiChatbotSessions.id, rows[0].id));
-    return { session: { ...rows[0], last_activity_at: now }, isNew: false };
+    return {
+      session: {
+        ...rows[0],
+        conversation_id: nextConversationId,
+        last_activity_at: now,
+      },
+      isNew: false,
+    };
   }
 
   const inserted = await db

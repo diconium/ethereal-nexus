@@ -34,6 +34,22 @@ function safeParseJson(input: string): unknown {
   }
 }
 
+function getTypingChunkSize(wordCount: number) {
+  if (wordCount > 180) {
+    return 16;
+  }
+
+  if (wordCount > 80) {
+    return 8;
+  }
+
+  if (wordCount > 32) {
+    return 4;
+  }
+
+  return 1;
+}
+
 export function useAuthorChat({
   getDialogJson,
   getValuesJson,
@@ -113,10 +129,9 @@ export function useAuthorChat({
         }
 
         const words = message.split(' ');
-        let nextText = '';
-        for (let index = 0; index < words.length; index++) {
-          nextText += `${index > 0 ? ' ' : ''}${words[index]}`;
-          const snapshot = nextText;
+        const chunkSize = getTypingChunkSize(words.length);
+        for (let index = 0; index < words.length; index += chunkSize) {
+          const snapshot = words.slice(0, index + chunkSize).join(' ');
           setMessages((current) =>
             current.map((message) =>
               message.id === assistantId
@@ -124,7 +139,9 @@ export function useAuthorChat({
                 : message,
             ),
           );
-          await new Promise((resolve) => setTimeout(resolve, 14));
+          if (index + chunkSize < words.length) {
+            await new Promise((resolve) => setTimeout(resolve, 14));
+          }
         }
       } catch (caughtError) {
         const message =

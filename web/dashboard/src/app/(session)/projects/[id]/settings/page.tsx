@@ -27,6 +27,7 @@ import {
   ChevronDown,
   SlidersHorizontal,
   Link2,
+  type LucideIcon,
 } from 'lucide-react';
 import {
   getChatbotsByEnvironment,
@@ -60,7 +61,7 @@ function Section({
   children,
   defaultOpen = false,
 }: {
-  icon: React.ElementType;
+  icon: LucideIcon;
   title: string;
   description: string;
   children: React.ReactNode;

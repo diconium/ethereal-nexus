@@ -7,6 +7,7 @@ import {
   sampleAuthorValues,
 } from '@/data/ai/sample-author-data';
 import { callFoundryChat } from '@/lib/ai-providers/microsoft-foundry';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -139,7 +140,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
         );
     }
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to reach author agent runtime', error as Error, {
+      route: 'author-chat',
+      projectId,
+      environmentId,
+      authorDialogId: authorDialog.data.id,
+    });
     return NextResponse.json(
       { error: 'Failed to reach the author agent runtime.' },
       { status: HttpStatus.INTERNAL_SERVER_ERROR },

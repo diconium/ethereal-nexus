@@ -63,6 +63,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
     fingerprintHeaderName: settings.fingerprint_header_name,
   });
   const sessionIdentityKey = getSessionCookieIdentifier(request);
+  const sessionCapIdentityKey =
+    sessionIdentityKey || identityResolution.identities[0]?.key || null;
   const scopeKey = `${publicSlug}`;
   const ipIdentity =
     identityResolution.identities.find(
@@ -100,9 +102,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
     : [];
 
   const sessionCap =
-    settings.session_request_cap_enabled && sessionIdentityKey
+    settings.session_request_cap_enabled && sessionCapIdentityKey
       ? await getCounterState(
-          `${scopeKey}:session:${sessionIdentityKey}:session-cap`,
+          `${scopeKey}:session:${sessionCapIdentityKey}:session-cap`,
         )
       : null;
 
@@ -117,7 +119,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     },
     sessionCap: {
       enabled: settings.session_request_cap_enabled,
-      available: Boolean(sessionIdentityKey),
+      available: Boolean(sessionCapIdentityKey),
       current: sessionCap?.current ?? 0,
       remaining: sessionCap
         ? Math.max(

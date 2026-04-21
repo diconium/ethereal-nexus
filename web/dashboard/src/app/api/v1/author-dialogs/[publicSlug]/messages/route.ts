@@ -8,8 +8,26 @@ import {
   sampleAuthorValues,
 } from '@/data/ai/sample-author-data';
 import { callFoundryChat } from '@/lib/ai-providers/microsoft-foundry';
+import { logger } from '@/lib/logger';
+import {
+  buildIdentityResolution,
+  checkRateLimit,
+  getClientIp,
+  getTemporaryBlock,
+  registerViolationAndMaybeBlock,
+} from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
+
+const PUBLIC_AUTHOR_CHAT_LIMITS = {
+  rateLimitMaxRequests: 20,
+  rateLimitWindowSeconds: 60,
+  maxMessageCharacters: 8000,
+  maxRequestBodyBytes: 16000,
+  temporaryBlockThreshold: 5,
+  temporaryBlockWindowSeconds: 3600,
+  temporaryBlockDurationSeconds: 1800,
+};
 
 type RouteContext = {
   params: Promise<{
@@ -17,22 +35,127 @@ type RouteContext = {
   }>;
 };
 
+type PublicAuthorDialogRequest = {
+  messages?: Array<{ role: 'user' | 'assistant'; content: string }>;
+  conversationId?: string;
+  context?: {
+    dialogDefinition?: unknown;
+    values?: unknown;
+  };
+};
+
 export async function POST(request: NextRequest, context: RouteContext) {
   const { publicSlug } = await context.params;
+  const clientIp = getClientIp(request);
+  const scopeKey = `author-dialog:${publicSlug}`;
+  const identityResolution = buildIdentityResolution(request, {
+    useIp: true,
+    useSessionCookie: true,
+    useFingerprint: false,
+    fingerprintHeaderName: 'x-client-fingerprint',
+  });
 
-  const body = (await request.json().catch(() => null)) as {
-    messages?: Array<{ role: 'user' | 'assistant'; content: string }>;
-    conversationId?: string;
-    context?: {
-      dialogDefinition?: unknown;
-      values?: unknown;
-    };
-  } | null;
+  for (const identity of identityResolution.identities) {
+    const block = await getTemporaryBlock(`${scopeKey}:${identity.key}`);
+    if (block.blocked) {
+      return NextResponse.json(
+        { error: 'Too many requests. Temporary block active.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(block.resetSeconds),
+          },
+        },
+      );
+    }
+  }
+
+  for (const identity of identityResolution.identities) {
+    const rateLimit = await checkRateLimit({
+      key: `${scopeKey}:${identity.key}:window`,
+      limit: PUBLIC_AUTHOR_CHAT_LIMITS.rateLimitMaxRequests,
+      windowSeconds: PUBLIC_AUTHOR_CHAT_LIMITS.rateLimitWindowSeconds,
+    });
+
+    if (!rateLimit.allowed) {
+      await registerViolationAndMaybeBlock({
+        key: `${scopeKey}:${identity.key}`,
+        threshold: PUBLIC_AUTHOR_CHAT_LIMITS.temporaryBlockThreshold,
+        violationWindowSeconds:
+          PUBLIC_AUTHOR_CHAT_LIMITS.temporaryBlockWindowSeconds,
+        blockDurationSeconds:
+          PUBLIC_AUTHOR_CHAT_LIMITS.temporaryBlockDurationSeconds,
+      });
+
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimit.resetSeconds),
+          },
+        },
+      );
+    }
+  }
+
+  const rawText = await request.text();
+  const requestBodyBytes = Buffer.byteLength(rawText, 'utf8');
+  if (requestBodyBytes > PUBLIC_AUTHOR_CHAT_LIMITS.maxRequestBodyBytes) {
+    for (const identity of identityResolution.identities) {
+      await registerViolationAndMaybeBlock({
+        key: `${scopeKey}:${identity.key}`,
+        threshold: PUBLIC_AUTHOR_CHAT_LIMITS.temporaryBlockThreshold,
+        violationWindowSeconds:
+          PUBLIC_AUTHOR_CHAT_LIMITS.temporaryBlockWindowSeconds,
+        blockDurationSeconds:
+          PUBLIC_AUTHOR_CHAT_LIMITS.temporaryBlockDurationSeconds,
+      });
+    }
+
+    return NextResponse.json(
+      { error: 'Request body exceeds the configured size limit.' },
+      { status: 413 },
+    );
+  }
+
+  let body: PublicAuthorDialogRequest | null = null;
+
+  try {
+    body = rawText ? (JSON.parse(rawText) as PublicAuthorDialogRequest) : null;
+  } catch {
+    return NextResponse.json(
+      { error: 'Request body must be valid JSON.' },
+      { status: HttpStatus.BAD_REQUEST },
+    );
+  }
 
   if (!body?.messages?.length) {
     return NextResponse.json(
       { error: 'messages are required.' },
       { status: HttpStatus.BAD_REQUEST },
+    );
+  }
+
+  const totalCharacters = body.messages.reduce(
+    (sum, message) => sum + message.content.length,
+    0,
+  );
+  if (totalCharacters > PUBLIC_AUTHOR_CHAT_LIMITS.maxMessageCharacters) {
+    for (const identity of identityResolution.identities) {
+      await registerViolationAndMaybeBlock({
+        key: `${scopeKey}:${identity.key}`,
+        threshold: PUBLIC_AUTHOR_CHAT_LIMITS.temporaryBlockThreshold,
+        violationWindowSeconds:
+          PUBLIC_AUTHOR_CHAT_LIMITS.temporaryBlockWindowSeconds,
+        blockDurationSeconds:
+          PUBLIC_AUTHOR_CHAT_LIMITS.temporaryBlockDurationSeconds,
+      });
+    }
+
+    return NextResponse.json(
+      { error: 'Message payload exceeds the configured size limit.' },
+      { status: 413 },
     );
   }
 
@@ -116,7 +239,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
         );
     }
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to reach public author agent runtime', error as Error, {
+      route: 'author-chat-public',
+      publicSlug,
+      clientIp,
+      requestBodyBytes,
+    });
     return NextResponse.json(
       { error: 'Failed to reach the author agent runtime.' },
       { status: HttpStatus.INTERNAL_SERVER_ERROR },

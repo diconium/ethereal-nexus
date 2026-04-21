@@ -123,6 +123,49 @@ async function recordChatbotStat(input: {
     });
 }
 
+async function enqueueReviewIfEligible(input: {
+  reviewEligible: boolean;
+  projectId: string;
+  environmentId: string;
+  chatbotId: string;
+  sessionId: string;
+  eventId: string;
+  userMessages: string[];
+  assistantExcerpt: string;
+  slug: string;
+}) {
+  if (!input.reviewEligible) {
+    return;
+  }
+
+  const existingReview = await getPendingReviewForSession(input.sessionId);
+  if (existingReview) {
+    return;
+  }
+
+  await enqueueUnmatchedReview({
+    projectId: input.projectId,
+    environmentId: input.environmentId,
+    chatbotId: input.chatbotId,
+    sessionId: input.sessionId,
+    eventId: input.eventId,
+    firstUserMessage: input.userMessages[0] || '',
+    secondUserMessage: input.userMessages[1] || null,
+    assistantExcerpt: input.assistantExcerpt,
+    matchFailureReason: 'no-topic-rule-match',
+  });
+
+  logger.info('Queued unmatched chatbot session for fallback review', {
+    route: 'chatbot-messages-legacy',
+    projectId: input.projectId,
+    environmentId: input.environmentId,
+    slug: input.slug,
+    chatbotId: input.chatbotId,
+    sessionId: input.sessionId,
+    userMessageCount: input.userMessages.length,
+  });
+}
+
 export async function POST(request: NextRequest, context: RouteContext) {
   const { id: projectId, environmentId, slug } = await context.params;
   const clientIp = getClientIp(request);
@@ -362,7 +405,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .map((message) => message.content.trim())
       .filter(Boolean);
     const rawSessionKey =
-      body.conversationId ||
       sessionIdentityKey ||
       identityResolution.identities[0]?.key ||
       ipIdentityKey;
@@ -375,13 +417,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
       chatbotId: chatbot.id,
       conversationId: body.conversationId,
       sessionKey,
-      identitySource: body.conversationId
-        ? 'conversation'
-        : sessionIdentityKey
-          ? 'session'
-          : identityResolution.usedFingerprint
-            ? 'fingerprint'
-            : 'ip',
+      identitySource: sessionIdentityKey
+        ? 'session'
+        : identityResolution.usedFingerprint
+          ? 'fingerprint'
+          : 'ip',
     });
     const requestEvent = await recordChatbotAnalyticsEvent({
       projectId,
@@ -451,10 +491,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
       }
     }
 
+    const sessionCapIdentityKey = sessionIdentityKey || rawSessionKey;
     if (chatbotApiSettings.session_request_cap_enabled) {
-      if (sessionIdentityKey) {
+      if (sessionCapIdentityKey) {
         const sessionCap = await checkRateLimit({
-          key: `${projectId}:${environmentId}:${slug}:session:${sessionIdentityKey}:session-cap`,
+          key: `${projectId}:${environmentId}:${slug}:session:${sessionCapIdentityKey}:session-cap`,
           limit: chatbotApiSettings.session_request_cap_max_requests,
           windowSeconds: chatbotApiSettings.session_request_cap_window_seconds,
         });
@@ -462,7 +503,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         if (!sessionCap.allowed) {
           if (chatbotApiSettings.temporary_block_enabled) {
             await registerViolationAndMaybeBlock({
-              key: `${projectId}:${environmentId}:${slug}:session:${sessionIdentityKey}`,
+              key: `${projectId}:${environmentId}:${slug}:session:${sessionCapIdentityKey}`,
               threshold: chatbotApiSettings.temporary_block_violation_threshold,
               violationWindowSeconds:
                 chatbotApiSettings.temporary_block_window_seconds,
@@ -571,23 +612,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
       latencyMsDelta: latencyMs,
     });
 
-    if (reviewEligible) {
-      const existingReview = await getPendingReviewForSession(session.id);
-      if (!existingReview) {
-        await enqueueUnmatchedReview({
-          projectId,
-          environmentId,
-          chatbotId: chatbot.id,
-          sessionId: session.id,
-          eventId: requestEvent.id,
-          firstUserMessage: userMessages[0] || '',
-          secondUserMessage: userMessages[1] || null,
-          assistantExcerpt: response.reply,
-          matchFailureReason: 'no-topic-rule-match',
-        });
-      }
-    }
-
     if (chatbotApiSettings.ip_daily_token_budget_enabled) {
       if (ipIdentityKey) {
         const tokenBudget = await incrementUsageCounter({
@@ -623,32 +647,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
       totalTokens: response.usage.totalTokens,
     });
 
-    if (reviewEligible) {
-      const existingReview = await getPendingReviewForSession(session.id);
-      if (!existingReview) {
-        await enqueueUnmatchedReview({
-          projectId,
-          environmentId,
-          chatbotId: chatbot.id,
-          sessionId: session.id,
-          eventId: requestEvent.id,
-          firstUserMessage: userMessages[0] || '',
-          secondUserMessage: userMessages[1] || null,
-          assistantExcerpt: response.reply,
-          matchFailureReason: 'no-topic-rule-match',
-        });
-
-        logger.info('Queued unmatched chatbot session for fallback review', {
-          route: 'chatbot-messages-legacy',
-          projectId,
-          environmentId,
-          slug,
-          chatbotId: chatbot.id,
-          sessionId: session.id,
-          userMessageCount: userMessages.length,
-        });
-      }
-    }
+    await enqueueReviewIfEligible({
+      reviewEligible,
+      projectId,
+      environmentId,
+      chatbotId: chatbot.id,
+      sessionId: session.id,
+      eventId: requestEvent.id,
+      userMessages,
+      assistantExcerpt: response.reply,
+      slug,
+    });
 
     return NextResponse.json({
       reply: response.reply,

@@ -1,4 +1,0 @@
-ALTER TABLE "project_ai_content_advisor_agent_run" DROP CONSTRAINT "project_ai_content_advisor_agent_run_agent_config_id_project_ai_content_advisor_agent_config_id_fk";
---> statement-breakpoint
-ALTER TABLE "project_ai_content_advisor_agent_run" ALTER COLUMN "agent_config_id" DROP NOT NULL;--> statement-breakpoint
-ALTER TABLE "project_ai_content_advisor_agent_run" ADD CONSTRAINT "project_ai_content_advisor_agent_run_agent_config_id_project_ai_content_advisor_agent_config_id_fk" FOREIGN KEY ("agent_config_id") REFERENCES "public"."project_ai_content_advisor_agent_config"("id") ON DELETE set null ON UPDATE no action;

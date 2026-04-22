@@ -1,6 +1,6 @@
 'use client';
 
-import type { ComponentProps } from 'react';
+import { useEffect, useState, type ComponentProps } from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -17,15 +17,19 @@ import { NavMain, type NavSection } from './main-nav';
 import Link from 'next/link';
 import {
   Activity,
+  Bot,
   LayoutDashboard,
   Folder,
   LayoutGrid,
+  MessageSquare,
   Settings,
   UserRound,
 } from 'lucide-react';
 import type { User } from 'next-auth';
 import { ProjectSwitcher } from '@/components/ui/ProjectSwitcher';
 import { useProject } from '@/lib/project-context';
+import { AI_STATE_UPDATED_EVENT } from '@/lib/ai-events';
+import type { Catalogue, Chatbot, ProjectAiFeatureKey } from '@/data/ai/dto';
 
 type AppSidebarProps = {
   user: User;
@@ -80,7 +84,86 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
   }));
 
   const { selectedProject, selectedEnvironment } = useProject();
+  const [projectAiState, setProjectAiState] = useState<{
+    aiEnabled: boolean;
+    enabled: boolean;
+    enabledAiFeatures: ProjectAiFeatureKey[];
+    chatbots: Chatbot[];
+    catalogues: Catalogue[];
+  }>({
+    aiEnabled: false,
+    enabled: false,
+    enabledAiFeatures: [],
+    chatbots: [],
+    catalogues: [],
+  });
   const platformTitles = new Set(['All Components', 'Users']);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadDemos() {
+      if (!selectedProject?.id || !selectedEnvironment?.id) {
+        setProjectAiState({
+          aiEnabled: false,
+          enabled: false,
+          enabledAiFeatures: [],
+          chatbots: [],
+          catalogues: [],
+        });
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `/api/projects/${selectedProject.id}/environments/${selectedEnvironment.id}/demos`,
+          { credentials: 'include' },
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to load demos');
+        }
+
+        const payload = (await response.json()) as {
+          aiEnabled?: boolean;
+          enabled?: boolean;
+          enabledAiFeatures?: ProjectAiFeatureKey[];
+          chatbots?: Chatbot[];
+          catalogues?: Catalogue[];
+        };
+
+        if (!cancelled) {
+          setProjectAiState({
+            aiEnabled: payload.aiEnabled ?? false,
+            enabled: payload.enabled ?? false,
+            enabledAiFeatures: payload.enabledAiFeatures ?? [],
+            chatbots: payload.chatbots ?? [],
+            catalogues: payload.catalogues ?? [],
+          });
+        }
+      } catch {
+        if (!cancelled) {
+          setProjectAiState({
+            aiEnabled: false,
+            enabled: false,
+            enabledAiFeatures: [],
+            chatbots: [],
+            catalogues: [],
+          });
+        }
+      }
+    }
+
+    void loadDemos();
+    const handleRefresh = () => {
+      void loadDemos();
+    };
+    window.addEventListener(AI_STATE_UPDATED_EVENT, handleRefresh);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(AI_STATE_UPDATED_EVENT, handleRefresh);
+    };
+  }, [selectedEnvironment?.id, selectedProject?.id]);
 
   const primaryItems = navWithIcons.filter(
     (item) => !platformTitles.has(item.title),
@@ -115,8 +198,46 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
       pathname === projectBase || pathname.startsWith(`${projectBase}/`);
     const projectSettingsPath = `${projectBase}/settings`;
     const buildSettingsHref = (section: string) =>
-      `${projectSettingsPath}?section=${section}`;
+      `${projectSettingsPath}?section=${section}${selectedEnvironment ? `&env=${selectedEnvironment.id}` : ''}`;
     const projectActivityPath = `${projectBase}/activity`;
+    const aiItems = [
+      projectAiState.enabledAiFeatures.includes('chatbots')
+        ? {
+            title: 'Chat bots',
+            url: `${projectBase}/ai/chatbots`,
+            href: `${projectBase}/ai/chatbots${selectedEnvironment ? `?env=${selectedEnvironment.id}` : ''}`,
+            isActive: (pathname: string) =>
+              pathname === `${projectBase}/ai/chatbots`,
+          }
+        : null,
+      projectAiState.enabledAiFeatures.includes('catalogues')
+        ? {
+            title: 'Catalogues',
+            url: `${projectBase}/ai/catalogues`,
+            href: `${projectBase}/ai/catalogues${selectedEnvironment ? `?env=${selectedEnvironment.id}` : ''}`,
+            isActive: (pathname: string) =>
+              pathname.startsWith(`${projectBase}/ai/catalogues`),
+          }
+        : null,
+      projectAiState.enabledAiFeatures.includes('author-dialogs')
+        ? {
+            title: 'Author Dialogs',
+            url: `${projectBase}/ai/author-dialogs`,
+            href: `${projectBase}/ai/author-dialogs${selectedEnvironment ? `?env=${selectedEnvironment.id}` : ''}`,
+            isActive: (pathname: string) =>
+              pathname === `${projectBase}/ai/author-dialogs`,
+          }
+        : null,
+      projectAiState.enabledAiFeatures.includes('content-advisor')
+        ? {
+            title: 'Content Advisor',
+            url: `${projectBase}/ai/content-advisor`,
+            href: `${projectBase}/ai/content-advisor${selectedEnvironment ? `?env=${selectedEnvironment.id}` : ''}`,
+            isActive: (pathname: string) =>
+              pathname === `${projectBase}/ai/content-advisor`,
+          }
+        : null,
+    ].filter((item): item is NonNullable<typeof item> => item !== null);
 
     sections.push({
       label: 'Project',
@@ -144,6 +265,19 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
           icon: Activity,
           isActive: (pathname) => pathname === projectActivityPath,
         },
+        ...(projectAiState.aiEnabled && aiItems.length > 0
+          ? [
+              {
+                title: 'Agentic AI',
+                url: `${projectBase}/ai`,
+                href: `${projectBase}/ai${selectedEnvironment ? `?env=${selectedEnvironment.id}` : ''}`,
+                icon: Bot,
+                isActive: (pathname) =>
+                  pathname.startsWith(`${projectBase}/ai`),
+                items: aiItems,
+              },
+            ]
+          : []),
         {
           title: 'Settings',
           url: projectSettingsPath,
@@ -155,6 +289,34 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
         },
       ],
     });
+
+    if (
+      projectAiState.enabled &&
+      (projectAiState.chatbots.length > 0 ||
+        projectAiState.catalogues.length > 0)
+    ) {
+      sections.push({
+        label: 'Demos',
+        items: [
+          ...projectAiState.chatbots.map((chatbot) => ({
+            title: chatbot.name,
+            url: `${projectBase}/demos/${chatbot.slug}`,
+            href: `${projectBase}/demos/${chatbot.slug}${selectedEnvironment ? `?env=${selectedEnvironment.id}` : ''}`,
+            icon: MessageSquare,
+            isActive: (pathname: string) =>
+              pathname === `${projectBase}/demos/${chatbot.slug}`,
+          })),
+          ...projectAiState.catalogues.map((catalogue) => ({
+            title: catalogue.name,
+            url: `${projectBase}/demos/catalogues/${catalogue.slug}`,
+            href: `${projectBase}/demos/catalogues/${catalogue.slug}${selectedEnvironment ? `?env=${selectedEnvironment.id}` : ''}`,
+            icon: Folder,
+            isActive: (pathname: string) =>
+              pathname === `${projectBase}/demos/catalogues/${catalogue.slug}`,
+          })),
+        ],
+      });
+    }
   }
 
   if (platformItems.length > 0) {

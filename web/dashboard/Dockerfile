@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json pnpm-lock.yaml* ./
-RUN corepack enable && corepack prepare pnpm@9.15.2 --activate
+RUN corepack enable && corepack prepare pnpm@10.29.2 --activate
 RUN pnpm i --frozen-lockfile
 
 # Rebuild the source code only when needed
@@ -22,7 +22,7 @@ ARG CI=true
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
-RUN corepack enable && corepack prepare pnpm@9.15.2 --activate
+RUN corepack enable && corepack prepare pnpm@10.29.2 --activate
 RUN pnpm i --frozen-lockfile
 RUN pnpm --filter "@ethereal-nexus/dashboard" build
 

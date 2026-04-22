@@ -8,6 +8,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { isSelected } from '@/utils/navigation';
@@ -22,6 +25,7 @@ export interface NavItem {
   url: string;
   icon?: LucideIcon;
   href?: string;
+  items?: NavItem[];
   isActive?: (
     pathname: string,
     searchParams: ReadonlyURLSearchParams,
@@ -62,6 +66,27 @@ export function NavMain({ sections }: { sections: NavSection[] }) {
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
+                  {item.items?.length ? (
+                    <SidebarMenuSub>
+                      {item.items.map((subItem) => (
+                        <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubButton
+                            asChild
+                            isActive={
+                              subItem.isActive
+                                ? subItem.isActive(pathname, searchParams)
+                                : isSelected(pathname, subItem.url)
+                            }
+                          >
+                            <Link href={subItem.href ?? subItem.url}>
+                              {subItem.icon ? <subItem.icon /> : null}
+                              <span>{subItem.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  ) : null}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

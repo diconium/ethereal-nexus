@@ -3,11 +3,16 @@
   "version": "1.1.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
   "keywords": [],
   "author": "",
   "license": "ISC",
   "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "install": "playwright install",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug"
+  },
   "devDependencies": {
     "@playwright/test": "^1.48.2",
     "@types/node": "^22.9.0",

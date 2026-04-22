@@ -1,11 +1,12 @@
 import { getApiKeyByKey, getServiceUser } from '@/data/users/actions';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { headers } from 'next/headers';
 import { decodeJwt } from 'jose';
 import * as client from 'openid-client';
 import { auth } from '@/auth';
 import process from 'node:process';
 import { JWT } from 'next-auth/jwt';
+import { logger } from '@/lib/logger';
 
 const KEYCLOAK_ISSUER = process.env.KEYCLOAK_ISSUER;
 const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID;
@@ -84,7 +85,18 @@ export async function authenticatedWithApiKeyUser(req?: NextRequest) {
   const headersList = await headers();
   const authorization = headersList.get('authorization');
 
+  logger.debug('Resolving API authentication from headers', {
+    route: 'authenticatedWithApiKeyUser',
+    hasAuthorizationHeader: Boolean(authorization),
+    authorizationType: authorization?.split(' ')[0] ?? null,
+    requestUrl: req?.url ?? null,
+  });
+
   if (!authorization) {
+    logger.debug('No authorization header found for API authentication', {
+      route: 'authenticatedWithApiKeyUser',
+      requestUrl: req?.url ?? null,
+    });
     return null;
   }
 
@@ -101,10 +113,23 @@ export async function authenticatedWithApiKeyUser(req?: NextRequest) {
 
   switch (type.toLowerCase()) {
     case 'apikey':
+      logger.debug('Attempting API key authentication', {
+        route: 'authenticatedWithApiKeyUser',
+        requestUrl: req?.url ?? null,
+      });
       return handleApiKeyAuthentication(token);
     case 'bearer':
+      logger.debug('Attempting bearer authentication', {
+        route: 'authenticatedWithApiKeyUser',
+        requestUrl: req?.url ?? null,
+      });
       return handleBearerAuthentication(token);
     default:
+      logger.warn('Unsupported authorization type for API authentication', {
+        route: 'authenticatedWithApiKeyUser',
+        authorizationType: type,
+        requestUrl: req?.url ?? null,
+      });
       return null;
   }
 }
@@ -112,11 +137,18 @@ export async function authenticatedWithApiKeyUser(req?: NextRequest) {
 async function handleApiKeyAuthentication(token: string) {
   const apiKey = await getApiKeyByKey(token);
   if (!apiKey.success) {
-    NextResponse.json(apiKey.error, {
-      status: HttpStatus.FORBIDDEN,
+    logger.warn('API key authentication failed', {
+      route: 'authenticatedWithApiKeyUser',
+      reason: apiKey.error.message,
     });
-    return;
+    return null;
   }
+
+  logger.debug('API key authentication succeeded', {
+    route: 'authenticatedWithApiKeyUser',
+    userId: apiKey.data.user_id,
+    permissionKeys: Object.keys(apiKey.data.permissions ?? {}),
+  });
 
   return {
     id: apiKey.data.user_id,
@@ -128,18 +160,20 @@ async function handleBearerAuthentication(token: string) {
   try {
     const { iss, sub } = decodeJwt(token);
     if (!iss || !sub) {
-      NextResponse.json('Invalid OAuth credentials.', {
-        status: HttpStatus.FORBIDDEN,
+      logger.warn('Bearer authentication failed: invalid JWT claims', {
+        route: 'authenticatedWithApiKeyUser',
       });
-      return;
+      return null;
     }
 
     const serviceUser = await getServiceUser(iss, sub);
     if (!serviceUser.success) {
-      NextResponse.json('User not found.', {
-        status: HttpStatus.NOT_FOUND,
+      logger.warn('Bearer authentication failed: service user not found', {
+        route: 'authenticatedWithApiKeyUser',
+        issuer: iss,
+        subject: sub,
       });
-      return;
+      return null;
     }
 
     const { id, client_id, client_secret, permissions } = serviceUser.data;
@@ -156,20 +190,31 @@ async function handleBearerAuthentication(token: string) {
     );
     const introspection = await client.tokenIntrospection(config, token);
     if (!introspection.active) {
-      NextResponse.json('Token is not active.', {
-        status: HttpStatus.UNAUTHORIZED,
+      logger.warn('Bearer authentication failed: inactive token', {
+        route: 'authenticatedWithApiKeyUser',
+        userId: serviceUser.data.id,
       });
-      return;
+      return null;
     }
+
+    logger.debug('Bearer authentication succeeded', {
+      route: 'authenticatedWithApiKeyUser',
+      userId: id,
+      permissionKeys: Object.keys(permissions ?? {}),
+    });
+
     return {
       id,
       permissions,
     };
   } catch (error) {
-    console.error(error);
-    NextResponse.json(error, {
-      status: HttpStatus.FORBIDDEN,
-    });
-    return;
+    logger.error(
+      'Bearer authentication failed with exception',
+      error as Error,
+      {
+        route: 'authenticatedWithApiKeyUser',
+      },
+    );
+    return null;
   }
 }

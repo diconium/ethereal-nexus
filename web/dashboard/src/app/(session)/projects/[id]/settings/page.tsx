@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { unstable_noStore as noStore } from 'next/cache';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Card,
@@ -11,11 +12,38 @@ import {
 } from '@/components/ui/card';
 import {
   getProjectById,
+  getEnvironmentsByProject,
   getProjectSettingsSummary,
 } from '@/data/projects/actions';
 import ProjectsForm from '@/components/projects/project-form';
 import { ProjectMemberList } from '@/components/projects/members-table/member-list';
-import { Layers, LayoutGrid, Flag, Users as UsersIcon } from 'lucide-react';
+import {
+  Layers,
+  LayoutGrid,
+  Flag,
+  Users as UsersIcon,
+  Bot,
+  CalendarClock,
+  ChevronDown,
+  SlidersHorizontal,
+  Link2,
+  type LucideIcon,
+} from 'lucide-react';
+import {
+  getChatbotsByEnvironment,
+  getContentAdvisorAgentConfigs,
+  getContentAdvisorSettings,
+  getContentAdvisorSchedules,
+  getPageUrlMappings,
+  getProjectAiFlags,
+} from '@/data/ai/actions';
+import { EnvironmentSwitcher } from '@/components/projects/ai/environment-switcher';
+import { FeatureFlagsSection } from '@/components/projects/ai/feature-flags-section';
+import { ContentAdvisorAgentConfigSection } from '@/components/projects/ai/content-advisor-agent-config-section';
+import { ContentAdvisorSettingsSection } from '@/components/projects/ai/content-advisor-settings-section';
+import { ContentAdvisorSchedulesSection } from '@/components/projects/ai/content-advisor-schedules-section';
+import { PageUrlMappingsSection } from '@/components/projects/ai/page-url-mappings-section';
+import { AiErrorNotice } from '@/components/projects/ai/ai-error-notice';
 
 type PageProps = {
   params: Promise<{
@@ -24,25 +52,63 @@ type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-const SETTINGS_SECTIONS = new Set(['general', 'members']);
+const SETTINGS_SECTIONS = new Set(['general', 'members', 'ai']);
+
+function Section({
+  icon: Icon,
+  title,
+  description,
+  children,
+  defaultOpen = false,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  return (
+    <details
+      open={defaultOpen}
+      className="group overflow-hidden rounded-xl border bg-card"
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-4 marker:content-none">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            <Icon size={16} className="text-primary" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold">{title}</h2>
+            <p className="text-xs text-muted-foreground">{description}</p>
+          </div>
+        </div>
+        <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="border-t px-4 py-4">{children}</div>
+    </details>
+  );
+}
 
 export default async function ProjectSettingsPage({
   params,
   searchParams,
 }: PageProps) {
+  noStore();
   const { id } = await params;
   const query = await searchParams;
 
   const requestedSection = Array.isArray(query?.section)
     ? query?.section[0]
     : query?.section;
+  const env = Array.isArray(query?.env) ? query?.env[0] : query?.env;
   const section = SETTINGS_SECTIONS.has(requestedSection ?? '')
-    ? (requestedSection as 'general' | 'members')
+    ? (requestedSection as 'general' | 'members' | 'ai')
     : 'general';
 
-  const [project, summary] = await Promise.all([
+  const [project, summary, environments] = await Promise.all([
     getProjectById(id),
     getProjectSettingsSummary(id),
+    getEnvironmentsByProject(id),
   ]);
 
   if (!project.success) {
@@ -86,6 +152,31 @@ export default async function ProjectSettingsPage({
   ];
 
   const projectSettingsPath = `/projects/${id}/settings`;
+  const selectedEnvironment = environments.success
+    ? environments.data.find((environment) => environment.id === env) ||
+      environments.data[0]
+    : null;
+  const settingsHref = (nextSection: 'general' | 'members' | 'ai') =>
+    `${projectSettingsPath}?section=${nextSection}${selectedEnvironment ? `&env=${selectedEnvironment.id}` : ''}`;
+
+  const [
+    aiFlags,
+    chatbots,
+    contentAdvisorAgents,
+    contentAdvisorSchedules,
+    contentAdvisorSettings,
+    pageUrlMappings,
+  ] =
+    section === 'ai' && selectedEnvironment
+      ? await Promise.all([
+          getProjectAiFlags(id, selectedEnvironment.id),
+          getChatbotsByEnvironment(id, selectedEnvironment.id),
+          getContentAdvisorAgentConfigs(id, selectedEnvironment.id),
+          getContentAdvisorSchedules(id, selectedEnvironment.id),
+          getContentAdvisorSettings(id, selectedEnvironment.id),
+          getPageUrlMappings(id, selectedEnvironment.id),
+        ])
+      : [null, null, null, null, null, null];
 
   return (
     <div className="flex flex-1 flex-col space-y-8">
@@ -104,10 +195,13 @@ export default async function ProjectSettingsPage({
       <Tabs value={section} defaultValue="general" className="space-y-8">
         <TabsList>
           <TabsTrigger value="general" asChild>
-            <Link href={`${projectSettingsPath}?section=general`}>General</Link>
+            <Link href={settingsHref('general')}>General</Link>
           </TabsTrigger>
           <TabsTrigger value="members" asChild>
-            <Link href={`${projectSettingsPath}?section=members`}>Members</Link>
+            <Link href={settingsHref('members')}>Members</Link>
+          </TabsTrigger>
+          <TabsTrigger value="ai" asChild>
+            <Link href={settingsHref('ai')}>Agentic AI</Link>
           </TabsTrigger>
         </TabsList>
 
@@ -183,6 +277,118 @@ export default async function ProjectSettingsPage({
               <ProjectMemberList id={id} />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="ai" className="space-y-8">
+          {!selectedEnvironment ? (
+            <AiErrorNotice
+              title="AI settings need an environment"
+              message="Select an environment to configure AI features, Content Advisor agents, and schedules."
+            />
+          ) : !aiFlags ||
+            !chatbots ||
+            !contentAdvisorAgents ||
+            !contentAdvisorSchedules ||
+            !contentAdvisorSettings ||
+            !pageUrlMappings ? null : !aiFlags.success ||
+            !chatbots.success ||
+            !contentAdvisorAgents.success ||
+            !contentAdvisorSchedules.success ||
+            !contentAdvisorSettings.success ? (
+            <AiErrorNotice
+              title="Unable to load AI settings"
+              message={
+                !aiFlags.success
+                  ? aiFlags.error.message
+                  : !chatbots.success
+                    ? chatbots.error.message
+                    : !contentAdvisorAgents.success
+                      ? contentAdvisorAgents.error.message
+                      : !contentAdvisorSchedules.success
+                        ? contentAdvisorSchedules.error.message
+                        : !contentAdvisorSettings.success
+                          ? contentAdvisorSettings.error.message
+                          : 'Failed to load AI settings.'
+              }
+            />
+          ) : (
+            <>
+              <Section
+                icon={SlidersHorizontal}
+                title="AI features"
+                description="Enable or disable the AI sections available in the selected environment."
+                defaultOpen
+              >
+                <FeatureFlagsSection
+                  key={`ai-flags-${selectedEnvironment.id}`}
+                  projectId={id}
+                  environmentId={selectedEnvironment.id}
+                  flags={aiFlags.data}
+                />
+              </Section>
+
+              <Section
+                icon={Bot}
+                title="Content Advisor agents"
+                description="Configure the AI agents used for content analysis in the current environment."
+              >
+                <ContentAdvisorAgentConfigSection
+                  key={`advisor-agents-${selectedEnvironment.id}`}
+                  projectId={id}
+                  environmentId={selectedEnvironment.id}
+                  initialAgents={contentAdvisorAgents.data}
+                />
+              </Section>
+
+              <Section
+                icon={CalendarClock}
+                title="Content Advisor automation"
+                description="Configure how persistent issues are automatically resolved in the selected environment."
+              >
+                <ContentAdvisorSettingsSection
+                  key={`advisor-settings-${selectedEnvironment.id}`}
+                  projectId={id}
+                  environmentId={selectedEnvironment.id}
+                  initialSettings={contentAdvisorSettings.data}
+                />
+              </Section>
+
+              <Section
+                icon={CalendarClock}
+                title="Content Advisor schedules"
+                description="Automate content analysis with cron-based schedules for the current environment."
+              >
+                <ContentAdvisorSchedulesSection
+                  key={`advisor-schedules-${selectedEnvironment.id}`}
+                  projectId={id}
+                  environmentId={selectedEnvironment.id}
+                  initialSchedules={contentAdvisorSchedules.data}
+                  brokenLinkDomain={
+                    (
+                      contentAdvisorAgents.data.find(
+                        (agent) => agent.key === 'broken-link',
+                      )?.provider_config as
+                        | { allowed_domain?: string }
+                        | undefined
+                    )?.allowed_domain
+                  }
+                />
+              </Section>
+
+              <Section
+                icon={Link2}
+                title="AEM page URL mappings"
+                description="Map AEM content paths to public frontend URLs for the broken-link crawler."
+              >
+                <PageUrlMappingsSection
+                  key={`page-url-mappings-${selectedEnvironment.id}`}
+                  projectId={id}
+                  environmentId={selectedEnvironment.id}
+                  initialMappings={pageUrlMappings.success ? pageUrlMappings.data : []}
+                />
+              </Section>
+            </>
+          )}
         </TabsContent>
       </Tabs>
     </div>

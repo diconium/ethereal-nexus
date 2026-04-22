@@ -36,12 +36,16 @@ const SpectrumFieldTabs: React.FC<FieldRendererProps> = ({field, value, onChange
                     {error}
                 </Text>
             )}
-            <Tabs aria-label={t(field.label ?? '') || 'Dialog Tabs'}>
-                <TabList>
+            <Tabs aria-label={t(field.label ?? '') || 'Dialog Tabs'} >
+                <TabList UNSAFE_style={{flexWrap: 'nowrap', overflowX: 'auto', overflowY: 'hidden'}}>
                     {tabChildren.map((tab: any) => {
                         if (!tab || !tab.id) return null;
                         return (
-                            <Item key={tab.id}>{t(tab.label ?? '') || tab.id}</Item>
+                            <Item key={tab.id}>
+                                <span style={{display: 'block', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}} title={t(tab.label ?? '') || tab.id}>
+                                    {t(tab.label ?? '') || tab.id}
+                                </span>
+                            </Item>
                         );
                     }).filter(Boolean)}
                 </TabList>

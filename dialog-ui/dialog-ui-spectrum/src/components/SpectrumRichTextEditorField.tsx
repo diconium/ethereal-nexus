@@ -70,6 +70,7 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
                                                                                         }) => {
     const {t} = useI18n();
     const editorRef = useRef<HTMLDivElement>(null);
+    const isUserTyping = useRef<boolean>(false);
     const [content, setContent] = useState<string>(sanitizeRichTextContent(value || ''));
     const [isEditorFocused, setIsEditorFocused] = useState<boolean>(false);
     const [isSourceMode, setIsSourceMode] = useState<boolean>(false);
@@ -80,11 +81,9 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
   const handleContentChange = () => {
     if (editorRef.current) {
       const sanitizedContent = sanitizeRichTextContent(editorRef.current.innerHTML);
-      if (editorRef.current.innerHTML !== sanitizedContent) {
-        editorRef.current.innerHTML = sanitizedContent;
-      }
       setContent(sanitizedContent);
       setSourceContent(sanitizedContent);
+      isUserTyping.current = true;
       onChange(sanitizedContent);
     }
   };
@@ -99,29 +98,21 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
 
         if (isSourceMode) {
             setSourceContent(value || '');
+            isUserTyping.current = false;
             return;
         }
 
         setSourceContent(sanitizedValue);
 
+         if (isUserTyping.current) {
+            isUserTyping.current = false;
+            return;
+        }
+
         if (editorRef.current && sanitizedValue !== editorRef.current.innerHTML) {
             editorRef.current.innerHTML = sanitizedValue;
         }
     }, [value, isSourceMode]);
-
-    // Add useEffect to handle content restoration when switching modes
-    useEffect(() => {
-        if (!isSourceMode && editorRef.current) {
-            const sanitizedSourceContent = sanitizeRichTextContent(sourceContent);
-            if (editorRef.current.innerHTML !== sanitizedSourceContent) {
-                editorRef.current.innerHTML = sanitizedSourceContent;
-            }
-            if (content !== sanitizedSourceContent) {
-                setContent(sanitizedSourceContent);
-            }
-        }
-    }, [isSourceMode, sourceContent, content]);
-
 
     const handleSourceChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setSourceContent(e.target.value);

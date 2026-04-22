@@ -177,6 +177,7 @@ export class SpectrumFieldRenderer extends BaseFieldRenderer<React.ReactElement>
     // Ensure path is always a string
     const safeProps = {
       ...props,
+      value: Array.isArray(props.value) ? props.value.map((v, index)=> ({index: v.index ? v.index : index, ...v })) : props.value,
       path: props.path ?? ''
     };
 

@@ -51,7 +51,7 @@
     "@r2wc/react-to-web-component": "^2.1.0",
     "@spectrum-icons/workflow": "^4.2.27",
     "@types/sanitize-html": "^2.16.1",
-    "sanitize-html": "^2.17.2"
+    "sanitize-html": "^2.17.3"
   },
   "devDependencies": {
     "@storybook/react-vite": "^10.2.11",
@@ -61,7 +61,7 @@
     "@vitejs/plugin-react": "^5.1.4",
     "storybook": "^10.2.11",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1",
+    "vite": "^7.3.2",
     "vite-plugin-dts": "^4.5.4",
     "vitest": "^4.0.18"
   }

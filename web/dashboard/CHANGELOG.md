@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 3.8.2
+
+### Patch Changes
+
+- 4678a81: Remove the unused Content Advisor focus instruction settings from the dashboard and database schema. This also repairs the corresponding Drizzle migration state so future dashboard migrations apply cleanly.
+
 ## 3.8.1
 
 ### Patch Changes

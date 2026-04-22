@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.8.6
+
+### Patch Changes
+
+- e099c58: enhance multifield item rendering and improve rich text editor handling
+
 ## 1.8.5
 
 ### Patch Changes

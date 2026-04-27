@@ -2,6 +2,7 @@
 import React, { useId, useRef, useState } from 'react';
 import { View, Flex } from '@adobe/react-spectrum';
 import { useI18n } from '@/providers';
+import {isArray} from "node:util";
 
 declare global {
   namespace JSX {
@@ -33,8 +34,12 @@ export const SpectrumTagsField: React.FC<SpectrumTagsFieldProps> = ({ field, val
   const { t } = useI18n();
   const labelId = useId();
   const rootPath = field.rootPath || '/content/cq:tags';
+
+  console.log(value)
+
   const tags = Array.isArray(value) ? value : (value ? value.split(',').map(v => v.trim()).filter(Boolean) : []);
-  const [tagItems, setTagItems] = useState(tags.map((tag, index) => ({ id: index, name: tag })));
+
+  const tagItems = tags.map((tag, index) => ({ id: index, name: tag?.value ?? tag }))
   console.log('field.multiple', field.multiple);
   console.log('field.multiple', field.multiple ? 'true' : undefined);
 
@@ -68,8 +73,8 @@ export const SpectrumTagsField: React.FC<SpectrumTagsFieldProps> = ({ field, val
               data-foundation-picker-buttonlist-src={`/mnt/overlay/cq/gui/content/coral/common/form/tagfield/suggestion{.offset,limit}.html?root=${encodeURIComponent(rootPath)}{&query}`}
             ></coral-overlay>
             <coral-taglist foundation-autocomplete-value="" name={field.name}>
-              {tagItems.map((item, index) => (
-                <coral-tag key={item.id} multiline value={item?.name}>
+              {tagItems?.map((item, index) => (
+                <coral-tag key={item?.id} multiline value={item?.name}>
                   <coral-tag-label>{item?.name}</coral-tag-label>
                 </coral-tag>
               ))}

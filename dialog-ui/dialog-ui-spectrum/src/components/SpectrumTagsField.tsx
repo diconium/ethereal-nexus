@@ -37,6 +37,7 @@ export const SpectrumTagsField: React.FC<SpectrumTagsFieldProps> = ({ field, val
   const [tagItems, setTagItems] = useState(tags.map((tag, index) => ({ id: index, name: tag })));
   console.log('field.multiple', field.multiple);
   console.log('field.multiple', field.multiple ? 'true' : undefined);
+
   return (
     <View>
       <Flex gap="size-100" direction="column">
@@ -67,9 +68,9 @@ export const SpectrumTagsField: React.FC<SpectrumTagsFieldProps> = ({ field, val
               data-foundation-picker-buttonlist-src={`/mnt/overlay/cq/gui/content/coral/common/form/tagfield/suggestion{.offset,limit}.html?root=${encodeURIComponent(rootPath)}{&query}`}
             ></coral-overlay>
             <coral-taglist foundation-autocomplete-value="" name={field.name}>
-              {tagItems.map((item) => (
-                <coral-tag key={item.id} multiline value={item.name?.value}>
-                  <coral-tag-label>{item.name?.value}</coral-tag-label>
+              {tagItems.map((item, index) => (
+                <coral-tag key={item.id} multiline value={item?.name}>
+                  <coral-tag-label>{item?.name}</coral-tag-label>
                 </coral-tag>
               ))}
             </coral-taglist>

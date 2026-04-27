@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.8.7
+
+### Patch Changes
+
+- 18f2b31: update tag rendering to handle optional values in SpectrumTagsField
+
 ## 1.8.6
 
 ### Patch Changes

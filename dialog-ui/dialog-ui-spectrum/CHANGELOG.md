@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.8.9
+
+### Patch Changes
+
+- bb86b19: refactor SpectrumGroupField to optimize state handling and improve performance
+
 ## 1.8.8
 
 ### Patch Changes

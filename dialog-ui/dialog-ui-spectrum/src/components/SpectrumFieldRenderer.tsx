@@ -251,8 +251,8 @@ export const SpectrumFieldRendererComponent: React.FC<FieldRendererProps> = (pro
     return <></>;
   }
 
-  // Always pass the latest formData from context
   const component = renderer.render(props);
+
   return (
     <View>
       {component}

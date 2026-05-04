@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.9.0
+
+### Minor Changes
+
+- 10381d7: enhance SpectrumRichTextEditorField to support source editing feature
+
 ## 1.8.9
 
 ### Patch Changes

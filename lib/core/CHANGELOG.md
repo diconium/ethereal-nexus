@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.20.0
+
+### Minor Changes
+
+- 10381d7: enhance SpectrumRichTextEditorField to support source editing feature
+
 ## 1.19.1
 
 ### Patch Changes

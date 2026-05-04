@@ -5,7 +5,7 @@ import {
   Divider, Text,
   ContextualHelp, Heading, Content, ActionButton, ActionGroup, Item, TextField, Key, Checkbox,
 } from "@adobe/react-spectrum";
-import {useI18n} from '../providers';
+import {useI18n} from '@/providers';
 import {getFieldName} from "@/components/getFieldName.ts";
 import TextSvg from "@spectrum-icons/workflow/TextBold";
 import TextAlignLeft from "@spectrum-icons/workflow/TextAlignLeft";
@@ -68,14 +68,16 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
                                                                                             onChange,
                                                                                             error
                                                                                         }) => {
-    const {t} = useI18n();
-    const editorRef = useRef<HTMLDivElement>(null);
-    const isUserTyping = useRef<boolean>(false);
-    const [content, setContent] = useState<string>(sanitizeRichTextContent(value || ''));
-    const [isEditorFocused, setIsEditorFocused] = useState<boolean>(false);
-    const [isSourceMode, setIsSourceMode] = useState<boolean>(false);
-    const [sourceContent, setSourceContent] = useState<string>(value || '');
-    const [showToolbar, setShowToolbar] = useState<string>("format");
+  const {t} = useI18n();
+  const rteIsEnabled = (field.features || []).includes("sourceedit");
+
+  const editorRef = useRef<HTMLDivElement>(null);
+  const isUserTyping = useRef<boolean>(false);
+  const [content, setContent] = useState<string>(sanitizeRichTextContent(value || ''));
+  const [isEditorFocused, setIsEditorFocused] = useState<boolean>(false);
+  const [isSourceMode, setIsSourceMode] = useState<boolean>(false);
+  const [sourceContent, setSourceContent] = useState<string>(value || '');
+  const [showToolbar, setShowToolbar] = useState<string>("format");
 
 
   const handleContentChange = () => {
@@ -119,6 +121,11 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
     };
 
     const toggleSourceMode = () => {
+
+      if (!rteIsEnabled) {
+        return;
+      }
+
         if (isSourceMode) {
             const sanitizedContent = sanitizeRichTextContent(sourceContent);
             setSourceContent(sanitizedContent);
@@ -222,7 +229,9 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
     const onShowToolbar = (action: string) => {
       switch (action) {
         case 'sourceToggle':
-          toggleSourceMode();
+          if (rteIsEnabled) {
+            toggleSourceMode();
+          }
           break;
         case 'link':
           setShowToolbar(action);
@@ -298,9 +307,9 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
                   <ActionButton onPress={removeLink} isDisabled={isSourceMode}>
                     <Unlink />
                   </ActionButton>
-                  <ActionButton onPress={toggleSourceMode} >
+                  {rteIsEnabled && (<ActionButton onPress={toggleSourceMode} >
                     {isSourceMode ? <TextEdit/> : <FileHTML />}
-                  </ActionButton>
+                  </ActionButton>) }
                 </Flex>
 
                   {showToolbar === "justify" && (

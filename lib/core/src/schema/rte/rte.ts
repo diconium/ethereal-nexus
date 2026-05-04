@@ -7,13 +7,17 @@ export interface RichTextEditorSchema<TOutput extends string = string> extends B
   type: 'richtexteditor';
 }
 
+type FeatureOptionsType = "sourceedit"
+
+
 interface RichTextEditorInput extends BaseFieldInput {
   placeholder?: string;
   defaultValue?: string;
+  features?: FeatureOptionsType[];
 }
 
 export function rte(input: RichTextEditorInput): RichTextEditorSchema {
-  const {placeholder, label, tooltip, required, defaultValue} = input;
+  const {placeholder, label, tooltip, required, defaultValue, features} = input;
 
   return {
     type: 'richtexteditor',
@@ -24,7 +28,8 @@ export function rte(input: RichTextEditorInput): RichTextEditorSchema {
         placeholder,
         tooltip,
         required,
-        defaultValue
+        defaultValue,
+        features
       }
     },
     _primitive() {

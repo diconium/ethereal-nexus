@@ -28,37 +28,12 @@ export const SpectrumGroupField: React.FC<SpectrumGroupFieldProps> = ({
                                                                           FieldRendererComponent
                                                                       }) => {
     const {t} = useI18n();
-
+    console.log("Group");
     // Extract group-specific data from the value
     // Since tabs are now transparent, we might receive the entire formData
     const fieldId = field.id || field.name;
     let groupData = value ?? {};
 
-    console.log(`🔸 [SpectrumGroupField] Component initialized:`, {
-        fieldId: fieldId,
-        fieldLabel: field.label,
-        receivedValue: value,
-        valueType: typeof value,
-        isValueArray: Array.isArray(value),
-        hasChildren: !!field.children,
-        childrenCount: field.children?.length || 0,
-        path: path
-    });
-
-    // If value contains the group data nested under the field ID, extract it
-    if (value && value[fieldId] && typeof value[fieldId] === 'object') {
-        groupData = value[fieldId];
-        console.log(`🔸 [SpectrumGroupField] Extracted group data from value[${fieldId}]:`, groupData);
-    }
-    // If value is in remote.groupId structure (AEM format), extract it
-    else if (value && value.remote && value.remote[fieldId]) {
-        groupData = value.remote[fieldId];
-        console.log(`🔸 [SpectrumGroupField] Extracted group data from value.remote[${fieldId}]:`, groupData);
-    } else {
-        console.log(`🔸 [SpectrumGroupField] Using value directly as group data:`, groupData);
-    }
-
-    console.log(`🔸 [SpectrumGroupField] Final extracted group data:`, groupData);
 
     // Always show toggle for groups
     //TODO: think about how to handle toggle state in a more robust way

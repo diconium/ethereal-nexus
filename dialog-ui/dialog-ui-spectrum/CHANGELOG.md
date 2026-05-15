@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.9.1
+
+### Patch Changes
+
+- b16b9aa: remove debug logging and redundant group data extraction in SpectrumGroupField
+
 ## 1.9.0
 
 ### Minor Changes

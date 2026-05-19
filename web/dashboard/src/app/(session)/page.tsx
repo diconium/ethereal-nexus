@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Activity, Folder, LayoutGrid, Users, Zap } from 'lucide-react';
 import { db } from '@/db';
-import { and, count, desc, eq, inArray } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, sql } from 'drizzle-orm';
 import {
   components as componentsSchema,
   componentVersions,
@@ -111,10 +111,25 @@ export default async function Home() {
       resource_id: events.resource_id,
       actor_name: usersSchema.name,
       project_name: projectsSchema.name,
+      component_name: componentsSchema.name,
     })
     .from(events)
     .leftJoin(usersSchema, eq(events.user_id, usersSchema.id))
     .leftJoin(projectsSchema, eq(events.resource_id, projectsSchema.id))
+    .leftJoin(
+      componentsSchema,
+      sql`(
+        (${events.data}->>'component_id')::uuid = ${componentsSchema.id}
+        or (
+          ${events.resource_id} = ${componentsSchema.id}
+          and ${events.type}::text in (
+            'component_deactivated',
+            'component_activated',
+            'component_update'
+          )
+        )
+      )`,
+    )
     .where(
       !isAdmin && userProjectIds && userProjectIds.length > 0
         ? inArray(events.resource_id, userProjectIds)
@@ -310,6 +325,9 @@ export default async function Home() {
                           <span className="text-xs text-muted-foreground truncate">
                             {event.project_name
                               ? `${event.project_name} · `
+                              : ''}
+                            {event.component_name
+                              ? `${event.component_name} · `
                               : ''}
                             {event.actor_name ?? 'Unknown'}
                           </span>

@@ -63,6 +63,9 @@ type ChatbotFormState = {
   provider: AiProvider;
   project_endpoint: string;
   agent_id: string;
+  vertex_project: string;
+  vertex_location: string;
+  vertex_reasoning_engine: string;
   enabled: boolean;
 };
 
@@ -81,8 +84,29 @@ const EMPTY_FORM: ChatbotFormState = {
   provider: 'microsoft-foundry',
   project_endpoint: '',
   agent_id: '',
+  vertex_project: '',
+  vertex_location: '',
+  vertex_reasoning_engine: '',
   enabled: true,
 };
+
+function getProviderDetails(chatbot: Chatbot) {
+  if (chatbot.provider === 'vertex-ai-google') {
+    const config = chatbot.provider_config;
+
+    return {
+      primary: `Project: ${config.project || '-'}`,
+      secondary: `Location: ${config.location || '-'}`,
+      tertiary: `Reasoning engine: ${config.reasoning_engine || '-'}`,
+    };
+  }
+
+  return {
+    primary: `Agent ID: ${chatbot.agent_id}`,
+    secondary: `Project endpoint: ${chatbot.project_endpoint}`,
+    tertiary: null,
+  };
+}
 
 function autoSlug(value: string) {
   return value
@@ -135,6 +159,15 @@ export function ChatbotsManager({
     setIsFormOpen(true);
   };
   const openEditDialog = (chatbot: Chatbot) => {
+    const vertexConfig =
+      chatbot.provider === 'vertex-ai-google'
+        ? (chatbot.provider_config as {
+            project?: string | null;
+            location?: string | null;
+            reasoning_engine?: string | null;
+          })
+        : null;
+
     setForm({
       id: chatbot.id,
       name: chatbot.name,
@@ -144,6 +177,9 @@ export function ChatbotsManager({
       provider: chatbot.provider,
       project_endpoint: chatbot.project_endpoint,
       agent_id: chatbot.agent_id,
+      vertex_project: vertexConfig?.project || '',
+      vertex_location: vertexConfig?.location || '',
+      vertex_reasoning_engine: vertexConfig?.reasoning_engine || '',
       enabled: chatbot.enabled,
     });
     const existingSettings = apiSettingsState.find(
@@ -214,14 +250,33 @@ export function ChatbotsManager({
   };
   const submitForm = () => {
     startTransition(async () => {
-      const result = await upsertChatbot({
-        ...form,
+      const basePayload = {
+        id: form.id,
         project_id: projectId,
         environment_id: environmentId,
+        name: form.name,
+        description: form.description,
         slug: form.slug || autoSlug(form.name),
         public_slug: form.public_slug || form.slug || autoSlug(form.name),
-        provider: form.provider,
-      });
+        enabled: form.enabled,
+      };
+
+      const result = await upsertChatbot(
+        form.provider === 'microsoft-foundry'
+          ? {
+              ...basePayload,
+              provider: 'microsoft-foundry',
+              project_endpoint: form.project_endpoint,
+              agent_id: form.agent_id,
+            }
+          : {
+              ...basePayload,
+              provider: 'vertex-ai-google',
+              project: form.vertex_project,
+              location: form.vertex_location,
+              reasoning_engine: form.vertex_reasoning_engine,
+            },
+      );
 
       if (!result.success) {
         toast(result.error.message || 'Failed to save chatbot.');
@@ -277,19 +332,37 @@ export function ChatbotsManager({
   };
   const toggleChatbotEnabled = (chatbot: Chatbot, enabled: boolean) => {
     startTransition(async () => {
-      const result = await upsertChatbot({
-        id: chatbot.id,
-        project_id: projectId,
-        environment_id: environmentId,
-        name: chatbot.name,
-        description: chatbot.description,
-        slug: chatbot.slug,
-        public_slug: chatbot.public_slug,
-        provider: chatbot.provider,
-        project_endpoint: chatbot.project_endpoint,
-        agent_id: chatbot.agent_id,
-        enabled,
-      });
+      const result = await upsertChatbot(
+        chatbot.provider === 'microsoft-foundry'
+          ? {
+              id: chatbot.id,
+              project_id: projectId,
+              environment_id: environmentId,
+              name: chatbot.name,
+              description: chatbot.description,
+              slug: chatbot.slug,
+              public_slug: chatbot.public_slug,
+              provider: 'microsoft-foundry',
+              project_endpoint: chatbot.project_endpoint,
+              agent_id: chatbot.agent_id,
+              enabled,
+            }
+          : {
+              id: chatbot.id,
+              project_id: projectId,
+              environment_id: environmentId,
+              name: chatbot.name,
+              description: chatbot.description,
+              slug: chatbot.slug,
+              public_slug: chatbot.public_slug,
+              provider: 'vertex-ai-google',
+              project: chatbot.provider_config.project || '',
+              location: chatbot.provider_config.location || '',
+              reasoning_engine:
+                chatbot.provider_config.reasoning_engine || '',
+              enabled,
+            },
+      );
 
       if (!result.success) {
         toast(result.error.message || 'Failed to update chatbot status.');
@@ -496,19 +569,28 @@ export function ChatbotsManager({
                           {chatbot.description}
                         </p>
                       ) : null}
-                      <div className="grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
-                        <div>Agent ID: {chatbot.agent_id}</div>
-                        <div>Public endpoint: {chatbot.public_slug}</div>
-                        <div className="truncate">
-                          Project endpoint: {chatbot.project_endpoint}
-                        </div>
-                        <div className="sm:col-span-2">
-                          Talk API:{' '}
-                          <code>
-                            {buildPublicTalkEndpoint(chatbot.public_slug)}
-                          </code>
-                        </div>
-                      </div>
+                      {(() => {
+                        const providerDetails = getProviderDetails(chatbot);
+
+                        return (
+                          <div className="grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+                            <div>{providerDetails.primary}</div>
+                            <div>Public endpoint: {chatbot.public_slug}</div>
+                            <div className="truncate">
+                              {providerDetails.secondary}
+                            </div>
+                            {providerDetails.tertiary ? (
+                              <div>{providerDetails.tertiary}</div>
+                            ) : null}
+                            <div className="sm:col-span-2">
+                              Talk API:{' '}
+                              <code>
+                                {buildPublicTalkEndpoint(chatbot.public_slug)}
+                              </code>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     <div className="grid gap-2 pt-2 sm:grid-cols-4">
@@ -701,39 +783,86 @@ export function ChatbotsManager({
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">
-                    Project endpoint
+                    {form.provider === 'microsoft-foundry'
+                      ? 'Project endpoint'
+                      : 'Project'}
                   </label>
                   <Input
-                    type="url"
-                    value={form.project_endpoint}
+                    type={
+                      form.provider === 'microsoft-foundry' ? 'url' : 'text'
+                    }
+                    value={
+                      form.provider === 'microsoft-foundry'
+                        ? form.project_endpoint
+                        : form.vertex_project
+                    }
                     onChange={(event) =>
                       setForm((current) => ({
                         ...current,
-                        project_endpoint: event.target.value,
+                        ...(current.provider === 'microsoft-foundry'
+                          ? { project_endpoint: event.target.value }
+                          : { vertex_project: event.target.value }),
                       }))
                     }
-                    placeholder="https://.../api/projects/..."
+                    placeholder={
+                      form.provider === 'microsoft-foundry'
+                        ? 'https://.../api/projects/...'
+                        : 'my-google-cloud-project'
+                    }
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Agent ID</label>
+                  <label className="text-sm font-medium">
+                    {form.provider === 'microsoft-foundry'
+                      ? 'Agent ID'
+                      : 'Location'}
+                  </label>
                   <Input
-                    value={form.agent_id}
+                    value={
+                      form.provider === 'microsoft-foundry'
+                        ? form.agent_id
+                        : form.vertex_location
+                    }
                     onChange={(event) =>
                       setForm((current) => ({
                         ...current,
-                        agent_id: event.target.value,
+                        ...(current.provider === 'microsoft-foundry'
+                          ? { agent_id: event.target.value }
+                          : { vertex_location: event.target.value }),
                       }))
+                    }
+                    placeholder={
+                      form.provider === 'microsoft-foundry'
+                        ? undefined
+                        : 'europe-west1'
                     }
                     required
                   />
                 </div>
+                {form.provider === 'vertex-ai-google' ? (
+                  <div className="space-y-2 sm:col-span-2">
+                    <label className="text-sm font-medium">
+                      Reasoning Engine
+                    </label>
+                    <Input
+                      value={form.vertex_reasoning_engine}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          vertex_reasoning_engine: event.target.value,
+                        }))
+                      }
+                      placeholder="1234567890123456789"
+                      required
+                    />
+                  </div>
+                ) : null}
                 <div className="space-y-2 sm:col-span-2">
                   <p className="text-xs text-muted-foreground">
-                    Provider-specific settings are shown for the selected
-                    provider. Microsoft Foundry currently requires a project
-                    endpoint and an agent ID.
+                    {form.provider === 'microsoft-foundry'
+                      ? 'Microsoft Foundry requires a project endpoint and an agent ID.'
+                      : 'Vertex AI requires a project, location, and reasoning engine ID. The reasoning engine path is built from these values.'}
                   </p>
                 </div>
               </div>

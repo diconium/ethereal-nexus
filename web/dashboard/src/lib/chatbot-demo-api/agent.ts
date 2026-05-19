@@ -1,6 +1,7 @@
 import type { Chatbot } from '@/data/ai/dto';
 import type { ChatbotDemoRequest } from './route-handler';
 import { callFoundryChat } from '@/lib/ai-providers/microsoft-foundry';
+import { callVertexReasoningEngineChat } from '@/lib/ai-providers/google-vertex';
 
 export interface ChatbotDemoResponse {
   reply: string;
@@ -22,6 +23,17 @@ export async function chatWithChatbotAgent(
         providerConfig: chatbot.provider_config,
         messages: request.messages,
         conversationId: request.conversationId,
+        loggerContext: {
+          route: 'chatbot-messages',
+          chatbotSlug: chatbot.slug,
+        },
+      });
+    case 'vertex-ai-google':
+      return callVertexReasoningEngineChat({
+        providerConfig: chatbot.provider_config,
+        messages: request.messages,
+        conversationId: request.conversationId,
+        userId: request.userId,
         loggerContext: {
           route: 'chatbot-messages',
           chatbotSlug: chatbot.slug,

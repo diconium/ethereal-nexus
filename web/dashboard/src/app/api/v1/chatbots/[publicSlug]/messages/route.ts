@@ -48,6 +48,28 @@ type RouteContext = {
   }>;
 };
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+const VERTEX_CLIENT_ID_COOKIE = 'ethereal-vertex-client-id';
+
+function getOrCreateVertexClientId(request: NextRequest, chatbotId: string) {
+  const existing = request.cookies.get(VERTEX_CLIENT_ID_COOKIE)?.value?.trim();
+  if (existing) {
+    return {
+      value: existing,
+      shouldSetCookie: false,
+    };
+  }
+
+  return {
+    value: createHash('sha256')
+      .update(`${chatbotId}:${crypto.randomUUID()}`)
+      .digest('hex'),
+    shouldSetCookie: true,
+  };
+}
+
 async function recordChatbotStat(input: {
   projectId: string;
   environmentId: string;
@@ -428,6 +450,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       sessionIdentityKey ||
       identityResolution.identities[0]?.key ||
       ipIdentityKey;
+    const vertexClientId = getOrCreateVertexClientId(request, chatbot.id);
     const sessionKey = createHash('sha256')
       .update(`${chatbot.id}:${rawSessionKey}`)
       .digest('hex');
@@ -617,11 +640,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
       }
     }
 
-    logger.info('Invoking chatbot agent through Azure AI Projects', {
+    logger.info('Invoking chatbot agent', {
       route: 'chatbot-messages-public',
       projectId,
       environmentId,
       publicSlug,
+      provider: chatbot.provider,
       projectEndpoint: chatbot.project_endpoint,
       requestBodyKeys:
         body && typeof body === 'object' ? Object.keys(body as object) : [],
@@ -629,7 +653,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       hasConversationId: Boolean(body.conversationId),
     });
 
-    const response = await chatWithChatbotAgent(chatbot, body);
+    const response = await chatWithChatbotAgent(chatbot, {
+      ...body,
+      userId: vertexClientId.value,
+    });
     const latencyMs = Date.now() - requestStart;
 
     await recordChatbotAnalyticsEvent({
@@ -755,10 +782,22 @@ export async function POST(request: NextRequest, context: RouteContext) {
       totalTokens: response.usage.totalTokens,
     });
 
-    return NextResponse.json({
+    const jsonResponse = NextResponse.json({
       reply: response.reply,
       conversationId: response.conversationId,
     });
+
+    if (vertexClientId.shouldSetCookie) {
+      jsonResponse.cookies.set(VERTEX_CLIENT_ID_COOKIE, vertexClientId.value, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 30,
+      });
+    }
+
+    return jsonResponse;
   } catch (error) {
     await recordChatbotStat({
       projectId,

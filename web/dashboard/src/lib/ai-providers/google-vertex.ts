@@ -1,17 +1,35 @@
-import { createRequire } from 'node:module';
-import type { v1beta1 as VertexV1beta1 } from '@google-cloud/aiplatform';
-import { getVertexConfigOrThrow } from '@/data/ai/provider';
-import { logger } from '@/lib/logger';
-import { estimateTokenCount } from '@/lib/rate-limit';
+/**
+ * Google Vertex AI Provider integration utilities and API functions.
+ *
+ * This module provides functions to interact with Google Vertex AI's Reasoning Engine and Session services.
+ * It includes session management, error handling, payload extraction, and chat invocation logic.
+ *
+ * Main Exports:
+ * - listVertexSessions: List all Vertex AI sessions for a given provider config.
+ * - callVertexReasoningEngineChat: Send a chat message to Vertex AI and receive a response.
+ *
+ * Internal Utilities:
+ * - Session and execution client management (with caching)
+ * - Error formatting and detection helpers
+ * - Payload extraction and normalization helpers
+ * - Timeout handling for async operations
+ *
+ * Types:
+ * - VertexSessionSummary: Summary of a Vertex AI session
+ *
+ * Usage:
+ *   import { callVertexReasoningEngineChat } from './google-vertex';
+ *   const result = await callVertexReasoningEngineChat({ ... });
+ */
 
-const require = createRequire(import.meta.url);
-const { v1beta1 } = require('@google-cloud/aiplatform') as {
-  v1beta1: typeof VertexV1beta1;
-};
+import {v1beta1} from '@google-cloud/aiplatform';
+import {getVertexConfigOrThrow} from '@/data/ai/provider';
+import {logger} from '@/lib/logger';
+import {estimateTokenCount} from '@/lib/rate-limit';
+import {decodeHttpBody, extractTextFromPayload, formatGoogleError} from "@/utils/extractor-utils";
 
-type SessionServiceClient = VertexV1beta1.SessionServiceClient;
-type ReasoningEngineExecutionServiceClient =
-  VertexV1beta1.ReasoningEngineExecutionServiceClient;
+type SessionServiceClient = v1beta1.SessionServiceClient;
+type ReasoningEngineExecutionServiceClient = v1beta1.ReasoningEngineExecutionServiceClient;
 
 const VERTEX_REQUEST_TIMEOUT_MS = 90_000;
 
@@ -54,6 +72,7 @@ async function withTimeout<T>(
 
 function getClients(location: string): VertexClients {
   const cached = clientCache.get(location);
+
   if (cached) {
     return cached;
   }
@@ -102,49 +121,6 @@ function buildVertexSessionId() {
   return sanitiseVertexIdentifier(`chatbot-${Date.now()}`, 63);
 }
 
-function formatGoogleError(error: unknown, fallbackMessage: string) {
-  if (!(error instanceof Error)) {
-    return new Error(fallbackMessage);
-  }
-
-  const candidate = error as Error & {
-    code?: unknown;
-    details?: unknown;
-    metadata?: {
-      getMap?: () => Record<string, unknown>;
-    };
-  };
-
-  const code =
-    typeof candidate.code === 'number' || typeof candidate.code === 'string'
-      ? String(candidate.code)
-      : null;
-  const details =
-    typeof candidate.details === 'string' && candidate.details.trim()
-      ? candidate.details.trim()
-      : null;
-  const metadata = candidate.metadata?.getMap?.();
-  const metadataSummary = metadata
-    ? Object.entries(metadata)
-        .map(([key, value]) => `${key}=${String(value)}`)
-        .join(', ')
-    : '';
-
-  const message = [
-    fallbackMessage,
-    candidate.message?.trim() && candidate.message !== 'undefined undefined'
-      ? candidate.message.trim()
-      : null,
-    code ? `code=${code}` : null,
-    details ? `details=${details}` : null,
-    metadataSummary ? `metadata=${metadataSummary}` : null,
-  ]
-    .filter(Boolean)
-    .join(' | ');
-
-  return new Error(message);
-}
-
 function isVertexSessionOwnershipError(error: unknown) {
   if (!(error instanceof Error)) {
     return false;
@@ -159,127 +135,8 @@ function getLatestUserMessage(
   return [...messages].reverse().find((message) => message.role === 'user');
 }
 
-function extractJsonBlock(text: string) {
-  const match = text.match(/```json\s*([\s\S]*?)\s*```/i);
-  return match ? match[1].trim() : text;
-}
 
-function decodeHttpBody(response: {
-  data?: Uint8Array | Buffer | string | null;
-}) {
-  if (!response.data) {
-    return '';
-  }
-
-  return typeof response.data === 'string'
-    ? response.data
-    : Buffer.from(response.data).toString('utf8');
-}
-
-function normaliseExtractedText(text: string) {
-  return text.replace(/\r\n/g, '\n').trim();
-}
-
-function extractTextFromParsedPayload(parsed: Record<string, unknown>) {
-  const textCandidate = [
-    parsed.error,
-    parsed.message,
-    parsed.question,
-    parsed.answer,
-  ].find((value) => typeof value === 'string' && value.trim()) as
-    | string
-    | undefined;
-
-  if (!textCandidate) {
-    return { text: '', isError: false };
-  }
-
-  const code = typeof parsed.code === 'number' ? parsed.code : null;
-  const isError = code !== null && code >= 400;
-
-  return {
-    text: textCandidate.trim(),
-    isError,
-  };
-}
-
-function extractTextFromStructuredMessage(text: string) {
-  const candidate = extractJsonBlock(text);
-
-  try {
-    const parsed = JSON.parse(candidate) as {
-      code?: unknown;
-      message?: unknown;
-      error?: unknown;
-      question?: unknown;
-      answer?: unknown;
-    };
-
-    return extractTextFromParsedPayload(parsed as Record<string, unknown>);
-  } catch {
-    return { text: '', isError: false };
-  }
-}
-
-function extractTextFromPayload(payload: string) {
-  const trimmedPayload = payload.trim();
-  if (!trimmedPayload) {
-    return { text: '', isError: false };
-  }
-
-  try {
-    const parsed = JSON.parse(trimmedPayload) as {
-      code?: unknown;
-      error?: unknown;
-      message?: unknown;
-      question?: unknown;
-      answer?: unknown;
-      content?: {
-        parts?: Array<{ text?: unknown }>;
-      };
-    };
-
-    const plainText = extractTextFromParsedPayload(
-      parsed as Record<string, unknown>,
-    );
-    if (plainText.text) {
-      return plainText;
-    }
-
-    const parts = parsed.content?.parts;
-    if (!Array.isArray(parts) || parts.length === 0) {
-      return { text: trimmedPayload, isError: false };
-    }
-
-    const extracted = parts
-      .map((part) => {
-        if (typeof part?.text !== 'string') {
-          return { text: '', isError: false };
-        }
-
-        const structured = extractTextFromStructuredMessage(part.text);
-        return structured.text
-          ? structured
-          : {
-              text: normaliseExtractedText(part.text),
-              isError: false,
-            };
-      })
-      .filter((item) => item.text);
-
-    const firstError = extracted.find((item) => item.isError);
-    if (firstError) {
-      return firstError;
-    }
-
-    return {
-      text: extracted.map((item) => item.text).join('\n').trim(),
-      isError: false,
-    };
-  } catch {
-    return { text: normaliseExtractedText(trimmedPayload), isError: false };
-  }
-}
+const VERTEX_AI_PROVIDER = 'vertex-ai-google';
 
 async function createSession(options: {
   sessionClient: SessionServiceClient;
@@ -291,7 +148,7 @@ async function createSession(options: {
   const vertexUserId = sessionId;
 
   logger.debug('Creating Vertex AI session', {
-    provider: 'vertex-ai-google',
+    provider: VERTEX_AI_PROVIDER,
     reasoningEnginePath: options.reasoningEnginePath,
     sessionId,
     userIdLength: vertexUserId.length,
@@ -349,7 +206,7 @@ export async function listVertexSessions(options: {
   const { sessionClient } = getClients(config.location);
 
   logger.info('Listing Vertex AI sessions', {
-    provider: 'vertex-ai-google',
+    provider: VERTEX_AI_PROVIDER,
     project: config.project,
     location: config.location,
     reasoningEngine: config.reasoning_engine,
@@ -370,7 +227,7 @@ export async function listVertexSessions(options: {
     }
 
     logger.info('Listed Vertex AI sessions', {
-      provider: 'vertex-ai-google',
+      provider: VERTEX_AI_PROVIDER,
       project: config.project,
       location: config.location,
       reasoningEngine: config.reasoning_engine,
@@ -463,6 +320,7 @@ export async function callVertexReasoningEngineChat(options: {
   userId?: string;
   loggerContext?: Record<string, unknown>;
 }) {
+
   const config = getVertexConfigOrThrow(options.providerConfig);
   const latestUserMessage = getLatestUserMessage(options.messages);
 
@@ -471,6 +329,7 @@ export async function callVertexReasoningEngineChat(options: {
   }
 
   const userId = options.userId?.trim();
+
   if (!userId) {
     throw new Error('Vertex AI request requires a stable user ID.');
   }
@@ -478,8 +337,8 @@ export async function callVertexReasoningEngineChat(options: {
   const reasoningEnginePath = buildReasoningEnginePath(config);
   const { sessionClient, executionClient } = getClients(config.location);
 
-  logger.info('Starting Vertex AI reasoning engine chat request', {
-    provider: 'vertex-ai-google',
+  logger.debug('Starting Vertex AI reasoning engine chat request', {
+    provider: VERTEX_AI_PROVIDER,
     project: config.project,
     location: config.location,
     reasoningEngine: config.reasoning_engine,
@@ -494,16 +353,17 @@ export async function callVertexReasoningEngineChat(options: {
     conversationId: options.conversationId,
     userId,
     loggerContext: {
-      provider: 'vertex-ai-google',
+      provider: VERTEX_AI_PROVIDER,
       project: config.project,
       location: config.location,
       ...options.loggerContext,
     },
   });
+
   const sessionId = getSessionId(conversationId);
 
   logger.info('Resolved Vertex AI session', {
-    provider: 'vertex-ai-google',
+    provider: VERTEX_AI_PROVIDER,
     project: config.project,
     location: config.location,
     conversationId,
@@ -522,7 +382,7 @@ export async function callVertexReasoningEngineChat(options: {
       userId: sessionId,
       message: latestUserMessage.content,
       loggerContext: {
-        provider: 'vertex-ai-google',
+        provider: VERTEX_AI_PROVIDER,
         project: config.project,
         location: config.location,
         conversationId,
@@ -532,7 +392,7 @@ export async function callVertexReasoningEngineChat(options: {
   } catch (error) {
     if (options.conversationId && isVertexSessionOwnershipError(error)) {
       logger.warn('Vertex AI session ownership mismatch, creating new session', {
-        provider: 'vertex-ai-google',
+        provider: VERTEX_AI_PROVIDER,
         project: config.project,
         location: config.location,
         conversationId: options.conversationId,
@@ -544,7 +404,7 @@ export async function callVertexReasoningEngineChat(options: {
         reasoningEnginePath,
         userId,
         loggerContext: {
-          provider: 'vertex-ai-google',
+          provider: VERTEX_AI_PROVIDER,
           project: config.project,
           location: config.location,
           recoveryFromConversationId: options.conversationId,
@@ -560,7 +420,7 @@ export async function callVertexReasoningEngineChat(options: {
         userId: finalSessionId,
         message: latestUserMessage.content,
         loggerContext: {
-          provider: 'vertex-ai-google',
+          provider: VERTEX_AI_PROVIDER,
           project: config.project,
           location: config.location,
           conversationId: finalConversationId,
@@ -581,7 +441,7 @@ export async function callVertexReasoningEngineChat(options: {
   }
 
   logger.info('Received Vertex AI reasoning engine response', {
-    provider: 'vertex-ai-google',
+    provider: VERTEX_AI_PROVIDER,
     project: config.project,
     location: config.location,
     conversationId: finalConversationId,

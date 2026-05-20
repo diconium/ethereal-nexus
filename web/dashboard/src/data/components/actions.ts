@@ -2,7 +2,7 @@
 
 import { ActionResponse, Result } from '@/data/action';
 import { z } from 'zod';
-import { and, eq, getTableColumns, sql } from 'drizzle-orm';
+import {and, count, desc, eq, getTableColumns, inArray, sql} from 'drizzle-orm';
 import { db } from '@/db';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
 import { logger } from '@/lib/logger';
@@ -36,6 +36,10 @@ import { logEvent } from '@/lib/events/event-middleware';
 import { userIsMember } from '@/data/member/actions';
 import { EtherealStorage } from '@/storage/ethereal-storage';
 import { auth } from '@/auth';
+import {notFound} from "next/navigation";
+import {CardDescription, CardTitle} from "@/components/ui/card";
+import {LayoutGrid} from "lucide-react";
+import React from "react";
 
 const storage = new EtherealStorage();
 const NS_PER_SEC = 1e9;
@@ -566,5 +570,111 @@ export async function deleteComponent(id: string): ActionResponse<Component> {
       componentId: id,
     });
     return actionError('Failed to delete component from database.');
+  }
+}
+
+
+export async function getComponentsCount(): ActionResponse<number> {
+  try {
+    const [{ count: componentCount }] = await db
+      .select({ count: count() })
+      .from(components);
+
+
+      return actionSuccess(componentCount);
+  } catch (error) {
+    logger.error("Failed to count the number of components")
+    return actionError('Failed to count the number of components.');
+  }
+
+}
+
+
+async function getUsedComponents(userProjectIds: string[]): ActionResponse<{ component_id: string }[]> {
+  const session = await auth();
+
+  if (!session?.user) {
+    notFound();
+  }
+
+  const isAdmin = session.user.role === 'admin';
+
+
+  try {
+    const usedComponentsQuery = db
+      .selectDistinct({ component_id: projectComponentConfig.component_id })
+      .from(projectComponentConfig)
+      .innerJoin(
+        environments,
+        eq(projectComponentConfig.environment_id, environments.id),
+      );
+
+    const usedComponents = await (!isAdmin &&
+    userProjectIds &&
+    userProjectIds.length > 0
+      ? usedComponentsQuery.where(
+        inArray(environments.project_id, userProjectIds),
+      )
+      : usedComponentsQuery);
+
+
+    return actionSuccess(usedComponents);
+
+  } catch(error) {
+    logger.error("Error while getting used components");
+    return actionError("Error while getting used components");
+  }
+
+}
+
+
+export type LatestVersion = { id: string; component_id: string; version: string; created_at: Date; component_name: string }
+
+export async function getLatestVersions(userProjectIds: string[]): ActionResponse<LatestVersion[]> {
+
+  try {
+
+    const usedComponentsQuery = await getUsedComponents(userProjectIds);
+
+    const usedComponents: { component_id: string }[] = [];
+
+    if (usedComponentsQuery.success) {
+      usedComponents.push(...usedComponentsQuery.data);
+    }
+
+    const usedComponentIds = usedComponents?.map((r) => r.component_id);
+
+    const latestVersions =
+      usedComponentIds.length === 0
+        ? []
+        : (
+          await db
+            .selectDistinctOn([componentVersions.component_id], {
+              id: componentVersions.id,
+              component_id: componentVersions.component_id,
+              version: componentVersions.version,
+              created_at: componentVersions.created_at,
+              component_name: components.name,
+            })
+            .from(componentVersions)
+            .innerJoin(
+              components,
+              eq(componentVersions.component_id, components.id),
+            )
+            .where(inArray(componentVersions.component_id, usedComponentIds))
+            .orderBy(
+              componentVersions.component_id,
+              desc(componentVersions.created_at),
+            )
+        )
+          .sort((a, b) => b.created_at.getTime() - a.created_at.getTime())
+          .slice(0, 10);
+
+    return actionSuccess(latestVersions);
+
+  } catch(error) {
+    logger.error("There was an error while getting the latest versions");
+    return actionError("There was an error while getting the latest versions");
+
   }
 }

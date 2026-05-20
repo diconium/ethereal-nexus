@@ -117,7 +117,7 @@ import type { InferSelectModel } from 'drizzle-orm';
 import type { Session } from 'next-auth';
 
 /**
- * Tiny semaphore for bounding concurrent async tasks without adding a
+ * Tiny semaphore for bounding concurrent async tasks without adding abuildVertexProviderConfig
  * dependency on `p-limit`.  Use `limit(fn)` to acquire a slot, run `fn`, and
  * release the slot automatically.
  */

@@ -30,12 +30,12 @@ import {
 } from './dto';
 import * as console from 'console';
 import {
-  and,
+  and, count,
   countDistinct,
   desc,
   eq,
   exists,
-  getTableColumns,
+  getTableColumns, inArray,
   isNull,
   sql,
 } from 'drizzle-orm';
@@ -43,7 +43,7 @@ import {
   environments,
   projectComponentConfig,
   projects,
-  featureFlags,
+  featureFlags, projects as projectsSchema,
 } from './schema';
 import { insertMembers, userIsMember } from '@/data/member/actions';
 import {
@@ -56,6 +56,7 @@ import { Component, componentsSchema } from '@/data/components/dto';
 import { logEvent } from '@/lib/events/event-middleware';
 import { auth } from '@/auth';
 import { members } from '@/data/member/schema';
+import {notFound} from "next/navigation";
 
 export async function getProjects(options?: {
   forceMember: boolean;
@@ -1224,5 +1225,33 @@ export async function upsertFeatureFlag(input: FeatureFlagInput) {
   } catch (error) {
     console.error(error);
     return { success: false, error };
+  }
+}
+
+
+export async function getProjectsCount(userProjectIds: string[]): ActionResponse<number> {
+
+  const session = await auth();
+
+  if (!session?.user) {
+    notFound();
+  }
+
+  const isAdmin = session.user.role === 'admin';
+
+  try {
+
+    const projectsQuery = db.select({ count: count() }).from(projectsSchema);
+
+    const [{ count: projectCount }] = await (!isAdmin &&
+    userProjectIds &&
+    userProjectIds.length > 0
+      ? projectsQuery.where(inArray(projectsSchema.id, userProjectIds))
+      : projectsQuery);
+
+    return actionSuccess(projectCount);
+  } catch (error) {
+    console.error(error);
+    return actionError("Error while counting the number of projects");
   }
 }

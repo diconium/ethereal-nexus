@@ -13,10 +13,12 @@ import { eq, sql, and, desc, inArray } from 'drizzle-orm';
 import { users } from '@/data/users/schema';
 import { components, componentVersions } from '@/data/components/schema';
 import { ActionResponse } from '@/data/action';
-import { projects } from '@/data/projects/schema';
+import { projects} from '@/data/projects/schema';
 import { alias } from 'drizzle-orm/pg-core';
 import { logger } from '@/lib/logger';
 import { members as memberTable } from '@/data/member/schema';
+import {auth} from "@/auth";
+import {notFound} from "next/navigation";
 
 const parseCommaSeparatedValues = (value?: string | null) => {
   if (typeof value !== 'string' || value.trim().length === 0) {
@@ -701,5 +703,66 @@ export async function queryResourceEvents(options: {
       operation: 'query-resource-events',
     });
     return actionError('Failed to query events');
+  }
+}
+
+export type Events = {
+  id?: string;
+  type?: string;
+  timestamp?: Date;
+  resource_id?: string;
+  actor_name?: string;
+  project_name?: string;
+  component_name?: string;
+}
+
+
+export async function getEventsByLast(eventsNumbers: number, userProjectIds: string[]): ActionResponse<Events[]> {
+  const session = await auth();
+
+  if (!session?.user) {
+    notFound();
+  }
+
+  const isAdmin = session.user.role === 'admin';
+
+  try {
+    const recentEvents = await db
+      .select({
+        id: events.id,
+        type: events.type,
+        timestamp: events.timestamp,
+        resource_id: events.resource_id,
+        actor_name: users.name,
+        project_name: projects.name,
+        component_name: components.name,
+      })
+      .from(events)
+      .leftJoin(users, eq(events.user_id, users.id))
+      .leftJoin(projects, eq(events.resource_id, projects.id))
+      .leftJoin(
+        components,
+        sql`(
+                (${events.data}->>'component_id')::uuid = ${components.id}
+                    or (
+                    ${events.resource_id} = ${components.id}
+                    and ${events.type}::text in (
+                    'component_deactivated',
+                    'component_activated',
+                    'component_update'
+                    )))`,
+      )
+      .where(
+        !isAdmin && userProjectIds && userProjectIds.length > 0
+          ? inArray(events.resource_id, userProjectIds)
+          : undefined,
+      )
+      .orderBy(desc(events.timestamp))
+      .limit(eventsNumbers);
+
+    return actionSuccess(recentEvents)
+  } catch(error){
+    logger.error('Failed to fetch recent events', error as Error)
+    return actionError("Not possible to get the list of events");
   }
 }

@@ -14,20 +14,10 @@ import { CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Activity, Folder, LayoutGrid, Users, Zap } from 'lucide-react';
-import { db } from '@/db';
-import { and, count, desc, eq, inArray } from 'drizzle-orm';
-import {
-  components as componentsSchema,
-  componentVersions,
-} from '@/data/components/schema';
-import {
-  projects as projectsSchema,
-  environments,
-  projectComponentConfig,
-} from '@/data/projects/schema';
-import { users as usersSchema } from '@/data/users/schema';
-import { members as membersSchema } from '@/data/member/schema';
-import { events } from '@/data/events/schema';
+import {getComponentsCount, getLatestVersions, LatestVersion} from "@/data/components/actions";
+import {getActiveDeployments, getRegisteredUsersCount, getUserProjectIds} from "@/data/users/actions";
+import {getProjectsCount} from "@/data/projects/actions";
+import {Events, getEventsByLast} from "@/data/events/actions";
 
 function relativeTime(date: Date): string {
   const now = Date.now();
@@ -49,126 +39,65 @@ export default async function Home() {
     notFound();
   }
 
-  const userId = session.user.id!;
   const isAdmin = session.user.role === 'admin';
 
-  // --- Stat: all components ---
-  const [{ count: componentCount }] = await db
-    .select({ count: count() })
-    .from(componentsSchema);
+  const componentCountResponse = await getComponentsCount();
 
-  // --- Stat: projects (all for admin, user's for others) ---
-  const userProjectIds = isAdmin
-    ? undefined
-    : (
-        await db
-          .select({ id: membersSchema.resource })
-          .from(membersSchema)
-          .where(eq(membersSchema.user_id, userId))
-      ).map((r) => r.id);
-
-  const projectsQuery = db.select({ count: count() }).from(projectsSchema);
-  const [{ count: projectCount }] = await (!isAdmin &&
-  userProjectIds &&
-  userProjectIds.length > 0
-    ? projectsQuery.where(inArray(projectsSchema.id, userProjectIds))
-    : projectsQuery);
-
-  // --- Stat: active deployments in user's projects ---
-  // projectComponentConfig -> environment -> project, is_active = true
-  const activeDeploymentsQuery = db
-    .select({ count: count() })
-    .from(projectComponentConfig)
-    .innerJoin(
-      environments,
-      eq(projectComponentConfig.environment_id, environments.id),
-    )
-    .where(
-      !isAdmin && userProjectIds && userProjectIds.length > 0
-        ? and(
-            eq(projectComponentConfig.is_active, true),
-            inArray(environments.project_id, userProjectIds),
-          )
-        : eq(projectComponentConfig.is_active, true),
-    );
-  const [{ count: activeDeploymentCount }] = await activeDeploymentsQuery;
-
-  // --- Stat: registered users (admin only) ---
-  let userCount: number | null = null;
-  if (isAdmin) {
-    const [{ count: uc }] = await db
-      .select({ count: count() })
-      .from(usersSchema);
-    userCount = uc;
+  let componentCount = 0;
+  if (componentCountResponse.success) {
+    componentCount = componentCountResponse.data;
   }
 
-  // --- Recent activity: last 10 events scoped to user's projects ---
-  const recentEvents = await db
-    .select({
-      id: events.id,
-      type: events.type,
-      timestamp: events.timestamp,
-      resource_id: events.resource_id,
-      actor_name: usersSchema.name,
-      project_name: projectsSchema.name,
-    })
-    .from(events)
-    .leftJoin(usersSchema, eq(events.user_id, usersSchema.id))
-    .leftJoin(projectsSchema, eq(events.resource_id, projectsSchema.id))
-    .where(
-      !isAdmin && userProjectIds && userProjectIds.length > 0
-        ? inArray(events.resource_id, userProjectIds)
-        : undefined,
-    )
-    .orderBy(desc(events.timestamp))
-    .limit(10);
+  const userProjectIdsResponse = await getUserProjectIds()
 
-  // --- Latest component updates: newest versions of components used in user's projects ---
-  // Step 1: get distinct component IDs scoped to user's projects
-  const usedComponentsQuery = db
-    .selectDistinct({ component_id: projectComponentConfig.component_id })
-    .from(projectComponentConfig)
-    .innerJoin(
-      environments,
-      eq(projectComponentConfig.environment_id, environments.id),
-    );
+  const userProjectIds: string[] = []
 
-  const usedComponents = await (!isAdmin &&
-  userProjectIds &&
-  userProjectIds.length > 0
-    ? usedComponentsQuery.where(
-        inArray(environments.project_id, userProjectIds),
-      )
-    : usedComponentsQuery);
+  if (userProjectIdsResponse.success) {
+    const items = userProjectIdsResponse.data?.map((r) => r.id);
+    if (items) {
+      userProjectIds.push(...items);
+    }
+  }
 
-  // Step 2: for each component, get its latest version by created_at
-  const usedComponentIds = usedComponents.map((r) => r.component_id);
+  const projectQueryResponse = await getProjectsCount(userProjectIds);
 
-  const latestVersions =
-    usedComponentIds.length === 0
-      ? []
-      : (
-          await db
-            .selectDistinctOn([componentVersions.component_id], {
-              id: componentVersions.id,
-              component_id: componentVersions.component_id,
-              version: componentVersions.version,
-              created_at: componentVersions.created_at,
-              component_name: componentsSchema.name,
-            })
-            .from(componentVersions)
-            .innerJoin(
-              componentsSchema,
-              eq(componentVersions.component_id, componentsSchema.id),
-            )
-            .where(inArray(componentVersions.component_id, usedComponentIds))
-            .orderBy(
-              componentVersions.component_id,
-              desc(componentVersions.created_at),
-            )
-        )
-          .sort((a, b) => b.created_at.getTime() - a.created_at.getTime())
-          .slice(0, 10);
+  let projectCount = 0;
+  if (projectQueryResponse.success) {
+    projectCount = projectQueryResponse.data;
+  }
+
+  const activeDeploymentResponse = await getActiveDeployments(userProjectIds);
+
+  let activeDeploymentCount = 0;
+
+  if (activeDeploymentResponse.success) {
+    activeDeploymentCount = activeDeploymentResponse.data;
+  }
+
+  const userCountResponse = await getRegisteredUsersCount();
+
+  let userCount: number | null = null;
+
+  if (userCountResponse.success) {
+    userCount = userCountResponse.data;
+  }
+
+  const eventsResponse = await getEventsByLast(10, userProjectIds);
+
+  let recentEvents: Events[] = [];
+
+  if (eventsResponse.success) {
+    recentEvents = eventsResponse.data;
+  }
+
+  const latestVersionsResponse = await getLatestVersions(userProjectIds);
+
+  let latestVersions: LatestVersion[] = [];
+
+  if (latestVersionsResponse.success) {
+    latestVersions = latestVersionsResponse.data;
+  }
+
 
   return (
     <div className="-mx-4 -mt-4 lg:-mx-6 lg:-mt-6">
@@ -177,7 +106,7 @@ export default async function Home() {
           {/* Stat cards */}
           <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
             <Link href="/components" className="flex">
-              <Card className="@container/card flex-1 bg-gradient-to-t from-primary/5 to-card shadow-xs dark:bg-card">
+              <Card className="@container/card flex-1 bg-linear-to-t from-primary/5 to-card shadow-xs dark:bg-card">
                 <CardHeader>
                   <CardDescription>Available components</CardDescription>
                   <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
@@ -311,12 +240,15 @@ export default async function Home() {
                             {event.project_name
                               ? `${event.project_name} · `
                               : ''}
+                            {event.component_name
+                              ? `${event.component_name} · `
+                              : ''}
                             {event.actor_name ?? 'Unknown'}
                           </span>
                         </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0 mt-0.5">
+                        {event.timestamp && <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0 mt-0.5">
                           {relativeTime(event.timestamp)}
-                        </span>
+                        </span>}
                       </li>
                     ))}
                   </ul>

@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
   output: 'standalone',
+  serverExternalPackages: ['@google-cloud/aiplatform'],
   experimental: {
     serverMinification: false,
   },

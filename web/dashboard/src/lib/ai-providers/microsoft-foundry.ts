@@ -15,16 +15,23 @@ async function withTimeout<T>(
   message: string,
   context?: Record<string, unknown>,
 ) {
-  return await Promise.race<T>([
-    operation,
-    new Promise<T>((_, reject) => {
-      const timeoutId = setTimeout(() => {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  try {
+    return await Promise.race<T>([
+      operation,
+      new Promise<T>((_, reject) => {
+        timeoutId = setTimeout(() => {
         logger.warn(message, context);
-        clearTimeout(timeoutId);
         reject(new Error(message));
-      }, timeoutMs);
-    }),
-  ]);
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
 }
 
 function getCredential() {

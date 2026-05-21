@@ -103,7 +103,7 @@ import {
   CONTENT_ADVISOR_AGENT_CATALOG,
   ContentAdvisorAgentKey,
 } from './content-advisor';
-import { buildFoundryProviderConfig } from './provider';
+import { buildFoundryProviderConfig, buildVertexProviderConfig } from './provider';
 import { normalizeCatalogueApiPath } from './catalogue-endpoint';
 import { generateCatalogueWithFoundry } from '@/lib/ai-providers/microsoft-foundry';
 import {
@@ -118,7 +118,7 @@ import type { Session } from 'next-auth';
 
 /**
  * Tiny semaphore for bounding concurrent async tasks without adding a
- * dependency on `p-limit`.  Use `limit(fn)` to acquire a slot, run `fn`, and
+ * dependency on `p-limit`. Use `limit(fn)` to acquire a slot, run `fn`, and
  * release the slot automatically.
  */
 function createConcurrencyLimiter(concurrency: number) {
@@ -832,13 +832,30 @@ export async function upsertChatbot(
       return publicSlugError;
     }
 
+    const providerPayload =
+      safeInput.data.provider === 'microsoft-foundry'
+        ? {
+            project_endpoint: safeInput.data.project_endpoint,
+            agent_id: safeInput.data.agent_id,
+            provider_config: buildFoundryProviderConfig({
+              project_endpoint: safeInput.data.project_endpoint,
+              agent_id: safeInput.data.agent_id,
+            }),
+          }
+        : {
+            project_endpoint: '',
+            agent_id: '',
+            provider_config: buildVertexProviderConfig({
+              project: safeInput.data.project,
+              location: safeInput.data.location,
+              reasoning_engine: safeInput.data.reasoning_engine,
+            }),
+          };
+
     const payload = {
       ...safeInput.data,
       description: safeInput.data.description || null,
-      provider_config: buildFoundryProviderConfig({
-        project_endpoint: safeInput.data.project_endpoint,
-        agent_id: safeInput.data.agent_id,
-      }),
+      ...providerPayload,
       updated_at: new Date(),
     };
 

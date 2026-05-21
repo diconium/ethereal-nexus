@@ -313,7 +313,7 @@ export const chatbotTopicRuleInputSchema = z.object({
 });
 export type ChatbotTopicRuleInput = z.infer<typeof chatbotTopicRuleInputSchema>;
 
-export const chatbotInputSchema = z.object({
+const chatbotInputBaseSchema = z.object({
   id: z.string().uuid().optional(),
   project_id: z.string().uuid(),
   environment_id: z.string().uuid(),
@@ -321,11 +321,26 @@ export const chatbotInputSchema = z.object({
   description: z.string().optional().nullable(),
   slug: slugSchema,
   public_slug: slugSchema,
-  provider: aiProviderSchema,
-  project_endpoint: z.string().url(),
-  agent_id: z.string().min(1),
   enabled: z.boolean().default(true),
 });
+
+const foundryChatbotInputSchema = chatbotInputBaseSchema.extend({
+  provider: z.literal('microsoft-foundry'),
+  project_endpoint: z.string().url(),
+  agent_id: z.string().min(1),
+});
+
+const vertexChatbotInputSchema = chatbotInputBaseSchema.extend({
+  provider: z.literal('vertex-ai-google'),
+  project: z.string().min(1),
+  location: z.string().min(1),
+  reasoning_engine: z.string().min(1),
+});
+
+export const chatbotInputSchema = z.discriminatedUnion('provider', [
+  foundryChatbotInputSchema,
+  vertexChatbotInputSchema,
+]);
 export type ChatbotInput = z.infer<typeof chatbotInputSchema>;
 
 export const catalogueSchema = createSelectSchema(projectAiCatalogues).extend({

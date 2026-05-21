@@ -2,7 +2,7 @@
 
 import * as bcrypt from 'bcryptjs';
 import { db } from '@/db';
-import { apiKeys, invites, users } from '@/data/users/schema';
+import {apiKeys, invites, users} from '@/data/users/schema';
 import {
   ApiKey,
   ApiPermissions,
@@ -30,16 +30,18 @@ import {
   userSchema,
 } from '@/data/users/dto';
 import { z } from 'zod';
-import { and, eq, getTableColumns, isNotNull, sql } from 'drizzle-orm';
+import {and, count, eq, getTableColumns, inArray, isNotNull, sql} from 'drizzle-orm';
 import { ActionResponse } from '@/data/action';
 import { actionError, actionSuccess, actionZodError } from '@/data/utils';
-import { members } from '@/data/member/schema';
+import {members as membersSchema, members} from '@/data/member/schema';
 import { lowestPermission } from '@/data/users/permission-utils';
 import { auth, signIn, signOut } from '@/auth';
 import process from 'node:process';
 import { AuthError } from 'next-auth';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
+import {notFound} from "next/navigation";
+import {environments, projectComponentConfig} from "@/data/projects/schema";
 
 type Providers =
   | 'credentials'
@@ -858,5 +860,98 @@ export async function getServiceUser(
       },
     );
     return actionError('Failed to fetch service user on the database.');
+  }
+}
+
+
+export async function getUserProjectIds(): ActionResponse<{ id: string }[] | undefined> {
+  const session = await auth();
+
+  if (!session?.user) {
+    notFound();
+  }
+
+  const userId = session.user.id!;
+  const isAdmin = session.user.role === 'admin';
+
+  if (isAdmin) {
+    return actionSuccess(undefined)
+  }
+
+  try {
+    const ids: { id: string }[] = await db
+      .select({id: membersSchema.resource})
+      .from(membersSchema)
+      .where(eq(membersSchema.user_id, userId))
+
+    return actionSuccess(ids);
+
+  } catch (error) {
+    logger.error('Failed to fetch user project ids');
+    return actionError('Failed to fetch user project ids.');
+  }
+}
+
+
+export async function getActiveDeployments(userProjectIds: string[]): ActionResponse<number> {
+  const session = await auth();
+
+  if (!session?.user) {
+    notFound();
+  }
+
+  try {
+    const activeDeploymentsQuery = db
+      .select({count: count()})
+      .from(projectComponentConfig)
+      .innerJoin(
+        environments,
+        eq(projectComponentConfig.environment_id, environments.id),
+      );
+
+    if (userProjectIds && userProjectIds.length > 0) {
+      activeDeploymentsQuery.where(
+        and(
+          eq(projectComponentConfig.is_active, true),
+          inArray(environments.project_id, userProjectIds),
+        )
+      );
+    } else {
+      activeDeploymentsQuery.where(eq(projectComponentConfig.is_active, true));
+    }
+
+    const [{count: activeDeploymentCount}] = await activeDeploymentsQuery;
+    return actionSuccess(activeDeploymentCount);
+  } catch(error){
+    logger.error("It was not possible to determinate the number of active deployments");
+    return actionError("It was not possible to determinate the number of active deployments");
+  }
+
+}
+
+
+export async function getRegisteredUsersCount(): ActionResponse<number | null> {
+  const session = await auth();
+
+  if (!session?.user) {
+    notFound();
+  }
+
+  const isAdmin = session.user.role === 'admin';
+
+  try {
+
+    if (!isAdmin) {
+      return actionSuccess(null);
+    }
+    const [{count: uc}] = await db
+      .select({count: count()})
+      .from(users);
+
+    return actionSuccess(uc);
+
+  }catch(error) {
+    logger.error("Not possible to determinate the number of registered users");
+    return actionError("Not possible to determinate the number of registered users");
   }
 }

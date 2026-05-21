@@ -6,6 +6,7 @@ export interface ChatbotDemoMessage {
 export interface ChatbotDemoRequest {
   messages: ChatbotDemoMessage[];
   conversationId?: string;
+  userId?: string;
 }
 
 export interface ChatbotDemoHandlerResult {
@@ -107,6 +108,10 @@ export function handleChatbotDemoRequest(
       messages: normalizedMessages as ChatbotDemoMessage[],
       conversationId:
         typeof req.conversationId === 'string' ? req.conversationId : undefined,
+      userId:
+        typeof req.userId === 'string' && req.userId.trim()
+          ? req.userId.trim()
+          : undefined,
       metrics: {
         messageCount: normalizedMessages.length,
         totalCharacters,

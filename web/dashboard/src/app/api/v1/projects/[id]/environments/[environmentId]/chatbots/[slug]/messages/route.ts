@@ -50,6 +50,9 @@ type RouteContext = {
   }>;
 };
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 async function recordChatbotStat(input: {
   projectId: string;
   environmentId: string;
@@ -408,6 +411,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
       sessionIdentityKey ||
       identityResolution.identities[0]?.key ||
       ipIdentityKey;
+    const vertexClientId =
+      sessionIdentityKey ||
+      createHash('sha256')
+        .update(`${chatbot.id}:${rawSessionKey}`)
+        .digest('hex');
     const sessionKey = createHash('sha256')
       .update(`${chatbot.id}:${rawSessionKey}`)
       .digest('hex');
@@ -585,7 +593,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       }
     }
 
-    const response = await chatWithChatbotAgent(chatbot, body);
+    const response = await chatWithChatbotAgent(chatbot, {
+      ...body,
+      userId: vertexClientId,
+    });
     const latencyMs = Date.now() - requestStart;
 
     await recordChatbotAnalyticsEvent({

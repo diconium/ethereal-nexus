@@ -900,8 +900,6 @@ export async function getActiveDeployments(userProjectIds: string[]): ActionResp
     notFound();
   }
 
-  const isAdmin = session.user.role === 'admin';
-
   try {
     const activeDeploymentsQuery = db
       .select({count: count()})
@@ -909,19 +907,21 @@ export async function getActiveDeployments(userProjectIds: string[]): ActionResp
       .innerJoin(
         environments,
         eq(projectComponentConfig.environment_id, environments.id),
-      )
-      .where(
-        !isAdmin && userProjectIds && userProjectIds.length > 0
-          ? and(
-            eq(projectComponentConfig.is_active, true),
-            inArray(environments.project_id, userProjectIds),
-          )
-          : eq(projectComponentConfig.is_active, true),
       );
+
+    if (userProjectIds && userProjectIds.length > 0) {
+      activeDeploymentsQuery.where(
+        and(
+          eq(projectComponentConfig.is_active, true),
+          inArray(environments.project_id, userProjectIds),
+        )
+      );
+    } else {
+      activeDeploymentsQuery.where(eq(projectComponentConfig.is_active, true));
+    }
+
     const [{count: activeDeploymentCount}] = await activeDeploymentsQuery;
-
     return actionSuccess(activeDeploymentCount);
-
   } catch(error){
     logger.error("It was not possible to determinate the number of active deployments");
     return actionError("It was not possible to determinate the number of active deployments");

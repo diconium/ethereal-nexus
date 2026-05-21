@@ -2,7 +2,7 @@
 
 import * as bcrypt from 'bcryptjs';
 import { db } from '@/db';
-import {apiKeys, invites, users as usersSchema, users} from '@/data/users/schema';
+import {apiKeys, invites, users} from '@/data/users/schema';
 import {
   ApiKey,
   ApiPermissions,
@@ -41,9 +41,7 @@ import { AuthError } from 'next-auth';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 import {notFound} from "next/navigation";
-import {events} from "@/data/events/schema";
-import {environments, projectComponentConfig, projects as projectsSchema} from "@/data/projects/schema";
-import {components as componentsSchema} from "@/data/components/schema";
+import {environments, projectComponentConfig} from "@/data/projects/schema";
 
 type Providers =
   | 'credentials'

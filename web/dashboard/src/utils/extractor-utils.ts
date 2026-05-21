@@ -1,3 +1,4 @@
+import {logger} from "@/lib/logger";
 
 type GoogleError = {
   code?: unknown;
@@ -88,36 +89,23 @@ function extractJsonBlock(text: string) {
   return match ? match[1].trim() : text;
 }
 
-
-const isCandidate = (obj: unknown): obj is {
-  code?: unknown;
-  message?: unknown;
-  error?: unknown;
-  question?: unknown;
-  answer?: unknown;
-
-} => {
-  return obj !== undefined && obj!== null && typeof obj === "object" && (
-    "code" in obj || "message" in obj || "error" in obj  || "question" in obj || "answer" in obj
-  )
-}
-
-
 function extractTextFromStructuredMessage(text: string) {
   const candidate = extractJsonBlock(text);
 
-  if (isCandidate(candidate)) {
+
+  try {
     const parsed = JSON.parse(candidate);
     return extractTextFromParsedPayload(parsed);
+  } catch(error) {
+    logger.error("Error parsing candidate")
+    return {text: '', isError: false};
   }
-
-  return {text: '', isError: false};
 }
 
 export function extractTextFromPayload(payload: string) {
   const trimmedPayload = payload.trim();
 
-  if(isCandidate(trimmedPayload)) {
+  try {
     const parsed = JSON.parse(trimmedPayload);
 
     const plainText = extractTextFromParsedPayload(parsed);
@@ -157,7 +145,10 @@ export function extractTextFromPayload(payload: string) {
       text: extracted.map((item) => item.text).join('\n').trim(),
       isError: false,
     };
+  } catch(error) {
+    logger.error("Error parsing candidate")
+
+    return {text: normaliseExtractedText(trimmedPayload), isError: false};
   }
 
-  return {text: normaliseExtractedText(trimmedPayload), isError: false};
 }

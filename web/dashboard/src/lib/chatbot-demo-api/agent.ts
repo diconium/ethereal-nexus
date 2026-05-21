@@ -30,14 +30,9 @@ export async function chatWithChatbotAgent(
       });
     case 'vertex-ai-google':
       return callVertexReasoningEngineChat({
-        providerConfig: chatbot.provider_config,
+        providerConfig: chatbot.provider_config as any,
         messages: request.messages,
-        conversationId: request.conversationId,
-        userId: request.userId,
-        loggerContext: {
-          route: 'chatbot-messages',
-          chatbotSlug: chatbot.slug,
-        },
+        conversationId: request.conversationId
       });
     default:
       throw new Error(`Unsupported chatbot provider: ${chatbot.provider}`);

@@ -13,13 +13,12 @@ import { eq, sql, and, desc, inArray } from 'drizzle-orm';
 import { users } from '@/data/users/schema';
 import { components, componentVersions } from '@/data/components/schema';
 import { ActionResponse } from '@/data/action';
-import {environments, projectComponentConfig, projects} from '@/data/projects/schema';
+import { projects} from '@/data/projects/schema';
 import { alias } from 'drizzle-orm/pg-core';
 import { logger } from '@/lib/logger';
 import { members as memberTable } from '@/data/member/schema';
 import {auth} from "@/auth";
 import {notFound} from "next/navigation";
-import {componentsSchema} from "@/data/components/dto";
 
 const parseCommaSeparatedValues = (value?: string | null) => {
   if (typeof value !== 'string' || value.trim().length === 0) {

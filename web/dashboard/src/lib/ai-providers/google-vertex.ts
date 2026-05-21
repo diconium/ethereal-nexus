@@ -2,7 +2,8 @@ import { v1beta1 } from '@google-cloud/aiplatform';
 import {estimateTokenCount} from "@/lib/rate-limit";
 import {ChatbotDemoResponse} from "@/lib/chatbot-demo-api/agent";
 import {logger} from "@/lib/logger";
-import {decodeHttpBody, extractTextFromPayload} from "@/utils/extractor-utils";
+import {decodeHttpBody, extractTextFromPayload, formatGoogleError} from "@/utils/extractor-utils";
+import {getVertexConfigOrThrow} from "@/data/ai/provider";
 
 const REQUEST_TIMEOUT_MS = 90_000;
 
@@ -114,6 +115,7 @@ function extractText(body: any): string {
 }
 
 export class VertexReasoningEngineAdapter {
+  private config: VertexAdapterConfig;
 
   private sessionClient: SessionClient;
 
@@ -309,4 +311,77 @@ export async function callVertexReasoningEngineChat(
         estimateTokenCount(chatResult.reply),
     },
   };
+}
+
+export type VertexSessionSummary = {
+  name: string;
+  userId: string;
+};
+
+export async function listVertexSessions(options: {
+  providerConfig: VertexAdapterConfig;
+  loggerContext?: Record<string, unknown>;
+}): Promise<VertexSessionSummary[]> {
+
+  const config = options.providerConfig;
+
+  const reasoningEnginePath = buildEnginePath(config);
+
+  const { session } = getClients(config.location);
+
+  logger.info('Listing Vertex AI sessions', {
+    provider: 'vertex-ai-google',
+    reasoningEnginePath,
+    ...options.loggerContext,
+  });
+
+  try {
+    const iterable = session.listSessionsAsync({
+      parent: reasoningEnginePath,
+    });
+
+    const sessions: VertexSessionSummary[] = [];
+
+    for await (const session of iterable) {
+      // 🔥 IMPORTANT: Vertex may return:
+      // - protobuf objects
+      // - plain JSON
+      // - or partial wrappers
+
+      const raw: any = session;
+
+      const name =
+        raw?.name ??
+        raw?.session?.name ??
+        '';
+
+      const userId =
+        raw?.userId ??
+        raw?.session?.userId ??
+        '';
+
+      // only push valid entries
+      if (name) {
+        sessions.push({
+          name: String(name),
+          userId: String(userId || ''),
+        });
+      }
+    }
+
+    logger.info('Listed Vertex AI sessions', {
+      sessionCount: sessions.length,
+      reasoningEnginePath,
+      ...options.loggerContext,
+    });
+
+    return sessions;
+  } catch (error) {
+    logger.error('Vertex session listing failed');
+
+    throw formatGoogleError(
+      error,
+      'Failed to list Vertex AI sessions.',
+    );
+  }
 }

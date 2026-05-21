@@ -4,8 +4,8 @@ import { HttpStatus } from '@/app/api/utils';
 import { ensureInternalServiceAccess } from '@/app/api/internal/utils';
 import { db } from '@/db';
 import { projectAiChatbots } from '@/data/ai/schema';
-import { listVertexSessions } from '@/lib/ai-providers/google-vertex';
 import { logger } from '@/lib/logger';
+import {listVertexSessions} from "@/lib/ai-providers/google-vertex";
 
 type RouteContext = {
   params: Promise<{

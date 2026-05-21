@@ -1,5 +1,11 @@
 # remote-components-vite-react-ts
 
+## 0.11.0
+
+### Minor Changes
+
+- 15bcfd9: Add vertex ai integration
+
 ## 0.10.2
 
 ### Patch Changes

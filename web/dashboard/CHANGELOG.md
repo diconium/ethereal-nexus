@@ -1,5 +1,11 @@
 # @ethereal-nexus/dashboard
 
+## 3.9.0
+
+### Minor Changes
+
+- 15bcfd9: Add vertex ai integration
+
 ## 3.8.2
 
 ### Patch Changes

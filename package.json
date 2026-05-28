@@ -7,8 +7,8 @@
     "release": "changeset publish --access=public --filter='./lib/*' --filter='./dialog-ui/*'"
   },
   "devDependencies": {
-    "@changesets/cli": "^3.0.0-next.1",
-    "prettier": "^3.5.3",
+    "@changesets/cli": "3.0.0-next.5",
+    "prettier": "^3.8.3",
     "turbo": "^1.13.4"
   },
   "engines": {

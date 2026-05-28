@@ -33,13 +33,13 @@
     "README.md"
   ],
   "devDependencies": {
-    "@types/react": "^19.2.2",
-    "react": "^19.2.1",
-    "tsup": "^8.5.0",
+    "@types/react": "^19.2.15",
+    "react": "^19.2.6",
+    "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vite-plugin-css-injected-by-js": "^3.5.2"
   },
   "dependencies": {
-    "@r2wc/react-to-web-component": "^2.0.4"
+    "@r2wc/react-to-web-component": "^2.1.1"
   }
 }

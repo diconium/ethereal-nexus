@@ -1,5 +1,12 @@
 # @ethereal-nexus/dialog-ui-shadcn
 
+## 1.4.2
+
+### Patch Changes
+
+- Updated dependencies [16d8abc]
+  - @ethereal-nexus/dialog-ui-core@1.6.2
+
 ## 1.4.1
 
 ### Patch Changes

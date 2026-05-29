@@ -1,5 +1,14 @@
 # @ethereal-nexus/dashboard
 
+## 3.9.1
+
+### Patch Changes
+
+- 16d8abc: update dependencies
+- Updated dependencies [16d8abc]
+  - @ethereal-nexus/dialog-ui-core@1.6.2
+  - @ethereal-nexus/dialog-ui-shadcn@1.4.2
+
 ## 3.9.0
 
 ### Minor Changes

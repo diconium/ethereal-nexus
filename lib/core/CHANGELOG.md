@@ -1,5 +1,11 @@
 # @ethereal-nexus/core
 
+## 1.21.0
+
+### Minor Changes
+
+- 7920d56: add description field to component interface
+
 ## 1.20.0
 
 ### Minor Changes

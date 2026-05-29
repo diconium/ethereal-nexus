@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-core
 
+## 1.6.2
+
+### Patch Changes
+
+- 16d8abc: update dependencies
+
 ## 1.6.1
 
 ### Patch Changes

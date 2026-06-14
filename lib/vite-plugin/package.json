@@ -48,7 +48,7 @@
     "@swc/core": "^1.15.40",
     "acorn": "^8.16.0",
     "acorn-walk": "^8.3.5",
-    "esbuild": "^0.25.12",
+    "esbuild": "^0.28.1",
     "esbuild-plugin-svgr": "^2.1.0",
     "fs-extra": "^11.3.5",
     "magic-string": "^0.30.21"

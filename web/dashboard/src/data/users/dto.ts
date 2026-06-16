@@ -16,6 +16,7 @@ export const userPublicSchema = userSchema
   })
   .omit({
     password: true,
+    client_secret: true,
   });
 export type PublicUser = z.infer<typeof userPublicSchema>;
 

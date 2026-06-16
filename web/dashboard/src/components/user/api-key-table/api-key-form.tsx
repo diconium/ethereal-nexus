@@ -34,7 +34,7 @@ import {
 } from '@/data/users/dto';
 import { useSession } from 'next-auth/react';
 import { notFound } from 'next/navigation';
-import { ShieldBan } from 'lucide-react';
+import { Check, Copy, ShieldBan } from 'lucide-react';
 import { isPermissionsHigher } from '@/data/users/permission-utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -56,6 +56,15 @@ export function ApiKeyForm({
 }: ApiKeyDialogProps) {
   const { data: session } = useSession();
   const [apiKey, setKey] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = () => {
+    if (!apiKey) return;
+    navigator.clipboard.writeText(apiKey).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   if (!session?.user?.id) {
     notFound();
@@ -126,10 +135,10 @@ export function ApiKeyForm({
         />
         <Separator className="my-4" />
         <div className="mb-4">
-          <FormLabel className="text-base">Entities</FormLabel>
-          <FormDescription>
-            Select the the entities permissions for the API key.
-          </FormDescription>
+          <p className="text-base font-medium">Entities</p>
+          <p className="text-[0.8rem] text-muted-foreground">
+            Select the entities permissions for the API key.
+          </p>
         </div>
         <FormField
           control={form.control}
@@ -169,12 +178,12 @@ export function ApiKeyForm({
         />
         <Separator className="my-4" />
         <div className="mb-4">
-          <FormLabel className="text-base">Projects</FormLabel>
-          <FormDescription>
+          <p className="text-base font-medium">Projects</p>
+          <p className="text-[0.8rem] text-muted-foreground">
             Select the projects you want to give permissions in the API key. If
             you are an admin beware that only projects that you are a member of
             are selectable.
-          </FormDescription>
+          </p>
         </div>
         <ScrollArea className="h-[200px] gap-y-3">
           {availableProjects.map((item) => (
@@ -250,7 +259,12 @@ export function ApiKeyForm({
         {apiKey ? (
           <>
             <Separator className="my-4" />
-            <Input className="w-full" disabled value={apiKey} />
+            <div className="flex gap-2">
+              <Input className="w-full" disabled value={apiKey} />
+              <Button type="button" variant="outline" size="icon" onClick={copyToClipboard}>
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
           </>
         ) : null}
         <DialogFooter className="flex items-center border-t p-4 sm:justify-between">

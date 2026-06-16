@@ -1,8 +1,14 @@
 import { Separator } from '@/components/ui/separator';
 import React from 'react';
 import UserInviteForm from '@/components/user/user-invitation-form';
+import { auth } from '@/auth';
+import { notFound } from 'next/navigation';
 
 export default async function NewUser() {
+  const session = await auth()
+  if(session?.user?.role !== 'admin') {
+    notFound();
+  }
   return (
     <div className="space-y-6">
       <div>

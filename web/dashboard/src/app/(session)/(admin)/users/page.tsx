@@ -3,12 +3,18 @@ import { columns } from '@/components/user/table/columns';
 import { getUsers } from '@/data/users/actions';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import Link from 'next/link';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { notFound } from 'next/navigation';
+import { auth } from '@/auth';
 
 export default async function Teams() {
+
+  const session = await auth()
+  if(session?.user?.role !== 'admin') {
+    notFound();
+  }
+
   const users = await getUsers();
 
   if(!users.success) {

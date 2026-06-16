@@ -280,6 +280,15 @@ export async function insertInvitedSsoUser(
 export async function insertServiceUser(
   user: NewServiceUserSchema,
 ): ActionResponse<PublicUser> {
+  const session = await auth();
+
+  if(!session?.user?.id) {
+    return actionError('No user provided.');
+  }
+
+  if (!session?.user?.role || session.user.role !== 'admin') {
+    return actionError(' User is not admin.');
+  }
   const safeUser = newServiceUserSchema.safeParse(user);
   if (!safeUser.success) {
     return actionZodError('Failed to parse user input.', safeUser.error);
@@ -332,6 +341,12 @@ export async function getUserById(userId?: string): ActionResponse<User> {
 export async function getPublicUserById(
   userId?: string,
 ): ActionResponse<PublicUser> {
+  const session = await auth();
+
+  if(!session?.user?.id) {
+    return actionError('No user provided.');
+  }
+
   try {
     const input = userIdSchema.safeParse({ id: userId });
     if (!input.success) {
@@ -541,6 +556,10 @@ export async function getApiKeyByKey(
 export async function upsertApiKey(
   key: NewApiKey,
 ): ActionResponse<Omit<ApiKey, 'member_permissions'>> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
+  }
   const input = newApiKeySchema.safeParse(key);
   if (!input.success) {
     return actionZodError('The resources are not valid.', input.error);
@@ -582,6 +601,10 @@ export async function getApiKeys(
   userId?: string,
   omitKey: boolean = true,
 ): ActionResponse<z.infer<typeof apiKeyPublicSchema>[]> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
+  }
   const input = userIdSchema.safeParse({ id: userId });
   if (!input.success) {
     return actionZodError('The user id is not valid.', input.error);
@@ -619,6 +642,16 @@ export async function getApiKeys(
 
 export async function getUsers(): ActionResponse<PublicUser[]> {
   try {
+    const session = await auth();
+
+    if(!session?.user?.id) {
+      return actionError('No user provided.');
+    }
+
+    if (!session?.user?.role || session.user.role !== 'admin') {
+      return actionError(' User is not admin.');
+    }
+
     const userSelect = await db.select().from(users);
     const safeUsers = z.array(userPublicSchema).safeParse(userSelect);
     if (!safeUsers.success) {
@@ -644,6 +677,10 @@ export async function deleteApiKey(
   id: string,
   userId: string | undefined,
 ): ActionResponse<PublicApiKey> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return actionError('No user provided.');
+  }
   if (!userId) {
     return actionError('No user provided.');
   }
@@ -669,6 +706,15 @@ export async function deleteApiKey(
 }
 
 export async function insertInvite(invite: NewInvite): ActionResponse<Invite> {
+  const session = await auth();
+
+  if(!session?.user?.id) {
+    return actionError('No user provided.');
+  }
+
+  if (!session?.user?.role || session.user.role !== 'admin') {
+    return actionError(' User is not admin.');
+  }
   const input = newInviteSchema.safeParse(invite);
   if (!input.success) {
     return actionZodError('Failed to parse invite input.', input.error);
@@ -701,6 +747,15 @@ export async function insertInvite(invite: NewInvite): ActionResponse<Invite> {
 }
 
 export async function deleteInvite(key: string): ActionResponse<Invite> {
+  const session = await auth();
+
+  if(!session?.user?.id) {
+    return actionError('No user provided.');
+  }
+
+  if (!session?.user?.role || session.user.role !== 'admin') {
+    return actionError(' User is not admin.');
+  }
   try {
     const deleted = await db.delete(invites).where(eq(invites.key, key));
 

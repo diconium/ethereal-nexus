@@ -9,6 +9,9 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   site: 'https://diconium.github.io',
   base: 'ethereal-nexus',
+  // Astro 7 default is 'jsx' whitespace (strips spaces between inline elements).
+  // Keep 'true' (HTML-aware) to preserve spacing in components like Hero.
+  compressHTML: true,
   integrations: [starlight({
     components: {
       SiteTitle: './src/components/starlight/SiteTitle.astro',
@@ -25,15 +28,12 @@ export default defineConfig({
     sidebar: [
       {
         label: 'Getting Started',
-        autogenerate: {
-          directory: 'setup'
-        }
+        // Starlight 0.39+: autogenerate must be wrapped in items array
+        items: [{ autogenerate: { directory: 'setup' } }]
       },
       {
         label: 'Authentication',
-        autogenerate: {
-          directory: 'authentication'
-        },
+        items: [{ autogenerate: { directory: 'authentication' } }],
         badge: {
           text: 'New',
           variant: 'tip'
@@ -41,25 +41,31 @@ export default defineConfig({
       },
       {
         label: 'Connectors',
-        autogenerate: {
-          directory: 'connectors'
-        }
-      }, {
+        items: [
+          'connectors/connectors',
+          'connectors/strapi',
+          {
+            label: 'AEM',
+            items: [
+              'connectors/aem',
+              'connectors/aem/ssr',
+            ]
+          },
+        ]
+      },
+      {
         label: 'Dashboard',
-        autogenerate: {
-          directory: 'dashboard'
-        }
-      }, {
+        items: [{ autogenerate: { directory: 'dashboard' } }]
+      },
+      {
         label: 'Reference',
-        autogenerate: {
-          directory: 'reference'
-        }
-      },{
+        items: [{ autogenerate: { directory: 'reference' } }]
+      },
+      {
         label: 'Dialogs',
-        autogenerate: {
-          directory: 'dialogs'
-        }
-      }],
+        items: [{ autogenerate: { directory: 'dialogs' } }]
+      }
+    ],
     customCss: ['./src/tailwind.css']
   }), react()],
 

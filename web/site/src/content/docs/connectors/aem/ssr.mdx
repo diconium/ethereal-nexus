@@ -1,0 +1,378 @@
+---
+title: Server-Side Rendering
+description: How Ethereal Nexus pre-renders remote components server-side in AEM and how to configure it in your project
+sidebar:
+  order: 2
+  label: SSR
+---
+
+import { Aside, Steps, FileTree, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Server-Side Rendering (SSR) in the AEM connector pre-renders remote component HTML on the server and stores it in the JCR. At page-request time the pre-rendered markup is embedded directly inside the web component tag, making the component visible before any JavaScript loads. This is particularly valuable for SEO, Core Web Vitals, and environments where JavaScript execution is delayed.
+
+## How It Works
+
+The SSR pipeline has two independent paths: a **write path** (background) that generates and persists HTML, and a **read path** (request time) that serves it.
+
+### Write Path — Generating Pre-rendered HTML
+
+Two mechanisms trigger SSR job creation. Both produce identical Sling Jobs and can be active at the same time.
+
+#### 1. Event-Driven Trigger (recommended)
+
+`SSRPreRenderListener` is a `ResourceChangeListener` that watches JCR content paths. When a remote component node is **added** or **changed**, it immediately queues an SSR job.
+
+```
+Author saves component
+        │
+        ▼
+SSRPreRenderListener.onChange()
+  ├─ Skip if path ends with /_ssr  (loop prevention)
+  ├─ Skip if not a remote component node
+  ├─ Skip if job already in queue  (deduplication)
+  └─ JobManager.createJob("com/ethereal-nexus/ssr/prerender")
+       └─ property: COMPONENT_PATH = /content/.../component-node
+```
+
+This listener **requires an explicit OSGi configuration** to activate (`ConfigurationPolicy.REQUIRE`) — it will not run without a deployment config file in your project.
+
+#### 2. Cron-Based Sweep (safety net)
+
+`RemoteComponentsSSRCronJob` is a scheduled `Runnable` that periodically scans all configured content roots for remote components whose SSR output is stale or missing. Useful as a catch-all for components that were missed by the listener (e.g. bulk imports, package installations).
+
+```
+Cron fires (default: every 5 minutes)
+        │
+        ▼
+RemoteComponentsSSRCronJob.run()
+  ├─ JCR-SQL2 query over content_root_paths (paginated, 200/page)
+  ├─ Per component: SSRProcessingCheckService.isProcessingNeeded()
+  └─ JobManager.createJob("com/ethereal-nexus/ssr/prerender")
+```
+
+The cron job is **disabled by default** and must be explicitly enabled in your OSGi configuration.
+
+#### Staleness Detection
+
+`SSRProcessingCheckService` is used by both triggers to avoid redundant SSR jobs. Processing is only scheduled when one of these conditions is true:
+
+| Condition | Description |
+|---|---|
+| No `_ssr` node | Component has never been pre-rendered |
+| `ssrActive` changed | SSR was enabled or disabled on the remote component |
+| `componentVersion` changed | A new version was published to the dashboard |
+| Component modified after last SSR | `jcr:lastModified` is newer than `_ssr/generatedAt` |
+
+#### Job Processing
+
+The Sling Job Queue `remotecomponent-queue` (PARALLEL, up to 10 threads) consumes jobs from the `com/ethereal-nexus/ssr/prerender` topic via `SSRPreRenderConsumer`:
+
+<Steps>
+
+1. **Resolve the component resource** at `COMPONENT_PATH` using the `remote-components-resolver` service user.
+
+2. **Re-check staleness** via `SSRProcessingCheckService` — the component may no longer need processing by the time the job runs.
+
+3. **Build props** using `PropsValueMapExtractor` — collects all JCR dialog properties, DAM assets, multifield children, navigation items, and content fragment data into a `ValueMap`.
+
+4. **Call the SSR API** — HTTP POST to `{remotecomponentsendpoint}/{componentType}/ssr` with the props as JSON body. Returns an `SSRComponent` object containing:
+   - `output` — rendered HTML string
+   - `serverSideProps` — key/value map of server-computed props
+   - `version` — component version at render time
+
+5. **Persist to JCR** under `[componentPath]/_ssr`:
+
+</Steps>
+
+```
+/content/mysite/page/jcr:content/root/component-node/
+  └─ _ssr/                        (nt:unstructured)
+       ├─ generatedAt             Calendar
+       ├─ componentVersion        String
+       ├─ componentType           String
+       ├─ ssrActive               Boolean
+       ├─ output/                 (nt:file)
+       │    └─ jcr:content/       (nt:resource)
+       │         ├─ jcr:data      Binary — rendered HTML (text/html)
+       │         ├─ jcr:mimeType  "text/html"
+       │         └─ jcr:lastModified
+       └─ ssrServerSideProps/     (nt:file)
+            └─ jcr:content/       (nt:resource)
+                 ├─ jcr:data      Binary — server props JSON (application/json)
+                 ├─ jcr:mimeType  "application/json"
+                 └─ jcr:lastModified
+```
+
+When SSR is later **disabled** on the remote component (i.e. `ssr_active` set to `false` in the dashboard), the consumer removes the `output` and `ssrServerSideProps` nodes and sets `ssrActive=false` on the `_ssr` node on the next job run.
+
+### Read Path — Serving Pre-rendered HTML
+
+At page-request time, the HTL template (`remotecomponent.html`) instantiates the `HTMLGenerator` Sling Model, which reads the stored SSR content and assembles the final web component tag:
+
+```html
+<component-name
+  remotecomponent_version="1.2.0"
+  data-prop1="value1"
+  data-prop2="value2"
+  data-server-side-prop="computed-value"
+  data-css-urls="[...]"
+  data-ethereal-nexus-component-version="1.2.0">
+  <!-- pre-rendered HTML from _ssr/output -->
+  <div class="hero">...</div>
+</component-name>
+```
+
+The web component JavaScript hydrates this server-rendered markup once it loads, resulting in zero layout shift for users.
+
+### Cache Invalidation on Publish
+
+On the **publish** instance, `SSRPreRenderListener` detects changes to `_ssr` nodes (written by replication from author) and calls `UnifiedCacheInvalidationService` to flush the Dispatcher cache for the containing page. A configurable debounce window (default 20 seconds) consolidates rapid page invalidations into a single flush.
+
+Two invalidation modes are supported:
+
+| Mode | Mechanism | Target |
+|---|---|---|
+| `onprem` | AEM Replication API (`Replicator.replicate`) | Named flush agents (e.g. `flush`) |
+| `cloud` | Sling Content Distribution (`Distributor.distribute`) | Distribution agent (e.g. `publish`) |
+
+---
+
+## OSGi Configuration
+
+All SSR services are **disabled by default**. You must add the following OSGi configuration files to your project's `ui.config` module.
+
+<Aside type="tip">
+Place configuration files under `ui.config/src/main/content/jcr_root/apps/<your-app>/osgiconfig/config/`.
+</Aside>
+
+### Required Configurations
+
+#### Listener — `com.diconium.core.ssr.listeners.SSRPreRenderListener.cfg.json`
+
+Enables the event-driven SSR trigger. This file **must exist** for the listener to activate.
+
+```json
+{
+  "enabled": true,
+  "paths": [
+    "/content/your-site-name"
+  ]
+}
+```
+
+| Property | Type | Description |
+|---|---|---|
+| `enabled` | Boolean | Must be `true` to activate the listener |
+| `paths` | String[] | JCR paths to watch. Scoped to your site root for performance |
+
+#### Job Queue — `org.apache.sling.event.jobs.QueueConfiguration~remotecomponent-queue.cfg.json`
+
+Defines the Sling Job Queue that processes SSR jobs. Without this file, SSR jobs go to the default queue with no parallelism or retry settings.
+
+```json
+{
+  "queue.name": "remotecomponent-queue",
+  "queue.topics": [
+    "com/ethereal-nexus/ssr/prerender"
+  ],
+  "queue.type": "PARALLEL",
+  "queue.retries": 2,
+  "queue.retrydelay": 5000,
+  "queue.maxparallel": 10,
+  "queue.keepJobs": true,
+  "queue.priority": "NORM"
+}
+```
+
+| Property | Default | Description |
+|---|---|---|
+| `queue.type` | `PARALLEL` | Allows concurrent SSR API calls |
+| `queue.maxparallel` | `10` | Maximum concurrent SSR threads. Tune based on your SSR endpoint capacity |
+| `queue.retries` | `2` | Retries on failure before job is marked as failed |
+| `queue.retrydelay` | `5000` | Milliseconds between retries |
+| `queue.keepJobs` | `true` | Retain job history for debugging |
+
+<Aside type="caution">
+The factory name suffix (`~remotecomponent-queue`) must match `queue.name`. Do not change one without the other.
+</Aside>
+
+### Optional Configurations
+
+#### Resource Registry Filter — `com.diconium.core.filters.ResourceRegistryFilter.cfg.json`
+
+Scopes the per-request asset deduplication filter to your site's content path. Without this, the filter applies globally to all `/content` paths.
+
+```json
+{
+  "sling.filter.pattern": "^/content/your-site-name(/.*)?$",
+  "sling.filter.scope": "REQUEST",
+  "service.ranking": 1000
+}
+```
+
+#### Cron Job — `com.diconium.core.ssr.jobs.RemoteComponentsSSRCronJob.cfg.json`
+
+Enables the periodic sweep that catches components missed by the listener (e.g. after bulk package installs).
+
+```json
+{
+  "enabled": true,
+  "cron_expression": "0 */5 * ? * *",
+  "content_root_paths": [
+    "/content/your-site-name"
+  ],
+  "pagination_page_size": 200
+}
+```
+
+| Property | Default | Description |
+|---|---|---|
+| `enabled` | `false` | Set to `true` to activate the cron sweep |
+| `cron_expression` | `0 */5 * ? * *` | Quartz cron — default is every 5 minutes |
+| `content_root_paths` | `["/content"]` | Scope to your site root to reduce query time |
+| `pagination_page_size` | `200` | Results per JCR-SQL2 query page |
+
+#### Cache Invalidation — `com.diconium.core.services.impl.UnifiedCacheInvalidationService.cfg.json`
+
+Configures Dispatcher cache flushing on the publish instance after SSR content is replicated.
+
+<Tabs>
+  <TabItem label="AEM 6.5 (on-premise)">
+    ```json
+    {
+      "enabled": true,
+      "mode": "onprem",
+      "flushAgentNames": ["flush"],
+      "debounceEnabled": true,
+      "debounceWaitTimeSec": 20
+    }
+    ```
+  </TabItem>
+  <TabItem label="AEM as a Cloud Service">
+    ```json
+    {
+      "enabled": true,
+      "mode": "cloud",
+      "distributionAgentName": "publish",
+      "debounceEnabled": true,
+      "debounceWaitTimeSec": 20
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+| Property | Default | Description |
+|---|---|---|
+| `enabled` | `false` | Set to `true` on the publish runmode only |
+| `mode` | `onprem` | `onprem` uses the Replication API; `cloud` uses Sling Content Distribution |
+| `flushAgentNames` | `["flush"]` | On-prem: names of the Dispatcher flush agents |
+| `distributionAgentName` | `publish` | Cloud: name of the Sling distribution agent |
+| `debounceEnabled` | `true` | Consolidate multiple rapid invalidations into one flush |
+| `debounceWaitTimeSec` | `20` | Consolidation window in seconds |
+
+<Aside type="tip">
+Place the cache invalidation config under a `config.publish` runmode folder so it only activates on publish instances:
+
+```
+osgiconfig/
+  config/
+    com.diconium.core.ssr.listeners.SSRPreRenderListener.cfg.json
+    org.apache.sling.event.jobs.QueueConfiguration~remotecomponent-queue.cfg.json
+  config.publish/
+    com.diconium.core.services.impl.UnifiedCacheInvalidationService.cfg.json
+```
+</Aside>
+
+---
+
+## Example Project Structure
+
+A minimal `ui.config` module for a project named `my-project`:
+
+<FileTree>
+- ui.config/
+  - src/main/content/jcr_root/apps/my-project/osgiconfig/
+    - config/
+      - com.diconium.core.ssr.listeners.SSRPreRenderListener.cfg.json
+      - org.apache.sling.event.jobs.QueueConfiguration~remotecomponent-queue.cfg.json
+      - com.diconium.core.filters.ResourceRegistryFilter.cfg.json
+      - com.diconium.core.ssr.jobs.RemoteComponentsSSRCronJob.cfg.json (optional)
+      - org.apache.sling.commons.log.LogManager.factory.config~my-project.cfg.json (optional)
+    - config.publish/
+      - com.diconium.core.services.impl.UnifiedCacheInvalidationService.cfg.json
+</FileTree>
+
+---
+
+## Prerequisites
+
+Before SSR will function, ensure the following are in place.
+
+### 1. Service User ACL
+
+The `remote-components-resolver` service user (created automatically by the `ethereal-nexus-aem` package via repoinit) needs `jcr:read` on your site's content path so the `SSRPreRenderConsumer` can resolve component resources.
+
+1. Navigate to **Tools > Security > Permissions**.
+2. Find user **`remote-components-resolver`**.
+3. Add a new ACE: **Path** `/content/your-site-name`, **Privilege** `jcr:read`.
+
+### 2. Remote Component SSR Enabled in the Dashboard
+
+SSR pre-rendering is controlled per component in the Ethereal Nexus dashboard. A component only produces SSR output when `ssr_active` is set to `true` for that component version. If `ssr_active` is `false`, the consumer cleans up any existing `_ssr` node and the component falls back to client-side rendering.
+
+### 3. Cloud Service Configuration
+
+The `SSRPreRenderConsumer` resolves the API endpoint and authentication credentials from the **Ethereal Nexus cloud service configuration** inherited by the page. Ensure the cloud service config is assigned to your site before enabling SSR. Refer to the [AEM connector configuration guide](/ethereal-nexus/connectors/aem/#configuration) for full instructions.
+
+---
+
+## Logging
+
+Add a log configuration to follow SSR activity in the AEM log files:
+
+```json title="org.apache.sling.commons.log.LogManager.factory.config~my-project.cfg.json"
+{
+  "org.apache.sling.commons.log.names": ["com.diconium"],
+  "org.apache.sling.commons.log.level": "INFO",
+  "org.apache.sling.commons.log.file": "logs/ethereal-nexus.log",
+  "org.apache.sling.commons.log.additiv": "true"
+}
+```
+
+To debug a specific component's SSR lifecycle, set the level to `DEBUG`:
+
+```json
+{
+  "org.apache.sling.commons.log.names": [
+    "com.diconium.core.ssr"
+  ],
+  "org.apache.sling.commons.log.level": "DEBUG",
+  "org.apache.sling.commons.log.file": "logs/ethereal-nexus.log",
+  "org.apache.sling.commons.log.additiv": "true"
+}
+```
+
+---
+
+## Troubleshooting
+
+### SSR output is not being generated
+
+1. **Check that the listener config file exists.** `SSRPreRenderListener` will not start without it (`ConfigurationPolicy.REQUIRE`).
+2. **Verify the component path is under a watched path.** The `paths` property in the listener config must be a prefix of the component's JCR path.
+3. **Check the Sling Jobs console** at `/system/console/slingevent`. Look for jobs on the `com/ethereal-nexus/ssr/prerender` topic. Failed jobs with stack traces indicate API connectivity or authentication issues.
+4. **Check that the remote component has `ssr_active: true`** in the dashboard. `SSRProcessingCheckService` will return `false` for components with SSR disabled.
+
+### Pre-rendered HTML is stale
+
+The pre-rendered content is regenerated when any of the staleness conditions are met (see [Staleness Detection](#staleness-detection)). To force a refresh:
+- Edit and save the component in the author UI (triggers the listener).
+- Enable the cron job and wait for the next sweep.
+- Manually delete the `_ssr` node under the component in CRXDE Lite — the listener will detect the change and queue a new job.
+
+### Dispatcher cache is not being flushed after SSR update
+
+1. **Verify the cache invalidation config is in `config.publish`**, not `config` — the service should only run on publish.
+2. **Check `enabled: true`** in the cache invalidation config.
+3. **Confirm the flush agent name** (`flushAgentNames`) matches your actual Dispatcher flush agent name in **Tools > Deployment > Replication**.
+4. **Review the debounce window** — with `debounceWaitTimeSec: 20`, the cache flush may be delayed up to 20 seconds after the `_ssr` node change.

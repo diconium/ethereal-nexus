@@ -105,7 +105,7 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
   useEffect(() => {
     let cancelled = false;
 
-      async function loadDemos() {
+    async function loadDemos() {
       if (!selectedProject?.id || !selectedEnvironment?.id) {
         setProjectAiState({
           aiEnabled: false,

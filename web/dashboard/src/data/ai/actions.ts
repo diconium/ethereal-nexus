@@ -23,6 +23,8 @@ import {
   projectAiContentAdvisorIssueDetections,
   projectAiContentAdvisorSettings,
   projectAiPageUrlMappings,
+  projectAiSearchApps,
+  projectAiSearchAppApiSettings,
 } from './schema';
 import { and, asc, desc, eq, inArray, notInArray, sql } from 'drizzle-orm';
 import {
@@ -90,6 +92,14 @@ import {
   PageUrlMappingInput,
   pageUrlMappingInputSchema,
   pageUrlMappingSchema,
+  SearchApp,
+  SearchAppInput,
+  SearchAppApiSettings,
+  SearchAppApiSettingsInput,
+  searchAppInputSchema,
+  searchAppSchema,
+  searchAppApiSettingsSchema,
+  searchAppApiSettingsInputSchema,
 } from './dto';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -103,8 +113,9 @@ import {
   CONTENT_ADVISOR_AGENT_CATALOG,
   ContentAdvisorAgentKey,
 } from './content-advisor';
-import { buildFoundryProviderConfig, buildVertexProviderConfig } from './provider';
+import { buildFoundryProviderConfig, buildVertexProviderConfig, buildVertexSearchProviderConfig } from './provider';
 import { normalizeCatalogueApiPath } from './catalogue-endpoint';
+import { encryptCredentials } from '@/lib/credentials-encryption';
 import { generateCatalogueWithFoundry } from '@/lib/ai-providers/microsoft-foundry';
 import {
   analyzePageWithAgent,
@@ -367,6 +378,7 @@ function aiRevalidate(projectId: string) {
   revalidatePath(`/projects/${projectId}/ai/catalogues`);
   revalidatePath(`/projects/${projectId}/ai/author-dialogs`);
   revalidatePath(`/projects/${projectId}/ai/content-advisor`);
+  revalidatePath(`/projects/${projectId}/ai/searches`);
   revalidatePath(`/projects/${projectId}/demos`);
 }
 
@@ -3540,5 +3552,382 @@ export async function deletePageUrlMapping(
   } catch (error) {
     console.error(error);
     return actionError('Failed to delete page URL mapping.');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Search Applications
+// ---------------------------------------------------------------------------
+
+async function ensureUniquePublicSearchAppSlug(input: {
+  publicSlug: string;
+  excludeId?: string;
+}) {
+  const existing = await db
+    .select({ id: projectAiSearchApps.id })
+    .from(projectAiSearchApps)
+    .where(eq(projectAiSearchApps.public_slug, input.publicSlug))
+    .limit(1);
+
+  if (existing[0] && (!input.excludeId || existing[0].id !== input.excludeId)) {
+    return actionError(
+      'This public search endpoint is already in use. Choose a different endpoint slug.',
+    );
+  }
+
+  return null;
+}
+
+export async function getSearchAppsByEnvironment(
+  projectId: string,
+  environmentId: string,
+): ActionResponse<SearchApp[]> {
+  const access = await getProjectAccess(projectId);
+  if ('success' in access && !access.success) return access;
+
+  try {
+    const rows = await db
+      .select()
+      .from(projectAiSearchApps)
+      .where(
+        and(
+          eq(projectAiSearchApps.project_id, projectId),
+          eq(projectAiSearchApps.environment_id, environmentId),
+        ),
+      )
+      .orderBy(asc(projectAiSearchApps.name));
+
+    // credentials_json must never leave the server — strip it and replace with
+    // a boolean flag so the UI can show whether credentials are configured.
+    const sanitized = rows.map(({ credentials_json, ...rest }) => ({
+      ...rest,
+      has_credentials: credentials_json != null && credentials_json.trim().length > 0,
+    }));
+
+    const safe = z.array(searchAppSchema).safeParse(sanitized);
+    if (!safe.success) {
+      return actionZodError('Failed to parse search apps.', safe.error);
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      mapAiDbError(error, 'Failed to fetch search apps from database.'),
+    );
+  }
+}
+
+export async function getSearchAppApiSettingsByEnvironment(
+  projectId: string,
+  environmentId: string,
+): ActionResponse<SearchAppApiSettings[]> {
+  const access = await getProjectAccess(projectId);
+  if ('success' in access && !access.success) return access;
+
+  try {
+    const rows = await db
+      .select()
+      .from(projectAiSearchAppApiSettings)
+      .where(
+        and(
+          eq(projectAiSearchAppApiSettings.project_id, projectId),
+          eq(projectAiSearchAppApiSettings.environment_id, environmentId),
+        ),
+      )
+      .orderBy(asc(projectAiSearchAppApiSettings.created_at));
+
+    const safe = z.array(searchAppApiSettingsSchema).safeParse(rows);
+    if (!safe.success) {
+      return actionZodError(
+        'Failed to parse search app API settings.',
+        safe.error,
+      );
+    }
+
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      mapAiDbError(error, 'Failed to fetch search app API settings.'),
+    );
+  }
+}
+
+export async function upsertSearchApp(
+  input: SearchAppInput,
+): ActionResponse<SearchApp> {
+  const access = await getProjectAccess(input.project_id, true);
+  if ('success' in access && !access.success) return access;
+
+  const safeInput = searchAppInputSchema.safeParse({
+    ...input,
+    slug: normalizeSlug(input.slug || input.name),
+    public_slug: normalizeSlug(input.public_slug || input.slug || input.name),
+  });
+  if (!safeInput.success) {
+    return actionZodError(
+      'Failed to parse search app input.',
+      safeInput.error,
+    );
+  }
+
+  const slugConflict = await ensureUniquePublicSearchAppSlug({
+    publicSlug: safeInput.data.public_slug,
+    excludeId: safeInput.data.id,
+  });
+  if (slugConflict) return slugConflict;
+
+  try {
+    const providerConfig = buildVertexSearchProviderConfig({
+      gcp_project_id: safeInput.data.gcp_project_id,
+      location: safeInput.data.location,
+      collection_id: safeInput.data.collection_id,
+      engine_id: safeInput.data.engine_id,
+      serving_config_id: safeInput.data.serving_config_id,
+      allowed_gcs_buckets: safeInput.data.allowed_gcs_buckets,
+    });
+
+    // Encrypt credentials before persisting. If the input is null/empty,
+    // pass null to keep the existing value (onConflictDoUpdate will overwrite
+    // only when the value is explicitly provided — see set clause below).
+    const encryptedCredentials =
+      safeInput.data.credentials_json?.trim()
+        ? encryptCredentials(safeInput.data.credentials_json.trim())
+        : null;
+
+    const rows = await db
+      .insert(projectAiSearchApps)
+      .values({
+        id: safeInput.data.id ?? crypto.randomUUID(),
+        project_id: safeInput.data.project_id,
+        environment_id: safeInput.data.environment_id,
+        name: safeInput.data.name,
+        slug: safeInput.data.slug,
+        public_slug: safeInput.data.public_slug,
+        provider: safeInput.data.provider,
+        provider_config: providerConfig,
+        credentials_json: encryptedCredentials,
+        page_size: safeInput.data.page_size,
+        page_size_max: safeInput.data.page_size_max,
+        enabled: safeInput.data.enabled,
+      })
+      .onConflictDoUpdate({
+        target: [projectAiSearchApps.id],
+        set: {
+          name: safeInput.data.name,
+          slug: safeInput.data.slug,
+          public_slug: safeInput.data.public_slug,
+          provider: safeInput.data.provider,
+          provider_config: providerConfig,
+          // Only update credentials when a new value was provided;
+          // null means "keep whatever is already in the DB".
+          ...(encryptedCredentials !== null
+            ? { credentials_json: encryptedCredentials }
+            : {}),
+          page_size: safeInput.data.page_size,
+          page_size_max: safeInput.data.page_size_max,
+          enabled: safeInput.data.enabled,
+          updated_at: new Date(),
+        },
+      })
+      .returning();
+
+    const { credentials_json: _creds, ...rowWithoutCreds } = rows[0];
+    const safe = searchAppSchema.safeParse({
+      ...rowWithoutCreds,
+      has_credentials: _creds != null && _creds.trim().length > 0,
+    });
+    if (!safe.success) {
+      return actionZodError('Failed to parse saved search app.', safe.error);
+    }
+
+    await cache.onMutate({ tables: ['project_ai_search_app'] });
+    aiRevalidate(input.project_id);
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError(mapAiDbError(error, 'Failed to save search app.'));
+  }
+}
+
+export async function deleteSearchApp(
+  projectId: string,
+  searchAppId: string,
+): ActionResponse<{ id: string }> {
+  const access = await getProjectAccess(projectId, true);
+  if ('success' in access && !access.success) return access;
+
+  try {
+    await db
+      .delete(projectAiSearchApps)
+      .where(
+        and(
+          eq(projectAiSearchApps.id, searchAppId),
+          eq(projectAiSearchApps.project_id, projectId),
+        ),
+      );
+
+    await cache.onMutate({ tables: ['project_ai_search_app'] });
+    aiRevalidate(projectId);
+    return actionSuccess({ id: searchAppId });
+  } catch (error) {
+    console.error(error);
+    return actionError(mapAiDbError(error, 'Failed to delete search app.'));
+  }
+}
+
+export async function upsertSearchAppApiSettings(
+  input: SearchAppApiSettingsInput,
+): ActionResponse<SearchAppApiSettings> {
+  const access = await getProjectAccess(input.project_id, true);
+  if ('success' in access && !access.success) return access;
+
+  const safeInput = searchAppApiSettingsInputSchema.safeParse(input);
+  if (!safeInput.success) {
+    return actionZodError(
+      'Failed to parse search app API settings input.',
+      safeInput.error,
+    );
+  }
+
+  try {
+    const rows = await db
+      .insert(projectAiSearchAppApiSettings)
+      .values({
+        project_id: safeInput.data.project_id,
+        environment_id: safeInput.data.environment_id,
+        search_app_id: safeInput.data.search_app_id,
+        rate_limit_enabled: safeInput.data.rate_limit_enabled,
+        rate_limit_max_requests: safeInput.data.rate_limit_max_requests,
+        rate_limit_window_seconds: safeInput.data.rate_limit_window_seconds,
+        rate_limit_use_ip: safeInput.data.rate_limit_use_ip,
+        rate_limit_use_session_cookie:
+          safeInput.data.rate_limit_use_session_cookie,
+        rate_limit_use_fingerprint: safeInput.data.rate_limit_use_fingerprint,
+        fingerprint_header_name: safeInput.data.fingerprint_header_name,
+        query_size_limit_enabled: safeInput.data.query_size_limit_enabled,
+        max_query_characters: safeInput.data.max_query_characters,
+        max_request_body_bytes: safeInput.data.max_request_body_bytes,
+        session_request_cap_enabled: safeInput.data.session_request_cap_enabled,
+        session_request_cap_max_requests:
+          safeInput.data.session_request_cap_max_requests,
+        session_request_cap_window_seconds:
+          safeInput.data.session_request_cap_window_seconds,
+        temporary_block_enabled: safeInput.data.temporary_block_enabled,
+        temporary_block_violation_threshold:
+          safeInput.data.temporary_block_violation_threshold,
+        temporary_block_window_seconds:
+          safeInput.data.temporary_block_window_seconds,
+        temporary_block_duration_seconds:
+          safeInput.data.temporary_block_duration_seconds,
+        allowed_origins: safeInput.data.allowed_origins,
+      })
+      .onConflictDoUpdate({
+        target: [projectAiSearchAppApiSettings.search_app_id],
+        set: {
+          rate_limit_enabled: safeInput.data.rate_limit_enabled,
+          rate_limit_max_requests: safeInput.data.rate_limit_max_requests,
+          rate_limit_window_seconds: safeInput.data.rate_limit_window_seconds,
+          rate_limit_use_ip: safeInput.data.rate_limit_use_ip,
+          rate_limit_use_session_cookie:
+            safeInput.data.rate_limit_use_session_cookie,
+          rate_limit_use_fingerprint: safeInput.data.rate_limit_use_fingerprint,
+          fingerprint_header_name: safeInput.data.fingerprint_header_name,
+          query_size_limit_enabled: safeInput.data.query_size_limit_enabled,
+          max_query_characters: safeInput.data.max_query_characters,
+          max_request_body_bytes: safeInput.data.max_request_body_bytes,
+          session_request_cap_enabled:
+            safeInput.data.session_request_cap_enabled,
+          session_request_cap_max_requests:
+            safeInput.data.session_request_cap_max_requests,
+          session_request_cap_window_seconds:
+            safeInput.data.session_request_cap_window_seconds,
+          temporary_block_enabled: safeInput.data.temporary_block_enabled,
+          temporary_block_violation_threshold:
+            safeInput.data.temporary_block_violation_threshold,
+          temporary_block_window_seconds:
+            safeInput.data.temporary_block_window_seconds,
+          temporary_block_duration_seconds:
+            safeInput.data.temporary_block_duration_seconds,
+          allowed_origins: safeInput.data.allowed_origins,
+          updated_at: new Date(),
+        },
+      })
+      .returning();
+
+    const safe = searchAppApiSettingsSchema.safeParse(rows[0]);
+    if (!safe.success) {
+      return actionZodError(
+        'Failed to parse saved search app API settings.',
+        safe.error,
+      );
+    }
+
+    await cache.onMutate({ tables: ['project_ai_search_app_api_setting'] });
+    aiRevalidate(input.project_id);
+    return actionSuccess(safe.data);
+  } catch (error) {
+    console.error(error);
+    return actionError(
+      mapAiDbError(error, 'Failed to save search app API settings.'),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Search App — Block inspection and management
+// ---------------------------------------------------------------------------
+
+import {
+  listActiveBlocks,
+  clearBlocks,
+  type BlockEntry,
+} from '@/lib/rate-limit';
+
+export type SearchAppBlockStatus = {
+  publicSlug: string;
+  blocks: BlockEntry[];
+};
+
+/**
+ * Returns all active temporary blocks for the given search app.
+ * Each entry shows the identity key and the remaining block duration.
+ */
+export async function getSearchAppBlocks(
+  projectId: string,
+  publicSlug: string,
+): ActionResponse<SearchAppBlockStatus> {
+  const access = await getProjectAccess(projectId);
+  if ('success' in access && !access.success) return access;
+
+  try {
+    const scopePrefix = `search:${publicSlug}:`;
+    const blocks = await listActiveBlocks(scopePrefix);
+    return actionSuccess({ publicSlug, blocks });
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to read block status.');
+  }
+}
+
+/**
+ * Clears all temporary blocks and violation counters for the given search app.
+ * Returns the number of keys that were removed.
+ */
+export async function clearSearchAppBlocks(
+  projectId: string,
+  publicSlug: string,
+): ActionResponse<{ cleared: number }> {
+  const access = await getProjectAccess(projectId, true);
+  if ('success' in access && !access.success) return access;
+
+  try {
+    const scopePrefix = `search:${publicSlug}:`;
+    const cleared = await clearBlocks(scopePrefix);
+    return actionSuccess({ cleared });
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to clear blocks.');
   }
 }

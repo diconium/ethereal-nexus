@@ -1,0 +1,1 @@
+ALTER TABLE "project_ai_search_app" ADD COLUMN "credentials_json" text;

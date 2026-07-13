@@ -24,6 +24,8 @@ import {
   projectAiContentAdvisorIssueDetections,
   projectAiContentAdvisorSettings,
   projectAiPageUrlMappings,
+  projectAiSearchApps,
+  projectAiSearchAppApiSettings,
 } from './schema';
 import { catalogueDataSchema } from './catalogue';
 import {
@@ -40,7 +42,7 @@ const catalogueApiSlugSchema = z
     /^[a-z0-9-]+$/i,
     'Use only the unique endpoint slug, for example card-comparator.',
   );
-import { aiProviderConfigSchema, aiProviderSchema } from './provider';
+import { aiProviderConfigSchema, aiProviderSchema, searchProviderConfigSchema, searchProviderSchema } from './provider';
 
 export const PROJECT_AI_FEATURE_KEYS = [
   'chatbots',
@@ -48,6 +50,7 @@ export const PROJECT_AI_FEATURE_KEYS = [
   'author-dialogs',
   'content-advisor',
   'demos',
+  'searches',
 ] as const;
 
 export const projectAiFeatureKeySchema = z.enum(PROJECT_AI_FEATURE_KEYS);
@@ -683,3 +686,120 @@ export const pageUrlMappingInputSchema = z.object({
     .url('Enter a valid URL, e.g. https://www.mywebsite.com/en/homepage'),
 });
 export type PageUrlMappingInput = z.infer<typeof pageUrlMappingInputSchema>;
+
+// ---------------------------------------------------------------------------
+// Search Applications
+// ---------------------------------------------------------------------------
+
+export const searchAppSchema = createSelectSchema(projectAiSearchApps)
+  .extend({
+    provider: searchProviderSchema,
+    provider_config: searchProviderConfigSchema,
+    // Expose only whether credentials are configured, never the raw value.
+    // credentials_json is omitted so it can never reach client-side code.
+    has_credentials: z.boolean(),
+  })
+  .omit({ credentials_json: true });
+export type SearchApp = z.infer<typeof searchAppSchema>;
+
+export const searchAppApiSettingsSchema = createSelectSchema(
+  projectAiSearchAppApiSettings,
+).extend({
+  allowed_origins: z.array(z.string()),
+});
+export type SearchAppApiSettings = z.infer<typeof searchAppApiSettingsSchema>;
+
+const searchSlugSchema = z
+  .string()
+  .min(2)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+
+export const searchAppInputSchema = z.object({
+  id: z.string().uuid().optional(),
+  project_id: z.string().uuid(),
+  environment_id: z.string().uuid(),
+  name: z.string().min(2),
+  slug: searchSlugSchema,
+  public_slug: searchSlugSchema,
+  provider: searchProviderSchema,
+  gcp_project_id: z.string().trim().min(1, 'GCP project ID is required'),
+  location: z.string().trim().default('global'),
+  collection_id: z.string().trim().default('default_collection'),
+  engine_id: z.string().trim().min(1, 'Engine (App) ID is required'),
+  serving_config_id: z.string().trim().default('default_search'),
+  credentials_json: z.string().trim().nullable().optional(),
+  /**
+   * GCS buckets (or gs://bucket/prefix patterns) whose objects this app may
+   * sign download URLs for. Empty list = downloads disabled (secure default).
+   */
+  allowed_gcs_buckets: z.array(z.string().trim().min(1)).default([]),
+  page_size: z.number().int().min(1).max(100).default(10),
+  page_size_max: z.number().int().min(1).max(100).default(25),
+  enabled: z.boolean().default(true),
+});
+export type SearchAppInput = z.infer<typeof searchAppInputSchema>;
+
+export const searchAppApiSettingsInputSchema = z
+  .object({
+    id: z.string().uuid().optional(),
+    project_id: z.string().uuid(),
+    environment_id: z.string().uuid(),
+    search_app_id: z.string().uuid(),
+    rate_limit_enabled: z.boolean().default(true),
+    rate_limit_max_requests: z.number().int().min(1).max(10000),
+    rate_limit_window_seconds: z.number().int().min(1).max(86400),
+    rate_limit_use_ip: z.boolean().default(true),
+    rate_limit_use_session_cookie: z.boolean().default(true),
+    rate_limit_use_fingerprint: z.boolean().default(false),
+    fingerprint_header_name: z.string().trim().min(1).max(120),
+    query_size_limit_enabled: z.boolean().default(true),
+    max_query_characters: z.number().int().min(1).max(10000),
+    max_request_body_bytes: z.number().int().min(1).max(100000),
+    session_request_cap_enabled: z.boolean().default(false),
+    session_request_cap_max_requests: z.number().int().min(1).max(100000),
+    session_request_cap_window_seconds: z.number().int().min(1).max(604800),
+    temporary_block_enabled: z.boolean().default(true),
+    temporary_block_violation_threshold: z.number().int().min(1).max(1000),
+    temporary_block_window_seconds: z.number().int().min(1).max(604800),
+    temporary_block_duration_seconds: z.number().int().min(1).max(604800),
+    allowed_origins: z
+      .array(z.string().trim().min(1))
+      .default([]),
+  })
+  .superRefine((value, ctx) => {
+    if (
+      !value.rate_limit_use_ip &&
+      !value.rate_limit_use_session_cookie &&
+      !value.rate_limit_use_fingerprint
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Enable at least one identity source for rate limiting.',
+        path: ['rate_limit_use_ip'],
+      });
+    }
+
+    if (
+      value.rate_limit_use_fingerprint &&
+      !value.fingerprint_header_name.trim()
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Fingerprint header name is required when fingerprint rate limiting is enabled.',
+        path: ['fingerprint_header_name'],
+      });
+    }
+
+    if (value.max_request_body_bytes < value.max_query_characters) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Request body bytes should be greater than or equal to the query character limit.',
+        path: ['max_request_body_bytes'],
+      });
+    }
+  });
+export type SearchAppApiSettingsInput = z.infer<
+  typeof searchAppApiSettingsInputSchema
+>;

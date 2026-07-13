@@ -6,6 +6,7 @@ import {
   getCataloguesByEnvironment,
   getChatbotsByEnvironment,
   getProjectAiFlags,
+  getSearchAppsByEnvironment,
 } from '@/data/ai/actions';
 import { logger } from '@/lib/logger';
 
@@ -29,16 +30,18 @@ export async function GET(request: NextRequest, context: RouteContext) {
         enabledAiFeatures: [],
         chatbots: [],
         catalogues: [],
+        searchApps: [],
         error: 'You do not have permissions for this resource.',
       },
       { status: HttpStatus.FORBIDDEN },
     );
   }
 
-  const [flags, chatbots, catalogues] = await Promise.all([
+  const [flags, chatbots, catalogues, searchApps] = await Promise.all([
     getProjectAiFlags(id, environmentId),
     getChatbotsByEnvironment(id, environmentId),
     getCataloguesByEnvironment(id, environmentId),
+    getSearchAppsByEnvironment(id, environmentId),
   ]);
 
   if (!flags.success) {
@@ -50,6 +53,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         enabledAiFeatures: [],
         chatbots: [],
         catalogues: [],
+        searchApps: [],
         error: flags.error.message,
       },
       { status },
@@ -65,6 +69,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         enabledAiFeatures: [],
         chatbots: [],
         catalogues: [],
+        searchApps: [],
         error: chatbots.error.message,
       },
       { status },
@@ -80,6 +85,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         enabledAiFeatures: [],
         chatbots: [],
         catalogues: [],
+        searchApps: [],
         error: catalogues.error.message,
       },
       { status },
@@ -102,5 +108,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
     catalogues: catalogues.data.filter(
       (catalogue) => catalogue.show_in_sidebar,
     ),
+    searchApps: searchApps.success
+      ? searchApps.data.filter((app) => app.enabled)
+      : [],
   });
 }
+

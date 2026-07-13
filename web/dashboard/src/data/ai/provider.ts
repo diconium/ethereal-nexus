@@ -121,3 +121,123 @@ export function getAiProviderLabel(provider: AiProvider) {
     provider
   );
 }
+
+// ---------------------------------------------------------------------------
+// Search Application Providers
+// ---------------------------------------------------------------------------
+
+export const SEARCH_PROVIDER_KEYS = ['vertex-ai-agent-search'] as const;
+export const searchProviderSchema = z.enum(SEARCH_PROVIDER_KEYS);
+export type SearchProvider = z.infer<typeof searchProviderSchema>;
+
+export const vertexSearchProviderConfigSchema = z.object({
+  gcp_project_id: z.string().trim().optional().nullable().default(''),
+  location: z.string().trim().optional().nullable().default('global'),
+  collection_id: z
+    .string()
+    .trim()
+    .optional()
+    .nullable()
+    .default('default_collection'),
+  engine_id: z.string().trim().optional().nullable().default(''),
+  serving_config_id: z
+    .string()
+    .trim()
+    .optional()
+    .nullable()
+    .default('default_search'),
+  /**
+   * Explicit allowlist of GCS bucket names (or gs://bucket/prefix patterns)
+   * whose objects this search app is permitted to sign download URLs for.
+   * An empty list means downloads are BLOCKED — the admin must opt-in.
+   */
+  allowed_gcs_buckets: z.array(z.string().trim()).optional().default([]),
+});
+
+export type VertexSearchProviderConfig = z.infer<
+  typeof vertexSearchProviderConfigSchema
+>;
+
+export const searchProviderConfigSchema = vertexSearchProviderConfigSchema;
+export type SearchProviderConfig = z.infer<typeof searchProviderConfigSchema>;
+
+export function buildVertexSearchProviderConfig(input: {
+  gcp_project_id?: string | null;
+  location?: string | null;
+  collection_id?: string | null;
+  engine_id?: string | null;
+  serving_config_id?: string | null;
+  allowed_gcs_buckets?: string[];
+}): SearchProviderConfig {
+  return {
+    gcp_project_id: input.gcp_project_id ?? '',
+    location: input.location ?? 'global',
+    collection_id: input.collection_id ?? 'default_collection',
+    engine_id: input.engine_id ?? '',
+    serving_config_id: input.serving_config_id ?? 'default_search',
+    allowed_gcs_buckets: input.allowed_gcs_buckets ?? [],
+  };
+}
+
+export function getVertexSearchConfigOrThrow(config: unknown): {
+  gcp_project_id: string;
+  location: string;
+  collection_id: string;
+  engine_id: string;
+  serving_config_id: string;
+  allowed_gcs_buckets: string[];
+} {
+  const parsed = vertexSearchProviderConfigSchema.safeParse(config);
+  if (!parsed.success) {
+    throw new Error('Invalid Vertex AI Agent Search provider configuration.');
+  }
+
+  const gcp_project_id = parsed.data.gcp_project_id?.trim() || '';
+  const location = parsed.data.location?.trim() || 'global';
+  const collection_id =
+    parsed.data.collection_id?.trim() || 'default_collection';
+  const engine_id = parsed.data.engine_id?.trim() || '';
+  // 'default_config' was the old default before we renamed it to 'default_search'.
+  // Silently migrate stale stored values so existing records work without re-saving.
+  const rawServingConfigId = parsed.data.serving_config_id?.trim() || '';
+  const serving_config_id =
+    rawServingConfigId === '' || rawServingConfigId === 'default_config'
+      ? 'default_search'
+      : rawServingConfigId;
+
+  const allowed_gcs_buckets: string[] =
+    Array.isArray(parsed.data.allowed_gcs_buckets)
+      ? (parsed.data.allowed_gcs_buckets as string[]).filter(Boolean)
+      : [];
+
+  if (!gcp_project_id || !engine_id) {
+    throw new Error(
+      'Vertex AI Agent Search configuration requires a GCP project ID and engine (app) ID.',
+    );
+  }
+
+  return { gcp_project_id, location, collection_id, engine_id, serving_config_id, allowed_gcs_buckets };
+}
+
+export const SEARCH_PROVIDER_OPTIONS: Array<{
+  value: SearchProvider;
+  label: string;
+}> = [
+  {
+    value: 'vertex-ai-agent-search',
+    label: 'Vertex AI Agent Search (Google)',
+  },
+];
+
+export const SEARCH_PROVIDER_BADGE_STYLES: Record<SearchProvider, string> = {
+  'vertex-ai-agent-search':
+    'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+};
+
+export function getSearchProviderLabel(provider: SearchProvider) {
+  return (
+    SEARCH_PROVIDER_OPTIONS.find((option) => option.value === provider)
+      ?.label ?? provider
+  );
+}
+

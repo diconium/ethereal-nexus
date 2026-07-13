@@ -119,7 +119,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   // Empty / whitespace query — return early with CORS headers so browsers
   // can read the response cross-origin (moving this after corsHeaders is built).
-  if (!query.trim()) {
+  // Empty, whitespace-only, or single-character queries return immediately
+  // without calling Discovery Engine — the API requires at least 2 characters
+  // to generate meaningful suggestions, and the e2e tests assert this behaviour.
+  if (!query.trim() || query.trim().length < 2) {
     return NextResponse.json({ suggestions: [] }, { headers: corsHeaders });
   }
 

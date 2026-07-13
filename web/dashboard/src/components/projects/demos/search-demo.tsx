@@ -445,13 +445,16 @@ function SkeletonLine({ className }: { className?: string }) {
 
 /** Extract the first sentence from the summary text (stripped of markdown). */
 function firstSentence(text: string): string {
-  // Strip markdown bold/bullets, then grab up to the first period/exclamation/question
-  const plain = text
-    .replace(/\*\*([^*]+)\*\*/g, '$1')
-    .replace(/\*([^*]+)\*/g, '$1')
-    .replace(/^[*-]\s+/gm, '')
-    .replace(/<[^>]+>/g, '')
-    .trim();
+  // Strip markdown bold/bullets, sanitize all HTML (including partial/malformed
+  // tags that a regex like /<[^>]+>/g would miss), then grab up to the first
+  // sentence-ending punctuation.
+  const plain = DOMPurify.sanitize(
+    text
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/^[*-]\s+/gm, ''),
+    { ALLOWED_TAGS: [], ALLOWED_ATTR: [], KEEP_CONTENT: true },
+  ).trim();
   const match = plain.match(/^.+?[.!?](?:\s|$)/);
   return match ? match[0].trim() : plain.slice(0, 120) + (plain.length > 120 ? '…' : '');
 }

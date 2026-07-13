@@ -381,7 +381,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (!capResult.allowed) {
       if (apiSettings.temporary_block_enabled) {
         await registerViolationAndMaybeBlock({
-          key: `${scopeKey}:${sessionIdentityKey}`,
+          key: `${scopeKey}:session:${sessionIdentityKey}`,
           threshold: apiSettings.temporary_block_violation_threshold,
           violationWindowSeconds: apiSettings.temporary_block_window_seconds,
           blockDurationSeconds: apiSettings.temporary_block_duration_seconds,
@@ -423,7 +423,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     logger.info('Search request completed successfully', {
       route: 'search-public',
       publicSlug,
-      query,
+      queryLength: query.length,
       resultCount: searchResponse.results.length,
     });
 
@@ -444,7 +444,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       {
         route: 'search-public',
         publicSlug,
-        query,
+        queryLength: query.length,
       },
     );
 

@@ -102,7 +102,7 @@ function isGcsUriAllowed(gcsUri: string, allowedBuckets: string[]): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Storage client cache — keyed by service account email
+// Storage client cache — keyed by credential identity (SHA-256 of raw credentials)
 // ---------------------------------------------------------------------------
 
 const storageCache = new Map<string, Storage>();

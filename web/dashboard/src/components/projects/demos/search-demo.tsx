@@ -1,6 +1,18 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';import { Search, X, AlertCircle, Loader2, Shield, Sparkles, ChevronDown, Download, FileText, Globe } from 'lucide-react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import {
+  Search,
+  X,
+  AlertCircle,
+  Loader2,
+  Shield,
+  Sparkles,
+  ChevronDown,
+  Download,
+  FileText,
+  Globe,
+} from 'lucide-react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import DOMPurify from 'isomorphic-dompurify';

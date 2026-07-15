@@ -158,8 +158,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
     fingerprintHeaderName: settings.fingerprint_header_name,
   });
   const sessionIdentityKey = getSessionCookieIdentifier(request);
-  const sessionCapIdentityKey =
-    sessionIdentityKey || identityResolution.identities[0]?.key || null;
+  const sessionCapIdentityKey = sessionIdentityKey
+    ? `session:${sessionIdentityKey}`
+    : identityResolution.identities[0]?.key || null;
   const scopeKey = `search:${publicSlug}`;
 
   const requestWindow = settings.rate_limit_enabled
@@ -195,7 +196,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const sessionCap =
     settings.session_request_cap_enabled && sessionCapIdentityKey
       ? await getCounterState(
-          `${scopeKey}:session:${sessionCapIdentityKey}:session-cap`,
+          `${scopeKey}:${sessionCapIdentityKey}:session-cap`,
         )
       : null;
 

@@ -200,6 +200,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
   });
 
   const sessionIdentityKey = getSessionCookieIdentifier(request);
+  const sessionCapIdentityKey = sessionIdentityKey
+    ? `session:${sessionIdentityKey}`
+    : null;
 
   // ------------------------------------------------------------------
   // 3. Temporary block check
@@ -370,8 +373,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
   // ------------------------------------------------------------------
   // 9. Session request cap
   // ------------------------------------------------------------------
-  if (apiSettings.session_request_cap_enabled && sessionIdentityKey) {
-    const capKey = `${scopeKey}:session:${sessionIdentityKey}:session-cap`;
+  if (apiSettings.session_request_cap_enabled && sessionCapIdentityKey) {
+    const capKey = `${scopeKey}:${sessionCapIdentityKey}:session-cap`;
     const capResult = await checkRateLimit({
       key: capKey,
       limit: apiSettings.session_request_cap_max_requests,
@@ -381,7 +384,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (!capResult.allowed) {
       if (apiSettings.temporary_block_enabled) {
         await registerViolationAndMaybeBlock({
-          key: `${scopeKey}:session:${sessionIdentityKey}`,
+          key: `${scopeKey}:${sessionCapIdentityKey}`,
           threshold: apiSettings.temporary_block_violation_threshold,
           violationWindowSeconds: apiSettings.temporary_block_window_seconds,
           blockDurationSeconds: apiSettings.temporary_block_duration_seconds,

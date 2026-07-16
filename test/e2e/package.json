@@ -14,7 +14,7 @@
     "test:debug": "playwright test --debug"
   },
   "devDependencies": {
-    "@playwright/test": "^1.48.2",
+    "@playwright/test": "^1.61.1",
     "@types/node": "^22.9.0",
     "dotenv": "^16.4.5",
     "zod": "^3.24.1"

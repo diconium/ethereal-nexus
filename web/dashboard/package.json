@@ -25,7 +25,6 @@
     "@ethereal-nexus/dialog-ui-core": "^1.6.1",
     "@ethereal-nexus/dialog-ui-shadcn": "^1.4.1",
     "@google-cloud/aiplatform": "^6.8.0",
-    "@google-cloud/discoveryengine": "^2.8.0",
     "@google-cloud/storage": "7.19.0",
     "@hookform/resolvers": "^3.10.0",
     "@kubiks/otel-drizzle": "^2.1.0",
@@ -128,11 +127,5 @@
   "engines": {
     "npm": "please-use-pnpm",
     "pnpm": ">=9"
-  },
-  "pnpm": {
-    "overrides": {
-      "@types/react": "19.2.17",
-      "@types/react-dom": "19.2.3"
-    }
   }
 }

@@ -26,7 +26,7 @@ export type SearchResultItem = {
   title: string;
   snippet: string;
   link: string | null;
-  document: Record<string, unknown>;
+  category: string | null;
 };
 
 export type SearchSummaryReference = {
@@ -260,9 +260,8 @@ function formatWebDomain(url: string): string {
 }
 
 function getCategory(result: SearchResultItem): string {
-  const { link, document } = result;
-  if (document?.category && typeof document.category === 'string') return document.category;
-  if (document?.type && typeof document.type === 'string') return document.type;
+  const { link, category } = result;
+  if (category) return category;
   if (link?.startsWith('https://') || link?.startsWith('http://')) {
     return formatWebDomain(link);
   }

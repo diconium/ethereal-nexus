@@ -11,7 +11,7 @@ export type SearchResult = {
   snippet: string;
   /** Web URL (https://) for the document, or null when unavailable. */
   link: string | null;
-  document: Record<string, unknown>;
+  category: string | null;
 };
 
 export type SearchSummaryCitation = {
@@ -230,13 +230,15 @@ export async function performVertexSearch(input: {
     // Web link — only emit when it's a real HTTP/HTTPS URL
     const link: string | null =
       rawLink?.startsWith('http') ? rawLink : null;
+    const category =
+      getString(structData.category) || getString(structData.type) || null;
 
     return {
       id: getString(doc.id) || getString(r.id) || '',
       title,
       snippet,
       link,
-      document: structData as Record<string, unknown>,
+      category,
     };
   });
 

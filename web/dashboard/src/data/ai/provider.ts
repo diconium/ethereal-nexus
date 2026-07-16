@@ -130,9 +130,21 @@ export const SEARCH_PROVIDER_KEYS = ['vertex-ai-agent-search'] as const;
 export const searchProviderSchema = z.enum(SEARCH_PROVIDER_KEYS);
 export type SearchProvider = z.infer<typeof searchProviderSchema>;
 
+export const VERTEX_SEARCH_LOCATIONS = ['global', 'us', 'eu'] as const;
+export type VertexSearchLocation = (typeof VERTEX_SEARCH_LOCATIONS)[number];
+export const vertexSearchLocationSchema = z.preprocess(
+  (value) => {
+    if (value === null || value === undefined) return undefined;
+    if (typeof value !== 'string') return value;
+    const trimmed = value.trim();
+    return trimmed || undefined;
+  },
+  z.enum(VERTEX_SEARCH_LOCATIONS).default('global'),
+);
+
 export const vertexSearchProviderConfigSchema = z.object({
   gcp_project_id: z.string().trim().optional().nullable().default(''),
-  location: z.string().trim().optional().nullable().default('global'),
+  location: vertexSearchLocationSchema,
   collection_id: z
     .string()
     .trim()
@@ -162,9 +174,11 @@ export function buildVertexSearchProviderConfig(input: {
   engine_id?: string | null;
   serving_config_id?: string | null;
 }): SearchProviderConfig {
+  const location = vertexSearchLocationSchema.parse(input.location);
+
   return {
     gcp_project_id: input.gcp_project_id ?? '',
-    location: input.location ?? 'global',
+    location,
     collection_id: input.collection_id ?? 'default_collection',
     engine_id: input.engine_id ?? '',
     serving_config_id: input.serving_config_id ?? 'default_search',
@@ -184,7 +198,7 @@ export function getVertexSearchConfigOrThrow(config: unknown): {
   }
 
   const gcp_project_id = parsed.data.gcp_project_id?.trim() || '';
-  const location = parsed.data.location?.trim() || 'global';
+  const location = parsed.data.location ?? 'global';
   const collection_id =
     parsed.data.collection_id?.trim() || 'default_collection';
   const engine_id = parsed.data.engine_id?.trim() || '';

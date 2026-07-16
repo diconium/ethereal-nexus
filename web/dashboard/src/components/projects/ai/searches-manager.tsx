@@ -53,8 +53,10 @@ import { AI_STATE_UPDATED_EVENT } from '@/lib/ai-events';
 import {
   SEARCH_PROVIDER_BADGE_STYLES,
   SEARCH_PROVIDER_OPTIONS,
+  VERTEX_SEARCH_LOCATIONS,
   getSearchProviderLabel,
   type SearchProvider,
+  type VertexSearchLocation,
 } from '@/data/ai/provider';
 
 // ---------------------------------------------------------------------------
@@ -75,7 +77,7 @@ type SearchAppFormState = {
   public_slug: string;
   provider: SearchProvider;
   gcp_project_id: string;
-  location: string;
+  location: VertexSearchLocation;
   collection_id: string;
   engine_id: string;
   serving_config_id: string;
@@ -120,6 +122,12 @@ function autoSlug(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
+}
+
+function normalizeSearchLocation(value: string | null | undefined): VertexSearchLocation {
+  return VERTEX_SEARCH_LOCATIONS.includes(value as VertexSearchLocation)
+    ? (value as VertexSearchLocation)
+    : 'global';
 }
 
 function notifyDemosSidebar() {
@@ -433,7 +441,7 @@ function CreateWizard({ onClose, onCreated, projectId, environmentId }: CreateWi
               </div>
               <div className="space-y-1">
                 <label htmlFor="wizard-location" className="text-sm font-medium">Location</label>
-                <Select value={form.location} onValueChange={(v) => update('location', v)}>
+                <Select value={form.location} onValueChange={(v) => update('location', normalizeSearchLocation(v))}>
                   <SelectTrigger id="wizard-location"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="global">global</SelectItem>
@@ -549,7 +557,7 @@ function EditForm({
     public_slug: app.public_slug,
     provider: app.provider,
     gcp_project_id: config.gcp_project_id || '',
-    location: config.location || 'global',
+    location: normalizeSearchLocation(config.location),
     collection_id: config.collection_id || 'default_collection',
     engine_id: config.engine_id || '',
     serving_config_id: config.serving_config_id || 'default_search',
@@ -738,7 +746,7 @@ function EditForm({
             </div>
             <div className="space-y-1">
               <label htmlFor="edit-location" className="text-sm font-medium">Location</label>
-              <Select value={form.location} onValueChange={(v) => update('location', v)}>
+              <Select value={form.location} onValueChange={(v) => update('location', normalizeSearchLocation(v))}>
                 <SelectTrigger id="edit-location"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="global">global</SelectItem>

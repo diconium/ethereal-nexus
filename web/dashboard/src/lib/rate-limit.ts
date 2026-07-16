@@ -329,19 +329,22 @@ function normaliseIp(ip: string | null | undefined): string | null {
 }
 
 export function getClientIp(request: Request) {
-  // x-forwarded-for is set by proxies (Vercel, nginx, etc.)
-  const forwardedFor = request.headers.get('x-forwarded-for');
-  if (forwardedFor) {
-    const ip = normaliseIp(forwardedFor.split(',')[0]);
-    if (ip) return ip;
-  }
-
-  const realIp = normaliseIp(request.headers.get('x-real-ip'));
-  if (realIp) return realIp;
-
   // Next.js exposes the connection address as a non-standard property
   const nextIp = normaliseIp((request as any).ip);
   if (nextIp) return nextIp;
+
+  // Forwarded IP headers are only safe when a trusted proxy strips any
+  // client-supplied values before adding its own.
+  if (process.env.TRUST_PROXY_IP_HEADERS === 'true') {
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    if (forwardedFor) {
+      const ip = normaliseIp(forwardedFor.split(',')[0]);
+      if (ip) return ip;
+    }
+
+    const realIp = normaliseIp(request.headers.get('x-real-ip'));
+    if (realIp) return realIp;
+  }
 
   return 'unknown';
 }
@@ -376,11 +379,15 @@ export function getFingerprintIdentifier(
   request: Request,
   headerName?: string | null,
 ) {
-  if (!headerName) {
+  const normalizedHeaderName = headerName?.trim();
+  if (
+    !normalizedHeaderName ||
+    !/^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/.test(normalizedHeaderName)
+  ) {
     return null;
   }
 
-  const value = request.headers.get(headerName);
+  const value = request.headers.get(normalizedHeaderName);
   if (!value) {
     return null;
   }
@@ -398,7 +405,17 @@ export function buildIdentityResolution(
   let usedFingerprint = false;
 
   if (strategy.useIp) {
-    identities.push({ source: 'ip', key: `ip:${getClientIp(request)}` });
+    const clientIp = getClientIp(request);
+    const ipKey =
+      clientIp === 'unknown'
+        ? `unknown:${hashValue(
+            [
+              request.headers.get('user-agent') ?? '',
+              request.headers.get('accept-language') ?? '',
+            ].join('|'),
+          )}`
+        : clientIp;
+    identities.push({ source: 'ip', key: `ip:${ipKey}` });
     usedIp = true;
   }
 
@@ -425,7 +442,17 @@ export function buildIdentityResolution(
   }
 
   if (!identities.length) {
-    identities.push({ source: 'ip', key: `ip:${getClientIp(request)}` });
+    const clientIp = getClientIp(request);
+    const ipKey =
+      clientIp === 'unknown'
+        ? `unknown:${hashValue(
+            [
+              request.headers.get('user-agent') ?? '',
+              request.headers.get('accept-language') ?? '',
+            ].join('|'),
+          )}`
+        : clientIp;
+    identities.push({ source: 'ip', key: `ip:${ipKey}` });
     usedIp = true;
   }
 

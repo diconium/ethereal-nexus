@@ -30,22 +30,39 @@ const DEFAULT_CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+function buildAllowedHeaders(settings?: {
+  rate_limit_use_fingerprint?: boolean;
+  fingerprint_header_name?: string | null;
+}) {
+  const headers = ['Content-Type'];
+  const headerName = settings?.fingerprint_header_name?.trim();
+  if (
+    settings?.rate_limit_use_fingerprint &&
+    headerName &&
+    /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/.test(headerName)
+  ) {
+    headers.push(headerName);
+  }
+  return headers.join(', ');
+}
+
 function buildCorsHeaders(
   allowedOrigins: string[],
   requestOrigin: string | null,
+  allowedHeaders = 'Content-Type',
 ): Record<string, string> {
   if (!allowedOrigins.length) {
     return {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': allowedHeaders,
     };
   }
   if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
     return {
       'Access-Control-Allow-Origin': requestOrigin,
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': allowedHeaders,
       Vary: 'Origin',
     };
   }
@@ -87,6 +104,9 @@ export async function OPTIONS(request: NextRequest, context: RouteContext) {
     status: 204,
     headers: {
       ...buildCorsHeaders(allowedOrigins as string[], requestOrigin),
+      'Access-Control-Allow-Headers': buildAllowedHeaders(
+        rows[0]?.settings ?? undefined,
+      ),
       'Access-Control-Max-Age': '86400',
     },
   });
@@ -131,7 +151,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
     (row.settings?.allowed_origins as string[]) ??
     (DEFAULT_SEARCH_APP_API_SETTINGS_VALUES.allowed_origins as string[]);
 
-  const corsHeaders = buildCorsHeaders(allowedOrigins, requestOrigin);
+  const corsHeaders = buildCorsHeaders(
+    allowedOrigins,
+    requestOrigin,
+    buildAllowedHeaders(row.settings ?? DEFAULT_SEARCH_APP_API_SETTINGS_VALUES),
+  );
 
   // Enforce allowed origins — same policy as the main search route
   if (!isCorsAllowed(allowedOrigins, requestOrigin)) {

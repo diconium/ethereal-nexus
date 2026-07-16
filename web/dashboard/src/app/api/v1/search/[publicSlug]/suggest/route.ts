@@ -32,13 +32,41 @@ const DEFAULT_CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+function buildAllowedHeaders(settings?: {
+  rate_limit_use_fingerprint?: boolean;
+  fingerprint_header_name?: string | null;
+}) {
+  const headers = ['Content-Type'];
+  const headerName = settings?.fingerprint_header_name?.trim();
+  if (
+    settings?.rate_limit_use_fingerprint &&
+    headerName &&
+    /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/.test(headerName)
+  ) {
+    headers.push(headerName);
+  }
+  return headers.join(', ');
+}
+
 function buildCorsHeaders(
   allowedOrigins: string[],
   requestOrigin: string | null,
+  allowedHeaders = 'Content-Type',
 ): Record<string, string> {
-  if (!allowedOrigins.length) return { 'Access-Control-Allow-Origin': '*' };
+  if (!allowedOrigins.length) {
+    return {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': allowedHeaders,
+    };
+  }
   if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
-    return { 'Access-Control-Allow-Origin': requestOrigin, Vary: 'Origin' };
+    return {
+      'Access-Control-Allow-Origin': requestOrigin,
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': allowedHeaders,
+      Vary: 'Origin',
+    };
   }
   return { Vary: 'Origin' };
 }
@@ -69,8 +97,10 @@ export async function OPTIONS(request: NextRequest, context: RouteContext) {
     status: 204,
     headers: {
       ...buildCorsHeaders(allowedOrigins as string[], requestOrigin),
+      'Access-Control-Allow-Headers': buildAllowedHeaders(
+        rows[0]?.settings ?? undefined,
+      ),
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
       'Access-Control-Max-Age': '86400',
     },
   });
@@ -115,7 +145,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
     (rows[0].settings?.allowed_origins as string[]) ??
     DEFAULT_SEARCH_APP_API_SETTINGS_VALUES.allowed_origins;
 
-  const corsHeaders = buildCorsHeaders(allowedOrigins as string[], requestOrigin);
+  const apiSettings = rows[0].settings ?? DEFAULT_SEARCH_APP_API_SETTINGS_VALUES;
+  const corsHeaders = buildCorsHeaders(
+    allowedOrigins as string[],
+    requestOrigin,
+    buildAllowedHeaders(apiSettings),
+  );
 
   // CORS check
   if (allowedOrigins.length > 0 && !(requestOrigin && allowedOrigins.includes(requestOrigin))) {
@@ -125,16 +160,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
     });
   }
 
-  // Empty / whitespace query — return early with CORS headers so browsers
-  // can read the response cross-origin (moving this after corsHeaders is built).
-  // Empty, whitespace-only, or single-character queries return immediately
-  // without calling Discovery Engine — the API requires at least 2 characters
-  // to generate meaningful suggestions, and the e2e tests assert this behaviour.
-  if (!trimmedQuery || trimmedQuery.length < 2) {
-    return NextResponse.json({ suggestions: [] }, { headers: corsHeaders });
-  }
-
-  const apiSettings = rows[0].settings ?? DEFAULT_SEARCH_APP_API_SETTINGS_VALUES;
   const scopeKey = `search:${publicSlug}`;
   const identityResolution = buildIdentityResolution(request, {
     useIp: apiSettings.rate_limit_use_ip,
@@ -257,6 +282,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
         },
       );
     }
+  }
+
+  // Empty, whitespace-only, or single-character queries do not call Discovery
+  // Engine, but still pass through the same abuse controls as real suggestions.
+  if (!trimmedQuery || trimmedQuery.length < 2) {
+    return NextResponse.json({ suggestions: [] }, { headers: corsHeaders });
   }
 
   let config: ReturnType<typeof getVertexSearchConfigOrThrow>;

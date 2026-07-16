@@ -3936,6 +3936,21 @@ export async function getSearchAppBlocks(
   if ('success' in access && !access.success) return access;
 
   try {
+    const searchApp = await db
+      .select({ id: projectAiSearchApps.id })
+      .from(projectAiSearchApps)
+      .where(
+        and(
+          eq(projectAiSearchApps.project_id, projectId),
+          eq(projectAiSearchApps.public_slug, publicSlug),
+        ),
+      )
+      .limit(1);
+
+    if (!searchApp[0]) {
+      return actionError('Search app not found.');
+    }
+
     const scopePrefix = `search:${publicSlug}:`;
     const blocks = await listActiveBlocks(scopePrefix);
     return actionSuccess({ publicSlug, blocks });
@@ -3957,6 +3972,21 @@ export async function clearSearchAppBlocks(
   if ('success' in access && !access.success) return access;
 
   try {
+    const searchApp = await db
+      .select({ id: projectAiSearchApps.id })
+      .from(projectAiSearchApps)
+      .where(
+        and(
+          eq(projectAiSearchApps.project_id, projectId),
+          eq(projectAiSearchApps.public_slug, publicSlug),
+        ),
+      )
+      .limit(1);
+
+    if (!searchApp[0]) {
+      return actionError('Search app not found.');
+    }
+
     const scopePrefix = `search:${publicSlug}:`;
     const cleared = await clearBlocks(scopePrefix);
     return actionSuccess({ cleared });

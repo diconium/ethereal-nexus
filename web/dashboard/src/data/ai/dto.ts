@@ -42,7 +42,7 @@ const catalogueApiSlugSchema = z
     /^[a-z0-9-]+$/i,
     'Use only the unique endpoint slug, for example card-comparator.',
   );
-import { aiProviderConfigSchema, aiProviderSchema, searchProviderConfigSchema, searchProviderSchema } from './provider';
+import { aiProviderConfigSchema, aiProviderSchema, searchProviderConfigSchema, searchProviderSchema, vertexSearchLocationSchema } from './provider';
 
 export const PROJECT_AI_FEATURE_KEYS = [
   'chatbots',
@@ -723,7 +723,7 @@ export const searchAppInputSchema = z.object({
   public_slug: searchSlugSchema,
   provider: searchProviderSchema,
   gcp_project_id: z.string().trim().min(1, 'GCP project ID is required'),
-  location: z.string().trim().default('global'),
+  location: vertexSearchLocationSchema,
   collection_id: z.string().trim().default('default_collection'),
   engine_id: z.string().trim().min(1, 'Engine (App) ID is required'),
   serving_config_id: z.string().trim().default('default_search'),
@@ -746,7 +746,12 @@ export const searchAppApiSettingsInputSchema = z
     rate_limit_use_ip: z.boolean().default(true),
     rate_limit_use_session_cookie: z.boolean().default(true),
     rate_limit_use_fingerprint: z.boolean().default(false),
-    fingerprint_header_name: z.string().trim().min(1).max(120),
+    fingerprint_header_name: z
+      .string()
+      .trim()
+      .min(1)
+      .max(120)
+      .regex(/^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/, 'Enter a valid HTTP header name.'),
     query_size_limit_enabled: z.boolean().default(true),
     max_query_characters: z.number().int().min(1).max(10000),
     max_request_body_bytes: z.number().int().min(1).max(100000),

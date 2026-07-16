@@ -45,16 +45,33 @@ const DEFAULT_CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+function buildAllowedHeaders(settings?: {
+  rate_limit_use_fingerprint?: boolean;
+  fingerprint_header_name?: string | null;
+}) {
+  const headers = ['Content-Type'];
+  const headerName = settings?.fingerprint_header_name?.trim();
+  if (
+    settings?.rate_limit_use_fingerprint &&
+    headerName &&
+    /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/.test(headerName)
+  ) {
+    headers.push(headerName);
+  }
+  return headers.join(', ');
+}
+
 function buildCorsHeaders(
   allowedOrigins: string[],
   requestOrigin: string | null,
+  allowedHeaders = 'Content-Type',
 ): Record<string, string> {
   if (!allowedOrigins.length) {
     // No restriction configured — allow all origins
     return {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': allowedHeaders,
     };
   }
 
@@ -62,7 +79,7 @@ function buildCorsHeaders(
     return {
       'Access-Control-Allow-Origin': requestOrigin,
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': allowedHeaders,
       Vary: 'Origin',
     };
   }
@@ -79,6 +96,40 @@ function isCorsAllowed(
   if (!allowedOrigins.length) return true; // No restriction
   if (!requestOrigin) return false; // Origin required when list is non-empty
   return allowedOrigins.includes(requestOrigin);
+}
+
+async function readRequestTextWithLimit(
+  request: NextRequest,
+  maxBytes: number,
+): Promise<{ ok: true; text: string } | { ok: false }> {
+  if (!request.body) {
+    return { ok: true, text: '' };
+  }
+
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder();
+  let bytesRead = 0;
+  let text = '';
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      bytesRead += value.byteLength;
+      if (bytesRead > maxBytes) {
+        await reader.cancel();
+        return { ok: false };
+      }
+
+      text += decoder.decode(value, { stream: true });
+    }
+
+    text += decoder.decode();
+    return { ok: true, text };
+  } finally {
+    reader.releaseLock();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -106,6 +157,7 @@ export async function OPTIONS(request: NextRequest, context: RouteContext) {
   const corsHeaders = buildCorsHeaders(
     allowedOrigins as string[],
     requestOrigin,
+    buildAllowedHeaders(rows[0]?.settings ?? undefined),
   );
 
   return new NextResponse(null, {
@@ -172,7 +224,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 
   const allowedOrigins = (apiSettings.allowed_origins ?? []) as string[];
-  const corsHeaders = buildCorsHeaders(allowedOrigins, requestOrigin);
+  const corsHeaders = buildCorsHeaders(
+    allowedOrigins,
+    requestOrigin,
+    buildAllowedHeaders(apiSettings),
+  );
 
   // ------------------------------------------------------------------
   // 2. CORS / Allowed origins check
@@ -202,7 +258,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const sessionIdentityKey = getSessionCookieIdentifier(request);
   const sessionCapIdentityKey = sessionIdentityKey
     ? `session:${sessionIdentityKey}`
-    : null;
+    : identityResolution.identities[0]?.key || null;
 
   // ------------------------------------------------------------------
   // 3. Temporary block check
@@ -280,9 +336,57 @@ export async function POST(request: NextRequest, context: RouteContext) {
   // ------------------------------------------------------------------
   // 5. Body size check
   // ------------------------------------------------------------------
+  const contentLength = Number(request.headers.get('content-length'));
+  if (
+    apiSettings.query_size_limit_enabled &&
+    Number.isFinite(contentLength) &&
+    contentLength > apiSettings.max_request_body_bytes
+  ) {
+    if (apiSettings.temporary_block_enabled) {
+      for (const identity of identityResolution.identities) {
+        await registerViolationAndMaybeBlock({
+          key: `${scopeKey}:${identity.key}`,
+          threshold: apiSettings.temporary_block_violation_threshold,
+          violationWindowSeconds: apiSettings.temporary_block_window_seconds,
+          blockDurationSeconds: apiSettings.temporary_block_duration_seconds,
+        });
+      }
+    }
+
+    return NextResponse.json(
+      { error: 'Request body too large.' },
+      { status: 413, headers: corsHeaders },
+    );
+  }
+
   let rawText: string;
   try {
-    rawText = await request.text();
+    if (apiSettings.query_size_limit_enabled) {
+      const readResult = await readRequestTextWithLimit(
+        request,
+        apiSettings.max_request_body_bytes,
+      );
+      if (!readResult.ok) {
+        if (apiSettings.temporary_block_enabled) {
+          for (const identity of identityResolution.identities) {
+            await registerViolationAndMaybeBlock({
+              key: `${scopeKey}:${identity.key}`,
+              threshold: apiSettings.temporary_block_violation_threshold,
+              violationWindowSeconds: apiSettings.temporary_block_window_seconds,
+              blockDurationSeconds: apiSettings.temporary_block_duration_seconds,
+            });
+          }
+        }
+
+        return NextResponse.json(
+          { error: 'Request body too large.' },
+          { status: 413, headers: corsHeaders },
+        );
+      }
+      rawText = readResult.text;
+    } else {
+      rawText = await request.text();
+    }
   } catch {
     return NextResponse.json(
       { error: 'Failed to read request body.' },

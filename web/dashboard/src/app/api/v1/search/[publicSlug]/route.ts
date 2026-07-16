@@ -259,12 +259,21 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const sessionCapIdentityKey = sessionIdentityKey
     ? `session:${sessionIdentityKey}`
     : identityResolution.identities[0]?.key || null;
+  const temporaryBlockIdentities = [
+    ...identityResolution.identities,
+    ...(sessionCapIdentityKey &&
+    !identityResolution.identities.some(
+      (identity) => identity.key === sessionCapIdentityKey,
+    )
+      ? [{ source: 'session' as const, key: sessionCapIdentityKey }]
+      : []),
+  ];
 
   // ------------------------------------------------------------------
   // 3. Temporary block check
   // ------------------------------------------------------------------
   if (apiSettings.temporary_block_enabled) {
-    for (const identity of identityResolution.identities) {
+    for (const identity of temporaryBlockIdentities) {
       const block = await getTemporaryBlock(`${scopeKey}:${identity.key}`);
       if (block.blocked) {
         logger.warn('Search request temporarily blocked', {

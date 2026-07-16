@@ -186,6 +186,15 @@ export async function GET(request: NextRequest, context: RouteContext) {
     ? `session:${sessionIdentityKey}`
     : identityResolution.identities[0]?.key || null;
   const scopeKey = `search:${publicSlug}`;
+  const temporaryBlockIdentities = [
+    ...identityResolution.identities,
+    ...(sessionCapIdentityKey &&
+    !identityResolution.identities.some(
+      (identity) => identity.key === sessionCapIdentityKey,
+    )
+      ? [{ source: 'session' as const, key: sessionCapIdentityKey }]
+      : []),
+  ];
 
   const requestWindow = settings.rate_limit_enabled
     ? await Promise.all(
@@ -210,7 +219,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   const temporaryBlock = settings.temporary_block_enabled
     ? await Promise.all(
-        identityResolution.identities.map(async (identity) => {
+        temporaryBlockIdentities.map(async (identity) => {
           const state = await getTemporaryBlock(`${scopeKey}:${identity.key}`);
           return { source: identity.source, ...state };
         }),

@@ -80,7 +80,6 @@ type SearchAppFormState = {
   engine_id: string;
   serving_config_id: string;
   credentials_json: string;
-  allowed_gcs_buckets: string[];
   page_size: number;
   page_size_max: number;
   enabled: boolean;
@@ -106,7 +105,6 @@ const EMPTY_FORM: SearchAppFormState = {
   engine_id: '',
   serving_config_id: 'default_search',
   credentials_json: '',
-  allowed_gcs_buckets: [],
   page_size: 10,
   page_size_max: 25,
   enabled: true,
@@ -293,7 +291,6 @@ function CreateWizard({ onClose, onCreated, projectId, environmentId }: CreateWi
         engine_id: form.engine_id,
         serving_config_id: form.serving_config_id,
         credentials_json: form.credentials_json || null,
-        allowed_gcs_buckets: form.allowed_gcs_buckets,
         page_size: form.page_size,
         page_size_max: form.page_size_max,
         enabled: form.enabled,
@@ -522,66 +519,6 @@ function CreateWizard({ onClose, onCreated, projectId, environmentId }: CreateWi
 }
 
 // ---------------------------------------------------------------------------
-// Bucket allowlist field (reused in both Google Cloud tab + create wizard)
-// ---------------------------------------------------------------------------
-
-function BucketAllowlistField({
-  buckets,
-  onChange,
-}: {
-  buckets: string[];
-  onChange: (next: string[]) => void;
-}) {
-  const [input, setInput] = useState('');
-
-  const add = () => {
-    const trimmed = input.trim();
-    if (!trimmed || buckets.includes(trimmed)) return;
-    onChange([...buckets, trimmed]);
-    setInput('');
-  };
-
-  return (
-    <div className="space-y-2">
-      <div className="flex gap-2">
-        <Input
-          id="bucket-allowlist-input"
-          aria-label="New allowed GCS bucket"
-          placeholder="my-bucket or gs://my-bucket/docs/"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), add())}
-          className="font-mono text-xs"
-        />
-        <Button type="button" variant="secondary" size="sm" onClick={add}>
-          Add
-        </Button>
-      </div>
-      {buckets.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5">
-          {buckets.map((bucket) => (
-            <Badge key={bucket} variant="secondary" className="flex items-center gap-1 font-mono text-xs">
-              {bucket}
-              <button
-                type="button"
-                onClick={() => onChange(buckets.filter((b) => b !== bucket))}
-                className="ml-0.5 hover:text-destructive"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
-        </div>
-      ) : (
-        <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-          <span>⚠</span> Downloads are disabled until at least one bucket is added.
-        </p>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Edit form
 // ---------------------------------------------------------------------------
 
@@ -603,7 +540,6 @@ function EditForm({
     collection_id?: string | null;
     engine_id?: string | null;
     serving_config_id?: string | null;
-    allowed_gcs_buckets?: string[];
   };
 
   const [form, setForm] = useState<SearchAppFormState>({
@@ -619,7 +555,6 @@ function EditForm({
     serving_config_id: config.serving_config_id || 'default_search',
     // Write-only: never pre-populate from stored value (has_credentials shows status)
     credentials_json: '',
-    allowed_gcs_buckets: config.allowed_gcs_buckets ?? [],
     page_size: app.page_size,
     page_size_max: app.page_size_max,
     enabled: app.enabled,
@@ -685,7 +620,6 @@ function EditForm({
         engine_id: form.engine_id,
         serving_config_id: form.serving_config_id,
         credentials_json: form.credentials_json || null,
-        allowed_gcs_buckets: form.allowed_gcs_buckets,
         page_size: form.page_size,
         page_size_max: form.page_size_max,
         enabled: form.enabled,
@@ -854,27 +788,6 @@ function EditForm({
             <span className="font-mono break-all">
               {`projects/${form.gcp_project_id || '<project>'}/locations/${form.location}/collections/${form.collection_id}/engines/${form.engine_id || '<engine-id>'}/servingConfigs/${form.serving_config_id}`}
             </span>
-          </div>
-
-          <Separator />
-
-          {/* Allowed GCS Buckets */}
-          <div className="space-y-2">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Allowed GCS Buckets for Downloads
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Only objects in these buckets can be signed for download.{' '}
-                <span className="font-medium text-foreground">Empty = downloads disabled</span> (secure default).
-                Add bucket names (e.g. <span className="font-mono">my-bucket</span>) or prefixes
-                (e.g. <span className="font-mono">gs://my-bucket/docs/</span>).
-              </p>
-            </div>
-            <BucketAllowlistField
-              buckets={form.allowed_gcs_buckets}
-              onChange={(buckets) => update('allowed_gcs_buckets', buckets)}
-            />
           </div>
         </TabsContent>
 

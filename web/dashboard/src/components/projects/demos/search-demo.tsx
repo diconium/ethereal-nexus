@@ -9,8 +9,6 @@ import {
   Shield,
   Sparkles,
   ChevronDown,
-  Download,
-  FileText,
   Globe,
 } from 'lucide-react';
 import ReactMarkdown, { type Components } from 'react-markdown';
@@ -28,8 +26,6 @@ export type SearchResultItem = {
   title: string;
   snippet: string;
   link: string | null;
-  gcsUri: string | null;
-  publicDownloadUrl: string | null;
   document: Record<string, unknown>;
 };
 
@@ -264,17 +260,9 @@ function formatWebDomain(url: string): string {
 }
 
 function getCategory(result: SearchResultItem): string {
-  const { link, gcsUri, document } = result;
+  const { link, document } = result;
   if (document?.category && typeof document.category === 'string') return document.category;
   if (document?.type && typeof document.type === 'string') return document.type;
-  if (gcsUri) {
-    const ext = gcsUri.split('.').pop()?.toLowerCase();
-    if (ext === 'pdf') return 'PDF';
-    if (ext === 'docx' || ext === 'doc') return 'Word';
-    if (ext === 'xlsx' || ext === 'xls') return 'Excel';
-    if (ext === 'pptx' || ext === 'ppt') return 'Slides';
-    return 'File';
-  }
   if (link?.startsWith('https://') || link?.startsWith('http://')) {
     return formatWebDomain(link);
   }
@@ -635,20 +623,12 @@ function preprocessSummaryText(text: string): string {
 
 function SearchResultRow({
   result,
-  searchEndpoint,
 }: {
   result: SearchResultItem;
-  searchEndpoint: string;
 }) {
   const category = getCategory(result);
   const title = result.title || result.id || 'Untitled';
   const isWebLink = result.link?.startsWith('http') ?? false;
-  const hasGcs = !!result.gcsUri;
-
-  // Download URL: use our signed-URL proxy endpoint (works for both public + private buckets)
-  const downloadHref = hasGcs
-    ? `${searchEndpoint}/download?uri=${encodeURIComponent(result.gcsUri!)}`
-    : null;
 
   return (
     <div className="flex items-start gap-3 py-3 border-b last:border-b-0 hover:bg-transparent">
@@ -675,7 +655,7 @@ function SearchResultRow({
           )}
         </div>
 
-        {/* Source line + download button */}
+        {/* Source line */}
         <div className="flex items-center gap-2 min-w-0">
           {isWebLink && (
             <div className="flex items-center gap-1 min-w-0">
@@ -684,27 +664,6 @@ function SearchResultRow({
                 {formatWebDomain(result.link ?? '')}
               </span>
             </div>
-          )}
-          {hasGcs && !isWebLink && (
-            <div className="flex items-center gap-1 min-w-0">
-              <FileText className="h-3 w-3 shrink-0 text-muted-foreground/40" />
-              <span className="text-xs text-muted-foreground/60 font-mono truncate">
-                {result.gcsUri}
-              </span>
-            </div>
-          )}
-          {/* Download button for GCS files */}
-          {downloadHref && (
-            <a
-              href={downloadHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-auto shrink-0 flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
-              title={`Download ${result.gcsUri}`}
-            >
-              <Download className="h-3 w-3" />
-              Download
-            </a>
           )}
         </div>
 
@@ -969,7 +928,6 @@ export function SearchDemo({ searchApp, apiSettings }: SearchDemoProps) {
                   <SearchResultRow
                     key={result.id || i}
                     result={result}
-                    searchEndpoint={endpoint}
                   />
                 ))}
               </div>

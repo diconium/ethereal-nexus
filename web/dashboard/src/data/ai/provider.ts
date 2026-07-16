@@ -146,12 +146,6 @@ export const vertexSearchProviderConfigSchema = z.object({
     .optional()
     .nullable()
     .default('default_search'),
-  /**
-   * Explicit allowlist of GCS bucket names (or gs://bucket/prefix patterns)
-   * whose objects this search app is permitted to sign download URLs for.
-   * An empty list means downloads are BLOCKED — the admin must opt-in.
-   */
-  allowed_gcs_buckets: z.array(z.string().trim()).optional().default([]),
 });
 
 export type VertexSearchProviderConfig = z.infer<
@@ -167,7 +161,6 @@ export function buildVertexSearchProviderConfig(input: {
   collection_id?: string | null;
   engine_id?: string | null;
   serving_config_id?: string | null;
-  allowed_gcs_buckets?: string[];
 }): SearchProviderConfig {
   return {
     gcp_project_id: input.gcp_project_id ?? '',
@@ -175,7 +168,6 @@ export function buildVertexSearchProviderConfig(input: {
     collection_id: input.collection_id ?? 'default_collection',
     engine_id: input.engine_id ?? '',
     serving_config_id: input.serving_config_id ?? 'default_search',
-    allowed_gcs_buckets: input.allowed_gcs_buckets ?? [],
   };
 }
 
@@ -185,7 +177,6 @@ export function getVertexSearchConfigOrThrow(config: unknown): {
   collection_id: string;
   engine_id: string;
   serving_config_id: string;
-  allowed_gcs_buckets: string[];
 } {
   const parsed = vertexSearchProviderConfigSchema.safeParse(config);
   if (!parsed.success) {
@@ -205,18 +196,13 @@ export function getVertexSearchConfigOrThrow(config: unknown): {
       ? 'default_search'
       : rawServingConfigId;
 
-  const allowed_gcs_buckets: string[] =
-    Array.isArray(parsed.data.allowed_gcs_buckets)
-      ? (parsed.data.allowed_gcs_buckets as string[]).filter(Boolean)
-      : [];
-
   if (!gcp_project_id || !engine_id) {
     throw new Error(
       'Vertex AI Agent Search configuration requires a GCP project ID and engine (app) ID.',
     );
   }
 
-  return { gcp_project_id, location, collection_id, engine_id, serving_config_id, allowed_gcs_buckets };
+  return { gcp_project_id, location, collection_id, engine_id, serving_config_id };
 }
 
 export const SEARCH_PROVIDER_OPTIONS: Array<{
@@ -240,4 +226,3 @@ export function getSearchProviderLabel(provider: SearchProvider) {
       ?.label ?? provider
   );
 }
-

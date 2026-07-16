@@ -728,11 +728,6 @@ export const searchAppInputSchema = z.object({
   engine_id: z.string().trim().min(1, 'Engine (App) ID is required'),
   serving_config_id: z.string().trim().default('default_search'),
   credentials_json: z.string().trim().nullable().optional(),
-  /**
-   * GCS buckets (or gs://bucket/prefix patterns) whose objects this app may
-   * sign download URLs for. Empty list = downloads disabled (secure default).
-   */
-  allowed_gcs_buckets: z.array(z.string().trim().min(1)).default([]),
   page_size: z.number().int().min(1).max(100).default(10),
   page_size_max: z.number().int().min(1).max(100).default(25),
   enabled: z.boolean().default(true),

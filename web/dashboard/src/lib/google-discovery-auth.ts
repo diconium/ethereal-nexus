@@ -2,7 +2,7 @@
  * Shared Google Cloud access-token helper for Discovery Engine requests.
  *
  * Centralises credential resolution, JSON validation, and token acquisition so
- * that google-vertex-search.ts and the suggest/download route handlers stay in
+ * that google-vertex-search.ts and the suggest route handler stay in
  * sync.  Clients are cached by credential identity so that GoogleAuth's built-in
  * token cache is reused across requests (access tokens are valid for ~1 hour).
  *

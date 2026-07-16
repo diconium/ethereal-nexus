@@ -11,13 +11,6 @@ export type SearchResult = {
   snippet: string;
   /** Web URL (https://) for the document, or null when unavailable. */
   link: string | null;
-  /**
-   * Public HTTPS download URL when the GCS bucket is public, or null.
-   * For private buckets use the /download endpoint which generates a signed URL.
-   */
-  publicDownloadUrl: string | null;
-  /** Original GCS URI (gs://bucket/path) for Cloud Storage-indexed docs, or null. */
-  gcsUri: string | null;
   document: Record<string, unknown>;
 };
 
@@ -213,9 +206,6 @@ export async function performVertexSearch(input: {
     // REST API returns structData as a plain JS object (already parsed)
     const structData = (doc.structData ?? {}) as Record<string, unknown>;
     const derivedData = (doc.derivedStructData ?? {}) as Record<string, unknown>;
-    // document.content.uri holds the original GCS path for Cloud Storage data stores
-    const content = (doc.content ?? {}) as Record<string, unknown>;
-
     const title: string =
       getString(structData.title) ||
       getString(derivedData.title) ||
@@ -237,29 +227,15 @@ export async function performVertexSearch(input: {
       getString(structData.link) ||
       null;
 
-    // GCS URI — content.uri is the canonical field for Cloud Storage-indexed docs
-    const gcsUri: string | null =
-      getString(content.uri) ||
-      (rawLink?.startsWith('gs://') ? rawLink : null) ||
-      getString(structData.gcsUri) ||
-      null;
-
     // Web link — only emit when it's a real HTTP/HTTPS URL
     const link: string | null =
       rawLink?.startsWith('http') ? rawLink : null;
-
-    // For public GCS buckets, convert gs://bucket/path → https://storage.googleapis.com/bucket/path
-    const publicDownloadUrl: string | null = gcsUri
-      ? gcsUri.replace(/^gs:\/\//, 'https://storage.googleapis.com/')
-      : null;
 
     return {
       id: getString(doc.id) || getString(r.id) || '',
       title,
       snippet,
       link,
-      gcsUri,
-      publicDownloadUrl,
       document: structData as Record<string, unknown>,
     };
   });

@@ -3672,6 +3672,25 @@ export async function upsertSearchApp(
     );
   }
 
+  if (safeInput.data.id) {
+    const existing = await db
+      .select({
+        project_id: projectAiSearchApps.project_id,
+        environment_id: projectAiSearchApps.environment_id,
+      })
+      .from(projectAiSearchApps)
+      .where(eq(projectAiSearchApps.id, safeInput.data.id))
+      .limit(1);
+
+    if (
+      !existing[0] ||
+      existing[0].project_id !== safeInput.data.project_id ||
+      existing[0].environment_id !== safeInput.data.environment_id
+    ) {
+      return actionError('Search app not found.');
+    }
+  }
+
   const slugConflict = await ensureUniquePublicSearchAppSlug({
     publicSlug: safeInput.data.public_slug,
     excludeId: safeInput.data.id,
@@ -3685,7 +3704,6 @@ export async function upsertSearchApp(
       collection_id: safeInput.data.collection_id,
       engine_id: safeInput.data.engine_id,
       serving_config_id: safeInput.data.serving_config_id,
-      allowed_gcs_buckets: safeInput.data.allowed_gcs_buckets,
     });
 
     // Encrypt credentials before persisting. If the input is null/empty,
@@ -3789,6 +3807,22 @@ export async function upsertSearchAppApiSettings(
       'Failed to parse search app API settings input.',
       safeInput.error,
     );
+  }
+
+  const searchApp = await db
+    .select({ id: projectAiSearchApps.id })
+    .from(projectAiSearchApps)
+    .where(
+      and(
+        eq(projectAiSearchApps.id, safeInput.data.search_app_id),
+        eq(projectAiSearchApps.project_id, safeInput.data.project_id),
+        eq(projectAiSearchApps.environment_id, safeInput.data.environment_id),
+      ),
+    )
+    .limit(1);
+
+  if (!searchApp[0]) {
+    return actionError('Search app not found.');
   }
 
   try {

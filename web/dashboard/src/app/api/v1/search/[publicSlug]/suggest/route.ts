@@ -11,6 +11,13 @@ import { getVertexSearchConfigOrThrow } from '@/data/ai/provider';
 import { HttpStatus } from '@/app/api/utils';
 import { logger } from '@/lib/logger';
 import { decryptCredentials } from '@/lib/credentials-encryption';
+import {
+  buildIdentityResolution,
+  checkRateLimit,
+  getSessionCookieIdentifier,
+  getTemporaryBlock,
+  registerViolationAndMaybeBlock,
+} from '@/lib/rate-limit';
 
 type RouteContext = {
   params: Promise<{ publicSlug: string }>;
@@ -77,6 +84,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const { publicSlug } = await context.params;
   const requestOrigin = request.headers.get('origin');
   const query = request.nextUrl.searchParams.get('q') ?? '';
+  const trimmedQuery = query.trim();
 
   // Look up the search app first so we can build CORS headers for every response,
   // including the early-return for empty/short queries.
@@ -122,8 +130,133 @@ export async function GET(request: NextRequest, context: RouteContext) {
   // Empty, whitespace-only, or single-character queries return immediately
   // without calling Discovery Engine — the API requires at least 2 characters
   // to generate meaningful suggestions, and the e2e tests assert this behaviour.
-  if (!query.trim() || query.trim().length < 2) {
+  if (!trimmedQuery || trimmedQuery.length < 2) {
     return NextResponse.json({ suggestions: [] }, { headers: corsHeaders });
+  }
+
+  const apiSettings = rows[0].settings ?? DEFAULT_SEARCH_APP_API_SETTINGS_VALUES;
+  const scopeKey = `search:${publicSlug}`;
+  const identityResolution = buildIdentityResolution(request, {
+    useIp: apiSettings.rate_limit_use_ip,
+    useSessionCookie: apiSettings.rate_limit_use_session_cookie,
+    useFingerprint: apiSettings.rate_limit_use_fingerprint,
+    fingerprintHeaderName: apiSettings.fingerprint_header_name,
+  });
+
+  const sessionIdentityKey = getSessionCookieIdentifier(request);
+  const sessionCapIdentityKey = sessionIdentityKey
+    ? `session:${sessionIdentityKey}`
+    : identityResolution.identities[0]?.key || null;
+
+  if (apiSettings.temporary_block_enabled) {
+    for (const identity of identityResolution.identities) {
+      const block = await getTemporaryBlock(`${scopeKey}:${identity.key}`);
+      if (block.blocked) {
+        return NextResponse.json(
+          { error: 'Too many requests. Temporary block active.' },
+          {
+            status: 429,
+            headers: {
+              ...corsHeaders,
+              'Retry-After': String(block.resetSeconds),
+            },
+          },
+        );
+      }
+    }
+  }
+
+  if (
+    apiSettings.query_size_limit_enabled &&
+    trimmedQuery.length > apiSettings.max_query_characters
+  ) {
+    if (apiSettings.temporary_block_enabled) {
+      for (const identity of identityResolution.identities) {
+        await registerViolationAndMaybeBlock({
+          key: `${scopeKey}:${identity.key}`,
+          threshold: apiSettings.temporary_block_violation_threshold,
+          violationWindowSeconds: apiSettings.temporary_block_window_seconds,
+          blockDurationSeconds: apiSettings.temporary_block_duration_seconds,
+        });
+      }
+    }
+
+    return NextResponse.json(
+      {
+        error: `Query exceeds maximum length of ${apiSettings.max_query_characters} characters.`,
+      },
+      { status: HttpStatus.BAD_REQUEST, headers: corsHeaders },
+    );
+  }
+
+  if (apiSettings.rate_limit_enabled) {
+    for (const identity of identityResolution.identities) {
+      const rateLimit = await checkRateLimit({
+        key: `${scopeKey}:${identity.key}:window`,
+        limit: apiSettings.rate_limit_max_requests,
+        windowSeconds: apiSettings.rate_limit_window_seconds,
+      });
+
+      if (!rateLimit.allowed) {
+        if (apiSettings.temporary_block_enabled) {
+          await registerViolationAndMaybeBlock({
+            key: `${scopeKey}:${identity.key}`,
+            threshold: apiSettings.temporary_block_violation_threshold,
+            violationWindowSeconds: apiSettings.temporary_block_window_seconds,
+            blockDurationSeconds: apiSettings.temporary_block_duration_seconds,
+          });
+        }
+
+        return NextResponse.json(
+          { error: 'Too many requests. Please try again later.' },
+          {
+            status: 429,
+            headers: {
+              ...corsHeaders,
+              'Retry-After': String(rateLimit.resetSeconds),
+              'X-RateLimit-Limit': String(apiSettings.rate_limit_max_requests),
+              'X-RateLimit-Remaining': String(rateLimit.remaining),
+              'X-RateLimit-Reset': String(rateLimit.resetSeconds),
+            },
+          },
+        );
+      }
+    }
+  }
+
+  if (apiSettings.session_request_cap_enabled && sessionCapIdentityKey) {
+    const capResult = await checkRateLimit({
+      key: `${scopeKey}:${sessionCapIdentityKey}:session-cap`,
+      limit: apiSettings.session_request_cap_max_requests,
+      windowSeconds: apiSettings.session_request_cap_window_seconds,
+    });
+
+    if (!capResult.allowed) {
+      if (apiSettings.temporary_block_enabled) {
+        await registerViolationAndMaybeBlock({
+          key: `${scopeKey}:${sessionCapIdentityKey}`,
+          threshold: apiSettings.temporary_block_violation_threshold,
+          violationWindowSeconds: apiSettings.temporary_block_window_seconds,
+          blockDurationSeconds: apiSettings.temporary_block_duration_seconds,
+        });
+      }
+
+      return NextResponse.json(
+        { error: 'Session request cap exceeded. Please try again later.' },
+        {
+          status: 429,
+          headers: {
+            ...corsHeaders,
+            'X-Ethereal-Limit-Type': 'session-cap',
+            'X-Ethereal-Limit': String(
+              apiSettings.session_request_cap_max_requests,
+            ),
+            'X-Ethereal-Remaining': String(capResult.remaining),
+            'X-Ethereal-Reset': String(capResult.resetSeconds),
+          },
+        },
+      );
+    }
   }
 
   let config: ReturnType<typeof getVertexSearchConfigOrThrow>;
@@ -152,7 +285,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       `${apiBase}/${version}/projects/${gcp_project_id}/locations/${location}` +
       `/collections/${collection_id}/engines/${engine_id}:completeQuery`,
     );
-    u.searchParams.set('query', query);
+    u.searchParams.set('query', trimmedQuery);
     // Don't specify queryModel — let the API use the configured default.
     // Setting it to an unsupported model causes 404.
     u.searchParams.set('includeTailSuggestions', 'true');

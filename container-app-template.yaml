@@ -47,6 +47,8 @@ properties:
             secretRef: "azure-frontdoor-url"
           - name: AZURE_CONTAINER_NAME
             secretRef: "azure-container-name"
+          - name: INTERNAL_SERVICE_SECRET
+            secretRef: "internal-service-secret"
           - name: DB_CACHE_STRATEGY
             value: "redis"
       - image: otel/opentelemetry-collector-contrib:latest

@@ -7,7 +7,7 @@
  * Expected behaviour:
  *  - Missing header           → 401 Unauthorized
  *  - Wrong header value       → 401 Unauthorized
- *  - Correct header value     → not 401
+ *  - Correct header value     → not 401/403
  */
 import { test, expect } from '@playwright/test';
 import { envData } from '../../fixtures/env';
@@ -44,7 +44,7 @@ test.describe('Internal service routes — wrong secret → 401', () => {
   }
 });
 
-// ── Correct secret → not 401 ────────────────────────────────────────────
+// ── Correct secret → not 401/403 ────────────────────────────────────────
 test.describe('Internal service routes — correct secret is accepted', () => {
   for (const path of INTERNAL_ROUTES) {
     test(`POST ${path} → not 401 with correct x-internal-service-key`, async ({ request }) => {

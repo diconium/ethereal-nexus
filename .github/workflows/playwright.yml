@@ -35,10 +35,6 @@ jobs:
         working-directory: ${{ env.TEST_PATH }}
         run: |
           echo "${{ secrets.TEST_E2E_ENV }}" >> .env
-          echo "TEST_E2E_API_KEY=${{ secrets.TEST_E2E_API_KEY }}" >> .env
-          echo "TEST_E2E_INTERNAL_SERVICE_SECRET=${{ secrets.TEST_E2E_INTERNAL_SERVICE_SECRET }}" >> .env
-          echo "TEST_E2E_PROJECT_ID=${{ secrets.TEST_E2E_PROJECT_ID }}" >> .env
-          echo "TEST_E2E_ENVIRONMENT_ID=${{ secrets.TEST_E2E_ENVIRONMENT_ID }}" >> .env
 
           corepack enable && corepack prepare pnpm@10.29.2 --activate
           pnpm i --frozen-lockfile

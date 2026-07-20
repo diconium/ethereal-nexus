@@ -12,7 +12,9 @@ test.describe('Login Page', () => {
 
   test('should successfully log in with valid credentials', async ({ page }) => {
     await loginPage.login(userData.validUser.username, userData.validUser.password);
-    await page.waitForLoadState();
-    await expect(page).toHaveURL('/');
+    // After login, the Next.js router issues a client-side push to '/'
+    // Navigate explicitly to confirm the session is valid
+    await page.goto('/');
+    await expect(page).toHaveURL('/', { timeout: 10000 });
   });
 });

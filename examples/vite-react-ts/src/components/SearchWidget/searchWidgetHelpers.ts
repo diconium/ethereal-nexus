@@ -54,8 +54,8 @@ export function stripHtml(html: string): string {
   return withoutTags
     .replace(/&nbsp;/g, ' ')
     .replace(/&#39;/g, "'")
-    .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"');
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&');
 }

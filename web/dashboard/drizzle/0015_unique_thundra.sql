@@ -1,0 +1,1 @@
+ALTER TABLE "nexus_mapping_link" ADD COLUMN "mapping_type" text;

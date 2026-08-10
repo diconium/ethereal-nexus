@@ -1,0 +1,155 @@
+schema_version: "1.0"
+workflow:
+  id: "speckit"
+  name: "Full SDD Cycle"
+  version: "2.0.0"
+  author: "GitHub + Ethereal Nexus team"
+  description: >
+    Runs specify → specialist reviews → human approval → plan → tasks →
+    issues → implement → validate → converge
+
+requires:
+  speckit_version: ">=0.8.5"
+  integrations:
+    any:
+      - "alquimia"
+      - "claude"
+      - "copilot"
+      - "gemini"
+      - "opencode"
+
+inputs:
+  spec:
+    type: string
+    required: true
+    prompt: "Describe what you want to build"
+  integration:
+    type: string
+    default: "auto"
+    prompt: "Integration to use (e.g. claude, copilot, gemini; 'auto' uses the project's initialized integration)"
+  scope:
+    type: string
+    default: "full"
+    enum: ["full", "backend-only", "frontend-only"]
+
+steps:
+
+  # ── Phase 1: Specification ────────────────────────────────────────────────
+
+  - id: specify
+    command: speckit.specify
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.spec }}"
+
+  - id: review-spec
+    type: gate
+    message: >
+      Review spec.md before running specialist reviews.
+      When ready, trigger each review manually in order:
+        /speckit.po-review → /speckit.ux-review → /speckit.lead-review → /speckit.cross-review
+    options: [approve, reject]
+    on_reject: abort
+
+  # ── Phase 2: Specialist Reviews (manual — trigger each individually) ──────
+
+  - id: po-review
+    type: manual
+    command: speckit.po-review
+    integration: "{{ inputs.integration }}"
+    description: >
+      Product Owner review. Run manually: /speckit.po-review
+      Produces: specs/[feature]/reviews/product-owner.md
+
+  - id: ux-review
+    type: manual
+    command: speckit.ux-review
+    integration: "{{ inputs.integration }}"
+    description: >
+      UI/UX review. Run manually: /speckit.ux-review
+      Produces: specs/[feature]/reviews/ui-ux.md
+
+  - id: lead-review
+    type: manual
+    command: speckit.lead-review
+    integration: "{{ inputs.integration }}"
+    description: >
+      Lead Developer review. Run manually: /speckit.lead-review
+      Produces: specs/[feature]/reviews/lead-developer.md
+
+  - id: cross-review
+    type: manual
+    command: speckit.cross-review
+    integration: "{{ inputs.integration }}"
+    description: >
+      Cross-cutting review. Run manually after all three specialist reviews:
+      /speckit.cross-review
+      Produces: specs/[feature]/reviews/cross-review.md
+
+  - id: approve-reviews
+    type: gate
+    message: >
+      Review cross-review.md and resolve any open decisions.
+      Update spec.md if spec changes were recommended.
+      Approve only when all conflicts are resolved and all review verdicts are
+      APPROVED (or acknowledged with a documented decision).
+    options: [approve, reject]
+    on_reject: abort
+
+  # ── Phase 3: Planning ─────────────────────────────────────────────────────
+
+  - id: plan
+    command: speckit.plan
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.spec }}"
+
+  - id: review-plan
+    type: gate
+    message: "Review plan.md, research.md, data-model.md, and contracts/ before generating tasks."
+    options: [approve, reject]
+    on_reject: abort
+
+  # ── Phase 4: Tasks & Issues ───────────────────────────────────────────────
+
+  - id: tasks
+    command: speckit.tasks
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.spec }}"
+
+  - id: taskstoissues
+    command: speckit.taskstoissues
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.spec }}"
+
+  # ── Phase 5: Implementation ───────────────────────────────────────────────
+
+  - id: implement
+    command: speckit.implement
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.spec }}"
+
+  # ── Phase 6: Validation & Convergence ────────────────────────────────────
+
+  - id: validate
+    type: manual
+    command: speckit.validate
+    integration: "{{ inputs.integration }}"
+    description: >
+      Post-implementation validation against acceptance criteria.
+      Run manually: /speckit.validate
+      NOTE: This command is a stub — not yet implemented.
+      Use /speckit.converge as the current gap-detection mechanism.
+
+  - id: converge
+    type: manual
+    command: speckit.converge
+    integration: "{{ inputs.integration }}"
+    description: >
+      Gap detection between codebase and spec/plan/tasks.
+      Run manually: /speckit.converge
+      If gaps are found, run /speckit.implement again, then re-run converge.
+      Repeat until converged.

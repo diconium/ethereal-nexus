@@ -50,6 +50,76 @@
       "when": 1776782931250,
       "tag": "0006_agentic_ai_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784717372281,
+      "tag": "0007_nebulous_hobgoblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784721970440,
+      "tag": "0008_dear_kinsey_walden",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784728737989,
+      "tag": "0009_flawless_tarantula",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784799513864,
+      "tag": "0010_third_richard_fisk",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1784801734199,
+      "tag": "0011_public_mongoose",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1784805792726,
+      "tag": "0012_lonely_karnak",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1784818073430,
+      "tag": "0013_dizzy_salo",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1785234470300,
+      "tag": "0014_puzzling_lionheart",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1785234755614,
+      "tag": "0015_unique_thundra",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1786370306284,
+      "tag": "0016_light_major_mapleleaf",
+      "breakpoints": true
     }
   ]
 }

@@ -24,6 +24,7 @@ import {
   MessageSquare,
   Settings,
   UserRound,
+  LayoutTemplate,
 } from 'lucide-react';
 import type { User } from 'next-auth';
 import { ProjectSwitcher } from '@/components/ui/ProjectSwitcher';
@@ -239,6 +240,74 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
         : null,
     ].filter((item): item is NonNullable<typeof item> => item !== null);
 
+    const contentBase = `${projectBase}/content`;
+    const buildContentHref = (segment: string) =>
+      `${contentBase}${segment ? `/${segment}` : ''}${selectedEnvironment ? `?env=${selectedEnvironment.id}` : ''}`;
+    const contentItems = [
+      {
+        title: 'Overview',
+        url: contentBase,
+        href: buildContentHref(''),
+        isActive: (pathname: string) => pathname === contentBase,
+      },
+      {
+        title: 'Connections',
+        url: `${contentBase}/connections`,
+        href: buildContentHref('connections'),
+        isActive: (pathname: string) =>
+          pathname.startsWith(`${contentBase}/connections`),
+      },
+      {
+        title: 'Blueprints',
+        url: `${contentBase}/blueprints`,
+        href: buildContentHref('blueprints'),
+        isActive: (pathname: string) =>
+          pathname.startsWith(`${contentBase}/blueprints`),
+      },
+      {
+        title: 'Nexus Library',
+        url: `${contentBase}/model`,
+        href: buildContentHref('model'),
+        isActive: (pathname: string) =>
+          pathname.startsWith(`${contentBase}/model`),
+      },
+      {
+        title: 'Mappings',
+        url: `${contentBase}/mappings`,
+        href: buildContentHref('mappings'),
+        isActive: (pathname: string) =>
+          pathname.startsWith(`${contentBase}/mappings`),
+      },
+      {
+        title: 'Migration Jobs',
+        url: `${contentBase}/migration-jobs`,
+        href: buildContentHref('migration-jobs'),
+        isActive: (pathname: string) =>
+          pathname.startsWith(`${contentBase}/migration-jobs`),
+      },
+      {
+        title: 'Content Browser',
+        url: `${contentBase}/browser`,
+        href: buildContentHref('browser'),
+        isActive: (pathname: string) =>
+          pathname.startsWith(`${contentBase}/browser`),
+      },
+      {
+        title: 'Assets',
+        url: `${contentBase}/assets`,
+        href: buildContentHref('assets'),
+        isActive: (pathname: string) =>
+          pathname.startsWith(`${contentBase}/assets`),
+      },
+      {
+        title: 'Reports',
+        url: `${contentBase}/reports`,
+        href: buildContentHref('reports'),
+        isActive: (pathname: string) =>
+          pathname.startsWith(`${contentBase}/reports`),
+      },
+    ];
+
     sections.push({
       label: 'Project',
       items: [
@@ -278,6 +347,14 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
               },
             ]
           : []),
+        {
+          title: 'Content',
+          url: contentBase,
+          href: buildContentHref(''),
+          icon: LayoutTemplate,
+          isActive: (pathname) => pathname.startsWith(contentBase),
+          items: contentItems,
+        },
         {
           title: 'Settings',
           url: projectSettingsPath,

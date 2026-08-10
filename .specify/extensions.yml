@@ -1,0 +1,14 @@
+hooks:
+  after_implement:
+    - extension: astro-docs
+      command: speckit.docs
+      description: >
+        Generate or update Astro documentation in web/site/src/content/docs/
+        based on the feature's spec.md and plan.md.
+      optional: true
+      prompt: >
+        Generate documentation for the feature that was just implemented.
+        Read the feature's spec.md and plan.md to understand what was built,
+        then create or update the relevant .mdx file(s) under
+        web/site/src/content/docs/ following the existing content structure
+        and frontmatter conventions.

@@ -65,7 +65,7 @@ jobs:
       - name: Deploy to Azure Container Apps
         uses: azure/container-apps-deploy-action@v2
         with:
-          yamlConfigPath: deployment.yaml
+          yamlConfigPath: de.yaml
           containerAppName: demo-ethereal-nexus
           resourceGroup: RG-Ethereal-Nexus
           registryUrl: registry.hub.docker.com

@@ -1,0 +1,1 @@
+ALTER TABLE "cms_connection" ADD COLUMN "role" text DEFAULT 'general' NOT NULL;

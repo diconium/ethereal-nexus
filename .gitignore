@@ -135,3 +135,6 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# Spec Kit — local GitHub config (contains org/repo names, not for public repos)
+.specify/github.json

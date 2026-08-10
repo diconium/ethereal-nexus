@@ -10,6 +10,10 @@ import * as member from '@/data/member/schema';
 import * as components from '@/data/components/schema';
 import * as events from '@/data/events/schema';
 import * as ai from '@/data/ai/schema';
+import * as cms from '@/data/cms/schema';
+import * as metaDesign from '@/data/meta/design/schema';
+import * as metaMapping from '@/data/meta/mapping/schema';
+import * as metaProvision from '@/data/meta/provision/schema';
 import { RedisCache } from '@/db/redis-cache';
 import { InMemoryCache } from '@/db/in-memory-cache';
 import { logger } from '@/lib/logger';
@@ -21,6 +25,10 @@ const schema = {
   ...components,
   ...events,
   ...ai,
+  ...cms,
+  ...metaDesign,
+  ...metaMapping,
+  ...metaProvision,
 };
 
 const redisEnabled = process.env.DB_CACHE_STRATEGY;

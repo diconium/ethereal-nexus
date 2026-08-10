@@ -274,6 +274,51 @@ export async function getEnvironmentComponents(
   }
 }
 
+/** Like getEnvironmentComponents but includes the dialog from the pinned component version,
+ *  falling back to the latest version when no specific version is pinned. */
+export async function getEnvironmentComponentsWithDialog(
+  id: string | undefined | null,
+): ActionResponse<Array<{ id: string; name: string; title: string | null; description: string | null; version: string | null; dialog: unknown }>> {
+  const session = await auth();
+  if (!session?.user?.id) return actionError('No user provided.');
+  if (!id) return actionError('No identifier provided.');
+
+  try {
+    // Latest version per component (fallback when no specific version is pinned)
+    const latestVersion = db
+      .selectDistinctOn([componentVersions.component_id], {
+        component_id: componentVersions.component_id,
+        version: componentVersions.version,
+        dialog: componentVersions.dialog,
+        id: componentVersions.id,
+      })
+      .from(componentVersions)
+      .orderBy(componentVersions.component_id, desc(componentVersions.created_at))
+      .as('latest_version');
+
+    const select = await db
+      .select({
+        id: components.id,
+        name: components.name,
+        title: components.title,
+        description: components.description,
+        version: sql<string | null>`COALESCE(${componentVersions.version}, ${latestVersion.version})`,
+        dialog: sql<unknown>`COALESCE(${componentVersions.dialog}, ${latestVersion.dialog})`,
+      })
+      .from(projectComponentConfig)
+      .leftJoin(components, eq(components.id, projectComponentConfig.component_id))
+      .leftJoin(componentVersions, eq(componentVersions.id, projectComponentConfig.component_version))
+      .leftJoin(latestVersion, eq(latestVersion.component_id, projectComponentConfig.component_id))
+      .where(eq(projectComponentConfig.environment_id, id))
+      .orderBy(components.name);
+
+    return actionSuccess(select);
+  } catch (error) {
+    console.error(error);
+    return actionError('Failed to fetch environment components with dialog.');
+  }
+}
+
 export async function getComponentsNotInEnvironment(
   id: string | undefined | null,
 ): ActionResponse<Component[]> {

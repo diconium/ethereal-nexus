@@ -37,7 +37,12 @@ export function extBadge(uri: string): string {
  * Uses a textarea in browser environments for reliable entity decoding.
  */
 export function stripHtml(html: string): string {
-  const withoutTags = html.replace(/<[^>]+>/g, '');
+  let withoutTags = html;
+  let previous: string;
+  do {
+    previous = withoutTags;
+    withoutTags = withoutTags.replace(/<[^>]+>/g, '');
+  } while (withoutTags !== previous);
 
   if (typeof document !== 'undefined') {
     const el = document.createElement('textarea');
@@ -49,8 +54,8 @@ export function stripHtml(html: string): string {
   return withoutTags
     .replace(/&nbsp;/g, ' ')
     .replace(/&#39;/g, "'")
-    .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"');
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&');
 }

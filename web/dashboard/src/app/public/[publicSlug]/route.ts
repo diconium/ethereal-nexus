@@ -18,6 +18,12 @@ import {
 } from '@/lib/rate-limit';
 import { performVertexSearch } from '@/lib/ai-providers/google-vertex-search';
 import { decryptCredentials } from '@/lib/credentials-encryption';
+import {
+  buildSearchAllowedHeaders,
+  buildSearchCorsHeaders,
+  DEFAULT_SEARCH_CORS_HEADERS,
+  isSearchOriginAllowed,
+} from '@/lib/public-search-cors';
 
 type RouteContext = {
   params: Promise<{
@@ -27,76 +33,6 @@ type RouteContext = {
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-// ---------------------------------------------------------------------------
-// CORS helpers
-// ---------------------------------------------------------------------------
-// CORS helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Permissive fallback headers used for responses that fire before per-app
- * settings are loaded (e.g. 404 "not found").  Without these, browsers block
- * cross-origin scripts from reading the error body entirely.
- */
-const DEFAULT_CORS_HEADERS: Record<string, string> = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
-function buildAllowedHeaders(settings?: {
-  rate_limit_use_fingerprint?: boolean;
-  fingerprint_header_name?: string | null;
-}) {
-  const headers = ['Content-Type'];
-  const headerName = settings?.fingerprint_header_name?.trim();
-  if (
-    settings?.rate_limit_use_fingerprint &&
-    headerName &&
-    /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/.test(headerName)
-  ) {
-    headers.push(headerName);
-  }
-  return headers.join(', ');
-}
-
-function buildCorsHeaders(
-  allowedOrigins: string[],
-  requestOrigin: string | null,
-  allowedHeaders = 'Content-Type',
-): Record<string, string> {
-  if (!allowedOrigins.length) {
-    // No restriction configured — allow all origins
-    return {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': allowedHeaders,
-    };
-  }
-
-  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
-    return {
-      'Access-Control-Allow-Origin': requestOrigin,
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': allowedHeaders,
-      Vary: 'Origin',
-    };
-  }
-
-  // Origin not in allowed list — return headers that will cause the browser
-  // to block the request (no Allow-Origin header).
-  return { Vary: 'Origin' };
-}
-
-function isCorsAllowed(
-  allowedOrigins: string[],
-  requestOrigin: string | null,
-): boolean {
-  if (!allowedOrigins.length) return true; // No restriction
-  if (!requestOrigin) return false; // Origin required when list is non-empty
-  return allowedOrigins.includes(requestOrigin);
-}
 
 async function readRequestTextWithLimit(
   request: NextRequest,
@@ -138,7 +74,6 @@ async function readRequestTextWithLimit(
 
 export async function OPTIONS(request: NextRequest, context: RouteContext) {
   const { publicSlug } = await context.params;
-  const requestOrigin = request.headers.get('origin');
 
   const rows = await db
     .select({ settings: projectAiSearchAppApiSettings })
@@ -154,10 +89,11 @@ export async function OPTIONS(request: NextRequest, context: RouteContext) {
     rows[0]?.settings?.allowed_origins ??
     DEFAULT_SEARCH_APP_API_SETTINGS_VALUES.allowed_origins;
 
-  const corsHeaders = buildCorsHeaders(
+  const corsHeaders = buildSearchCorsHeaders(
     allowedOrigins as string[],
-    requestOrigin,
-    buildAllowedHeaders(rows[0]?.settings ?? undefined),
+    request,
+    buildSearchAllowedHeaders(rows[0]?.settings ?? undefined),
+    'POST, OPTIONS',
   );
 
   return new NextResponse(null, {
@@ -173,14 +109,13 @@ export async function OPTIONS(request: NextRequest, context: RouteContext) {
 export async function POST(request: NextRequest, context: RouteContext) {
   const { publicSlug } = await context.params;
   const clientIp = getClientIp(request);
-  const requestOrigin = request.headers.get('origin');
 
   logger.info('Search request received', {
     route: 'search-public',
     publicSlug,
     method: request.method,
     clientIp,
-    origin: requestOrigin,
+    origin: request.headers.get('origin'),
   });
 
   // ------------------------------------------------------------------
@@ -207,7 +142,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     logger.warn('Search app not found', { route: 'search-public', publicSlug });
     return NextResponse.json(
       { error: 'Search app not found.' },
-      { status: HttpStatus.NOT_FOUND, headers: DEFAULT_CORS_HEADERS },
+      { status: HttpStatus.NOT_FOUND, headers: DEFAULT_SEARCH_CORS_HEADERS },
     );
   }
 
@@ -219,25 +154,26 @@ export async function POST(request: NextRequest, context: RouteContext) {
     });
     return NextResponse.json(
       { error: 'Search app not found.' },
-      { status: HttpStatus.NOT_FOUND, headers: DEFAULT_CORS_HEADERS },
+      { status: HttpStatus.NOT_FOUND, headers: DEFAULT_SEARCH_CORS_HEADERS },
     );
   }
 
   const allowedOrigins = (apiSettings.allowed_origins ?? []) as string[];
-  const corsHeaders = buildCorsHeaders(
+  const corsHeaders = buildSearchCorsHeaders(
     allowedOrigins,
-    requestOrigin,
-    buildAllowedHeaders(apiSettings),
+    request,
+    buildSearchAllowedHeaders(apiSettings),
+    'POST, OPTIONS',
   );
 
   // ------------------------------------------------------------------
   // 2. CORS / Allowed origins check
   // ------------------------------------------------------------------
-  if (!isCorsAllowed(allowedOrigins, requestOrigin)) {
+  if (!isSearchOriginAllowed(allowedOrigins, request)) {
     logger.warn('Search request from disallowed origin', {
       route: 'search-public',
       publicSlug,
-      origin: requestOrigin,
+      origin: request.headers.get('origin'),
       allowedOrigins,
     });
     return NextResponse.json(
@@ -381,8 +317,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
             await registerViolationAndMaybeBlock({
               key: `${scopeKey}:${identity.key}`,
               threshold: apiSettings.temporary_block_violation_threshold,
-              violationWindowSeconds: apiSettings.temporary_block_window_seconds,
-              blockDurationSeconds: apiSettings.temporary_block_duration_seconds,
+              violationWindowSeconds:
+                apiSettings.temporary_block_window_seconds,
+              blockDurationSeconds:
+                apiSettings.temporary_block_duration_seconds,
             });
           }
         }

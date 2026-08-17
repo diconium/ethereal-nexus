@@ -41,6 +41,49 @@ export type SearchResponse = {
   summary?: SearchSummary;
 };
 
+export async function performVertexSuggestions(input: {
+  providerConfig: unknown;
+  credentialsJson?: string | null;
+  query: string;
+}): Promise<string[]> {
+  const config = getVertexSearchConfigOrThrow(input.providerConfig);
+  const apiBase =
+    config.location === 'global'
+      ? 'https://discoveryengine.googleapis.com'
+      : `https://${config.location}-discoveryengine.googleapis.com`;
+
+  const token = await getDiscoveryEngineAccessToken(input.credentialsJson);
+  const buildUrl = (version: string) => {
+    const url = new URL(
+      `${apiBase}/${version}/projects/${config.gcp_project_id}/locations/${config.location}` +
+        `/collections/${config.collection_id}/engines/${config.engine_id}:completeQuery`,
+    );
+    url.searchParams.set('query', input.query);
+    url.searchParams.set('includeTailSuggestions', 'true');
+    return url;
+  };
+
+  let response = await fetch(buildUrl('v1beta'), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (response.status === 404 || response.status === 405) {
+    response = await fetch(buildUrl('v1alpha'), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+  if (!response.ok) {
+    throw new Error(`Autocomplete failed (HTTP ${response.status}).`);
+  }
+
+  const data = (await response.json()) as {
+    querySuggestions?: Array<{ suggestion?: string }>;
+  };
+  return (data.querySuggestions ?? [])
+    .map((suggestion) => suggestion.suggestion ?? '')
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
 // ---------------------------------------------------------------------------
 // Access token — see src/lib/google-discovery-auth.ts
 // ---------------------------------------------------------------------------
@@ -88,7 +131,10 @@ export async function performVertexSearch(input: {
     collectionId: collection_id,
     engineId: engine_id,
     servingConfigId: serving_config_id,
-    hasCredentials: !!(input.credentialsJson?.trim() || process.env.GOOGLE_SEARCH_CREDENTIALS_JSON),
+    hasCredentials: !!(
+      input.credentialsJson?.trim() ||
+      process.env.GOOGLE_SEARCH_CREDENTIALS_JSON
+    ),
     queryLength: input.searchQuery.length,
     pageSize,
   });
@@ -99,10 +145,14 @@ export async function performVertexSearch(input: {
     token = await getDiscoveryEngineAccessToken(input.credentialsJson);
   } catch (err) {
     const msg = (err as Error).message;
-    logger.error('Failed to obtain Discovery Engine access token', err as Error, {
-      provider: 'vertex-ai-agent-search',
-      gcpProject: gcp_project_id,
-    });
+    logger.error(
+      'Failed to obtain Discovery Engine access token',
+      err as Error,
+      {
+        provider: 'vertex-ai-agent-search',
+        gcpProject: gcp_project_id,
+      },
+    );
     throw new Error(`Credentials error: ${msg}`);
   }
 
@@ -139,7 +189,9 @@ export async function performVertexSearch(input: {
       provider: 'vertex-ai-agent-search',
       url,
     });
-    throw new Error('Network error reaching Discovery Engine. Please try again.');
+    throw new Error(
+      'Network error reaching Discovery Engine. Please try again.',
+    );
   }
 
   if (!res.ok) {
@@ -205,7 +257,10 @@ export async function performVertexSearch(input: {
 
     // REST API returns structData as a plain JS object (already parsed)
     const structData = (doc.structData ?? {}) as Record<string, unknown>;
-    const derivedData = (doc.derivedStructData ?? {}) as Record<string, unknown>;
+    const derivedData = (doc.derivedStructData ?? {}) as Record<
+      string,
+      unknown
+    >;
     const title: string =
       getString(structData.title) ||
       getString(derivedData.title) ||
@@ -214,11 +269,11 @@ export async function performVertexSearch(input: {
       '';
 
     // Snippets come from derivedData.snippets[0].snippet
-    const firstSnippet = (derivedData.snippets as unknown[])?.[0] as Record<string, unknown> | undefined;
+    const firstSnippet = (derivedData.snippets as unknown[])?.[0] as
+      | Record<string, unknown>
+      | undefined;
     const snippet: string =
-      getString(firstSnippet?.snippet) ||
-      getString(derivedData.snippet) ||
-      '';
+      getString(firstSnippet?.snippet) || getString(derivedData.snippet) || '';
 
     // Raw link — prefer explicit HTTP URLs, fall back to null when absent
     const rawLink =
@@ -228,8 +283,7 @@ export async function performVertexSearch(input: {
       null;
 
     // Web link — only emit when it's a real HTTP/HTTPS URL
-    const link: string | null =
-      rawLink?.startsWith('http') ? rawLink : null;
+    const link: string | null = rawLink?.startsWith('http') ? rawLink : null;
     const category =
       getString(structData.category) || getString(structData.type) || null;
 
@@ -273,13 +327,14 @@ export async function performVertexSearch(input: {
     for (const citation of citations) {
       for (const src of citation.sources ?? []) {
         // Skip sources with no explicit index — do not default to 0
-        if (src.referenceIndex === undefined || src.referenceIndex === null) continue;
+        if (src.referenceIndex === undefined || src.referenceIndex === null)
+          continue;
 
         const idx = src.referenceIndex;
 
         // Guard: only accept indices that are within bounds of at least one array
-        const inApiRefs  = idx >= 0 && idx < apiRefs.length;
-        const inResults  = idx >= 0 && idx < results.length;
+        const inApiRefs = idx >= 0 && idx < apiRefs.length;
+        const inResults = idx >= 0 && idx < results.length;
         if (!inApiRefs && !inResults) continue;
 
         if (!seenIndices.has(idx)) {
@@ -290,17 +345,19 @@ export async function performVertexSearch(input: {
     }
 
     // Resolve each valid index to a title + link
-    const references: SearchSummaryReference[] = orderedIndices.map((refIdx, i) => {
-      // apiRefs[refIdx] is guaranteed in-bounds when inApiRefs was true above;
-      // results[refIdx] likewise — but both checks are defensive here.
-      const apiRef    = refIdx < apiRefs.length  ? apiRefs[refIdx]  : undefined;
-      const resultDoc = refIdx < results.length  ? results[refIdx]  : undefined;
-      return {
-        index: i + 1, // 1-based to match [N] notation in text
-        title: apiRef?.title || resultDoc?.title || `Source ${i + 1}`,
-        link:  apiRef?.uri   || resultDoc?.link  || null,
-      };
-    });
+    const references: SearchSummaryReference[] = orderedIndices.map(
+      (refIdx, i) => {
+        // apiRefs[refIdx] is guaranteed in-bounds when inApiRefs was true above;
+        // results[refIdx] likewise — but both checks are defensive here.
+        const apiRef = refIdx < apiRefs.length ? apiRefs[refIdx] : undefined;
+        const resultDoc = refIdx < results.length ? results[refIdx] : undefined;
+        return {
+          index: i + 1, // 1-based to match [N] notation in text
+          title: apiRef?.title || resultDoc?.title || `Source ${i + 1}`,
+          link: apiRef?.uri || resultDoc?.link || null,
+        };
+      },
+    );
 
     summary = { text: rawSummaryText, references };
   }

@@ -78,8 +78,8 @@ async function fetchSuggestions(
   query: string,
   signal: AbortSignal,
 ): Promise<string[]> {
-  // Derive the suggest URL from the search API URL:
-  // …/api/v1/search/{slug} → …/api/v1/search/{slug}/suggest
+    // Derive the suggest URL from the public search URL:
+    // …/public/{slug} → …/public/{slug}/suggest
   const suggestUrl = apiUrl.replace(/\/$/, '') + '/suggest';
   const res = await fetch(`${suggestUrl}?q=${encodeURIComponent(query)}`, {
     method: 'GET',

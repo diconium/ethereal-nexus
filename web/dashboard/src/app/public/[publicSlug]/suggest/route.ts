@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDiscoveryEngineAccessToken } from '@/lib/google-discovery-auth';
 import { db } from '@/db';
 import {
   projectAiSearchApps,
@@ -7,10 +6,16 @@ import {
 } from '@/data/ai/schema';
 import { eq, and } from 'drizzle-orm';
 import { DEFAULT_SEARCH_APP_API_SETTINGS_VALUES } from '@/data/ai/search-app-api-settings';
-import { getVertexSearchConfigOrThrow } from '@/data/ai/provider';
 import { HttpStatus } from '@/app/api/utils';
 import { logger } from '@/lib/logger';
 import { decryptCredentials } from '@/lib/credentials-encryption';
+import { performVertexSuggestions } from '@/lib/ai-providers/google-vertex-search';
+import {
+  buildSearchAllowedHeaders,
+  buildSearchCorsHeaders,
+  DEFAULT_SEARCH_CORS_HEADERS,
+  isSearchOriginAllowed,
+} from '@/lib/public-search-cors';
 import {
   buildIdentityResolution,
   checkRateLimit,
@@ -26,58 +31,12 @@ type RouteContext = {
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const DEFAULT_CORS_HEADERS: Record<string, string> = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
-function buildAllowedHeaders(settings?: {
-  rate_limit_use_fingerprint?: boolean;
-  fingerprint_header_name?: string | null;
-}) {
-  const headers = ['Content-Type'];
-  const headerName = settings?.fingerprint_header_name?.trim();
-  if (
-    settings?.rate_limit_use_fingerprint &&
-    headerName &&
-    /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/.test(headerName)
-  ) {
-    headers.push(headerName);
-  }
-  return headers.join(', ');
-}
-
-function buildCorsHeaders(
-  allowedOrigins: string[],
-  requestOrigin: string | null,
-  allowedHeaders = 'Content-Type',
-): Record<string, string> {
-  if (!allowedOrigins.length) {
-    return {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': allowedHeaders,
-    };
-  }
-  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
-    return {
-      'Access-Control-Allow-Origin': requestOrigin,
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': allowedHeaders,
-      Vary: 'Origin',
-    };
-  }
-  return { Vary: 'Origin' };
-}
-
 // ---------------------------------------------------------------------------
 // OPTIONS — CORS preflight
 // ---------------------------------------------------------------------------
 
 export async function OPTIONS(request: NextRequest, context: RouteContext) {
   const { publicSlug } = await context.params;
-  const requestOrigin = request.headers.get('origin');
 
   const rows = await db
     .select({ settings: projectAiSearchAppApiSettings })
@@ -96,8 +55,13 @@ export async function OPTIONS(request: NextRequest, context: RouteContext) {
   return new NextResponse(null, {
     status: 204,
     headers: {
-      ...buildCorsHeaders(allowedOrigins as string[], requestOrigin),
-      'Access-Control-Allow-Headers': buildAllowedHeaders(
+      ...buildSearchCorsHeaders(
+        allowedOrigins as string[],
+        request,
+        undefined,
+        'GET, OPTIONS',
+      ),
+      'Access-Control-Allow-Headers': buildSearchAllowedHeaders(
         rows[0]?.settings ?? undefined,
       ),
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -112,7 +76,6 @@ export async function OPTIONS(request: NextRequest, context: RouteContext) {
 
 export async function GET(request: NextRequest, context: RouteContext) {
   const { publicSlug } = await context.params;
-  const requestOrigin = request.headers.get('origin');
   const query = request.nextUrl.searchParams.get('q') ?? '';
   const trimmedQuery = query.trim();
 
@@ -137,7 +100,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
     .limit(1);
 
   if (!rows[0]?.searchApp) {
-    return NextResponse.json({ error: 'Search app not found.' }, { status: HttpStatus.NOT_FOUND, headers: DEFAULT_CORS_HEADERS });
+    return NextResponse.json(
+      { error: 'Search app not found.' },
+      { status: HttpStatus.NOT_FOUND, headers: DEFAULT_SEARCH_CORS_HEADERS },
+    );
   }
 
   const searchApp = rows[0].searchApp;
@@ -145,19 +111,24 @@ export async function GET(request: NextRequest, context: RouteContext) {
     (rows[0].settings?.allowed_origins as string[]) ??
     DEFAULT_SEARCH_APP_API_SETTINGS_VALUES.allowed_origins;
 
-  const apiSettings = rows[0].settings ?? DEFAULT_SEARCH_APP_API_SETTINGS_VALUES;
-  const corsHeaders = buildCorsHeaders(
+  const apiSettings =
+    rows[0].settings ?? DEFAULT_SEARCH_APP_API_SETTINGS_VALUES;
+  const corsHeaders = buildSearchCorsHeaders(
     allowedOrigins as string[],
-    requestOrigin,
-    buildAllowedHeaders(apiSettings),
+    request,
+    buildSearchAllowedHeaders(apiSettings),
+    'GET, OPTIONS',
   );
 
   // CORS check
-  if (allowedOrigins.length > 0 && !(requestOrigin && allowedOrigins.includes(requestOrigin))) {
-    return NextResponse.json({ error: 'Origin not allowed.' }, {
-      status: HttpStatus.FORBIDDEN,
-      headers: corsHeaders,
-    });
+  if (!isSearchOriginAllowed(allowedOrigins, request)) {
+    return NextResponse.json(
+      { error: 'Origin not allowed.' },
+      {
+        status: HttpStatus.FORBIDDEN,
+        headers: corsHeaders,
+      },
+    );
   }
 
   const scopeKey = `search:${publicSlug}`;
@@ -299,91 +270,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ suggestions: [] }, { headers: corsHeaders });
   }
 
-  let config: ReturnType<typeof getVertexSearchConfigOrThrow>;
   try {
-    config = getVertexSearchConfigOrThrow(searchApp.provider_config);
-  } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, {
-      status: HttpStatus.BAD_REQUEST,
-      headers: corsHeaders,
-    });
-  }
-
-  const { gcp_project_id, location, collection_id, engine_id } = config;
-
-  const apiBase =
-    location === 'global'
-      ? 'https://discoveryengine.googleapis.com'
-      : `https://${location}-discoveryengine.googleapis.com`;
-
-  // Discovery Engine completeQuery endpoint.
-  // Try v1beta (stable, engine path) then fall back to v1alpha.
-  // Autocomplete must be enabled in Cloud Console:
-  //   AI Applications → your app → Configurations → Autocomplete → Enable
-  const buildUrl = (version: string) => {
-    const u = new URL(
-      `${apiBase}/${version}/projects/${gcp_project_id}/locations/${location}` +
-      `/collections/${collection_id}/engines/${engine_id}:completeQuery`,
-    );
-    u.searchParams.set('query', trimmedQuery);
-    // Don't specify queryModel — let the API use the configured default.
-    // Setting it to an unsupported model causes 404.
-    u.searchParams.set('includeTailSuggestions', 'true');
-    return u;
-  };
-
-  let token: string;
-  try {
-    token = await getDiscoveryEngineAccessToken(
-      searchApp.credentials_json
+    const suggestions = await performVertexSuggestions({
+      providerConfig: searchApp.provider_config,
+      credentialsJson: searchApp.credentials_json
         ? decryptCredentials(searchApp.credentials_json)
         : null,
-    );
-  } catch (err) {
-    logger.error('Autocomplete: failed to get access token', err as Error, { publicSlug });
-    return NextResponse.json({ suggestions: [] }, { headers: corsHeaders });
-  }
-
-  // Helper: attempt one API version
-  async function tryFetch(version: string): Promise<Response> {
-    return fetch(buildUrl(version).toString(), {
-      headers: { Authorization: `Bearer ${token}` },
+      query: trimmedQuery,
     });
-  }
-
-  try {
-    // Try v1beta first, fall back to v1alpha on 404/405
-    let res = await tryFetch('v1beta');
-
-    if (res.status === 404 || res.status === 405) {
-      logger.info('Autocomplete v1beta returned 404, trying v1alpha', { publicSlug });
-      res = await tryFetch('v1alpha');
-    }
-
-    if (!res.ok) {
-      let body = '';
-      try { body = await res.text(); } catch { /* ignore */ }
-      logger.warn('Autocomplete API error', {
-        status: res.status,
-        publicSlug,
-        engineId: engine_id,
-        body: body.slice(0, 300),
-        hint: res.status === 404
-          ? 'Autocomplete may not be enabled. Go to AI Applications → your app → Configurations → Autocomplete → Enable.'
-          : undefined,
-      });
-      return NextResponse.json({ suggestions: [] }, { headers: corsHeaders });
-    }
-
-    const data = (await res.json()) as {
-      querySuggestions?: Array<{ suggestion?: string; completable?: boolean }>;
-    };
-
-    const suggestions = (data.querySuggestions ?? [])
-      .map((s) => s.suggestion ?? '')
-      .filter(Boolean)
-      .slice(0, 8);
-
     return NextResponse.json({ suggestions }, { headers: corsHeaders });
   } catch (err) {
     logger.error('Autocomplete fetch error', err as Error, { publicSlug });

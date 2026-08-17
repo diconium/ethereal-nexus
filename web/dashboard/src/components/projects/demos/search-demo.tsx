@@ -66,8 +66,16 @@ export type RateLimitState = {
       limit: number;
     }>;
   };
-  sessionCap: { enabled: boolean; current: number; remaining: number; limit: number };
-  temporaryBlock: { enabled: boolean; identities: Array<{ source: string; blocked: boolean }> };
+  sessionCap: {
+    enabled: boolean;
+    current: number;
+    remaining: number;
+    limit: number;
+  };
+  temporaryBlock: {
+    enabled: boolean;
+    identities: Array<{ source: string; blocked: boolean }>;
+  };
   allowedOrigins: { configured: boolean; count: number };
 } | null;
 
@@ -79,7 +87,7 @@ export type RateLimitState = {
  * Creates a search adapter that POSTs queries to the Ethereal Nexus search API.
  *
  * @example
- * const adapter = createSearchHttpAdapter('/api/v1/search/my-search-app');
+ * const adapter = createSearchHttpAdapter('/public/my-search-app');
  * const result = await adapter.search('my query', { pageSize: 10 });
  */
 export function createSearchHttpAdapter(endpoint: string) {
@@ -102,13 +110,17 @@ export function createSearchHttpAdapter(endpoint: string) {
       try {
         const json = await res.json();
         if (json?.error) errorMessage = json.error;
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
 
       if (res.status === 429) {
         const retryAfter = res.headers.get('Retry-After');
         const limitType = res.headers.get('X-Ethereal-Limit-Type');
         if (limitType === 'session-cap')
-          throw new Error('Session search limit reached. Please try again later.');
+          throw new Error(
+            'Session search limit reached. Please try again later.',
+          );
         const waitSeconds = retryAfter ? parseInt(retryAfter, 10) : null;
         throw new Error(
           waitSeconds
@@ -145,8 +157,12 @@ export function createSearchHttpAdapter(endpoint: string) {
 // ---------------------------------------------------------------------------
 
 export function useSearchAdapter(endpoint: string) {
-  const [searchState, setSearchState] = useState<SearchState>({ status: 'idle' });
-  const [summaryState, setSummaryState] = useState<SummaryState>({ status: 'idle' });
+  const [searchState, setSearchState] = useState<SearchState>({
+    status: 'idle',
+  });
+  const [summaryState, setSummaryState] = useState<SummaryState>({
+    status: 'idle',
+  });
   const [rateLimits, setRateLimits] = useState<RateLimitState>(null);
   const adapterRef = useRef(createSearchHttpAdapter(endpoint));
   // Track the current search generation so stale summary responses are discarded
@@ -183,7 +199,10 @@ export function useSearchAdapter(endpoint: string) {
       } catch (error) {
         setSearchState({
           status: 'error',
-          message: error instanceof Error ? error.message : 'An unexpected error occurred.',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'An unexpected error occurred.',
         });
         return;
       }
@@ -191,9 +210,12 @@ export function useSearchAdapter(endpoint: string) {
       // ── 2. Fire summary request async — results are already visible
       setSummaryState({ status: 'loading' });
       try {
-        const summaryData = await adapterRef.current.searchWithSummary(trimmed, {
-          pageSize: 1, // we only need the summary, not more results
-        });
+        const summaryData = await adapterRef.current.searchWithSummary(
+          trimmed,
+          {
+            pageSize: 1, // we only need the summary, not more results
+          },
+        );
 
         // Discard if the user has already started a newer search
         if (generationRef.current !== generation) return;
@@ -245,7 +267,9 @@ function formatWaitTime(seconds: number): string {
 
 /** True when the error message originated from a 429 rate-limit or temporary block. */
 function isRateLimitError(message: string): boolean {
-  return /too many requests|rate limit|session.*limit|temporarily blocked/i.test(message);
+  return /too many requests|rate limit|session.*limit|temporarily blocked/i.test(
+    message,
+  );
 }
 
 function classifyLink(link: string | null): LinkKind {
@@ -256,7 +280,11 @@ function classifyLink(link: string | null): LinkKind {
 }
 
 function formatWebDomain(url: string): string {
-  try { return new URL(url).hostname.replace('www.', ''); } catch { return url; }
+  try {
+    return new URL(url).hostname.replace('www.', '');
+  } catch {
+    return url;
+  }
 }
 
 function getCategory(result: SearchResultItem): string {
@@ -287,13 +315,14 @@ function useTypewriter(
     active = true,
     wordsPerSecond = 40,
     paragraphDelayMs = 400,
-  }: { active?: boolean; wordsPerSecond?: number; paragraphDelayMs?: number } = {},
+  }: {
+    active?: boolean;
+    wordsPerSecond?: number;
+    paragraphDelayMs?: number;
+  } = {},
 ) {
   // Split on blank lines while keeping the delimiters so we can rejoin exactly
-  const paragraphs = useMemo(
-    () => fullText.split(/(\n\n+)/),
-    [fullText],
-  );
+  const paragraphs = useMemo(() => fullText.split(/(\n\n+)/), [fullText]);
 
   // How many paragraphs (and delimiters) are currently unlocked
   const [unlockedCount, setUnlockedCount] = useState(0);
@@ -355,15 +384,21 @@ function useTypewriter(
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       if (timerRef.current !== null) clearTimeout(timerRef.current);
     };
-  }, [active, unlockedCount, wordIndex, paragraphs, msPerWord, paragraphDelayMs]);
+  }, [
+    active,
+    unlockedCount,
+    wordIndex,
+    paragraphs,
+    msPerWord,
+    paragraphDelayMs,
+  ]);
 
   const currentParagraph = paragraphs[unlockedCount - 1] ?? '';
   const currentWords = currentParagraph.split(/(\s+)/);
   const streamingParagraph = currentWords.slice(0, wordIndex).join('');
 
   const done =
-    unlockedCount >= paragraphs.length &&
-    wordIndex >= currentWords.length;
+    unlockedCount >= paragraphs.length && wordIndex >= currentWords.length;
 
   const visible =
     paragraphs.slice(0, Math.max(0, unlockedCount - 1)).join('') +
@@ -394,7 +429,8 @@ function safeUrlTransform(url: string): string | null {
   if (/^https?:\/\//i.test(url)) return url;
   if (/^mailto:/i.test(url)) return url;
   // Relative URLs (no protocol) are safe — no colon before the first slash
-  if (/^[^:]*$/.test(url) || url.startsWith('/') || url.startsWith('#')) return url;
+  if (/^[^:]*$/.test(url) || url.startsWith('/') || url.startsWith('#'))
+    return url;
   return null; // reject javascript:, vbscript:, data:, etc.
 }
 
@@ -455,7 +491,9 @@ function firstSentence(text: string): string {
     { ALLOWED_TAGS: [], ALLOWED_ATTR: [], KEEP_CONTENT: true },
   ).trim();
   const match = plain.match(/^.+?[.!?](?:\s|$)/);
-  return match ? match[0].trim() : plain.slice(0, 120) + (plain.length > 120 ? '…' : '');
+  return match
+    ? match[0].trim()
+    : plain.slice(0, 120) + (plain.length > 120 ? '…' : '');
 }
 
 function SummaryPanel({ state }: { state: SummaryState }) {
@@ -466,7 +504,8 @@ function SummaryPanel({ state }: { state: SummaryState }) {
     if (state.status === 'success') setExpanded(false);
   }, [state.status]);
 
-  const fullText = state.status === 'success' ? preprocessSummaryText(state.text) : '';
+  const fullText =
+    state.status === 'success' ? preprocessSummaryText(state.text) : '';
 
   // Typewriter only active when the user has opened the full answer
   const { visible: typedText, done: typingDone } = useTypewriter(fullText, {
@@ -524,13 +563,15 @@ function SummaryPanel({ state }: { state: SummaryState }) {
       {/* Expanded — typewriter reveal + sources */}
       {state.status === 'success' && expanded && (
         <>
-          <div className="prose prose-sm dark:prose-invert max-w-none
+          <div
+            className="prose prose-sm dark:prose-invert max-w-none
             prose-p:my-1 prose-ul:my-1.5 prose-li:my-0.5
             prose-strong:text-foreground prose-headings:text-foreground
             [&_sup.cite]:inline-flex [&_sup.cite]:items-center [&_sup.cite]:justify-center
             [&_sup.cite]:rounded [&_sup.cite]:bg-primary/10 [&_sup.cite]:px-1
             [&_sup.cite]:text-[9px] [&_sup.cite]:font-bold [&_sup.cite]:text-primary
-            [&_sup.cite]:leading-4 [&_sup.cite]:mx-0.5 [&_a]:text-primary">
+            [&_sup.cite]:leading-4 [&_sup.cite]:mx-0.5 [&_a]:text-primary"
+          >
             <ReactMarkdown
               rehypePlugins={[rehypeRaw]}
               urlTransform={safeUrlTransform}
@@ -544,14 +585,20 @@ function SummaryPanel({ state }: { state: SummaryState }) {
           {/* Sources — only shown once typing is complete to avoid layout jump */}
           {typingDone && state.references.length > 0 && (
             <div className="pt-1 border-t space-y-1.5 animate-in fade-in duration-300">
-              <p className="text-xs font-medium text-muted-foreground">Sources</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                Sources
+              </p>
               <div className="flex flex-wrap gap-1.5">
                 {state.references.map((ref) => {
                   const isClickable = ref.link?.startsWith('http');
                   const chip = (
                     <span className="flex items-center gap-1">
-                      <span className="font-semibold text-primary">[{ref.index}]</span>
-                      <span className="truncate max-w-[200px]">{ref.title}</span>
+                      <span className="font-semibold text-primary">
+                        [{ref.index}]
+                      </span>
+                      <span className="truncate max-w-[200px]">
+                        {ref.title}
+                      </span>
                     </span>
                   );
                   return isClickable ? (
@@ -610,21 +657,14 @@ function preprocessSummaryText(text: string): string {
   // 1. Sanitize the raw summary — strips any HTML the API might have injected
   const clean = DOMPurify.sanitize(text, SUMMARY_PURIFY_CONFIG) as string;
   // 2. Convert [N] citation markers to safe <sup> HTML nodes
-  return clean.replace(
-    /\[(\d+)\]/g,
-    (_, n) => `<sup class="cite">${n}</sup>`,
-  );
+  return clean.replace(/\[(\d+)\]/g, (_, n) => `<sup class="cite">${n}</sup>`);
 }
 
 // ---------------------------------------------------------------------------
 // Result row
 // ---------------------------------------------------------------------------
 
-function SearchResultRow({
-  result,
-}: {
-  result: SearchResultItem;
-}) {
+function SearchResultRow({ result }: { result: SearchResultItem }) {
   const category = getCategory(result);
   const title = result.title || result.id || 'Untitled';
   const isWebLink = result.link?.startsWith('http') ?? false;
@@ -650,7 +690,9 @@ function SearchResultRow({
             </span>
           )}
           {category && (
-            <span className="text-xs text-muted-foreground shrink-0">{category}</span>
+            <span className="text-xs text-muted-foreground shrink-0">
+              {category}
+            </span>
           )}
         </div>
 
@@ -698,7 +740,11 @@ function RateLimitBadge({ limits }: { limits: RateLimitState }) {
   return (
     <span
       className={`text-xs ${
-        pct < 0.2 ? 'text-red-500' : pct < 0.5 ? 'text-yellow-600' : 'text-muted-foreground'
+        pct < 0.2
+          ? 'text-red-500'
+          : pct < 0.5
+            ? 'text-yellow-600'
+            : 'text-muted-foreground'
       }`}
     >
       {wi.remaining}/{wi.limit}
@@ -716,7 +762,7 @@ type SearchDemoProps = {
 };
 
 export function SearchDemo({ searchApp, apiSettings }: SearchDemoProps) {
-  const endpoint = `/api/v1/search/${searchApp.public_slug}`;
+  const endpoint = `/public/${searchApp.public_slug}`;
   const { searchState, summaryState, rateLimits, search, fetchLimits } =
     useSearchAdapter(endpoint);
 
@@ -726,7 +772,9 @@ export function SearchDemo({ searchApp, apiSettings }: SearchDemoProps) {
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { void fetchLimits(); }, [fetchLimits]);
+  useEffect(() => {
+    void fetchLimits();
+  }, [fetchLimits]);
 
   // Debounced autocomplete — triggers on every query change
   useEffect(() => {
@@ -807,7 +855,9 @@ export function SearchDemo({ searchApp, apiSettings }: SearchDemoProps) {
   };
 
   const isLoading = searchState.status === 'loading';
-  const isBlocked = Boolean(rateLimits?.temporaryBlock?.identities?.some((id) => id.blocked));
+  const isBlocked = Boolean(
+    rateLimits?.temporaryBlock?.identities?.some((id) => id.blocked),
+  );
 
   return (
     <div className="flex flex-col h-full min-h-0 gap-3 p-6 w-full">
@@ -887,51 +937,53 @@ export function SearchDemo({ searchApp, apiSettings }: SearchDemoProps) {
       {searchState.status === 'idle' && null}
 
       {/* Error — distinguish rate-limit/block from other errors */}
-      {searchState.status === 'error' && (
-        isRateLimitError(searchState.message) ? (
+      {searchState.status === 'error' &&
+        (isRateLimitError(searchState.message) ? (
           <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 flex items-start gap-3">
             <Shield className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
             <div>
               <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
                 Search temporarily unavailable
               </p>
-              <p className="text-sm text-muted-foreground mt-0.5">{searchState.message}</p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {searchState.message}
+              </p>
             </div>
           </div>
         ) : (
           <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
             <div>
-              <p className="text-sm font-medium text-destructive">Search failed</p>
-              <p className="text-sm text-muted-foreground mt-0.5">{searchState.message}</p>
+              <p className="text-sm font-medium text-destructive">
+                Search failed
+              </p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {searchState.message}
+              </p>
             </div>
           </div>
-        )
-      )}
+        ))}
 
       {/* Results + summary */}
-      {(searchState.status === 'success' || searchState.status === 'loading') && (
+      {(searchState.status === 'success' ||
+        searchState.status === 'loading') && (
         <div className="space-y-3 overflow-y-auto flex-1 min-h-0">
           {/* Generated answer — skeleton while loading, text when ready */}
           <SummaryPanel state={summaryState} />
 
           {/* Result rows — rendered immediately when results arrive */}
-          {searchState.status === 'success' && (
-            searchState.data.results.length === 0 ? (
+          {searchState.status === 'success' &&
+            (searchState.data.results.length === 0 ? (
               <p className="text-sm text-muted-foreground py-6 text-center">
                 No results for &ldquo;{searchState.data.query}&rdquo;.
               </p>
             ) : (
               <div className="rounded-lg border px-4">
                 {searchState.data.results.map((result, i) => (
-                  <SearchResultRow
-                    key={result.id || i}
-                    result={result}
-                  />
+                  <SearchResultRow key={result.id || i} result={result} />
                 ))}
               </div>
-            )
-          )}
+            ))}
         </div>
       )}
     </div>

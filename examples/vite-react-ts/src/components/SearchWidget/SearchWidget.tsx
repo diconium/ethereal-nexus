@@ -17,10 +17,10 @@ import { useSearchWidget } from './useSearchWidget';
 const dialogSchema = dialog({
   apiurl: text({
     label: 'Search API URL',
-    placeholder: 'https://your-site.example/api/v1/search/my-search-app',
+    placeholder: 'https://your-site.example/public/my-search-app',
     tooltip:
       'Public search endpoint exposed by Ethereal Nexus. ' +
-      'Example: /api/v1/search/{publicSlug}',
+       'Example: /public/{publicSlug}',
     required: true,
   }),
   placeholder: text({

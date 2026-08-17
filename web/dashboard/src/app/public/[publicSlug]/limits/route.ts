@@ -11,6 +11,7 @@ import {
   getCounterState,
   getSessionCookieIdentifier,
   getTemporaryBlock,
+  hasTrustedClientIp,
 } from '@/lib/rate-limit';
 import { HttpStatus } from '@/app/api/utils';
 import {
@@ -116,6 +117,17 @@ export async function GET(request: NextRequest, context: RouteContext) {
     return NextResponse.json(
       { error: 'Origin not allowed.' },
       { status: HttpStatus.FORBIDDEN, headers: corsHeaders },
+    );
+  }
+
+  if (
+    (row.settings ?? DEFAULT_SEARCH_APP_API_SETTINGS_VALUES)
+      .rate_limit_use_ip &&
+    !hasTrustedClientIp(request)
+  ) {
+    return NextResponse.json(
+      { error: 'Search is temporarily unavailable. Please try again later.' },
+      { status: 503, headers: corsHeaders },
     );
   }
 

@@ -14,6 +14,7 @@ import {
   getClientIp,
   getSessionCookieIdentifier,
   getTemporaryBlock,
+  hasTrustedClientIp,
   registerViolationAndMaybeBlock,
 } from '@/lib/rate-limit';
 import { performVertexSearch } from '@/lib/ai-providers/google-vertex-search';
@@ -179,6 +180,18 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return NextResponse.json(
       { error: 'Origin not allowed.' },
       { status: HttpStatus.FORBIDDEN, headers: corsHeaders },
+    );
+  }
+
+  if (apiSettings.rate_limit_use_ip && !hasTrustedClientIp(request)) {
+    logger.error(
+      'Search request rejected because a trusted client IP is unavailable',
+      new Error('Trusted client IP unavailable'),
+      { route: 'search-public', publicSlug },
+    );
+    return NextResponse.json(
+      { error: 'Search is temporarily unavailable. Please try again later.' },
+      { status: 503, headers: corsHeaders },
     );
   }
 

@@ -9,8 +9,7 @@ export type SearchResultItem = {
   title: string;
   snippet: string;
   link: string | null;
-  gcsUri: string | null;
-  document: Record<string, unknown>;
+  category: string | null;
 };
 
 export type SearchResponse = {
@@ -50,7 +49,9 @@ async function fetchSearchResults(
     try {
       const json = await res.json();
       if (json?.error) message = json.error;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     if (res.status === 429) {
       const retryAfter = res.headers.get('Retry-After');
@@ -78,8 +79,8 @@ async function fetchSuggestions(
   query: string,
   signal: AbortSignal,
 ): Promise<string[]> {
-    // Derive the suggest URL from the public search URL:
-    // …/public/{slug} → …/public/{slug}/suggest
+  // Derive the suggest URL from the public search URL:
+  // …/public/{slug} → …/public/{slug}/suggest
   const suggestUrl = apiUrl.replace(/\/$/, '') + '/suggest';
   const res = await fetch(`${suggestUrl}?q=${encodeURIComponent(query)}`, {
     method: 'GET',
@@ -99,13 +100,21 @@ export type UseSearchWidgetOptions = {
   pageSize?: number;
 };
 
-export function useSearchWidget({ apiUrl, pageSize = 10 }: UseSearchWidgetOptions) {
+export function useSearchWidget({
+  apiUrl,
+  pageSize = 10,
+}: UseSearchWidgetOptions) {
   const [query, setQuery] = useState('');
-  const [searchState, setSearchState] = useState<SearchState>({ status: 'idle' });
-  const [suggestionState, setSuggestionState] = useState<SuggestionState>({ status: 'idle' });
+  const [searchState, setSearchState] = useState<SearchState>({
+    status: 'idle',
+  });
+  const [suggestionState, setSuggestionState] = useState<SuggestionState>({
+    status: 'idle',
+  });
 
   const suggestTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suggestAbortRef = useRef<AbortController | null>(null);
+  const searchGenerationRef = useRef(0);
 
   // Debounced autocomplete — fires 200 ms after each keystroke
   useEffect(() => {
@@ -123,7 +132,11 @@ export function useSearchWidget({ apiUrl, pageSize = 10 }: UseSearchWidgetOption
     const timer = setTimeout(async () => {
       setSuggestionState({ status: 'loading' });
       try {
-        const suggestions = await fetchSuggestions(apiUrl, trimmed, controller.signal);
+        const suggestions = await fetchSuggestions(
+          apiUrl,
+          trimmed,
+          controller.signal,
+        );
         setSuggestionState({ status: 'ready', suggestions });
       } catch {
         setSuggestionState({ status: 'idle' });
@@ -142,6 +155,7 @@ export function useSearchWidget({ apiUrl, pageSize = 10 }: UseSearchWidgetOption
     async (searchQuery: string) => {
       const trimmed = searchQuery.trim();
       if (!trimmed) return;
+      const generation = ++searchGenerationRef.current;
 
       // Hide suggestions
       setSuggestionState({ status: 'idle' });
@@ -149,11 +163,16 @@ export function useSearchWidget({ apiUrl, pageSize = 10 }: UseSearchWidgetOption
 
       try {
         const data = await fetchSearchResults(apiUrl, trimmed, pageSize);
+        if (searchGenerationRef.current !== generation) return;
         setSearchState({ status: 'success', data });
       } catch (err) {
+        if (searchGenerationRef.current !== generation) return;
         setSearchState({
           status: 'error',
-          message: err instanceof Error ? err.message : 'An unexpected error occurred.',
+          message:
+            err instanceof Error
+              ? err.message
+              : 'An unexpected error occurred.',
         });
       }
     },
@@ -161,6 +180,7 @@ export function useSearchWidget({ apiUrl, pageSize = 10 }: UseSearchWidgetOption
   );
 
   const reset = useCallback(() => {
+    searchGenerationRef.current += 1;
     setQuery('');
     setSearchState({ status: 'idle' });
     setSuggestionState({ status: 'idle' });

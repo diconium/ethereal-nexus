@@ -21,6 +21,7 @@ import {
   checkRateLimit,
   getSessionCookieIdentifier,
   getTemporaryBlock,
+  hasTrustedClientIp,
   registerViolationAndMaybeBlock,
 } from '@/lib/rate-limit';
 
@@ -128,6 +129,18 @@ export async function GET(request: NextRequest, context: RouteContext) {
         status: HttpStatus.FORBIDDEN,
         headers: corsHeaders,
       },
+    );
+  }
+
+  if (apiSettings.rate_limit_use_ip && !hasTrustedClientIp(request)) {
+    logger.error(
+      'Suggestion request rejected because a trusted client IP is unavailable',
+      new Error('Trusted client IP unavailable'),
+      { route: 'search-public-suggest', publicSlug },
+    );
+    return NextResponse.json(
+      { error: 'Search is temporarily unavailable. Please try again later.' },
+      { status: 503, headers: corsHeaders },
     );
   }
 

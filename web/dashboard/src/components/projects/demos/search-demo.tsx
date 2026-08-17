@@ -135,9 +135,6 @@ export function createSearchHttpAdapter(endpoint: string) {
 
   return {
     search: (query: string, options?: { pageSize?: number }) =>
-      doSearch(query, { ...options, includeSummary: false }),
-
-    searchWithSummary: (query: string, options?: { pageSize?: number }) =>
       doSearch(query, { ...options, includeSummary: true }),
 
     async fetchLimits(limitsEndpoint: string): Promise<RateLimitState> {
@@ -165,7 +162,7 @@ export function useSearchAdapter(endpoint: string) {
   });
   const [rateLimits, setRateLimits] = useState<RateLimitState>(null);
   const adapterRef = useRef(createSearchHttpAdapter(endpoint));
-  // Track the current search generation so stale summary responses are discarded
+  // Track the current search generation so stale responses are discarded.
   const generationRef = useRef(0);
 
   useEffect(() => {
@@ -184,19 +181,29 @@ export function useSearchAdapter(endpoint: string) {
       const trimmed = query.trim();
       if (!trimmed) return;
 
-      // Bump generation so any in-flight summary from a previous query is ignored
+      // Bump generation so any in-flight response from a previous query is ignored.
       const generation = ++generationRef.current;
 
       setSearchState({ status: 'loading', query: trimmed });
       setSummaryState({ status: 'idle' });
 
-      // ── 1. Fire results request (no summary — fast)
-      let resultsData: SearchApiResponse;
       try {
-        resultsData = await adapterRef.current.search(trimmed, { pageSize });
-        setSearchState({ status: 'success', data: resultsData });
+        const data = await adapterRef.current.search(trimmed, { pageSize });
+        if (generationRef.current !== generation) return;
+
+        setSearchState({ status: 'success', data });
+        setSummaryState(
+          data.summary?.text
+            ? {
+                status: 'success',
+                text: data.summary.text,
+                references: data.summary.references ?? [],
+              }
+            : { status: 'unavailable' },
+        );
         void fetchLimits();
       } catch (error) {
+        if (generationRef.current !== generation) return;
         setSearchState({
           status: 'error',
           message:
@@ -204,41 +211,13 @@ export function useSearchAdapter(endpoint: string) {
               ? error.message
               : 'An unexpected error occurred.',
         });
-        return;
-      }
-
-      // ── 2. Fire summary request async — results are already visible
-      setSummaryState({ status: 'loading' });
-      try {
-        const summaryData = await adapterRef.current.searchWithSummary(
-          trimmed,
-          {
-            pageSize: 1, // we only need the summary, not more results
-          },
-        );
-
-        // Discard if the user has already started a newer search
-        if (generationRef.current !== generation) return;
-
-        if (summaryData.summary?.text) {
-          setSummaryState({
-            status: 'success',
-            text: summaryData.summary.text,
-            references: summaryData.summary.references ?? [],
-          });
-        } else {
-          setSummaryState({ status: 'unavailable' });
-        }
-      } catch {
-        if (generationRef.current === generation) {
-          setSummaryState({ status: 'unavailable' });
-        }
       }
     },
     [fetchLimits],
   );
 
   const reset = useCallback(() => {
+    generationRef.current += 1;
     setSearchState({ status: 'idle' });
     setSummaryState({ status: 'idle' });
   }, []);

@@ -1,8 +1,18 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 
-import type { SearchState, SuggestionState, SearchResultItem } from './useSearchWidget';
-import { SearchIcon, CloseIcon, ClearIcon, FileIcon, GlobeIcon, Spinner } from './SearchWidgetIcons';
-import { classifyLink, getDomain, extBadge, stripHtml } from './searchWidgetHelpers';
+import type {
+  SearchState,
+  SuggestionState,
+  SearchResultItem,
+} from './useSearchWidget';
+import {
+  SearchIcon,
+  CloseIcon,
+  ClearIcon,
+  GlobeIcon,
+  Spinner,
+} from './SearchWidgetIcons';
+import { classifyLink, getDomain, stripHtml } from './searchWidgetHelpers';
 
 // ---------------------------------------------------------------------------
 // Props contract
@@ -55,12 +65,6 @@ function ResultCard({ result }: { result: SearchResultItem }) {
                 <GlobeIcon />
                 <span>{getDomain(result.link)}</span>
               </>
-            ) : result.gcsUri ? (
-              <>
-                <FileIcon />
-                <span className="sw__resultSourceMono">{result.gcsUri}</span>
-                <span className="sw__badge">{extBadge(result.gcsUri)}</span>
-              </>
             ) : null}
           </div>
         )}
@@ -97,7 +101,9 @@ export function SearchWidgetView({
   // Escape key closes the search bar
   useEffect(() => {
     if (!isOpen) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
@@ -186,9 +192,14 @@ export function SearchWidgetView({
                   key={s}
                   role="option"
                   className="sw__suggestion"
-                  onMouseDown={(e) => { e.preventDefault(); onSuggestionSelect(s); }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    onSuggestionSelect(s);
+                  }}
                 >
-                  <span className="sw__suggIcon"><SearchIcon size={13} /></span>
+                  <span className="sw__suggIcon">
+                    <SearchIcon size={13} />
+                  </span>
                   {s}
                 </li>
               ))}

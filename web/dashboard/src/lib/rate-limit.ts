@@ -349,6 +349,10 @@ export function getClientIp(request: Request) {
   return 'unknown';
 }
 
+export function hasTrustedClientIp(request: Request) {
+  return getClientIp(request) !== 'unknown';
+}
+
 export function getSessionCookieIdentifier(request: Request) {
   const cookieHeader = request.headers.get('cookie');
   if (!cookieHeader) {
@@ -483,7 +487,9 @@ export type BlockEntry = {
  * Returns all active block entries whose key starts with the given prefix.
  * Uses Redis SCAN when available, falls back to the in-memory store.
  */
-export async function listActiveBlocks(scopePrefix: string): Promise<BlockEntry[]> {
+export async function listActiveBlocks(
+  scopePrefix: string,
+): Promise<BlockEntry[]> {
   const blockKeyPrefix = `block:${scopePrefix}`;
   const redisPrefix = `rate-limit:${blockKeyPrefix}`;
 
@@ -512,7 +518,9 @@ export async function listActiveBlocks(scopePrefix: string): Promise<BlockEntry[
         const ttl = await redis.ttl(redisKey);
         if (ttl <= 0) continue;
         // Strip the "rate-limit:" namespace prefix to get the logical key
-        const logicalKey = redisKey.slice('rate-limit:'.length).slice('block:'.length);
+        const logicalKey = redisKey
+          .slice('rate-limit:'.length)
+          .slice('block:'.length);
         entries.push({ key: logicalKey, resetSeconds: ttl });
       }
       return entries;
@@ -549,7 +557,13 @@ export async function clearBlocks(scopePrefix: string): Promise<number> {
         const redisPattern = `rate-limit:${pattern}*`;
         let cursor = '0';
         do {
-          const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', redisPattern, 'COUNT', 100);
+          const [nextCursor, keys] = await redis.scan(
+            cursor,
+            'MATCH',
+            redisPattern,
+            'COUNT',
+            100,
+          );
           cursor = nextCursor;
           if (keys.length > 0) {
             await redis.del(...keys);

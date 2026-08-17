@@ -113,9 +113,14 @@ import {
   CONTENT_ADVISOR_AGENT_CATALOG,
   ContentAdvisorAgentKey,
 } from './content-advisor';
-import { buildFoundryProviderConfig, buildVertexProviderConfig, buildVertexSearchProviderConfig } from './provider';
+import {
+  buildFoundryProviderConfig,
+  buildVertexProviderConfig,
+  buildVertexSearchProviderConfig,
+} from './provider';
 import { normalizeCatalogueApiPath } from './catalogue-endpoint';
 import { encryptCredentials } from '@/lib/credentials-encryption';
+import { environments } from '@/data/projects/schema';
 import { generateCatalogueWithFoundry } from '@/lib/ai-providers/microsoft-foundry';
 import {
   analyzePageWithAgent,
@@ -3601,7 +3606,8 @@ export async function getSearchAppsByEnvironment(
     // a boolean flag so the UI can show whether credentials are configured.
     const sanitized = rows.map(({ credentials_json, ...rest }) => ({
       ...rest,
-      has_credentials: credentials_json != null && credentials_json.trim().length > 0,
+      has_credentials:
+        credentials_json != null && credentials_json.trim().length > 0,
     }));
 
     const safe = z.array(searchAppSchema).safeParse(sanitized);
@@ -3666,10 +3672,21 @@ export async function upsertSearchApp(
     public_slug: normalizeSlug(input.public_slug || input.slug || input.name),
   });
   if (!safeInput.success) {
-    return actionZodError(
-      'Failed to parse search app input.',
-      safeInput.error,
-    );
+    return actionZodError('Failed to parse search app input.', safeInput.error);
+  }
+
+  const environment = await db
+    .select({ id: environments.id })
+    .from(environments)
+    .where(
+      and(
+        eq(environments.id, safeInput.data.environment_id),
+        eq(environments.project_id, safeInput.data.project_id),
+      ),
+    )
+    .limit(1);
+  if (!environment[0]) {
+    return actionError('Environment not found.');
   }
 
   if (safeInput.data.id) {
@@ -3709,10 +3726,9 @@ export async function upsertSearchApp(
     // Encrypt credentials before persisting. If the input is null/empty,
     // pass null to keep the existing value (onConflictDoUpdate will overwrite
     // only when the value is explicitly provided — see set clause below).
-    const encryptedCredentials =
-      safeInput.data.credentials_json?.trim()
-        ? encryptCredentials(safeInput.data.credentials_json.trim())
-        : null;
+    const encryptedCredentials = safeInput.data.credentials_json?.trim()
+      ? encryptCredentials(safeInput.data.credentials_json.trim())
+      : null;
 
     const rows = await db
       .insert(projectAiSearchApps)

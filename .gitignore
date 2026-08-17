@@ -138,3 +138,7 @@ playwright/.cache/
 
 # Spec Kit — local GitHub config (contains org/repo names, not for public repos)
 .specify/github.json
+
+# Agent tool artifacts
+.omo/
+.playwright-mcp/

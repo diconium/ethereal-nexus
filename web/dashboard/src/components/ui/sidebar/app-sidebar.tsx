@@ -22,6 +22,7 @@ import {
   Folder,
   LayoutGrid,
   MessageSquare,
+  Search,
   Settings,
   UserRound,
 } from 'lucide-react';
@@ -29,7 +30,7 @@ import type { User } from 'next-auth';
 import { ProjectSwitcher } from '@/components/ui/ProjectSwitcher';
 import { useProject } from '@/lib/project-context';
 import { AI_STATE_UPDATED_EVENT } from '@/lib/ai-events';
-import type { Catalogue, Chatbot, ProjectAiFeatureKey } from '@/data/ai/dto';
+import type { Catalogue, Chatbot, ProjectAiFeatureKey, SearchApp } from '@/data/ai/dto';
 
 type AppSidebarProps = {
   user: User;
@@ -90,12 +91,14 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
     enabledAiFeatures: ProjectAiFeatureKey[];
     chatbots: Chatbot[];
     catalogues: Catalogue[];
+    searchApps: SearchApp[];
   }>({
     aiEnabled: false,
     enabled: false,
     enabledAiFeatures: [],
     chatbots: [],
     catalogues: [],
+    searchApps: [],
   });
   const platformTitles = new Set(['All Components', 'Users']);
 
@@ -110,6 +113,7 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
           enabledAiFeatures: [],
           chatbots: [],
           catalogues: [],
+          searchApps: [],
         });
         return;
       }
@@ -130,6 +134,7 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
           enabledAiFeatures?: ProjectAiFeatureKey[];
           chatbots?: Chatbot[];
           catalogues?: Catalogue[];
+          searchApps?: SearchApp[];
         };
 
         if (!cancelled) {
@@ -139,6 +144,7 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
             enabledAiFeatures: payload.enabledAiFeatures ?? [],
             chatbots: payload.chatbots ?? [],
             catalogues: payload.catalogues ?? [],
+            searchApps: payload.searchApps ?? [],
           });
         }
       } catch {
@@ -149,6 +155,7 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
             enabledAiFeatures: [],
             chatbots: [],
             catalogues: [],
+            searchApps: [],
           });
         }
       }
@@ -217,6 +224,15 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
             href: `${projectBase}/ai/catalogues${selectedEnvironment ? `?env=${selectedEnvironment.id}` : ''}`,
             isActive: (pathname: string) =>
               pathname.startsWith(`${projectBase}/ai/catalogues`),
+          }
+        : null,
+      projectAiState.enabledAiFeatures.includes('searches')
+        ? {
+            title: 'Searches',
+            url: `${projectBase}/ai/searches`,
+            href: `${projectBase}/ai/searches${selectedEnvironment ? `?env=${selectedEnvironment.id}` : ''}`,
+            isActive: (pathname: string) =>
+              pathname === `${projectBase}/ai/searches`,
           }
         : null,
       projectAiState.enabledAiFeatures.includes('author-dialogs')
@@ -293,7 +309,8 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
     if (
       projectAiState.enabled &&
       (projectAiState.chatbots.length > 0 ||
-        projectAiState.catalogues.length > 0)
+        projectAiState.catalogues.length > 0 ||
+        projectAiState.searchApps.length > 0)
     ) {
       sections.push({
         label: 'Demos',
@@ -313,6 +330,14 @@ export function AppSidebar({ user, navigation, ...props }: AppSidebarProps) {
             icon: Folder,
             isActive: (pathname: string) =>
               pathname === `${projectBase}/demos/catalogues/${catalogue.slug}`,
+          })),
+          ...projectAiState.searchApps.map((app) => ({
+            title: app.name,
+            url: `${projectBase}/demos/searches/${app.slug}`,
+            href: `${projectBase}/demos/searches/${app.slug}${selectedEnvironment ? `?env=${selectedEnvironment.id}` : ''}`,
+            icon: Search,
+            isActive: (pathname: string) =>
+              pathname === `${projectBase}/demos/searches/${app.slug}`,
           })),
         ],
       });

@@ -71,8 +71,10 @@
     "drizzle-zod": "^0.5.1",
     "encoding": "^0.1.13",
     "formidable": "^3.5.4",
+    "google-auth-library": "^10.9.0",
     "gunzip-maybe": "^1.4.2",
     "ioredis": "^5.11.0",
+    "isomorphic-dompurify": "^3.18.0",
     "jose": "^5.10.0",
     "lucide-react": "^0.577.0",
     "next": "16.3.0-canary.52",
@@ -88,6 +90,7 @@
     "react-markdown": "^10.1.0",
     "readable-stream": "^4.7.0",
     "recharts": "^3.8.1",
+    "rehype-raw": "^7.0.0",
     "semver": "^7.8.1",
     "sharp": "^0.33.5",
     "sonner": "^2.0.7",
@@ -124,11 +127,5 @@
   "engines": {
     "npm": "please-use-pnpm",
     "pnpm": ">=9"
-  },
-  "pnpm": {
-    "overrides": {
-      "@types/react": "19.2.17",
-      "@types/react-dom": "19.2.3"
-    }
   }
 }

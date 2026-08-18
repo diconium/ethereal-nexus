@@ -25,6 +25,11 @@ const FLAG_COPY: Record<string, { title: string; description: string }> = {
     title: 'Catalogues',
     description: 'Enable catalogue creation, editing, and version management.',
   },
+  searches: {
+    title: 'Searches',
+    description:
+      'Enable search application registrations and search endpoints for this project.',
+  },
   'author-dialogs': {
     title: 'Author Dialogs',
     description: 'Enable conversational authoring workspaces for this project.',
@@ -84,6 +89,7 @@ export function FeatureFlagsSection({
       </p>
       {flags.map((flag) => {
         const copy = FLAG_COPY[flag.key];
+        if (!copy) return null;
         const checked = overrides[flag.key] ?? initialState[flag.key] ?? false;
         const disabled = isPending && pendingKey === flag.key;
 

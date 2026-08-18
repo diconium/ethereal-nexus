@@ -281,6 +281,14 @@ export async function registerViolationAndMaybeBlock(options: {
 }) {
   const violationKey = `violations:${options.key}`;
   const blockKey = `block:${options.key}`;
+
+  // Never issue a temporary block against unidentifiable or loopback addresses.
+  // Keying a block on 'unknown' or 'localhost' would lock out all requests that
+  // share that fallback identity (e.g. every browser tab on a dev machine).
+  const keyLower = options.key.toLowerCase();
+  const isUnidentifiable =
+    keyLower.includes(':unknown') || keyLower.includes(':localhost');
+
   const usage = await incrementUsageCounter({
     key: violationKey,
     amount: 1,
@@ -288,7 +296,7 @@ export async function registerViolationAndMaybeBlock(options: {
     windowSeconds: options.violationWindowSeconds,
   });
 
-  if (usage.current >= options.threshold) {
+  if (!isUnidentifiable && usage.current >= options.threshold) {
     try {
       await setRedisValue(blockKey, 1, options.blockDurationSeconds);
     } catch {
@@ -309,18 +317,40 @@ export async function registerViolationAndMaybeBlock(options: {
   };
 }
 
-export function getClientIp(request: Request) {
-  const forwardedFor = request.headers.get('x-forwarded-for');
-  if (forwardedFor) {
-    return forwardedFor.split(',')[0]?.trim() || 'unknown';
-  }
+const LOOPBACK = new Set(['::1', '127.0.0.1', '::ffff:127.0.0.1']);
 
-  const realIp = request.headers.get('x-real-ip');
-  if (realIp) {
-    return realIp;
+function normaliseIp(ip: string | null | undefined): string | null {
+  if (!ip) return null;
+  const trimmed = ip.trim();
+  if (!trimmed) return null;
+  // Normalise all loopback variants to a single stable key so they share
+  // one rate-limit bucket and are excluded from temporary blocks.
+  return LOOPBACK.has(trimmed) ? 'localhost' : trimmed;
+}
+
+export function getClientIp(request: Request) {
+  // Next.js exposes the connection address as a non-standard property
+  const nextIp = normaliseIp((request as any).ip);
+  if (nextIp) return nextIp;
+
+  // Forwarded IP headers are only safe when a trusted proxy strips any
+  // client-supplied values before adding its own.
+  if (process.env.TRUST_PROXY_IP_HEADERS === 'true') {
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    if (forwardedFor) {
+      const ip = normaliseIp(forwardedFor.split(',')[0]);
+      if (ip) return ip;
+    }
+
+    const realIp = normaliseIp(request.headers.get('x-real-ip'));
+    if (realIp) return realIp;
   }
 
   return 'unknown';
+}
+
+export function hasTrustedClientIp(request: Request) {
+  return getClientIp(request) !== 'unknown';
 }
 
 export function getSessionCookieIdentifier(request: Request) {
@@ -353,11 +383,15 @@ export function getFingerprintIdentifier(
   request: Request,
   headerName?: string | null,
 ) {
-  if (!headerName) {
+  const normalizedHeaderName = headerName?.trim();
+  if (
+    !normalizedHeaderName ||
+    !/^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/.test(normalizedHeaderName)
+  ) {
     return null;
   }
 
-  const value = request.headers.get(headerName);
+  const value = request.headers.get(normalizedHeaderName);
   if (!value) {
     return null;
   }
@@ -375,7 +409,17 @@ export function buildIdentityResolution(
   let usedFingerprint = false;
 
   if (strategy.useIp) {
-    identities.push({ source: 'ip', key: `ip:${getClientIp(request)}` });
+    const clientIp = getClientIp(request);
+    const ipKey =
+      clientIp === 'unknown'
+        ? `unknown:${hashValue(
+            [
+              request.headers.get('user-agent') ?? '',
+              request.headers.get('accept-language') ?? '',
+            ].join('|'),
+          )}`
+        : clientIp;
+    identities.push({ source: 'ip', key: `ip:${ipKey}` });
     usedIp = true;
   }
 
@@ -402,7 +446,17 @@ export function buildIdentityResolution(
   }
 
   if (!identities.length) {
-    identities.push({ source: 'ip', key: `ip:${getClientIp(request)}` });
+    const clientIp = getClientIp(request);
+    const ipKey =
+      clientIp === 'unknown'
+        ? `unknown:${hashValue(
+            [
+              request.headers.get('user-agent') ?? '',
+              request.headers.get('accept-language') ?? '',
+            ].join('|'),
+          )}`
+        : clientIp;
+    identities.push({ source: 'ip', key: `ip:${ipKey}` });
     usedIp = true;
   }
 
@@ -416,4 +470,121 @@ export function buildIdentityResolution(
 
 export function estimateTokenCount(text: string) {
   return Math.max(1, Math.ceil(text.length / 4));
+}
+
+// ---------------------------------------------------------------------------
+// Block inspection + management (admin dashboard use)
+// ---------------------------------------------------------------------------
+
+export type BlockEntry = {
+  /** The full rate-limit key, e.g. "search:my-slug:ip:1.2.3.4" */
+  key: string;
+  /** Seconds remaining until the block expires */
+  resetSeconds: number;
+};
+
+/**
+ * Returns all active block entries whose key starts with the given prefix.
+ * Uses Redis SCAN when available, falls back to the in-memory store.
+ */
+export async function listActiveBlocks(
+  scopePrefix: string,
+): Promise<BlockEntry[]> {
+  const blockKeyPrefix = `block:${scopePrefix}`;
+  const redisPrefix = `rate-limit:${blockKeyPrefix}`;
+
+  const redis = getRedisClient();
+  if (redis) {
+    try {
+      await ensureRedisConnection(redis);
+      const keys: string[] = [];
+      let cursor = '0';
+      do {
+        const [nextCursor, batch] = await redis.scan(
+          cursor,
+          'MATCH',
+          `${redisPrefix}*`,
+          'COUNT',
+          100,
+        );
+        cursor = nextCursor;
+        keys.push(...batch);
+      } while (cursor !== '0');
+
+      const entries: BlockEntry[] = [];
+      for (const redisKey of keys) {
+        const value = await redis.get(redisKey);
+        if (value == null || value === '0') continue;
+        const ttl = await redis.ttl(redisKey);
+        if (ttl <= 0) continue;
+        // Strip the "rate-limit:" namespace prefix to get the logical key
+        const logicalKey = redisKey
+          .slice('rate-limit:'.length)
+          .slice('block:'.length);
+        entries.push({ key: logicalKey, resetSeconds: ttl });
+      }
+      return entries;
+    } catch {
+      // Fall through to in-memory
+    }
+  }
+
+  // In-memory fallback
+  const now = Date.now();
+  const entries: BlockEntry[] = [];
+  for (const [storeKey, entry] of memoryStore.entries()) {
+    if (!storeKey.startsWith(blockKeyPrefix)) continue;
+    if (entry.value <= 0 || entry.resetAt <= now) continue;
+    const resetSeconds = Math.ceil((entry.resetAt - now) / 1000);
+    entries.push({ key: storeKey.slice('block:'.length), resetSeconds });
+  }
+  return entries;
+}
+
+/**
+ * Deletes all block (and violation) keys whose logical key starts with the
+ * given prefix.  Returns the number of keys cleared.
+ */
+export async function clearBlocks(scopePrefix: string): Promise<number> {
+  const patterns = [`block:${scopePrefix}`, `violations:${scopePrefix}`];
+  let cleared = 0;
+
+  const redis = getRedisClient();
+  if (redis) {
+    try {
+      await ensureRedisConnection(redis);
+      for (const pattern of patterns) {
+        const redisPattern = `rate-limit:${pattern}*`;
+        let cursor = '0';
+        do {
+          const [nextCursor, keys] = await redis.scan(
+            cursor,
+            'MATCH',
+            redisPattern,
+            'COUNT',
+            100,
+          );
+          cursor = nextCursor;
+          if (keys.length > 0) {
+            await redis.del(...keys);
+            cleared += keys.length;
+          }
+        } while (cursor !== '0');
+      }
+      return cleared;
+    } catch {
+      // Fall through to in-memory
+    }
+  }
+
+  // In-memory fallback
+  for (const pattern of patterns) {
+    for (const key of [...memoryStore.keys()]) {
+      if (key.startsWith(pattern)) {
+        memoryStore.delete(key);
+        cleared++;
+      }
+    }
+  }
+  return cleared;
 }

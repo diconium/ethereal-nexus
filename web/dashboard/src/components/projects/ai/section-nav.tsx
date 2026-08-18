@@ -8,12 +8,14 @@ type AiSectionNavProps = {
     | 'catalogues'
     | 'author-dialogs'
     | 'content-advisor'
+    | 'searches'
     | 'settings';
 };
 
 const SECTIONS = [
   { key: 'chatbots', label: 'Chat bots' },
   { key: 'catalogues', label: 'Catalogues' },
+  { key: 'searches', label: 'Searches' },
   { key: 'author-dialogs', label: 'Author Dialogs' },
   { key: 'content-advisor', label: 'Content Advisor' },
   { key: 'settings', label: 'Settings' },

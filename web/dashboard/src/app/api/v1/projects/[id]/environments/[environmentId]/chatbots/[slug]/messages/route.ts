@@ -499,11 +499,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
       }
     }
 
-    const sessionCapIdentityKey = sessionIdentityKey || rawSessionKey;
+    const sessionCapIdentityKey = sessionIdentityKey
+      ? `session:${sessionIdentityKey}`
+      : rawSessionKey;
     if (chatbotApiSettings.session_request_cap_enabled) {
       if (sessionCapIdentityKey) {
         const sessionCap = await checkRateLimit({
-          key: `${projectId}:${environmentId}:${slug}:session:${sessionCapIdentityKey}:session-cap`,
+          key: `${projectId}:${environmentId}:${slug}:${sessionCapIdentityKey}:session-cap`,
           limit: chatbotApiSettings.session_request_cap_max_requests,
           windowSeconds: chatbotApiSettings.session_request_cap_window_seconds,
         });
@@ -511,7 +513,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         if (!sessionCap.allowed) {
           if (chatbotApiSettings.temporary_block_enabled) {
             await registerViolationAndMaybeBlock({
-              key: `${projectId}:${environmentId}:${slug}:session:${sessionCapIdentityKey}`,
+              key: `${projectId}:${environmentId}:${slug}:${sessionCapIdentityKey}`,
               threshold: chatbotApiSettings.temporary_block_violation_threshold,
               violationWindowSeconds:
                 chatbotApiSettings.temporary_block_window_seconds,

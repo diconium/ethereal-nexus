@@ -1,0 +1,323 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   SearchWidget
+───────────────────────────────────────────────────────────────────────── */
+
+.sw {
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #0f172a;
+}
+
+.sw,
+.sw *,
+.sw *::before,
+.sw *::after {
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+/* ── Trigger icon (closed state) ─────────────────────────────────────── */
+
+.sw__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: 0;
+  background: transparent;
+  color: #0f172a;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.sw__trigger:hover {
+  color: #e30613;
+}
+
+/* ── Expanded wrapper ────────────────────────────────────────────────── */
+
+.sw__expanded {
+  width: 100%;
+}
+
+/* ── Search row ──────────────────────────────────────────────────────── */
+
+.sw__row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  width: 100%;
+}
+
+/* "SEARCH" label */
+.sw__label {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0f172a;
+  user-select: none;
+}
+
+/* input + clear wrapper */
+.sw__inputWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  border-bottom: 1.5px solid #0f172a;
+  padding-bottom: 4px;
+  gap: 8px;
+}
+
+.sw__input {
+  flex: 1;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  color: #0f172a;
+  caret-color: #e30613;
+  padding: 0;
+}
+
+.sw__input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.sw__input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+/* clear × inside input */
+.sw__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: color 100ms ease;
+  line-height: 1;
+}
+
+.sw__clear:hover {
+  color: #0f172a;
+}
+
+/* red pill Search button */
+.sw__searchBtn {
+  flex-shrink: 0;
+  padding: 10px 28px;
+  border: 0;
+  border-radius: 999px;
+  background: #e30613;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 130ms ease, transform 130ms ease;
+  white-space: nowrap;
+}
+
+.sw__searchBtn:hover:not(:disabled) {
+  background: #c0040f;
+}
+
+.sw__searchBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* close × (top-right, replaces trigger) */
+.sw__close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: 0;
+  background: transparent;
+  color: #0f172a;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  transition: color 120ms ease;
+}
+
+.sw__close:hover {
+  color: #e30613;
+}
+
+/* ── Autocomplete suggestions ────────────────────────────────────────── */
+
+.sw__suggestions {
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.sw__suggestion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+  border-bottom: 1px solid #f8fafc;
+  transition: color 80ms ease;
+}
+
+.sw__suggestion:last-child {
+  border-bottom: 0;
+}
+
+.sw__suggestion:hover {
+  color: #e30613;
+}
+
+.sw__suggIcon {
+  display: flex;
+  align-items: center;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+/* ── Results ─────────────────────────────────────────────────────────── */
+
+.sw__results {
+  margin-top: 4px;
+}
+
+.sw__meta {
+  padding: 8px 0 4px;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.sw__result {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.sw__result:last-child {
+  border-bottom: 0;
+}
+
+.sw__dot {
+  flex-shrink: 0;
+  margin-top: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #e30613;
+}
+
+.sw__resultBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sw__resultTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+a.sw__resultTitle:hover {
+  color: #e30613;
+  text-decoration: underline;
+}
+
+.sw__resultSource {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.sw__resultSourceMono {
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 280px;
+}
+
+.sw__badge {
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.sw__snippet {
+  margin: 0;
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── States ──────────────────────────────────────────────────────────── */
+
+.sw__idle {
+  padding: 20px 0;
+  font-size: 13px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.sw__loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.sw__error {
+  padding: 12px 14px;
+  margin-top: 8px;
+  border-radius: 10px;
+  background: #fde9ea;
+  color: #b01723;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────────────── */
+
+@keyframes sw__spin {
+  to { transform: rotate(360deg); }
+}
+
+.sw__spinner {
+  animation: sw__spin 0.7s linear infinite;
+  flex-shrink: 0;
+}

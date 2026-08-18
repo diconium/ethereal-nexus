@@ -50,6 +50,20 @@
       "when": 1776782931250,
       "tag": "0006_agentic_ai_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1783593300924,
+      "tag": "0007_nostalgic_enchantress",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1783598405375,
+      "tag": "0008_unusual_chronomancer",
+      "breakpoints": true
     }
   ]
 }

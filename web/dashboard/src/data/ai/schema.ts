@@ -9,6 +9,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
+
 import { projects, environments } from '@/data/projects/schema';
 import { users } from '@/data/users/schema';
 import { sql } from 'drizzle-orm';
@@ -1023,6 +1024,148 @@ export const projectAiPageUrlMappings = pgTable(
     index('project_ai_page_url_mapping_project_env_idx').on(
       table.project_id,
       table.environment_id,
+    ),
+  ],
+);
+
+// ---------------------------------------------------------------------------
+// Search Applications
+// ---------------------------------------------------------------------------
+
+export const projectAiSearchApps = pgTable(
+  'project_ai_search_app',
+  {
+    id: uuid('id').notNull().primaryKey().defaultRandom(),
+    project_id: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    environment_id: uuid('environment_id')
+      .notNull()
+      .references(() => environments.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    slug: text('slug').notNull(),
+    public_slug: text('public_slug').notNull(),
+    provider: text('provider').notNull().default('vertex-ai-agent-search'),
+    provider_config: jsonb('provider_config')
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    // Service account JSON key for authenticating with Google Cloud.
+    // Stored per-app so different apps can use different GCP accounts.
+    credentials_json: text('credentials_json'),
+    page_size: integer('page_size').notNull().default(10),
+    page_size_max: integer('page_size_max').notNull().default(25),
+    enabled: boolean('enabled').notNull().default(true),
+    created_at: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updated_at: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('project_ai_search_app_env_slug_idx').on(
+      table.environment_id,
+      table.slug,
+    ),
+    uniqueIndex('project_ai_search_app_public_slug_idx').on(table.public_slug),
+    index('project_ai_search_app_project_env_idx').on(
+      table.project_id,
+      table.environment_id,
+    ),
+  ],
+);
+
+export const projectAiSearchAppApiSettings = pgTable(
+  'project_ai_search_app_api_setting',
+  {
+    id: uuid('id').notNull().primaryKey().defaultRandom(),
+    project_id: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    environment_id: uuid('environment_id')
+      .notNull()
+      .references(() => environments.id, { onDelete: 'cascade' }),
+    search_app_id: uuid('search_app_id')
+      .notNull()
+      .references(() => projectAiSearchApps.id, { onDelete: 'cascade' }),
+    // Rate limiting
+    rate_limit_enabled: boolean('rate_limit_enabled').notNull().default(true),
+    rate_limit_max_requests: integer('rate_limit_max_requests')
+      .notNull()
+      .default(30),
+    rate_limit_window_seconds: integer('rate_limit_window_seconds')
+      .notNull()
+      .default(60),
+    rate_limit_use_ip: boolean('rate_limit_use_ip').notNull().default(true),
+    rate_limit_use_session_cookie: boolean('rate_limit_use_session_cookie')
+      .notNull()
+      .default(true),
+    rate_limit_use_fingerprint: boolean('rate_limit_use_fingerprint')
+      .notNull()
+      .default(false),
+    fingerprint_header_name: text('fingerprint_header_name')
+      .notNull()
+      .default('x-client-fingerprint'),
+    // Query size limits
+    query_size_limit_enabled: boolean('query_size_limit_enabled')
+      .notNull()
+      .default(true),
+    max_query_characters: integer('max_query_characters').notNull().default(500),
+    max_request_body_bytes: integer('max_request_body_bytes')
+      .notNull()
+      .default(2000),
+    // Session request cap
+    session_request_cap_enabled: boolean('session_request_cap_enabled')
+      .notNull()
+      .default(false),
+    session_request_cap_max_requests: integer(
+      'session_request_cap_max_requests',
+    )
+      .notNull()
+      .default(200),
+    session_request_cap_window_seconds: integer(
+      'session_request_cap_window_seconds',
+    )
+      .notNull()
+      .default(86400),
+    // Temporary blocking
+    temporary_block_enabled: boolean('temporary_block_enabled')
+      .notNull()
+      .default(true),
+    temporary_block_violation_threshold: integer(
+      'temporary_block_violation_threshold',
+    )
+      .notNull()
+      .default(5),
+    temporary_block_window_seconds: integer('temporary_block_window_seconds')
+      .notNull()
+      .default(3600),
+    temporary_block_duration_seconds: integer(
+      'temporary_block_duration_seconds',
+    )
+      .notNull()
+      .default(1800),
+    // CORS / Allowed origins — browsers send Origin header; only listed origins
+    // are allowed when the list is non-empty.
+    allowed_origins: text('allowed_origins')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    created_at: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updated_at: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('project_ai_search_app_api_setting_search_app_idx').on(
+      table.search_app_id,
+    ),
+    index('project_ai_search_app_api_setting_project_env_idx').on(
+      table.project_id,
+      table.environment_id,
+      table.search_app_id,
     ),
   ],
 );

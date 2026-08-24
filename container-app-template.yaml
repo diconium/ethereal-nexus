@@ -52,7 +52,7 @@ properties:
           - name: DB_CACHE_STRATEGY
             value: "redis"
           - name: SEARCH_CREDENTIALS_ENCRYPTION_KEY
-            secretRef: "SEARCH_CREDENTIALS_ENCRYPTION_KEY"
+            secretRef: "search-credentials-encryption-key"
       - image: otel/opentelemetry-collector-contrib:latest
         name: otel-collector
         args: ["--config=/otel/otel-collector-config.yaml"]

@@ -2,7 +2,9 @@ import { BaseSchema, ComponentModel } from '../../types';
 import { ObjectEntries, ObjectOutput } from '../../types/object';
 import { DialogSchema } from '../../schema/dialog';
 
-export interface ComponentSchema<TEntries extends ObjectEntries> extends BaseSchema<ObjectOutput<TEntries>>, Partial<ComponentModel> {
+export interface ComponentSchema<TEntries extends ObjectEntries> extends BaseSchema<ObjectOutput<TEntries> & {
+  dataNexusChild?: string;
+}>, Partial<ComponentModel> {
   type: 'component';
   dialog: DialogSchema<TEntries>;
 }

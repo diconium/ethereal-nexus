@@ -19,14 +19,14 @@ const dialogSchema = dialog({
     enableFocusPoint: true,
   })
 });
-const version = '0.0.9';
+const version = '0.0.18';
 const schema = component({ version: version }, dialogSchema);
 
 type Props = Output<typeof schema>
 
-export const SimpleComponent: React.FC<Props> = ({ text, picture }) => {
+export const SimpleComponent: React.FC<Props> = ({ text, picture, dataNexusChild }) => {
 
-
+  console.log("Is a dataNexusChild: ", dataNexusChild);
   const focusPointStyle: React.CSSProperties | undefined = picture?.focusPoint ? { objectPosition: `${picture.focusPoint.x}% ${picture.focusPoint.y}%` } : undefined;
 
   return (

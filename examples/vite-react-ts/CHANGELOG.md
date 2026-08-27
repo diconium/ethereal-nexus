@@ -1,5 +1,16 @@
 # remote-components-vite-react-ts
 
+## 0.12.0
+
+### Minor Changes
+
+- eb42f81: feat: adds dataNexusChild to component schema
+
+### Patch Changes
+
+- Updated dependencies [eb42f81]
+  - @ethereal-nexus/core@1.22.0
+
 ## 0.11.1
 
 ### Patch Changes

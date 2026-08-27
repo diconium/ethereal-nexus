@@ -1,5 +1,11 @@
 # @ethereal-nexus/site
 
+## 1.3.0
+
+### Minor Changes
+
+- eb42f81: feat: adds dataNexusChild to component schema
+
 ## 1.2.1
 
 ### Patch Changes

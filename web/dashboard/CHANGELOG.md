@@ -1,5 +1,12 @@
 # @ethereal-nexus/dashboard
 
+## 3.10.0
+
+### Minor Changes
+
+- 8ab6d8e: implement admin role checks and enhance user authentication across various components and actions
+- cc922bf: feat: add search applications feature with API settings and rate limiting; update navigation and documentation
+
 ## 3.9.1
 
 ### Patch Changes

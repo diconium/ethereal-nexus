@@ -73,3 +73,11 @@ Css file for your component.
 ## HelloWorld.md
 
 Read me file for your component this will be shown in the dashboard.
+
+## Component Nesting
+
+Components can be nested within other nexus components. When a component is rendered as a child, it automatically receives the `data-nexus-child` attribute, which is passed to your React component as the `dataNexusChild` prop.
+
+This allows child components to detect their nesting context and adjust their behavior accordingly.
+
+For detailed information on component nesting and the `data-nexus-child` attribute, see [Component Nesting](/ethereal-nexus/reference/child-components/).

@@ -1,0 +1,229 @@
+---
+title: Component Nesting
+description: Learn how to create nested components and detect when a component is a child of another nexus component using the data-nexus-child attribute.
+sidebar:
+  order: 99
+---
+
+import { Code, FileTree } from '@astrojs/starlight/components';
+
+## Introduction
+
+In Ethereal Nexus, components can be nested within other components. When a component is rendered as a child of another nexus component, it receives the `data-nexus-child` attribute automatically. This allows child components to detect their nesting context and adjust their behavior accordingly.
+
+## The `data-nexus-child` Attribute
+
+When a component is rendered as a child of another nexus component, the HTML element receives the `data-nexus-child` attribute:
+
+```html
+<simple-component data-nexus-child="true" ...>
+```
+
+This attribute is automatically added by the Ethereal Nexus system when components are nested.
+
+## Accessing in React Components
+
+In your React components, the `data-nexus-child` attribute is automatically converted to camelCase and passed as the `dataNexusChild` prop:
+
+```tsx
+import React from 'react';
+import { component, dialog, text, type Output } from '@ethereal-nexus/core';
+
+const dialogSchema = dialog({
+  title: text({
+    label: 'Title',
+    defaultValue: 'Hello World',
+  }),
+});
+
+const schema = component({ version: '0.0.1' }, dialogSchema);
+
+type Props = Output<typeof schema>;
+
+export const SimpleComponent: React.FC<Props> = ({
+  title,
+  dataNexusChild, // Automatically available when component is a child
+}) => {
+  // Check if this component is a child of another nexus component
+  const isChildComponent = dataNexusChild !== undefined;
+  
+  console.log('data-nexus-child attribute present:', isChildComponent);
+  console.log('Attribute value:', dataNexusChild); // "true", "", or undefined
+
+  return (
+    <div>
+      <h1>{title}</h1>
+      {isChildComponent && (
+        <p>This component is a child of another nexus component</p>
+      )}
+    </div>
+  );
+};
+```
+
+### How to Check
+
+Since `dataNexusChild` is a string (or undefined), you can check for its existence:
+
+```tsx
+// Check if the attribute exists (any value including empty string)
+const isChild = dataNexusChild !== undefined;
+
+// Or check for specific values
+const isExplicitChild = dataNexusChild === 'true';
+```
+
+## TypeScript Support
+
+The `dataNexusChild` prop is automatically included in your component's props type when you use the `Output<typeof schema>` type helper:
+
+```tsx
+type Props = Output<typeof schema>;
+// Props includes: title: string, dataNexusChild?: string
+```
+
+## Reserved Property Name
+
+The name `dataNexusChild` (and its kebab-case variant `data-nexus-child`) is reserved in dialog schemas. You cannot create dialog fields with these names:
+
+```tsx
+// This will cause a TypeScript error
+const dialogSchema = dialog({
+  dataNexusChild: text({ // ❌ Reserved name
+    label: 'This will not work',
+  }),
+});
+```
+
+## Use Cases
+
+### 1. Adjusting Layout for Nested Context
+
+```tsx
+export const CardComponent: React.FC<Props> = ({ dataNexusChild }) => {
+  const isChild = dataNexusChild !== undefined;
+  
+  return (
+    <div className={isChild ? 'card-child' : 'card-standalone'}>
+      {/* Different styling based on nesting context */}
+    </div>
+  );
+};
+```
+
+### 2. Conditional Rendering
+
+```tsx
+export const NavigationComponent: React.FC<Props> = ({ dataNexusChild }) => {
+  const isChild = dataNexusChild !== undefined;
+  
+  if (isChild) {
+    // Simplified navigation for nested context
+    return <SimpleNav />;
+  }
+  
+  // Full navigation for standalone context
+  return <FullNav />;
+};
+```
+
+### 3. Context-Aware Behavior
+
+```tsx
+export const FormComponent: React.FC<Props> = ({ dataNexusChild }) => {
+  const isChild = dataNexusChild !== undefined;
+  
+  // Use parent component's validation when nested
+  const validationRules = isChild ? parentValidation : standaloneValidation;
+  
+  return (
+    <form validation={validationRules}>
+      {/* Form fields */}
+    </form>
+  );
+};
+```
+
+## HTML Examples
+
+### Standalone Component
+```html
+<simple-component
+  title="Standalone Component"
+  <!-- No data-nexus-child attribute -->
+/>
+```
+
+### Child Component
+```html
+<simple-component
+  data-nexus-child="true"
+  title="Child Component"
+  <!-- Component knows it's a child -->
+/>
+```
+
+## Best Practices
+
+1. **Use the check**: `dataNexusChild !== undefined` is the most reliable way to detect nesting
+2. **Don't rely on specific values**: The attribute value might be `"true"`, `""` (empty string), or other values
+3. **Keep it optional**: Always treat `dataNexusChild` as an optional prop in your components
+4. **Document nesting behavior**: If your component behaves differently when nested, document this in your component's README
+
+## Common Patterns
+
+### Pattern 1: Basic Detection
+```tsx
+const MyComponent: React.FC<Props> = ({ dataNexusChild }) => {
+  const isNested = dataNexusChild !== undefined;
+  
+  return (
+    <div className={isNested ? 'nested-styles' : 'standalone-styles'}>
+      {/* Content */}
+    </div>
+  );
+};
+```
+
+### Pattern 2: Context-Specific Features
+```tsx
+const FeatureComponent: React.FC<Props> = ({ dataNexusChild }) => {
+  const isChild = dataNexusChild !== undefined;
+  
+  return (
+    <div>
+      {/* Always shown */}
+      <BasicFeatures />
+      
+      {/* Only shown when not nested */}
+      {!isChild && <AdvancedFeatures />}
+      
+      {/* Only shown when nested */}
+      {isChild && <ChildSpecificFeatures />}
+    </div>
+  );
+};
+```
+
+## Troubleshooting
+
+### Issue: `dataNexusChild` is undefined
+- **Check**: Make sure your component is actually nested within another nexus component
+- **Verify**: The parent component must be a nexus component for the attribute to be added
+
+### Issue: TypeScript error about missing prop
+- **Solution**: Use `Output<typeof schema>` for your props type
+- **Check**: Make sure you're importing from `@ethereal-nexus/core`
+
+### Issue: Attribute value is empty string `""`
+- **Normal**: This is expected behavior - an empty string means the attribute exists
+- **Handle**: Use `dataNexusChild !== undefined` check, not `dataNexusChild === "true"`
+
+## Related Topics
+
+- [Components](/ethereal-nexus/reference/components/) - General component documentation
+- [Dialog Fields](/ethereal-nexus/dialogs/overview/) - Creating component configuration dialogs
+
+---
+
+By understanding and utilizing the `data-nexus-child` attribute, you can create components that intelligently adapt to their nesting context, providing better user experiences and more maintainable code.

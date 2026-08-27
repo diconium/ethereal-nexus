@@ -5,8 +5,8 @@ import { WebcomponentPropTypes } from '../../types/webcomponent';
 import { Condition } from './condition';
 import { pathToArray } from '../../utils/pathToArray';
 import { ConditionsArgument, TabsArgument } from './types';
-const RESERVED_DIALOG_KEYS = ['title', 'id', 'name'] as const;
-type ReservedDialogKeys = typeof RESERVED_DIALOG_KEYS[number] | `nav_${string}` | `cf_${string}`;
+const RESERVED_DIALOG_KEYS = ['title', 'id', 'name', 'dataNexusChild'] as const;
+type ReservedDialogKeys = typeof RESERVED_DIALOG_KEYS[number] | `nav_${string}` | `cf_${string}` | `data-nexus-child`;
 
 export interface DialogSchema<TEntries extends ObjectEntries> extends BaseSchema<ObjectOutput<TEntries>> {
   type: 'dialog';

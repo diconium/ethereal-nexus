@@ -11,6 +11,7 @@ type BaseOptions = {}
 export function webcomponent<T extends ObjectEntries>(schema?: DialogSchema<T>, options?: BaseOptions) {
   const props: Record<string, WebcomponentPropTypes> | undefined = schema ? {
     ...parsePrimitives(schema),
+    "dataNexusChild": "string"
   } : undefined;
 
   return <P extends {} = {}>(component: React.ComponentType<P>) => {

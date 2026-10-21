@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import React, { useState, useRef } from 'react';
-// No automated interaction tests — stories are for manual testing
+import type {} from 'storybook/test';
 import {
   DialogTrigger,
   ActionButton,
@@ -383,18 +383,27 @@ const DEFAULT_INITIAL_VALUES = {
 };
 
 // Interactive JSON Dialog Tester with live value updates
-const LiveJsonDialogTester: React.FC<{ storyChatbotApiUrl?: string }> = ({
+const LiveJsonDialogTester: React.FC<{
+  storyChatbotApiUrl?: string;
+  initialDialogConfig?: any;
+  initialValues?: any;
+}> = ({
   storyChatbotApiUrl,
+  initialDialogConfig,
+  initialValues,
 }) => {
+  const startingDialog = initialDialogConfig || DEFAULT_DIALOG_CONFIG;
+  const startingValues = initialValues || DEFAULT_INITIAL_VALUES;
+
   const [dialogConfigJson, setDialogConfigJson] = useState(
-    JSON.stringify(DEFAULT_DIALOG_CONFIG, null, 2),
+    JSON.stringify(startingDialog, null, 2),
   );
   const [initialValuesJson, setInitialValuesJson] = useState(
-    JSON.stringify(DEFAULT_INITIAL_VALUES, null, 2),
+    JSON.stringify(startingValues, null, 2),
   );
-  const [parsedDialog, setParsedDialog] = useState<any>(DEFAULT_DIALOG_CONFIG);
+  const [parsedDialog, setParsedDialog] = useState<any>(startingDialog);
   const [currentFormData, setCurrentFormData] = useState<any>(
-    DEFAULT_INITIAL_VALUES,
+    startingValues,
   );
   const [parseError, setParseError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -1458,5 +1467,50 @@ export const LiveTester_NoChatbot: Story = {
   ),
   args: {
     storyChatbotApiUrl: undefined,
+  },
+};
+
+const RTE_ONLY_DIALOG = {
+  id: 'rte-link-test',
+  title: 'RTE Link Test',
+  fields: [
+    {
+      type: 'richtexteditor',
+      id: 'text',
+      label: 'Rich Text Content',
+      placeholder: 'Enter your content here...',
+      features: ['sourceedit'],
+      required: true,
+    },
+  ],
+};
+
+const RTE_ONLY_INITIAL_VALUES = {
+  text: '<p>This is a <a href="/content/sample" target="_blank" rel="noopener noreferrer" title="Sample link">sample link</a>.</p>',
+};
+
+export const LiveTester_RTE_Links: Story = {
+  name: 'Live JSON Dialog Tester — RTE Links',
+  render: (args) => (
+    <LiveJsonDialogTester
+      storyChatbotApiUrl={args.storyChatbotApiUrl}
+      initialDialogConfig={RTE_ONLY_DIALOG}
+      initialValues={RTE_ONLY_INITIAL_VALUES}
+    />
+  ),
+  args: {
+    storyChatbotApiUrl: undefined,
+  },
+  play: async ({ canvasElement }) => {
+    const link = canvasElement.querySelector('a[href="/content/sample"]');
+    if (!link) {
+      throw new Error('RTE did not preserve the sample link on initial render');
+    }
+    if (link.getAttribute('target') !== '_blank') {
+      throw new Error('RTE did not preserve target="_blank"');
+    }
+    if (link.getAttribute('title') !== 'Sample link') {
+      throw new Error('RTE did not preserve title attribute');
+    }
   },
 };

@@ -1,6 +1,6 @@
 // @ts-nocheck
-import React, {useEffect, useRef} from 'react';
-import {View, Text, Flex} from "@adobe/react-spectrum";
+import React, {useEffect, useRef, useState} from 'react';
+import {View, Text, Flex, TextField} from "@adobe/react-spectrum";
 import {useI18n} from '../providers';
 
 declare global {
@@ -24,9 +24,17 @@ export interface SpectrumPathbrowserFieldProps {
     error?: string | null;
 }
 
+const isCoralAvailable = () => {
+    if (typeof window === 'undefined') return false;
+    if ((window as any).Coral) return true;
+    if (window.customElements && window.customElements.get('foundation-autocomplete')) return true;
+    return false;
+};
+
 export const SpectrumPathbrowserField: React.FC<SpectrumPathbrowserFieldProps> = ({field, value, onChange, error}) => {
     const inputRef = useRef<any>(null);
     const {t} = useI18n();
+    const [isWebComponentAvailable] = useState<boolean>(() => isCoralAvailable());
 
     return (
         <View>
@@ -38,32 +46,42 @@ export const SpectrumPathbrowserField: React.FC<SpectrumPathbrowserFieldProps> =
 
             <Flex gap="size-100" direction={"column"}>
                 {/*TODO: add support for assets*/}
-                <foundation-autocomplete
-                    className="spectrum-pathbrowser"
-                    style={{width: '100%'}}
-                    name={field.name}
-                    pickersrc={`/libs/granite/ui/content/coral/foundation/form/pathfield/picker.html?_charset_=utf-8&path=${encodeURIComponent(value)}&root=${encodeURIComponent(field.rootPath || '/content')}&selectionCount=single`}
-                    labelledby={field.labelledby || ''}
-                    data-foundation-validation=""
-                    ref={inputRef}
-                    onChange={e => {
-                        // Try to get value from event or input
-                        const newValue = e?.detail?.value || e?.target?.value || '';
-                        onChange(newValue);
-                    }}
-                >
-                    <coral-overlay
-                        foundation-autocomplete-suggestion=""
-                        className="foundation-picker-buttonlist"
-                        data-foundation-picker-buttonlist-src={`/libs/granite/ui/content/coral/foundation/form/pathfield/suggestion{.offset,limit}.html?root=${encodeURIComponent(field.rootPath || '/content')}{&query}`}
-                    ></coral-overlay>
-                    <coral-taglist
-                        foundation-autocomplete-value=""
+                {isWebComponentAvailable ? (
+                    <foundation-autocomplete
+                        className="spectrum-pathbrowser"
+                        style={{width: '100%'}}
                         name={field.name}
+                        pickersrc={`/libs/granite/ui/content/coral/foundation/form/pathfield/picker.html?_charset_=utf-8&path=${encodeURIComponent(value)}&root=${encodeURIComponent(field.rootPath || '/content')}&selectionCount=single`}
+                        labelledby={field.labelledby || ''}
+                        data-foundation-validation=""
+                        ref={inputRef}
+                        onChange={e => {
+                            // Try to get value from event or input
+                            const newValue = e?.detail?.value || e?.target?.value || '';
+                            onChange(newValue);
+                        }}
                     >
-                        <coral-tag value={value}></coral-tag>
-                    </coral-taglist>
-                </foundation-autocomplete>
+                        <coral-overlay
+                            foundation-autocomplete-suggestion=""
+                            className="foundation-picker-buttonlist"
+                            data-foundation-picker-buttonlist-src={`/libs/granite/ui/content/coral/foundation/form/pathfield/suggestion{.offset,limit}.html?root=${encodeURIComponent(field.rootPath || '/content')}{&query}`}
+                        ></coral-overlay>
+                        <coral-taglist
+                            foundation-autocomplete-value=""
+                            name={field.name}
+                        >
+                            <coral-tag value={value}></coral-tag>
+                        </coral-taglist>
+                    </foundation-autocomplete>
+                ) : (
+                    <TextField
+                        data-testid="rte-link-path-fallback"
+                        placeholder={t(field.placeholder ?? '') || 'Enter path (e.g. /content/page)'}
+                        value={value || ''}
+                        onChange={onChange}
+                        width="100%"
+                    />
+                )}
 
               {field.tooltip && (
                 <Text UNSAFE_style={{fontSize: '12px', color: '#666', marginBottom: '8px'}}>

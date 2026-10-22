@@ -46,6 +46,7 @@ const sanitizeRichTextContent = (html: string): string => sanitizeHtml(html || '
     ],
     allowedAttributes: {
         "*": ['style'],
+        a: ['href', 'target', 'rel', 'title', 'aria-label', 'download'],
     },
     allowedStyles: {
         '*': {
@@ -69,7 +70,7 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
                                                                                             error
                                                                                         }) => {
   const {t} = useI18n();
-  const rteIsEnabled = (field.features || []).includes("sourceedit");
+  const rteIsEnabled = field.features === null || field.features === undefined || (field.features || []).includes("sourceedit");
 
   const editorRef = useRef<HTMLDivElement>(null);
   const isUserTyping = useRef<boolean>(false);
@@ -250,6 +251,7 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
 
     return (
         <View>
+          hello 1234
             <Flex alignItems="center" justifyContent="space-between" marginBottom="size-100">
                 <Text UNSAFE_style={{fontSize: '12px'}}>
                     {t(field.label ?? '')}
@@ -300,14 +302,14 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
                     <Item key={"list"}>
                       <ViewListSvg />
                     </Item>
-                    <Item key={"link"} >
+                    <Item key={"link"} aria-label="Add or edit link" data-testid="rte-link-button">
                       <LinkSvg/>
                     </Item>
                   </ActionGroup>
                   <ActionButton onPress={removeLink} isDisabled={isSourceMode}>
                     <Unlink />
                   </ActionButton>
-                  {rteIsEnabled && (<ActionButton onPress={toggleSourceMode} >
+                  {rteIsEnabled && (<ActionButton onPress={toggleSourceMode} aria-label={isSourceMode ? "Switch to visual editor" : "Toggle HTML source mode"} data-testid="rte-source-toggle">
                     {isSourceMode ? <TextEdit/> : <FileHTML />}
                   </ActionButton>) }
                 </Flex>
@@ -383,17 +385,20 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
                         onChange={(value) => setLink((prev) => ({...prev, href: value}))}
                       />
                       <TextField
+                        data-testid="rte-link-alt"
                         label={t("spectrum.richtext.alternativeText", undefined, undefined, "Alternative Text")}
                         value={link?.alt}
                         onChange={(value) => setLink((prev) => ({...prev, alt: value}))}
                       />
                       <Checkbox
+                        data-testid="rte-link-new-tab"
                         isSelected={link?.target === '_blank'}
                         onChange={(isSelected) => setLink((prev) => ({...prev, target: isSelected ? '_blank' : '_self'}))}
                       >
                         {t("spectrum.richtext.openInNewTab", undefined, undefined, "Open in new tab")}
                       </Checkbox>
                       <ActionButton
+                        data-testid="rte-link-apply"
                         isDisabled={!link?.target || (!linkHighlightEl && !window.getSelection()?.toString())}
                         onPress={createLink}
                       >
@@ -429,6 +434,7 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
                 {/* Editor - Visual or Source Mode */}
                 {isSourceMode ? (
                     <textarea
+                        data-testid="rte-source-textarea"
                         value={sourceContent}
                         onChange={handleSourceChange}
                         onFocus={() => setIsEditorFocused(true)}
@@ -452,6 +458,10 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
                     <div
                         ref={editorRef}
                         contentEditable
+                        role="textbox"
+                        aria-multiline="true"
+                        aria-label={t(field.label ?? '') || t('spectrum.richtext.editorLabel', undefined, undefined, 'Rich text editor')}
+                        data-testid="rte-editor"
                         suppressContentEditableWarning
                         onInput={handleContentChange}
                         onFocus={() => setIsEditorFocused(true)}
@@ -475,6 +485,7 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
             {/* Hidden input for form submission */}
             <input
                 type="hidden"
+                data-testid="rte-hidden-input"
                 name={getFieldName(field)}
                 value={content}
                 readOnly

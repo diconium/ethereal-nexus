@@ -30,12 +30,20 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
-          cache: "pnpm"
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+          package-manager-cache: false
+
+      - name: Check publishing environment
+        run: |
+          node --version
+          npm --version
+          pnpm --version
 
       - name: Install Dependencies
-        run: pnpm i --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
-      - name: 'Create env file'
+      - name: Create env file
         run: |
           echo "${{ secrets.NEXT_AUTH_SECRET }}" >> ./web/dashboard/.env
           echo "${{ secrets.DRIZZLE_DATABASE_URL }}" >> ./web/dashboard/.env

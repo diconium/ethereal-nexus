@@ -1,5 +1,11 @@
 # @ethereal-nexus/dialog-ui-spectrum
 
+## 1.9.4
+
+### Patch Changes
+
+- 96c3555: fix: remove leftover "hello 1234" debug text
+
 ## 1.9.3
 
 ### Patch Changes

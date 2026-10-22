@@ -251,7 +251,6 @@ export const SpectrumRichTextEditorField: React.FC<SpectrumRichTextEditorFieldPr
 
     return (
         <View>
-          hello 1234
             <Flex alignItems="center" justifyContent="space-between" marginBottom="size-100">
                 <Text UNSAFE_style={{fontSize: '12px'}}>
                     {t(field.label ?? '')}
